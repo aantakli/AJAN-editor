@@ -1,0 +1,44 @@
+{{behaviors/create-bt}}
+{{#ui/menu-bar}}
+  {{ui/menu-bar/input-button
+      label="Load File"
+      compAction=(action "load")
+    }}
+  {{ui/menu-bar/download-button
+    label="Export Repo"
+    content=this.fileContent
+    fileName=this.fileName
+  }}
+  {{ui/menu-bar/button
+    label="Add Behavior"
+    onClick=(action "addBehavior")
+  }}
+  {{ui/menu-bar/button
+    label="Sort"
+    onClick=(action "sort")
+  }}
+  {{ui/menu-bar/button
+    label="Save"
+    onClick=(action "save")
+  }}
+  {{ui/menu-bar/button
+    label="Delete"
+    onClick=(action "delete")
+  }}
+  {{ui/menu-bar/button
+    label="Restore"
+    onClick=(action "restoreSave")
+  }}
+
+  <div class="store-url-cont vcenter" local-class="rightmost">
+    <div>
+      <div local-class="store">Triplestore:</div>
+      <div class="store-url">---</div>
+    </div>
+  </div>
+
+  {{yield}}
+{{/ui/menu-bar}}
+
+{{ui/message/save-confirmation}}
+{{ui/message/error-message}}

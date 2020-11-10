@@ -1,0 +1,17 @@
+:global(.behavior.side-pane.list) {
+  /* margin-left: 10pt; */
+  overflow: visible;
+}
+:global(.behavior.side-pane.list-item) {
+  /* margin-left: 10pt; */
+}
+
+:global(.behavior.side-pane.container) {
+
+}
+
+:global(.behavior.side-pane.description.textarea) {
+  height: 4em;
+  min-height: 2em;
+  /* max-height: 24em; */
+}

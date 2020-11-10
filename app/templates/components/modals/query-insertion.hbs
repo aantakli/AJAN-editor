@@ -1,0 +1,32 @@
+
+<div id="modal-query-insertion" class='modal' local-class="modal" style={{display-helpers/visibility-property show}}>
+  <!-- Modal content -->
+  <div class="modal-content" local-class="modal-content">
+    <div class="modal-header">
+      <span class="modal-close" {{action 'close'}}><i class="close icon"></i></span>
+      <h2 id="modal-query-header-title" class="modal-header-title">Query Insertion</h2>
+    </div>
+    <div id="" class="modal-body query-selection" local-class="modal-body">
+      {{editor/query-selection
+        query=query
+        template=template
+        tabs=tabs
+      }}
+    </div>
+
+    <div class="modal-footer">
+      <div class="modal-buttons">
+        <div class="ui negative right labeled icon button" {{action 'cancel'}}>
+          Cancel
+          <i class="close icon"></i>
+        </div>
+        <div id="modal-query-insertion-confirm" class="ui positive right labeled icon button" {{action 'confirm'}}>
+          Insert
+          <i class="pencil alternate icon"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{yield}}

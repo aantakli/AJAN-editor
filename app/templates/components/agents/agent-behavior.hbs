@@ -1,0 +1,292 @@
+
+
+<div local-class="agent-item-header clearfix">
+  <div local-class="agent-item-header-text">  {{activeBehavior.label}}</div>
+  <button {{action "deletebehavior"}} class="ui red icon button rightmost">
+    <i class="minus icon no-side-margins"></i>
+  </button>
+</div>
+
+<div local-class="item-seperation">
+  <hr><i> URI</i>
+</div>
+
+<div local-class="item-row clearfix">
+  <div local-class="item-row-title" data-tooltip="Agent's URI" data-position="top left">
+    URI:
+  </div>
+
+  <div local-class="item-row-content">
+    <div local-class="item-row-value">
+      {{activeBehavior.uri}}
+    </div>
+  </div>
+</div>
+
+
+<!--Label -->
+<div local-class="item-seperation">
+  <hr><i> Label</i>
+</div>
+
+<div local-class="item-row clearfix">
+  <div local-class="item-row-title" data-tooltip="Manipulate Behavior's Label" data-position="top left">Label:</div>
+  {{#if this.editLabel}}
+  <div local-class="item-row-content-edit">
+    <div local-class="item-row-value">
+      {{input value=activeBehavior.label}}
+    </div>
+
+    <div local-class="item-row-buttons">
+
+      <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
+        <i class="close icon no-side-margins"></i>
+      </button>
+
+      <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeBehavior.uri "http://www.w3.org/2000/01/rdf-schema#label" activeBehavior.label "http://www.w3.org/2001/XMLSchema#string"}}>
+        <i class="pencil icon no-side-margins"></i>
+      </button>
+
+    </div>
+  </div>
+  {{/if}}
+
+  {{#unless this.editLabel}}
+  <div local-class="item-row-content">
+    <div local-class="item-row-value">
+      {{activeBehavior.label}}
+    </div>
+    <div local-class="item-row-buttons">
+      <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "label" activeBehavior.label}}>
+        <i class="edit icon no-side-margins"></i>
+      </button>
+    </div>
+  </div>
+  {{/unless}}
+
+</div>
+
+{{#if this.regularBehavior}}
+<!-- AddType -->
+<div local-class="item-seperation">
+  <hr><i> Label</i>
+</div>
+
+<div local-class="item-row clearfix">
+  <div local-class="item-row-title" data-tooltip="Manipulate Behavior's Label" data-position="top left">Additional Type:</div>
+  {{#if this.editAddtype}}
+  <div local-class="item-row-content-edit">
+    <div local-class="item-row-value">
+      {{input value=activeBehavior.addtype}}
+    </div>
+
+    <div local-class="item-row-buttons">
+
+      <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
+        <i class="close icon no-side-margins"></i>
+      </button>
+
+      <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeBehavior.uri "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" activeBehavior.addtype}}>
+        <i class="pencil icon no-side-margins"></i>
+      </button>
+
+    </div>
+  </div>
+  {{/if}}
+
+  {{#unless this.editAddtype}}
+<div local-class="item-row-content">
+  {{#if (eq activeBehavior.addtype "")}}
+  <div class="ajan-optional">you can define an additional Type</div>
+  {{/if}}
+  <div local-class="item-row-value">
+    {{activeBehavior.addtype}}
+  </div>
+  <div local-class="item-row-buttons">
+    <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "addtype" activeBehavior.addtype}}>
+      <i class="edit icon no-side-margins"></i>
+    </button>
+  </div>
+</div>
+  {{/unless}}
+
+</div>
+
+<!-- Requires -->
+<div local-class="item-seperation">
+  <hr><i> Label</i>
+</div>
+
+<div local-class="item-row clearfix">
+  <div local-class="item-row-title" data-tooltip="Manipulate Behavior's Label" data-position="top left">Requires:</div>
+  {{#if this.editRequires}}
+  <div local-class="item-row-content-edit">
+    <div local-class="item-row-value">
+      {{input value=activeBehavior.requires}}
+    </div>
+
+    <div local-class="item-row-buttons">
+
+      <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
+        <i class="close icon no-side-margins"></i>
+      </button>
+
+      <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeBehavior.uri "http://purl.org/dc/terms/requires" activeBehavior.requires "http://www.w3.org/2001/XMLSchema#string"}}>
+        <i class="pencil icon no-side-margins"></i>
+      </button>
+
+    </div>
+  </div>
+  {{/if}}
+
+  {{#unless this.editRequires}}
+<div local-class="item-row-content">
+  {{#if (eq activeBehavior.requires "")}}
+  <div class="ajan-optional">you can define Requirements</div>
+  {{/if}}
+  <div local-class="item-row-value">
+    {{activeBehavior.requires}}
+  </div>
+  <div local-class="item-row-buttons">
+    <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "requires" activeBehavior.requires}}>
+      <i class="edit icon no-side-margins"></i>
+    </button>
+  </div>
+</div>
+  {{/unless}}
+
+</div>
+
+<!-- tirgger-->
+<div local-class="item-seperation">
+  <hr><i> Trigger</i>
+</div>
+<div local-class="item-row clearfix">
+  <div local-class="item-row-title">
+    <div data-tooltip="Manipulate Behavior's Trigger" data-position="top left">
+      Triggers:
+    </div>
+  </div>
+  {{#if this.editTrigger}}
+  <div local-class="border-line">
+    {{#checkbox-list
+           items=availableEventsandGoals
+           checked=selectedTriggers
+           onCheck=(action "handleCheck")
+           as |list|
+    }}
+
+    <div local-class="block">
+
+      <div local-class="bloc1">
+        {{list.checkbox}}
+      </div>
+
+      <div local-class="bloc2" data-tooltip={{ list.item.uri}} data-position="top left">
+        {{ list.item.label}}
+      </div>
+    </div>
+
+    {{/checkbox-list}}
+    <div local-class="buttonrow">
+      <button local-class="item-row-apply" class="ui positive right icon button" {{action "savenewtriggers" Selecteditems }}>
+
+        <i class="pencil icon no-side-margins"></i>
+      </button>
+
+      <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
+        <i class="close icon no-side-margins"></i>
+      </button>
+    </div>
+  </div>
+
+  {{/if}}
+  {{#unless this.editTrigger}}
+<div local-class="item-row-content">
+  {{#if (is-empty activeBehavior.triggers)}}
+  <div class="ajan-mandatory">select a Trigger!</div>
+  {{/if}}
+  <div local-class="item-row-value">
+    {{#each activeBehavior.triggers as |trigger|}}
+    <div local-class="bullet">
+      <li>
+        <div local-class="bloc3" data-tooltip={{trigger.uri}} data-position="top left">
+          <div>{{trigger.label}}  </div>
+        </div>
+
+      </li>
+    </div>
+    {{/each}}
+
+  </div>
+  <div local-class="item-row-buttons">
+    <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "trigger"  activeBehavior.triggers}}>
+      <i class="edit icon no-side-margins"></i>
+    </button>
+  </div>
+</div>
+  {{/unless}}
+</div>
+{{/if}}
+
+<!--bt -->
+<div local-class="item-seperation">
+  <hr><i> BT</i>
+</div>
+<div local-class="item-row clearfix">
+  <div local-class="item-row-title">
+    <div data-tooltip="Manipulate Behavior's BT" data-position="top left">
+      BT:
+    </div>
+  </div>
+  {{#if this.editBt}}
+<div local-class="item-row-content-edit">
+  {{#ui-dropdown class="selection service-edit-dropdown" selected=activeBehavior.bt.uri onChange=(action (mut activeBT))}}
+  <div class="default text">{{activeBehavior.bt.label}}</div>
+  <i class="dropdown icon"></i>
+  <div class="menu">
+    {{#each availableBTs as |bt|}}
+    <div data-value="{{bt.uri}}" class="item">
+      {{bt.name}}
+    </div>
+    {{/each}}
+  </div>
+  {{/ui-dropdown}}
+
+  <div local-class="item-row-buttons">
+    <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
+      <i class="close icon no-side-margins"></i>
+    </button>
+
+    <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeBehavior.uri "http://www.ajan.de/ajan-ns#bt" activeBT "http://www.w3.org/2001/XMLSchema#anyURI"}}>
+      <i class="pencil icon no-side-margins"></i>
+    </button>
+  </div>
+</div>
+
+  {{/if}}
+  {{#unless this.editBt}}
+<div local-class="item-row-content">
+  {{#if (eq activeBehavior.bt undefined)}}
+  <div class="ajan-mandatory">select a BT!</div>
+  {{/if}}
+  {{#if (eq activeBehavior.bt.label "")}}
+  <div class="ajan-mandatory">select a BT!</div>
+  {{/if}}
+  <div local-class="item-row-value">
+    <div data-tooltip={{activeBehavior.bt.uri}} data-position="top left">
+      <div>{{activeBehavior.bt.label}}</div>
+    </div>
+  </div>
+  <div local-class="item-row-buttons">
+    <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "bt" activeBehavior.bt}}>
+      <i class="edit icon no-side-margins"></i>
+    </button>
+  </div>
+</div>
+  {{/unless}}
+</div>
+
+
+
+

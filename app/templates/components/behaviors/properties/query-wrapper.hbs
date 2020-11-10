@@ -1,0 +1,45 @@
+{{#ui-accordion}}
+
+  {{#if removeButtonAction}}
+    {{#component 'ui/side-pane/title-wrapper'
+      title=title
+      class="active title"
+      isAccordion=true
+    }}
+      {{#if editQuery}}
+        {{component 'ui/buttons/edit-button'
+          onClick=editQuery
+          tooltip=editTooltip
+        }}
+      {{else}}
+        {{component 'ui/buttons/button-placeholder'}}
+      {{/if}}
+      {{component 'ui/buttons/remove-button'
+        onClick=removeButtonAction
+      }}
+    {{/component}}
+    <div class="content active">
+      {{yield}}
+    </div>
+
+  {{else}}
+    {{#component 'ui/side-pane/title-wrapper'
+      title=title
+      class="active title"
+      isAccordion=true
+    }}
+      {{#if editQuery}}
+        {{component 'ui/buttons/edit-button'
+          onClick=editQuery
+          tooltip=editTooltip
+        }}
+      {{else}}
+        {{component 'ui/buttons/button-placeholder'}}
+      {{/if}}
+    {{/component}}
+    <div class="content active">
+      {{yield}}
+    </div>
+  {{/if}}
+
+{{/ui-accordion}}

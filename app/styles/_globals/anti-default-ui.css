@@ -1,0 +1,27 @@
+:global(.ui.accordion div.title.ember-view) {
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+:global(.ui.accordion .accordion), :global(.ui.accordion .content) {
+  padding-top: inherit !important;
+  padding-bottom: inherit !important;
+  margin-top: inherit;
+  margin-bottom: inherit;
+}
+
+:global(.custom-toggle.ui.toggle.checkbox > label) {
+  color: white;
+}
+
+:global(.custom-toggle.ui.toggle.checkbox) {
+  /* background-color: white; */
+  border-radius: 10pt;
+  background-color: aliceblue;
+}
+
+:global(.popup), :global(.popup::before) {
+  background-color: #E8EAF6 !important;
+}

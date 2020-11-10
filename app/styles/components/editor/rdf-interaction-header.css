@@ -1,0 +1,38 @@
+.header {
+  padding: 0pt 5pt;
+}
+
+.label {
+  font-weight: bold;
+  flex-basis: 13em;
+  white-space: nowrap;
+}
+
+.container{
+  padding: 5pt 0;
+}
+
+:global(.rdf-interaction.container) {
+  padding: 5pt 0;
+}
+
+:global(.rdf-interaction.label) {
+  font-weight: bold;
+  /* flex-basis: 13em; */
+  white-space: nowrap;
+  flex: 1;
+}
+
+:global(.rdf-interaction.container) {
+  padding: 5pt 0;
+}
+
+:global(.rdf-interaction.field) {
+  flex: 4;
+}
+:global(.rdf-interaction.small-field) {
+  flex: 1;
+}
+:global(.rdf-interaction.big-field) {
+  flex: 3;
+}

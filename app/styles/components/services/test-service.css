@@ -1,0 +1,64 @@
+:global(#services) {
+  overflow-x: hidden;
+}
+
+:global(#test-service) {
+  width: 100%;
+  margin: 0 50%;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+:global(#test-service-wrapper) {
+  width: 980px;
+  margin-left: -490px;
+  padding: 20px 50px;
+  box-shadow: 0px 5px 10px #d1d1e0;
+}
+
+:global(#test-service-content) {
+    padding-top: 20px;
+}
+
+.connect-button,
+.disconnect-button {
+  top: -7px;
+  left: 10px;
+  position: relative;
+}
+
+:global(#test-service-message) {
+  max-width: 100%;
+  min-height: 50px;
+  padding: 20px;
+  margin: 30px 0;
+  color: #ffffff;
+  position: relative;
+  box-shadow: inset 0px 0px 5px #cccccc;
+  font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
+  background-color: rgb(24, 25, 64);
+}
+
+:global(#test-service-message button) {
+  float: right;
+  margin-right: -10px;
+  margin-top: -10px;
+  width: 25px;
+  height: 25px;
+  padding: 0px !important;
+}
+
+/* clearfix */
+.clearfix::before,
+.clearfix::after {
+  content: " ";
+  display: table;
+}
+
+.clearfix::after {
+  clear: both;
+}
+
+.clearfix {
+  *zoom: 1; /* Für den IE6 und IE7 */
+}

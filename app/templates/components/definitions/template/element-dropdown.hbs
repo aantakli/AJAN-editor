@@ -1,0 +1,17 @@
+{{#definitions/template/element-labeled-wrapper
+  label=param.title
+  note=param.note
+  compactView=compactView
+}}
+
+{{definitions/template/custom-dropdown
+    mode=param.mode
+    possibleValues=param.possibleValues
+    class="modal-creation-input modal-flex-item flexed-input"
+    placeholder=param.label
+    value=param.variableBinding
+    selected=param.variableBinding
+    onChange=(action (mut param.variableBinding))
+}}
+
+{{/definitions/template/element-labeled-wrapper}}

@@ -1,0 +1,21 @@
+{{#ui-dropdown
+  id=inputID
+  class="fluid search selection"
+  allowAdditions=true
+  fullTextSearch=true
+  selected=selected
+  onChange=onChange
+  as |execute mapper|
+}}
+
+<i class="dropdown icon"></i>
+<div class="default text">{{placeholder}}</div>
+<div class="menu">
+  {{#each possibleValues as |valueChoice|}}
+  <div data-value={{valueChoice.dataValue}} class="item">
+    {{valueChoice.label}}
+  </div>
+  {{/each}}
+</div>
+
+{{/ui-dropdown}}

@@ -1,0 +1,5 @@
+:global(.title), :global(.subtitle) {
+  text-overflow: clip;
+  overflow: hidden;
+  white-space: nowrap;
+}

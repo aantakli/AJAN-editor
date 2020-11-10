@@ -1,0 +1,27 @@
+.button {
+  width: 10em;
+
+  flex-basis: 15em;
+  text-align: center;
+  vertical-align: middle;
+
+  font-weight: bold;
+  white-space: normal;
+
+  padding-left: 1pt;
+  padding-right: 1pt;
+
+  -webkit-box-shadow: -10px 0px 0px -8px lightgrey;
+     -moz-box-shadow: -10px 0px 0px -8px lightgrey;
+          box-shadow: -10px 0px 0px -8px lightgrey;
+}
+
+.seperator {
+  width: 3pt;
+  height: 80%;
+  background-color: black;
+}
+
+.button:hover {
+  background-color: lightgrey;
+}

@@ -1,0 +1,118 @@
+# @base <http://localhost/rdf4j/repositories/agents> .
+
+@prefix : <http://localhost:8090/rdf4j/repositories/agents#> .
+@prefix behaviors: <http://localhost:8090/rdf4j/repositories/behaviors#> .
+@prefix beliefs: <http://localhost:8090/rdf4j/repositories/beliefs#> .
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix http: <http://www.w3.org/2011/http#> .
+@prefix ajan: <http://www.ajan.de/ajan-ns#> .
+
+# ----------- Endpoint ------------
+
+# localhost:8080/ajan/agents/ | POST | text/turtle
+
+# ------------- Body --------------
+
+#@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+#@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+#@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+#@prefix ajan: <http://www.ajan.de/ajan-ns#> .
+#@prefix inv: <http://www.dfki.de/inversiv#> .
+#@prefix : <http://www.dfki.de/inversiv#> .
+#@prefix bt: <http://www.ajan.de/behavior/bt-ns#> .
+#@prefix http: <http://www.w3.org/2006/http#> .
+#@prefix test: <http://test/> .
+#
+#:initialization rdf:type ajan:AgentInitialisation ;
+#				ajan:agentName "Agento"^^xsd:string ;
+#				ajan:agentTemplate <http://localhost:8090/rdf4j/repositories/agents#ExampleAgent> ;
+#				ajan:agentInitKnowledge test:Subject  .
+#
+#test:Subject rdf:type test:Resource .
+#test:Subject test:predicate "Geh weg!" .
+
+
+# ----------- Templates -----------
+
+:ExampleAgent
+	rdfs:label "ExampleAgent" ;
+	a ajan:AgentTemplate ;
+	ajan:event :ExampleEvent ;
+	ajan:endpoint :ExampleEndpoint ;
+	ajan:behavior :ExampleBehavior .
+
+:DingAgent
+	rdfs:label "DingAgent" ;
+	a ajan:AgentTemplate ;
+	ajan:event :DingEvent ;
+	ajan:endpoint :DingEndpoint ;
+        ajan:endpoint :DingEndpoint2 ;
+        ajan:behavior :TryBehavior ;
+	ajan:behavior :DingBehavior .
+
+:DangAgent
+	rdfs:label "DangAgent" ;
+	a ajan:AgentTemplate ;
+	ajan:event :DangEvent ;
+	ajan:endpoint :DingEndpoint ;
+	ajan:behavior :DangBehavior .
+
+:TryAgent
+	rdfs:label “TryAgent" ;
+	a ajan:AgentTemplate ;
+	ajan:event :DangEvent ;
+	ajan:endpoint :DingEndpoint ;
+	ajan:behavior :TryBehavior .
+
+
+# ----------- Behaviors -----------
+
+:ExampleBehavior
+	a ajan:Behavior ;
+	rdfs:label "ExampleBehavior" ;
+	ajan:trigger :ExampleEvent ;
+	ajan:bt behaviors:ExampleBehavior .
+
+:DingBehavior
+	a ajan:Behavior ;
+	rdfs:label "DingBehavior" ;
+	ajan:trigger :ExampleEvent ;
+	ajan:bt behaviors:ExampleBehavior .
+
+:DangBehavior
+	a ajan:Behavior ;
+	rdfs:label "DangBehavior" ;
+	ajan:trigger :ExampleEvent ;
+	ajan:bt behaviors:ExampleBehavior .
+
+:TryBehavior
+	a ajan:Behavior ;
+	rdfs:label “TryBehavior" ;
+	ajan:trigger :ExampleEvent ;
+	ajan:bt behaviors:DingBehavior .
+# ----------- Endpoints -----------
+
+:ExampleEndpoint
+	a ajan:Endpoint ;
+	rdfs:label "Example Endpoint" ;
+	http:paramValue "example";
+	ajan:event :ExampleEvent .
+
+:DingEndpoint
+	a ajan:Endpoint ;
+	rdfs:label "DingEndpoint" ;
+	http:paramValue "example";
+	ajan:event :ExampleEvent .
+
+
+# ----------- Events -----------
+
+:ExampleEvent
+	a ajan:ModelEvent ;
+	rdfs:label "Example Event" .
+
+:DangEvent
+	a ajan:ModelEvent ;
+	rdfs:label "DangEvent" .

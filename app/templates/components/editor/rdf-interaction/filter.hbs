@@ -1,0 +1,32 @@
+<div class="flex-container rdf-interaction container">
+  <div class="rdf-interaction label">Filter: </div>
+
+  {{#ui-dropdown
+    class="search selection rdf-interaction small-field"
+    allowAdditions=false
+    fullTextSearch=true
+    selected="all"
+    sortSelect=true
+    allowTab=true
+    onChange=(action (pipe (action (mut filter.column)) (action 'onSearchChange')))
+    as |execute mapper|
+  }}
+    <div class="default text">Filter selection</div>
+    <i class="dropdown icon"></i>
+    <div class="menu">
+      {{#each filterOptions as |filterOption|}}
+        <div data-value="{{filterOption.value}}" class="item">
+          {{filterOption.label}}
+        </div>
+      {{/each}}
+    </div>
+  {{/ui-dropdown}}
+
+  {{ui/input-field
+    class="rdf-interaction big-field"
+    placeholder="Search"
+    value=filter.value
+    icon="search"
+  }}
+
+</div>

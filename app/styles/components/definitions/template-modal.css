@@ -1,0 +1,35 @@
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+@value color-subheader: color-primary;
+@value color-subtitle-bg: color-primary-5;
+
+:global(.custom-modal.template) {
+  padding-top: 2%;
+}
+
+:global(.custom-modal-content.template) {
+  width: 95%;
+}
+
+:global(.custom-modal-body.template) {
+  height: 80vh;
+  padding: 0;
+}
+
+.template-def.editor {
+  display: block;
+  /* height: 100%; */
+  width: 100%;
+}
+
+:global(.template-def.subheader) {
+  background-color: color-subheader;
+  color: white;
+  height:auto;
+  padding-left: 8pt;
+  flex: 0 0 auto;
+}
+
+:global(.template-def.subtitle-text) {
+  height: auto;
+  font-weight: bold;
+}

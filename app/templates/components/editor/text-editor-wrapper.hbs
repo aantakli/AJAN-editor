@@ -1,0 +1,11 @@
+<div class="flex-container vertical">
+
+  {{editor/editor-menu labelValue=labelValue}}
+
+  {{component 'editor/action-bar/current-save-display' class="component-mini" query=labelValue}}
+
+  <div class="flex-fill-item full-width">
+
+    {{yield}}
+  </div>
+</div>

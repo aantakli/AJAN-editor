@@ -1,0 +1,139 @@
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+@value color-head: color-primary-2;
+@value color-subtitle-bg: color-primary-5;
+
+:global(div.modal-parent) {
+  height: 0;
+}
+
+/* The Modal (background) */
+:global(.modal) {
+  /* Hidden by default */
+  display: none;
+  /* Stay in place */
+  position: fixed;
+  /* Sit on top */
+  z-index: 5;
+  /* Location of the box */
+  padding-top: 10%;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+
+  /* Fallback color */
+  background-color: rgb(0, 0, 0);
+
+  /* Black w/ opacity */
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Modal Content */
+:global(.modal-content) {
+  position: relative;
+  background-color: #fefefe;
+  margin: auto;
+  padding: 0;
+  /*border: 1px solid #888;*/
+  border: 0;
+  width: 80%;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  animation-name: animatetop;
+  animation-duration: 0.4s
+}
+
+/* Add Animation */
+@keyframes animatetop {
+  from {
+    top: -300px;
+    opacity: 0
+  }
+
+  to {
+    top: 0;
+    opacity: 1
+  }
+}
+
+/* The Close Button */
+:global(.modal-close) {
+  color: white;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+:global(.modal-close:hover), :global(.modal-close:focus) {
+  color: #b5b6e3;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+:global(.modal-header) {
+  padding: 0.5em 2em;
+  background-color: color-head;
+  color: white;
+  align-items: center;
+}
+
+:global(.modal-body) {
+  padding: 0.5em 2em;
+  overflow: auto;
+  color: black;
+}
+
+:global(.modal-footer) {
+  padding: 0.5em 2em;
+  background-color: color-head;
+  color: white;
+  height: 4em;
+}
+
+:global(.modal-buttons) {
+  float: right;
+  display: inline-flex;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+:global(h2.modal-header-title) {
+  margin: 0;
+}
+
+:global(.modal-body-div) {
+  margin: 2em;
+}
+
+:global(p.modal-p) {
+  margin: 0.5em 0 0.5em;
+}
+
+:global(.modal-creation-input), :global(.modal-creation-textarea) {
+  width: 50%;
+}
+
+:global(textarea.modal-creation-textarea) {
+  resize: vertical;
+}
+
+:global(.modal-flex-item) {
+  flex: auto;
+}
+
+:global(p.modal-flex-item) {
+  flex: 1;
+}
+
+:global(#modal-header-title) {
+  font-weight: bold;
+}
+
+:global(.modal-body.query-selection) {
+  padding: 0;
+}
+
+:global(#modal-load) {
+  z-index: 9;
+}

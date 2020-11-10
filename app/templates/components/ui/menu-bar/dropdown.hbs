@@ -1,0 +1,11 @@
+<button class="menu dropdown primary button">{{label}}</button>
+<div class="menu dropdown content">
+  {{yield}}
+  {{#each dropdownItems as |item|}}
+    {{ui/menu-bar/dropdown-element
+      label=item.label
+      value=item.value
+      selected=selected
+    }}
+  {{/each}}
+</div>

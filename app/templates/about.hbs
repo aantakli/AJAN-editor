@@ -1,0 +1,101 @@
+<div id="about" style="width: 100%; margin: 0 50%; padding-bottom: 40px;">
+  <div id="about-content" style="width: 980px;
+    margin-top: 40px;
+    margin-left: -490px;
+    padding: 30px; box-shadow: 0px 5px 10px #d1d1e0;">
+    <header class="entry-header">
+      <h1 class="entry-title" style="padding-bottom: 20px;">About</h1>
+    </header>
+    <!-- .entry-header -->
+
+    <div class="entry-content">
+      <div style="text-align: justify">
+        <em><strong>AJAN (Access Java Agent Nucleus) is a modular agent web service which integrates different AI technologies in an intuitive way for creating autonomous systems. The main goal of the development is to address a heterogeneous&nbsp;community with an easy to use, flexible and powerful AI tool for different domains, such like 3D simulations, programmable web or home automation. AJAN is in use for different virtual reality applications, such as pedestrian or shop floor simulations (in the context of Industry 4.0) in which multiple autonomous 3D entities has to be controlled.</strong></em>
+        <br>
+        <br> The AJAN agent system was developed in the BMBF (Bundesministerium für Bildung
+        und Forschung) projects
+        <a href="https://asr.sb.dfki.de/arvida/#more-1025"
+           target="_blank" rel="noopener">ARVIDA</a> and
+        <a href="https://asr.sb.dfki.de/inversiv/" target="_blank"
+           rel="noopener">INVERSIV</a>. In these projects, the main goal of AJAN was to simulate virtual
+        humans such like pedestrians or workers, to evaluate traffic or shop floor
+        scenarios. AJAN is further developed in the BMBF project Hybr-iT, in which
+        it’s supposed to use AJAN to control beside of virtual workers, also robots
+        in human robot collaboration simulations. Using AJAN in different domains and
+        heterogeneous system environments, a modular web services is striven which
+        follows the ARVIDA reference architecture to create domain independent agents.
+        This modularity is not only needed for flexible system integration; it is also
+        necessary to use different AI technologies to create autonomous intelligent
+        and learning agents, e.g. to enable realistic simulations of human behaviors.
+      </div>
+      <figure role="group" style="width: 100%; display: flex; margin: 20px 0; justify-content: center;">
+        <figure id="attachment_2921" style="width: 420px; float: left; margin: 0 10px;">
+          <img class="wp-image-2921 size-medium" src="images/8_1_3_4_Agentenarchitektur.png"
+               alt="" width="420">
+          <figcaption style="padding-top: 10px;">
+            Fig.1: AJAN architecture consisting of four components: web editor (purple);
+            triple stores (red); execution service (yellow); domain (blue + green).
+          </figcaption>
+        </figure>
+        <figure id="attachment_2921" style="width: 420px; float: left; margin: 0 10px;">
+          <img class="wp-image-2921 size-medium" src="images/Agent_Model.png"
+               alt="" width="420">
+          <figcaption style="padding-top: 10px;">
+            Fig.2: AJAN agent model consisting of four components: behaviors, having own RDF repository and triggered by events;
+            events, created by endpoints and behaviors; endpoints, receiving information from the agent domain and transform this information into events; agent knowledge, accessed by all behaviors.
+          </figcaption>
+        </figure>
+      </figure>
+      <div style="text-align: justify">
+        An AJAN agent model with its behaviors, beliefs and domain knowledge is declaratively
+        described in RDF (Resource Description Framework) and stored in different triplestores
+        (see Fig.1). The agent behavior respectively the agent actions composition
+        and execution is realized by using SPARQL and the Behavior Tree (BT) paradigm.
+        The modularity of AJAN is enhanced by using this paradigm, which allows an
+        easy integration of different AI technologies, such as planning or reinforcement
+        learning. For that, AJAN offers the possibility&nbsp;to create own Java based
+        plugins to extend the agent model. The execution of an agent model is done
+        by the AJAN Execution Service, which represents all agents with their perception
+        and actions in the considered domain. As mentioned in the introduction, a goal
+        of AJAN is to address also persons with less programming experiences to enable
+        them a fast and intuitive development of autonomous systems. Therefore, a web
+        editor is available for AJAN to model agent behaviors with a graphical programming
+        language.
+      </div>
+      <div style="padding-top: 20px;">
+        <span class="tag-links">
+          <strong>Projects:</strong>
+          <a href="https://asr.dfki.de/project-arvida/" rel="tag">ARVIDA</a>,
+          <a href="https://asr.dfki.de/inverisv/" rel="tag">INVERSIV</a>,
+          <a href="https://hybr-it-projekt.de/" rel="tag">Hybr-iT</a>,
+          <a href="https://asr.dfki.de/react/" rel="tag">REACT</a>,
+          <a href="https://mosim.eu/project.html" rel="tag">MOSIM</a>,
+          <a href="https://asr.dfki.de/tag/ajan/" rel="tag">Technology AJAN</a>
+        </span>
+      </div>
+    </div>
+
+    <div style="padding-top: 40px;">
+      <h2>Contact Us</h2>
+      <p>
+        <b>André Antakli, M.Sc.</b>
+        <address>
+          DFKI GmbH <br>
+          Agenten und Simulierte Realität <br>
+
+          Gebäude D3 4 (Neubau)<br>
+          Stuhlsatzenhausweg 3<br>
+          Campus D3 2<br>
+          D-66123 Saarbrücken <br>
+
+        </address>
+        <a href="tel:0049.681.85775.5325">+49 681 85775 5325</a>
+        <br>
+        <a href="mailto:Andre.Antakli@dfki.de">Andre.Antakli@dfki.de</a>
+      </p>
+    </div>
+
+  </div>
+</div>
+
+{{outlet}}

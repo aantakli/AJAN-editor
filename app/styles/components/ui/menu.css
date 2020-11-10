@@ -1,0 +1,75 @@
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+@value color-interaction-bg: color-primary-1;
+@value color-hover: color-primary-2;
+@value color-font: white;
+@value color-font-active: black;
+@value color-h-bg: color-primary;
+
+:global(.menu.background) {
+  background-color: color-interaction-bg;
+  color: color-font;
+  height: 30pt;
+}
+
+:global(.menu.dropdown.primary),  :global(.menu.menu-button.primary){
+  background-color: inherit;
+  color: color-font;
+  /* color: inherit; */
+  width: 100pt;
+  height: 100%;
+  /* padding: 16px; */
+  font-size: 16px;
+  border: none;
+}
+
+:global(.menu.dropdown.primary) {
+  background-color: inherit;
+}
+
+/* dropdown button set to hover color when content is shown */
+:global(.menu.dropdown):hover :global(.menu.dropdown.primary) {
+  background-color: color-hover;
+}
+
+:global(.menu.menu-button.primary):hover {
+  background-color: color-hover;
+}
+
+/* Container */
+:global(.menu.dropdown.container) {
+  color: color-font;
+  position: relative;
+  display: inline-block;
+}
+
+/* Dropdown content (Hidden by Default) */
+:global(.menu.dropdown.content) {
+  display: none;
+  position: fixed;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+}
+
+/* Elements inside the dropdown */
+:global(.menu.dropdown.content) > div > div {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+/* Dropdown items on hover */
+:global(.menu.dropdown.content) div:hover {
+  background-color: #ddd;
+}
+
+/* Show dropdown menu when hovering the button */
+:global(.menu.dropdown.container):hover :global(.menu.dropdown.content) {
+  display: block;
+}
+
+:global(.menu.dropdown.item) {
+  text-align: left;
+}

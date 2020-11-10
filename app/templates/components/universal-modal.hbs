@@ -1,0 +1,28 @@
+
+<div id="universal-modal" class='modal'>
+  <!-- Modal content -->
+  <div local-class="modal-content">
+    <div local-class="modal-header">
+      <span local-class="close" {{action 'close'}}><i class="close icon"></i></span>
+      <h2 id="modal-header-title" local-class="header-title">Modal Header</h2>
+    </div>
+    <div id="modal-body" local-class="modal-body">
+      <!-- <p>Placholder. Delete old content first</p> -->
+      {{yield}}
+    </div>
+    <div local-class="modal-footer">
+      {{#unless hideFooterButtons}}
+      <div local-class="buttons">
+        <div class="ui negative right labeled icon button" {{action 'cancel'}}>
+          Cancel
+          <i class="close icon"></i>
+        </div>
+        <div class="ui positive right labeled icon button" {{action 'confirm'}}>
+          Confirm
+          <i class="checkmark icon"></i>
+        </div>
+      </div>
+      {{/unless}}
+    </div>
+  </div>
+</div>

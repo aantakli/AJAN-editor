@@ -1,0 +1,66 @@
+<div id="services">
+
+  <div id="services-action-bar">
+    {{services/action-bar overview=this}}
+  </div>
+
+
+	<div id='services-body'>
+		<!-- Menu -->
+		<div id='services-overview'>
+			<div local-class="service-list-header clearfix">
+				<h3>Action Definitions</h3>
+			</div>
+
+			{{#ui-accordion exclusive=false}}
+			<button class="ui yellow icon button rightmost" {{action "create"}} local-class="right-aligned ui button">
+				<i class="add icon no-side-margins"></i>
+			</button>
+			<div class="active title" style="background-color:#A3A4DC ">
+				<i class="dropdown icon"></i><b><font size="4">Service Actions</font></b>
+			</div>
+			<ul class="active content" local-class="service-list-content">
+				{{#each this.availableServices as |value|}}
+				<li data-value={{value.uri}} class="item" data-tooltip={{value.uri}} data-position="top left" local-class="service-list-item">
+					<button {{action "setActiveService" value}}>
+						<img local-class="service-list-item-icon" src="/icons/icons8-action.png" />
+						<div>{{value.label}}</div>
+					</button>
+					<i></i>
+				</li>
+				{{/each}}
+			</ul>
+			{{/ui-accordion}}
+			<br />
+			{{#ui-accordion exclusive=false}}
+			<div class="active title" style="background-color:#A3A4DC ">
+				<i class="dropdown icon"></i><b><font size="4">Plugin Actions</font></b>
+			</div>
+			<ul class="active content" local-class="service-list-content">
+				{{#each this.availablePlugins as |value|}}
+				<li data-value={{value.uri}} class="item" data-tooltip={{value.uri}} data-position="top left" local-class="service-list-item">
+					<button {{action "setActivePlugin" value}}>
+						<img local-class="service-list-item-icon" src="/icons/icons8-action.png" />
+						<div>{{value.label}}</div>
+					</button>
+					<i></i>
+				</li>
+				{{/each}}
+			</ul>
+			{{/ui-accordion}}
+		</div>
+		<!-- Content -->
+		{{#if this.ServiceAction}}
+				<div id='service-item'>
+					<br>{{services/service-item activeAction=this.activeAction overview=this}}
+				</div>
+		{{/if}}
+		{{#unless this.ServiceAction}}
+		<div id='service-item'>
+			<br>{{services/plugin-item activeAction=this.activeAction overview=this}}
+		</div>
+		{{/unless}}
+		<div local-class="clearfix"></div>
+	</div>
+</div>
+

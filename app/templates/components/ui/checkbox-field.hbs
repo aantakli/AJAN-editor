@@ -1,0 +1,16 @@
+<div class="ui {{if icon "icon"}} input full-width">
+<!--<input id="{{inputID}}" placeholder="{{placeholder}}">-->
+  {{#if icon}}
+    <i class="{{icon}} icon"></i>
+  {{/if}}
+
+  {{input
+    id=class
+    local-class="checkbox"
+    readonly=readonly
+    checked=value
+    onChange=onChange
+    type="checkbox"
+  }}
+
+</div>

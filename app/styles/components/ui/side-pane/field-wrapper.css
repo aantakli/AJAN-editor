@@ -1,0 +1,12 @@
+.container {
+  margin: 0;
+  margin-top: 2pt;
+  margin-left: 5pt;
+  margin-bottom: 2pt;
+}
+
+.title {
+  flex: 2;
+  flex: 0 1 100pt;
+  font-weight: bold;
+}

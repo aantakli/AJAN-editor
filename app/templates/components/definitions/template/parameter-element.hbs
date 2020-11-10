@@ -1,0 +1,21 @@
+{{#if param.isDropdown}}
+  {{component "definitions/template/element-dropdown"
+        param=param
+        compactView=compactView
+  }}
+{{else if param.isSPARQL}}
+  {{component "definitions/template/element-sparql"
+        param=param
+        compactView=compactView
+  }}
+{{else if param.isInput}}
+  {{component "definitions/template/element-field"
+        param=param
+        compactView=compactView
+  }}
+{{else if param.isRadio}}
+  {{component "definitions/template/element-select"
+        param=param
+        compactView=compactView
+  }}
+{{/if}}

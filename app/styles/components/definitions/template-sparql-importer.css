@@ -1,0 +1,7 @@
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+@value color-subheader: color-primary;
+
+.button {
+  /* background-color: color-subheader; */
+  /* color: white; */
+}

@@ -1,0 +1,31 @@
+<div class="flex-container vertical">
+
+  {{ui/titled-input
+    title="Label"
+    placeholder="Label"
+    value=snippet.label
+    tooltip="Label to identify the shorthand."
+  }}
+
+  {{ui/titled-input
+    title="Shorthand"
+    placeholder="Shorthand"
+    value=snippet.shorthand
+    tooltip="Shorthand by which the snippet can be inserted via completion suggestions in the query editor."
+  }}
+
+  {{ui/titled-textarea
+    title="Replacement"
+    placeholder="Replacement"
+    value=snippet.replacement
+    tooltip="Code that will be inserted when using the snippet."
+  }}
+
+  {{ui/titled-textarea
+    title="Description"
+    placeholder="Description"
+    value=snippet.description
+    tooltip="Description of the snippet."
+  }}
+
+</div>

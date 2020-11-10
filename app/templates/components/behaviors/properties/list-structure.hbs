@@ -1,0 +1,40 @@
+{{#ui-accordion}}
+
+  {{#ui/side-pane/title-wrapper
+    class="active title"
+    title=list.title
+    isAccordion=true
+  }}
+    {{component 'ui/buttons/add-button'
+      onClick=(action 'addItem')
+    }}
+  {{/ui/side-pane/title-wrapper}}
+
+  <div class="behavior side-pane list item-container content active">
+    {{#if hasSetAsChild}}
+
+      {{#each listItems as |item|}}
+        {{component 'behaviors/properties/set-structure'
+          class="behavior side-pane list-item"
+          set=itemStructure
+          uri=item
+          removeButtonAction=(action 'removeItem' item)
+          casualMode=casualMode
+        }}
+      {{/each}}
+
+    {{else}}
+
+      {{#each listItems as |item|}}
+        {{component 'behaviors/properties/parameter-structure'
+          class="behavior side-pane list-item"
+          parameter=itemStructure
+          uri=item
+          removeButtonAction=(action 'removeItem' item)
+          casualMode=casualMode
+        }}
+      {{/each}}
+
+    {{/if}}
+  </div>
+{{/ui-accordion}}

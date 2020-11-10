@@ -1,0 +1,18 @@
+{{#ui-dropdown
+				class="flexed-input fluid search selection"
+				allowAdditions=true
+				fullTextSearch=true
+				sortSelect=true
+				selected=selectedBaseValue
+				onChange=(action (mut selected))
+}}
+<i class="dropdown icon"></i>
+<div class="text">{{item.value}}</div>
+<div class="menu">
+	{{#each targets as |item|}}
+	<div data-value={{item.value}} class="item">
+		{{item.label}}
+	</div>
+	{{/each}}
+</div>
+{{/ui-dropdown}}

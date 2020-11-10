@@ -1,0 +1,83 @@
+/*
+ * Created on Tue Nov 10 2020
+ *
+ * The MIT License (MIT)
+ * Copyright (c) 2020 André Antakli, Alex Grethen (German Research Center for Artificial Intelligence, DFKI).
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ * and associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+ * TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+import {computed, observer} from "@ember/object";
+import {ND, XSD} from "ajan-editor/helpers/RDFServices/vocabulary";
+import Component from "@ember/component";
+import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
+
+export default Component.extend({
+	classNames: ["behavior", "side-pane", "container", "parameter"],
+
+	type: computed("uri", "parameter", function() {
+		let type = this.get("parameter.input");
+		switch (type) {
+			case XSD.long:
+			case XSD.int:
+				return {integer: true};
+			case XSD.boolean:
+				return {boolean: true};
+			case XSD.anyURI:
+				return {uri: true};
+			case XSD.string:
+				return {string: true};
+			case XSD.float:
+			case XSD.double:
+				return {float: true};
+			case ND.Query:
+        return { query: true };
+      case ND.ACTNDef:
+        return { actndef: true };
+      case ND.Repo:
+        return { repo: true };
+			default:
+				console.warn("Unknown parameter type", type);
+				return {};
+		}
+	}),
+
+	value: computed("uri", "parameter", function() {
+		return getValue(this);
+	}),
+
+	uriChange: observer("uri", function() {
+		this.set("value", getValue(this));
+	}),
+
+	valueChanged: observer("value", function() {
+		rdfGraph.setObjectValue(
+			this.get("uri"),
+			this.get("parameter").mapping,
+			this.get("value")
+		);
+	})
+});
+
+function getValue(that) {
+	let structure = that.get("parameter");
+	let value = rdfGraph.getObjectValue(that.get("uri"), structure.mapping);
+	if (!value && typeof value !== "boolean")
+		console.warn(
+			"Value not defined, using default",
+			that.get("uri"),
+			structure
+		);
+	return value || structure.default;
+}

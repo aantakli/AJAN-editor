@@ -1,0 +1,5 @@
+{{#each items as |item|}}
+	{{yield (hash
+  	item=item
+    checkbox=(component "checkbox-list-checkbox" click=(action "onCheck" item)))}}
+{{/each}}

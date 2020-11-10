@@ -1,0 +1,35 @@
+<div local-class="header">
+  <div class="flex-container rdf-interaction container">
+    <div class="rdf-interaction label">Repository: </div>
+
+    {{#ui-dropdown
+      class="search selection rdf-interaction field"
+      allowAdditions=true
+      fullTextSearch=true
+      selected=defaultRepository
+      sortSelect=true
+      allowTab=true
+      onChange=(action "repoSelected")
+      as |execute mapper|
+    }}
+      <div class="default text">Repository URL</div>
+      <i class="dropdown icon"></i>
+      <div class="menu">
+        {{#each repositories as |repo|}}
+          <div data-value="{{repo.uri}}" class="item">
+            {{repo.uri}}
+          </div>
+        {{/each}}
+      </div>
+    {{/ui-dropdown}}
+  </div>
+
+  <!-- {{editor/rdf-interaction/result-mode
+    mode=mode
+  }} -->
+
+  {{editor/rdf-interaction/filter
+    filter=filter
+  }}
+
+</div>

@@ -1,0 +1,12 @@
+<!-- <div class="ui {{modifier}} icon button rightmost" {{action onClick}}> -->
+{{#if tooltip}}
+  {{#ui-popup content=tooltip delay=popupDelay class="fit-child"}}
+    <div class="ui {{modifier}} icon button rightmost">
+      <i class="{{icon}} icon no-side-margins"></i>
+    </div>
+  {{/ui-popup}}
+{{else}}
+  <div class="ui {{modifier}} icon button rightmost">
+    <i class="{{icon}} icon no-side-margins"></i>
+  </div>
+{{/if}}

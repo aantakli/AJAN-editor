@@ -1,0 +1,50 @@
+.header {
+  padding: 12pt 5pt;
+  margin-bottom: 12pt;
+
+  border-style: solid;
+  border-width: 0 0 3pt 0;
+  border-color: grey;
+
+  justify-content: center;
+}
+
+.header.compact {
+  padding: 2pt 5pt;
+  margin-bottom: 12pt;
+}
+
+.label {
+  font-weight: bold;
+  flex-basis: 13em;
+  white-space: nowrap;
+}
+
+.label.compact {
+  flex: 0 1 100pt;
+}
+
+.input {
+  flex-grow: 1;
+}
+
+.container{
+  padding: 5pt 0;
+  width: 60%;
+}
+
+.container.compact {
+  padding: 5pt 0;
+  width: 100%;
+}
+
+.highlight {
+  background-color: #ff9900;
+  margin-bottom: 0;
+  border-width: 0;
+}
+
+.header.compact.highlight {
+  margin-bottom: 0;
+  border-width: 0;
+}

@@ -1,0 +1,76 @@
+<div id='behaviors-body' local-class="behaviors-body">
+
+  <!-- Menu -->
+  <div id='split-left' class="split content split-horizontal">
+    <div id='node-adder' local-class='side-menu manipulation'>
+      <div class='store-url-cont placeholder'>
+        <div local-class="store">Triplestore:</div>
+      </div>
+      <div local-class='intro'>
+        <h3>Agent Manipulation </h3>
+      </div>
+      <!-- Container for selection of behavior tree -->
+      <div class='ag-container' local-class='ag-container'>
+        <p class="node-adder-class" local-class="title">Agent</p>
+        <select id='ag-select' local-class='ag-select'>
+        <option value='default' selected='selected'></option>
+      </select>
+      </div>
+      <!-- Container for nodes that can be added to the graph -->
+      <div class='node-container' local-class='node-container'>
+        {{#ui-accordion class="" local-class="accordion" exclusive=false }}
+          <div class="active title" local-class="title">
+            <i class="dropdown icon"></i> Behaviors
+          </div>
+          <div id="behavior" class="active content">
+          </div>
+          <div class="active title" local-class="title">
+            <i class="dropdown icon"></i> Events
+          </div>
+          <div id="event" class="active content">
+          </div>
+          <div class="active title" local-class="title">
+            <i class="dropdown icon"></i> Endpoints
+          </div>
+          <div id="endpoint" class="active content">
+          </div>
+        {{/ui-accordion}}
+      </div>
+
+      <div local-class="button-group">
+        <button class="ui button btn-edi" local-class="button btn" {{action 'sort'}}>Sort</button>
+        <button class="ui button btn-edi" local-class="button btn" {{action 'save'}}>Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conainer for the graph -->
+  <div id='split-middle' class="split content split-horizontal">
+    <div local-class="relative">
+      <div local-class="background">
+        <div local-class="bg left">
+          <div local-class="bg title left">Endpoints</div>
+        </div>
+        <div local-class="bg middle">
+          <div local-class="bg title middle">Events</div>
+        </div>
+        <div local-class="bg right">
+          <div local-class="bg title right">Behaviors</div>
+        </div>
+      </div>
+      <div id="cy" local-class="cy"></div>
+    </div>
+  </div>
+  <!-- Conainer for the node properties -->
+  <div id='split-right' class="split content split-horizontal">
+    <div id='node-properties' local-class='side-menu details'>
+      <div class='intro'>
+        <h3>Properties</h3>
+      </div>
+
+      <div id='info-container' class='info-container'></div>
+    </div>
+  </div>
+
+
+</div>

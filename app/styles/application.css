@@ -1,0 +1,114 @@
+/* Navbar style */
+@value color-primary, color-primary-1, color-primary-2, color-primary-3 from 'ajan-editor/styles/_globals/colors';
+@value color-nav: color-primary;
+@value color-nav-hover: color-primary-2;
+@value color-nav-active: color-primary-1;
+
+.navbar.container {
+  background-color: color-nav;
+  margin: 0;
+  height: 100px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.navbar.container::-webkit-scrollbar-track {
+  background: #FFFFFF;
+}
+
+:global(.navbar.button) {
+  padding: 0;
+  font-size: 22pt;
+  flex-basis: 140pt;
+  /* flex-grow: 1; */
+}
+
+:global(.img.navbar.button) {
+  flex-basis: auto;
+}
+
+:global(.img.navbar){
+  display: inline-flex;
+  height: 100%;
+  margin: 0;
+}
+
+.img-ajan {
+  /* height: 100%;
+  width: auto; */
+  height: 90px;
+  width: 370px;
+  /* height: 70pt;
+  width: 280pt; */
+}
+
+.list {
+  list-style-type: none;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: inherit;
+}
+
+.list-element {
+  float: left;
+  font-size: 150%;
+  height: 100%;
+  display: table;
+}
+
+.list-right {
+  display: inline-flex;
+  float: right;
+  height: 100%;
+}
+
+.list-middle {
+  display: inline-flex;
+  height: 100%;
+}
+
+
+
+:global(.main-container) {
+  overflow: auto;
+  height: 100%;
+}
+
+/* Link related */
+:global(.navbar.link) {
+  /* display: table-cell; */
+  /* vertical-align: middle; */
+}
+
+a:global(.navbar.link) {
+  color: white;
+  text-align: center;
+}
+
+a:global(.navbar.link):hover:not(:global(.active)) {
+  background-color: color-nav-hover;
+}
+
+a:global(.navbar.link):global(.active) {
+  background-color: color-nav-active;
+}
+
+.list-link {
+  display: table-cell;
+  /* vertical-align: middle; */
+}
+
+a.list-link {
+  color: white;
+  text-align: center;
+}
+
+a.list-link:hover:not(:global(.active)) {
+  background-color: color-nav-hover;
+}
+
+a.list-link:global(.active) {
+  background-color: color-nav-active;
+}

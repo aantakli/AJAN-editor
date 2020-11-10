@@ -1,0 +1,27 @@
+
+<div id="universal-modal" class='modal'>
+  <!-- Modal content -->
+  <div class="modal-content">
+    <div class="modal-header">
+      <span class="modal-close" {{action 'close'}}><i class="close icon"></i></span>
+      <h2 id="modal-header-title" class="modal-header-title">Modal Header</h2>
+    </div>
+    <div id="modal-body" class="modal-body">
+      <p>Placholder. Delete old content first</p>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-buttons">
+        <div class="ui negative right labeled icon button" {{action 'cancel'}}>
+          Cancel
+          <i class="close icon"></i>
+        </div>
+        <div id="save-button" class="ui positive right labeled icon button" {{action 'confirm'}}>
+          Save
+          <i class="save icon"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{yield}}

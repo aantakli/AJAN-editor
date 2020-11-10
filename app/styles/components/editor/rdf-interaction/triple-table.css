@@ -1,0 +1,16 @@
+.bool {
+  height: 50pt;
+  line-height: 50pt;
+  font-size: 20pt;
+  text-align: center;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.true {
+    background-color: palegreen;
+}
+
+.false {
+    background-color: lightcoral;
+}

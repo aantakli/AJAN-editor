@@ -1,0 +1,26 @@
+{{ui/side-pane/labeled-input
+  title="Label"
+  placeholder="Label"
+  value=node.label
+}}
+<!-- {{ui/side-pane/labeled-input
+  title="Class"
+  placeholder="Class"
+  value=node.nodeClass
+  readonly=true
+}} -->
+{{ui/side-pane/labeled-input
+  title="Type"
+  placeholder="Type"
+  value=node.nodeType
+  readonly=true
+}}
+{{ui/side-pane/labeled-textarea
+  title="Description"
+  fieldClass="behavior side-pane description textarea"
+  placeholder="Description"
+  value=node.description
+}}
+
+
+{{yield}}

@@ -1,0 +1,15 @@
+
+<div class="template-view modal-body-component flex-container">
+  {{#if compactView}}
+    {{#ui/tool-tip tooltip=note class="full-width"}}
+      <div class="modal-flex-item flexed-label {{if compactView "compact"}}">{{label}}</div>
+      {{yield}}
+    {{/ui/tool-tip}}
+
+
+  {{else}}
+    <div class="modal-flex-item flexed-label">{{label}}</div>
+    {{yield}}
+    <div class="modal-flex-item flexed-comment">{{note}}</div>
+  {{/if}}
+</div>

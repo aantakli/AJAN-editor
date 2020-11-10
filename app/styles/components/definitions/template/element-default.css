@@ -1,0 +1,10 @@
+
+.title {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.title.fixed {
+  font-style: italic;
+  font-weight: normal;
+}

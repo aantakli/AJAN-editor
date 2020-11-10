@@ -1,0 +1,36 @@
+{{#if showSPARQLChoice}}
+{{ui/titled-input
+      title="Repo"
+      placeholder="http://"
+      value=param.sparql.repo
+      tooltip="Label by which the parameter will be identified."
+}}
+
+{{ui/titled-textarea
+      title="SPARQL Select Query"
+      cols="50"
+      rows="6"
+      value=param.sparql.query
+}}
+{{/if}}
+{{#unless showSPARQLChoice}}
+<div class="wrapper">
+  {{#ui/tool-tip class="full-width" tooltip="Define available values for this parameter."}}
+
+  <div class="leftmost">Possible Parameter Values: </div>
+
+  <div class="ui positive icon basic button rightmost" {{action 'addChoice' param.possibleValues}}>
+    <i class="plus icon no-side-margins"></i>
+  </div>
+  {{/ui/tool-tip}}
+</div>
+
+{{#each param.possibleValues as |valueChoice|}}
+{{definitions/template/element-choice
+                  class="indent bot-margin"
+                  dataValue=valueChoice.dataValue
+                  label=valueChoice.label
+                  removeChoice=(action "removeChoice" valueChoice)
+}}
+{{/each}}
+{{/unless}}

@@ -1,0 +1,13 @@
+:global(.modal).modal {
+  padding-top: 2%;
+  overflow: visible;
+}
+
+:global(.modal-content).modal-content {
+  width: 95%;
+}
+
+:global(.modal-body).modal-body {
+  height: 80vh;
+  padding: 0;
+}

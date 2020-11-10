@@ -1,0 +1,23 @@
+<div class="flex-container">
+
+  {{ui/input-field
+    class="grow1 small-side-padding"
+    placeholder="Label"
+    value=label
+    icon="eye"
+    tooltip="Label under which the value of this parameter will be displayed."
+  }}
+
+  {{ui/input-field
+    class="grow1 small-side-padding"
+    placeholder="Data Value"
+    value=dataValue
+    icon="database"
+    tooltip="Actual value of the parameter, which will be inserted into the SPARQL query. Make sure to restrict the value to supported SPARQL data types!"
+  }}
+
+  <div class="ui negative icon basic button rightmost grow0 small-side-padding" {{action "removeChoice"}}>
+    <i class="minus icon no-side-margins"></i>
+  </div>
+
+</div>

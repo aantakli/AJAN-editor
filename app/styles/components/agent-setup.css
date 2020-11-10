@@ -1,0 +1,188 @@
+
+.behaviors-body {
+  height: 100%;
+  overflow: auto;
+  position: relative;
+}
+
+.cy {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: none;
+  float: left;
+}
+
+.side-menu {
+  width: 100%;
+  height: 100%;
+  float: left;
+  overflow: auto;
+}
+
+.manipulation {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.button {
+  width: 100%
+}
+
+.button-group {
+  margin-top: auto;
+  width: 100%;
+}
+
+.node-container {
+  height: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.intro {
+  padding-bottom: 1em;
+}
+
+.ag-container {
+  padding-bottom: 0.5em;
+  margin-bottom: 0.5em;
+  border-bottom: 2px solid lightgrey;
+}
+
+.ag-select {
+  width: 100%;
+}
+
+.relative {
+  position: relative;
+  height: 100%;
+}
+
+
+/************************/
+/* Cytoscape Background */
+/************************/
+
+.background {
+  position: absolute;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  background-color: #006600;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: stretch;
+}
+
+.bg {
+  flex-basis: auto;
+  margin: 0;
+  flex-grow: 1;
+  border: 0 solid #8585ad;
+}
+
+.bg.left {
+  background-color: #e6f9ff;
+  border-right-width: 3px;
+}
+
+.bg.middle {
+  background-color: #fffae6;
+  border-width: 0 3px;
+}
+
+.bg.right {
+  background-color: #f9e6ff;
+  border-left-width: 3px;
+}
+
+.bg.title {
+  text-align: center;
+  font-size: 2em;
+  margin: 0.5em 1em;
+  padding: 0.5em;
+  border-width: 0;
+}
+
+.bg.title.left {
+  background-color: #80e1ff;
+}
+
+.bg.title.middle {
+  background-color: #ffe680;
+}
+
+.bg.title.right {
+  background-color: #e180ff;
+}
+
+/***********************/
+/* Triplestore Display */
+/***********************/
+
+:global(.store-url-cont) {
+
+}
+
+:global(.store-url) {
+  display: inline;
+}
+
+.store {
+  display:inline;
+  font-weight: bold;
+}
+
+
+/********************/
+/* Node drag n drop */
+/********************/
+
+:global(.node-draggable):hover {
+  cursor: -webkit-grab;
+  cursor: grab;
+  background-color: #d1d1e0;
+}
+
+.title {
+  font-weight: bold;
+}
+/*******************/
+/* For split panes */
+/*******************/
+
+:global(.split) {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+:global(.gutter) {
+    background-color: black;
+    background-repeat: no-repeat;
+    background-position: 50%;
+    opacity: 0.5;
+}
+
+:global(.gutter.gutter-horizontal) {
+    cursor: col-resize;
+    background-image: url(/assets/images/ui/grips-vertical.png);
+}
+
+:global(.gutter.gutter-vertical) {
+    cursor: row-resize;
+    background-image: url(/assets/images/ui/grips-horizontal.png);
+}
+
+:global(.split.split-horizontal),
+:global(.gutter.gutter-horizontal) {
+    height: 100%;
+    float: left;
+}

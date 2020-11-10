@@ -1,0 +1,140 @@
+:global(.unselectable) {
+  -webkit-user-select: none;
+  /* Safari */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* IE10+/Edge */
+  user-select: none;
+  /* Standard */
+}
+
+:global(.vcenter) {
+  /*  Vertically center text*/
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+:global(.btn) {
+  -webkit-user-select: none;
+  /* Safari */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* IE10+/Edge */
+  user-select: none;
+  /* Standard */
+  cursor: -webkit-pointer;
+  cursor: pointer;
+}
+
+:global(div.component-mini) {
+  height: auto;
+}
+
+:global(i.icon), :global(i.fa) {
+  background-color: inherit !important;
+}
+
+:global(div.auto-size) {
+  height: auto !important;
+}
+
+:global(.auto-height) {
+  height: auto !important;
+}
+
+:global(.full-size) {
+  width: 100%;
+}
+
+:global(div.full-height) {
+  height: 100%;
+}
+
+:global(.full-width) {
+  width: 100%;
+}
+
+:global(.empty-wrapper) {
+  position: relative;
+}
+
+:global(.vertical-divider) {
+  width: 100%;
+  height: 4pt;
+  /* margin: 6px 0; */
+  background: grey;
+}
+
+:global(.hidden) {
+  display: none !important;
+}
+
+:global(.no-side-margins) {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+:global(.small-side-padding) {
+  padding-left: 3pt;
+  padding-right: 3pt;
+}
+
+:global(.indent) {
+  margin-left: 30pt;
+}
+
+:global(.bot-margin) {
+  margin-bottom: 3pt;
+}
+
+:global(.default-cursor) {
+  cursor: auto !important;
+}
+
+:global(.no-overflow-x) {
+  overflow-x: hidden;
+}
+
+:global(.overflow) {
+  overflow: visible;
+}
+
+:global(div.external-page) {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+:global(.external-page) {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+
+:global(.vertical-scroll-only) {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+:global(.fit-child) {
+  height: auto;
+  display: flex;
+}
+
+:global(input:-moz-read-only)  {
+  background-color: #E9E9E9 !important;
+}
+:global(input:read-only)  {
+  background-color: #E9E9E9 !important;
+}
+
+:global(.invisible)  {
+  visibility: hidden !important;
+}
+
+:global(.highlight) {
+  background-color: #ff9900;
+}

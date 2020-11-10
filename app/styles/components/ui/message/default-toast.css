@@ -1,0 +1,43 @@
+@value position-top: 40pt;
+
+:global(.toast) {
+  visibility: hidden;
+  min-width: 250px; /*Set a default minimum width */
+  margin: 0 auto;
+  text-align: center;
+  padding: 16px;
+  position: fixed;
+  z-index: 6;
+  display: table;
+  left: 50%;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+}
+
+:global(.toast.show) {
+  visibility: visible; /* Show the snackbar */
+  /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
+  However, delay the fade out process for 2.5 seconds 
+  -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  animation: fadein 0.5s, fadeout 0.5s 2.5s;*/
+}
+
+@-webkit-keyframes fadein {
+  from {top: 0; opacity: 0;}
+  to {top: position-top; opacity: 1;}
+}
+
+@keyframes fadein {
+  from {top: 0; opacity: 0;}
+  to {top: position-top; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+  from {top: position-top; opacity: 1;}
+  to {top: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+  from {top: position-top; opacity: 1;}
+  to {top: 0; opacity: 0;}
+}

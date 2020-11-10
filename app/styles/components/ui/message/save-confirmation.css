@@ -1,0 +1,14 @@
+
+:global(.message.container) {
+  color: #1a531b;
+  background-color: #a3c293;
+  border: solid 1pt #1a531b;
+  font-weight: bold;
+}
+
+:global(.message.negative.container) {
+  color: #ad0000;
+  background-color: #ffb5b5;
+  border: solid 1pt #531a1a;
+  font-weight: bold;
+}

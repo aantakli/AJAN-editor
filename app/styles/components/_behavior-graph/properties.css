@@ -1,0 +1,83 @@
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+
+:global(.info-container) {
+  background-color: color-primary-4;
+}
+
+:global(.field-wrapper) {
+  border-style: solid;
+  border-width: 0 0 2px 0;
+  border-color: lightgrey;
+}
+
+:global(.behaviors.input) {
+  min-width: 100%;
+  max-width: 100%;
+  border-width: 0;
+  margin: 0;
+  padding: 0;
+  padding-left: 0.5em;
+}
+
+:global(.behaviors.input:read-only) {
+  background-color: AliceBlue;
+}
+
+:global(.behaviors.input:focus) {
+  outline-color: DarkOrange;
+  outline-width: 3px;
+  outline-style: solid;
+}
+
+:global(.behaviors.input.string),
+:global(.behaviors.input.text),
+:global(.behaviors.input.number),
+:global(.behaviors.input.checkbox) {
+  height: 2em;
+}
+
+:global(.behaviors.input.checkbox) {
+  width : 2em;
+}
+
+:global(.behaviors.input.textarea) {
+  vertical-align: top;
+  /* max-height: 20em; */
+  min-height: 6em;
+  height: 15em;
+  overflow: auto;
+  white-space: nowrap;
+}
+
+:global(.behaviors.input.textarea.query) {
+  min-height: 6em;
+  height: 15em;
+}
+
+:global(.behaviors.input.textarea.description) {
+  min-height: 3em;
+  height: 6em;
+}
+
+:global(.behaviors.partition) {
+  width: 100%;
+  border-style: solid;
+  border-width: 0 0 2px 0;
+  border-color: lightgrey;
+}
+
+:global(.behaviors.list-button) {
+  width: 2.5em;
+}
+
+
+:global(.prop-set) {
+  /* border-width: 0 0 5px 5px;
+  border-style: solid;
+  border-color: Magenta; */
+  /* border-color: LightSlateGrey; */
+}
+
+:global(.prop-list) {
+  position: relative;
+}

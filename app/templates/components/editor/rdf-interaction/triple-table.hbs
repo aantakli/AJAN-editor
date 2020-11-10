@@ -1,0 +1,40 @@
+{{#if malformedQuery}}
+  <div local-class="block false">
+    <i class="exclamation circle icon"></i> Malformed query
+  </div>
+{{/if}}
+
+
+<div class="auto-height" style={{display-helpers/visibility-property showTable}}>
+  {{#light-table table as |t|}}
+    {{t.head
+      onColumnClick=(action 'onColumnClick')
+      iconSortable='fa fa-sort'
+      iconAscending='fa fa-sort-asc'
+      iconDescending='fa fa-sort-desc'
+      resizeOnDrag=true
+    }}
+
+    {{#t.body as |body|}}
+      {{#if isLoading}}
+        {{#body.loader}}
+          Loading...
+        {{/body.loader}}
+      {{/if}}
+
+      {{#if table.isEmpty}}
+        {{#body.no-data}}
+          No results found.
+        {{/body.no-data}}
+      {{/if}}
+    {{/t.body}}
+  {{/light-table}}
+</div>
+
+{{#unless showTable}}
+  {{#if data}}
+    <div local-class="bool true"> <b>Boolean:</b> {{data}} </div>
+  {{else}}
+    <div local-class="bool false"> <b>Boolean:</b> {{data}}</div>
+  {{/if}}
+{{/unless}}

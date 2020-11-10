@@ -1,0 +1,11 @@
+@value color-title-bg from 'ajan-editor/styles/components/_behavior-graph/side-panels';
+
+.title {
+  background-color: color-title-bg;
+  font-weight: bold;
+  font-size: larger !important;
+  padding-left: 5pt;
+
+  border-top: 3px solid lightgrey;
+  /* box-shadow:  0 -3px 5px 6px DarkSlateGrey ; */
+}

@@ -1,0 +1,51 @@
+<div class="flex-container vertical">
+  <div class="flex-horizontal spread editor query-selection tab-bar">
+
+    <div class="editor query-selection vcenter tab-bar custom-tab tab button {{if tabs.template "active"}}" {{action 'clickedTab' "template"}}>
+      {{#ui/tool-tip tooltip="Select a SPARQL query based on a predefined query template."}}
+        Template
+      {{/ui/tool-tip}}
+    </div>
+
+    <div class="editor query-selection vcenter tab-bar custom-tab tab button {{if tabs.loadQuery "active"}}" {{action 'clickedTab' "loadQuery"}}>
+      {{#ui/tool-tip tooltip="Load a SPARQL query directly into the query field."}}
+        Load Query
+      {{/ui/tool-tip}}
+    </div>
+
+    <div class="editor query-selection vcenter tab-bar custom-tab tab button last {{if tabs.newSparql "active"}}" {{action 'clickedTab' "newSparql"}}>
+      {{#ui/tool-tip tooltip="Edit the SPARQL query in the full-fledged SPARQL editor."}}
+        SPARQL Query
+      {{/ui/tool-tip}}
+    </div>
+
+  </div>
+
+  <div class="flex-fill-item custom-tab content white" local-class="query-selection content">
+    {{#if tabs.template}}
+      {{component 'editor/query-selection/from-template'
+        class="full-width"
+        template=template
+        nodeType=nodeType
+        query=query
+        queryValue=query
+      }}
+    {{else if tabs.loadQuery}}
+      {{component 'editor/action-bar/load-view'
+        overrideRowClick=(action "onQueryLoad")
+      }}
+    {{else if tabs.newSparql}}
+      {{component 'editor/query-selection/from-sparql' query=query}}
+    {{else}}
+      <!-- Default -->
+      {{component 'editor/query-selection/from-template'
+        class="full-width"
+        template=template
+        nodeType=nodeType
+        query=query
+        queryValue=query
+      }}
+    {{/if}}
+  </div>
+</div>
+{{yield}}

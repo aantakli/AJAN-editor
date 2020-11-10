@@ -1,0 +1,68 @@
+/* @value color-select: DodgerBlue; */
+@value color-primary, color-primary-1, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+
+/* @value color-select: color-primary-1; */
+@value color-select: color-primary-5;
+/* @value color-option: color-primary-2; */
+@value color-option: color-primary-6;
+/* @value color-option: #595ac0; */
+@value color-font: #000000;
+
+/*the container must be positioned relative:*/
+:global(.custom-select) {
+  position: relative;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
+  font-size: large;
+}
+:global(.custom-select select) {
+  display: none; /*hide original SELECT element:*/
+}
+:global(.select-selected) {
+  background-color: transparent;
+  margin-right: 2em;
+  overflow: hidden;
+}
+/*style the arrow inside the select element:*/
+:global(.select-selected:after) {
+  position: absolute;
+  content: "";
+  top: 1em;
+  right: 1em;
+  width: 0;
+  height: 0;
+  border: 0.5em solid transparent;
+  border-color: color-font transparent transparent transparent;
+}
+/*point the arrow upwards when the select box is open (active):*/
+:global(.select-selected.select-arrow-active:after) {
+  border-color: transparent transparent color-font transparent;
+  top: 7px;
+}
+/*style the items (options), including the selected item:*/
+:global(.select-items div), :global(.select-selected) {
+  color: color-font;
+  padding: 0.5em 0.5em;
+  /* padding: 8px 16px; */
+  border: 1px solid transparent;
+  border-color: transparent transparent rgba(0, 0, 0, 0.1) transparent;
+  cursor: pointer;
+}
+/*style items (options):*/
+:global(.select-items) {
+  position: absolute;
+  background-color: color-option;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 99;
+}
+/*hide the items when the select box is closed:*/
+:global(.select-hide) {
+  display: none;
+}
+:global(.select-items div:hover), :global(.same-as-selected) {
+  background-color: rgba(0, 0, 0, 0.1);
+}

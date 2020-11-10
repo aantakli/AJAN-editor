@@ -1,0 +1,24 @@
+{{#definitions/template/element-labeled-wrapper
+  label=param.title
+  note=param.note
+  compactView=compactView
+}}
+
+  <div class="ui form modal-creation-input modal-flex-item flexed-input">
+    <div class="grouped inline fields">
+      {{#each param.possibleValues as |valueChoice|}}
+        <div data-value={{valueChoice.dataValue}} class="field">
+          {{ui-radio
+            name=param.title
+            label=valueChoice.label
+            value=valueChoice.dataValue
+            class="checked"
+            current=param.variableBinding
+            onChange=(action (mut param.variableBinding))
+          }}
+        </div>
+      {{/each}}
+    </div>
+  </div>
+
+{{/definitions/template/element-labeled-wrapper}}

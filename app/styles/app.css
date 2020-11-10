@@ -1,0 +1,25 @@
+/* Global styles */
+
+html{
+  height: 100%;
+}
+
+body{
+  height: 100%;
+  margin: 0;
+}
+
+:global(.ember-view) {
+  height: auto;
+  /* height: 100%; */
+}
+
+body > :global(.ember-view) {
+  /* height: auto; */
+  height: 100%;
+}
+
+:global(.button .ember-view) {
+  /* height: auto; */
+  height: 100%;
+}

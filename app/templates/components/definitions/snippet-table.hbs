@@ -1,0 +1,53 @@
+{{definitions/table-title
+  title="Snippet Table"
+  short=short
+  addButtonClick=(action "addEntry")
+}}
+
+{{#light-table table
+  tableActions=(hash
+    deleteEntry=(action 'deleteEntry')
+    editEntry=(action 'editEntry')
+  )as |t|
+}}
+
+  {{t.head
+    onColumnClick=(action 'onColumnClick')
+    iconSortable='fa fa-sort'
+    iconAscending='fa fa-sort-asc'
+    iconDescending='fa fa-sort-desc'
+    resizeOnDrag=true
+  }}
+
+  {{#t.body
+    onRowDoubleClick=(action 'editEntry')
+    as |body|
+  }}
+    {{#if isLoading}}
+      {{#body.loader}}
+        Loading...
+      {{/body.loader}}
+    {{/if}}
+
+    {{#if table.isEmpty}}
+			{{#unless isLoading}}
+	      {{#body.no-data}}
+	        No entries found.
+	      {{/body.no-data}}
+			{{/unless}}
+    {{/if}}
+  {{/t.body}}
+
+{{/light-table}}
+
+{{#unless short}}
+  {{definitions/snippet/snippet-modal
+    class="modal-parent"
+    table=table
+    snippet=snippet
+		activeRow=activeRow
+    show=showModal
+  }}
+{{/unless}}
+
+{{yield}}

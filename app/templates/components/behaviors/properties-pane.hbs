@@ -1,0 +1,25 @@
+
+<div local-class='intro' class="flex-container">
+  <h3>Properties</h3>
+  {{behaviors/properties-casual/toggle-mode
+    class="rightmost"
+    advancedMode=advancedMode
+  }}
+</div>
+
+{{#if showProperties}}
+  {{#if advancedMode}}
+    {{component 'behaviors/properties/properties-content'
+      node=node
+      class="flex-fill-item"
+    }}
+  {{else}}
+    {{component 'behaviors/properties-casual/properties-content'
+      node=node
+      class="flex-fill-item"
+    }}
+  {{/if}}
+{{/if}}
+
+<!-- Old content -->
+<!-- {{yield}} -->

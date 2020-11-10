@@ -1,0 +1,39 @@
+<div class="flex-container vertical">
+  {{#if queryMismatch}}
+    <div class="padded-property flex-container property-warning-container">
+      <div>
+        <i class="yellow big exclamation triangle icon"></i>
+      </div>
+      <div class="property-warning-message">
+        Query mismatch: Changes to the template will overwrite the query.
+      </div>
+      {{ui/buttons/icon-button
+        modifier="yellow"
+        icon="undo alternate"
+        onClick=(action 'templateRestore')
+        tooltip="Restore the inserted query to the template's query."
+      }}
+    </div>
+  {{/if}}
+
+  {{editor/query-selection/template-selector
+    class="component-mini"
+    template=template
+    nodeType=nodeType
+    compactView=compactView
+    onTemplateChange=(action "onParamValueChange")
+  }}
+
+  <div class="flex-fill-item overflow">
+    {{#if template}}
+      {{definitions/template-view
+        class="auto-size full-width"
+        template=template
+        onParamValueChange=(action "onParamValueChange")
+        compactView=compactView
+      }}
+    {{/if}}
+  </div>
+</div>
+
+{{yield}}

@@ -1,0 +1,16 @@
+<div class="flex-container vertical">
+  <div class="flex-fill-item editor split">
+    <div id='split-editor-left' class="split content split-horizontal">
+      {{#editor/text-editor-wrapper labelValue=labelValue}}
+        {{editor/sparql-editor labelValue=labelValue}}
+      {{/editor/text-editor-wrapper}}
+    </div>
+    <div id='split-editor-middle' class="split content split-horizontal">
+      {{editor/rdf-interaction-basic repositories=repositories}}
+    </div>
+    <div id='split-editor-right' class="split content split-horizontal">
+      {{editor/help/help-pane}}
+    </div>
+  </div>
+
+</div>

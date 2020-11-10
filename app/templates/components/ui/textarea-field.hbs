@@ -1,0 +1,12 @@
+{{#ui/tool-tip tooltip=tooltip}}
+  <div class="ui form full-width">
+    {{textarea
+      type='text'
+      class=fieldClass
+      id=inputID
+      placeholder=placeholder
+      value=(mut value)
+      keyUp=(action 'adjustHeight')
+    }}
+  </div>
+{{/ui/tool-tip}}

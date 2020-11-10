@@ -1,0 +1,26 @@
+{{#component 'behaviors/properties/query-wrapper'
+  title=title
+  removeButtonAction=removeButtonAction
+}}
+  <!-- {{ui/input-field
+    placeholder="Base"
+    value=baseValue
+    tooltip="The targeted data source for the query"
+  }}
+
+  {{ui/textarea-field
+    placeholder="Query"
+    value=queryValue
+    tooltip="SPARQL query"
+  }} -->
+
+  {{component 'editor/query-selection/from-template'
+    class="full-width"
+    template=template
+    nodeType=nodeType
+    query=query
+    queryValue=queryValue
+    compactView="true"
+  }}
+
+{{/component}}

@@ -1,0 +1,54 @@
+:global(#domain) {
+  overflow-x: hidden;
+}
+
+:global(#domain-view) {
+  width: 100%;
+  margin: 0 50%;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+:global(#domain-view-wrapper) {
+  width: 980px;
+  margin-left: -490px;
+  padding: 20px 50px;
+  box-shadow: 0px 5px 10px #d1d1e0;
+}
+
+:global(#domain-content a) {
+  color: #383a94;
+  font-weight: bold;
+}
+
+:global(#workbench-link) {
+  display: list-item;
+  list-style-type: disc;
+  list-style-position: inside;
+}
+
+:global(#workbench-image) {
+  width: 100%;
+  float: left;
+  margin: 0 10px;
+}
+
+:global(#workbench-image img) {
+  max-width: 100%;
+  padding: 40px 0 10px 0;
+}
+
+/* clearfix */
+.clearfix::before,
+.clearfix::after {
+  content: " ";
+  display: table;
+}
+
+.clearfix::after {
+  clear: both;
+}
+
+.clearfix {
+  *zoom: 1; /* Für den IE6 und IE7 */
+}

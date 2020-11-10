@@ -1,0 +1,261 @@
+
+<div local-class="agent-item-header clearfix">
+  <div local-class="agent-item-header-text" >  {{activeEvent.label}}</div>
+          <button {{action "deleteevent"}} class="ui red icon button rightmost">
+            <i class="minus icon no-side-margins"></i>
+         </button>
+</div>
+
+
+
+<div local-class="item-seperation">
+<hr><i> URI</i>
+</div>
+
+
+<div local-class="item-row clearfix">
+        <div local-class="item-row-title" data-tooltip="Agent's URI" data-position="top left">
+               URI:
+        </div>
+
+        <div local-class="item-row-content">
+          <div local-class="item-row-value">
+            {{activeEvent.uri}}
+          </div>
+          <div>
+            <button data-tooltip="copy URI" class="ui right icon button" local-class="item-row-copy" {{action "clipboarCopy" activeEvent.uri}}>
+              <i class="icon copy no-side-margins"></i>
+            </button>
+          </div>
+        </div>
+</div>
+
+
+
+
+<!--<div local-class="item-row clearfix">-->
+<!--        <div local-class="item-row-title" data-tooltip="Agent's URI" data-position="top left">-->
+<!--               URI:-->
+<!--        </div>-->
+
+<!--          <div local-class="item-row">-->
+
+<!--             <div local-class="item-rowuri">-->
+<!--                  {{activeEvent.uri}}-->
+<!--             </div>-->
+
+<!--          </div>-->
+
+
+<!--</div>-->
+
+
+
+
+<!--     <div local-class="item-row clearfix">-->
+<!--        <div local-class="item-row-title" data-tooltip="Manipulate Event's URI" data-position="top left">URI:</div>-->
+
+<!--        {{#if this.editeventURI}}-->
+<!--          <div local-class="item-row-content-edit">-->
+<!--            <div local-class="item-row-value">-->
+<!--              {{input value=activeEvent.uri}}-->
+<!--            </div>-->
+
+<!--            <div local-class="item-row-buttons">-->
+
+<!--              <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>-->
+<!--                <i class="close icon no-side-margins"></i>-->
+<!--              </button>-->
+
+<!--              <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeEvent.uri "http://www.w3.org/2000/01/rdf-schema#uri" activeEvent.uri "http://www.w3.org/2001/XMLSchema#string"}}>-->
+<!--                <i class="pencil icon no-side-margins"></i>-->
+<!--              </button>-->
+
+<!--            </div>-->
+<!--          </div>-->
+<!--        {{/if}}-->
+
+<!--        {{#unless this.editeventURI}}-->
+<!--          <div local-class="item-row-content" >-->
+<!--            <div local-class="item-row-value">-->
+<!--               <div local-class="hover-content">-->
+<!--                  {{activeEvent.uri}}-->
+<!--               </div>-->
+<!--            </div>-->
+<!--            <div local-class="item-row-buttons">-->
+<!--              <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "eventuri" activeEvent.uri}}>-->
+<!--                <i class="edit icon no-side-margins"></i>-->
+<!--              </button>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        {{/unless}}-->
+
+<!--      </div>-->
+
+
+
+
+
+<div local-class="item-seperation">
+<hr><i> Label</i>
+</div>
+
+             <div local-class="item-row clearfix">
+              <div local-class="item-row-title" data-tooltip="Manipulate Event's Label" data-position="top left">Label:</div>
+              {{#if this.editEventLabel}}
+                <div local-class="item-row-content-edit">
+                  <div local-class="item-row-value">
+                    {{input value=activeEvent.label}}
+                  </div>
+
+                  <div local-class="item-row-buttons">
+
+                    <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
+                      <i class="close icon no-side-margins"></i>
+                    </button>
+
+                    <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeEvent.uri "http://www.w3.org/2000/01/rdf-schema#label" activeEvent.label "http://www.w3.org/2001/XMLSchema#string"}}>
+                      <i class="pencil icon no-side-margins"></i>
+                    </button>
+
+                  </div>
+                </div>
+              {{/if}}
+
+              {{#unless this.editEventLabel}}
+                <div local-class="item-row-content" >
+                  <div local-class="item-row-value">
+                    {{activeEvent.label}}
+                  </div>
+                  <div local-class="item-row-buttons">
+                    <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "eventlabel" activeEvent.label}}>
+                      <i class="edit icon no-side-margins"></i>
+                    </button>
+                  </div>
+                </div>
+              {{/unless}}
+
+            </div>
+
+<!--
+
+  <div local-class="item-seperation">
+        <hr><i>Trigger</i>
+      </div>
+  <div local-class="item-row clearfix">
+        <div local-class="item-row-title">Trigger:</div>
+        {{#if this.editTrigger}}
+          <div local-class="item-row-content-edit">
+
+            <div local-class="item-row-buttons">
+              <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
+                <i class="close icon no-side-margins"></i>
+              </button>
+             </div>
+          </div>
+
+
+        <p>Add new trigger</p>
+        {{#checkbox-list items=availableEvents onCheck=(action "handleCheck") as |list|}}
+
+          <div class="checkbox">
+            {{list.checkbox}}
+           <label>
+            {{list.item.uri}}
+           </label>
+          </div>
+
+        {{/checkbox-list}}
+          <p>Selected Trigger</p>
+            <ul>
+              {{#each checkedPermissions as |permission|}}
+                <li>{{permission.label}}</li>
+
+              {{else}}
+                <li>No Trigger selected yet.</li>
+              {{/each}}
+            </ul>
+        <button class="ui primary button" {{action "savenewtriggers" checkedPermissions }}>Save </button>
+
+
+        {{/if}}
+        {{#unless this.editTrigger}}
+          <div local-class="item-row-content">
+            <div local-class="item-row-value">
+                 {{#each activeBehavior.triggers as |trigger|}}
+                         <div>{{trigger}}  </div>
+                 {{/each}}
+
+            </div>
+            <div local-class="item-row-buttons">
+              <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "trigger"  activeBehavior.trigger}}>
+                <i class="edit icon no-side-margins"></i>
+              </button>
+            </div>
+          </div>
+        {{/unless}}
+      </div>
+
+
+  <div local-class="item-seperation">
+        <hr><i>BT</i>
+      </div>
+  <div local-class="item-row clearfix">
+        <div local-class="item-row-title">BT:</div>
+        {{#if this.editBt}}
+          <div local-class="item-row-content-edit">
+            <div local-class="item-row-buttons">
+              <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
+                <i class="close icon no-side-margins"></i>
+              </button>
+
+              <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeBehavior.uri "http://www.ajan.de/ajan-ns#bt" activeBehavior.bt "http://www.w3.org/2001/XMLSchema#anyURI"}}>
+                <i class="pencil icon no-side-margins"></i>
+              </button>
+
+            </div>
+          </div>
+
+
+            {{#checkbox-list items=availableBehaviors onCheck=(action "handleCheck") as |list|}}
+              <div class="checkbox">
+                  {{list.checkbox}}
+                <label>
+                   {{list.item.uri}}
+                </label>
+              </div>
+            {{/checkbox-list}}
+              <p>Selected Bt</p>
+              <ul>
+                {{#each checkedPermissions as |permission|}}
+                  <li>{{permission.label}}</li>
+                    {{else}}
+                  <li>No Event selected yet.</li>
+                {{/each}}
+              </ul>
+          <button class="ui primary button" {{action "savenewbts" checkedPermissions }}> Save </button>
+
+
+                    {{/if}}
+                    {{#unless this.editBt}}
+                      <div local-class="item-row-content">
+                        <div local-class="item-row-value">
+
+                           {{#each activeBehavior.bts as |bt|}}
+                                     <div>{{bt}}  </div>
+                             {{/each}}
+
+                        </div>
+                        <div local-class="item-row-buttons">
+                          <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "bt"  activeBehavior.bt}}>
+                            <i class="edit icon no-side-margins"></i>
+                          </button>
+                        </div>
+                      </div>
+                    {{/unless}}
+                  </div>
+-->
+
+
+
+

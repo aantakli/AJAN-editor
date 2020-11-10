@@ -1,0 +1,26 @@
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+
+@value color-font: white;
+@value color-interaction-bg: color-primary-1;
+
+.container {
+  justify-content: flex-start;
+  align-content: center;
+  height: 100%;
+  padding: 0.5em 0.5em;
+
+  background-color: #f0f0f0;
+  color: darkslategray;
+  /* background-color: color-interaction-bg;
+  color: color-font; */
+}
+
+.title {
+  font-weight: bold;
+  flex-shrink: 1;
+}
+
+.content {
+  flex-shrink: 0;
+  padding-left: 4pt;
+}

@@ -1,0 +1,18 @@
+{{#modal-basic
+  title="Save Query"
+  modalID="modal-save-as"
+  class="modal-parent"
+  onConfirm=(action "saveAs")
+  show=show
+}}
+  {{component 'editor/action-bar/save-as-view'
+    class=""
+    labelValue=labelValue
+    descriptionValue=descriptionValue
+    tagValues=tagValues
+    tempTagValues=tempTagValues
+    tempDescriptionValue=tempDescriptionValue
+    tempLabelValue=tempLabelValue
+    show=show
+  }}
+{{/modal-basic}}

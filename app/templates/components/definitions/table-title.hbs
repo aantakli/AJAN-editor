@@ -1,0 +1,8 @@
+<div class="table-title wrapper">
+  <div class="leftmost table-title-text">{{yield}}{{title}}</div>
+  {{#if short}}
+    <div id="add-button" class="button rightmost list-button positive invisible" > + </div>
+  {{else}}
+    <div id="add-button" class="button rightmost list-button positive" {{action "add"}}> + </div>
+  {{/if}}
+</div>

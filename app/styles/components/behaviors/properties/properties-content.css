@@ -1,0 +1,7 @@
+.content {
+  /* margin-left: 3pt; */
+}
+
+:global(.padded-property) {
+  padding: 2pt 5pt;
+}

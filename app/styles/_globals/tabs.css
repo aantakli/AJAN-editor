@@ -1,0 +1,59 @@
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+
+@value color-interaction-bg: color-primary-1;
+@value color-hover: color-primary-2;
+@value color-interaction-font: white;
+@value color-h-bg: color-primary;
+
+
+:global(.tabbar) {
+  background-color: color-interaction-bg;
+  color: color-interaction-font;
+  height: 30pt;
+}
+
+:global(.tabbar-button) {
+  flex-basis: 10em;
+  text-align: center;
+  vertical-align: middle;
+
+  border: 0;
+  border-right: 2px;
+  border-style: solid;
+  border-color: lightgrey;
+
+  font-weight: bold;
+}
+
+:global(.tabbar-button > .ember-view) {
+  height: 100%
+}
+
+:global(.tabbar-button:hover, .tabbar-link:hover) {
+  color: color-interaction-font;
+  background-color: color-hover;
+}
+
+
+:global(a.tabbar-link.active), :global(.tabbar-button:hover a.tabbar-link.active:hover){
+    /* background-color: white; */
+    /* color: color-interaction-bg; */
+    background-color: color-h-bg;
+    color: white;
+}
+
+:global(div.tab-box) {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+:global(div.tab-content) {
+  overflow: auto;
+}
+
+:global(.custom-tab.content.white) {
+  padding-top: 12pt;
+  background-color: white;
+}

@@ -1,0 +1,206 @@
+/* #agent-item */
+
+:global(#agent-instance) {
+  width: 80%;
+  height: 100%;
+  padding: 0 0 40px 40px;
+  float: left;
+  position: relative;
+}
+
+.agent-instance-header {
+  font-size: 40px;
+  font-weight: light;
+  width: 100%;
+  height: 50px;
+  position: relative;
+}
+
+.agent-instance-header-text {
+  float: left;
+  height: 50px;
+  padding-right: 30px;
+  margin-bottom: 20px;
+}
+
+.agent-instance-header button {
+  font-size: 20px;
+  display: block;
+  position: absolute;
+  bottom: 0px;
+  float: left;
+}
+
+.agent-instance-reminder {
+  font-size: 25px;
+  width: 100%;
+  height: 50px;
+  position: relative;
+}
+
+.agent-instance-reminder-text {
+  float: left;
+  height: 50px;
+  padding-right: 30px;
+  margin-top: 40px;
+  margin-left: 40px;
+}
+
+:global(#agent-instance-show) {
+  width: 100%;
+  position: relative;
+}
+
+.instance-row {
+  float: left;
+  width: 100%;
+  min-height: 30px;
+  padding: 0 0 5px 0;
+}
+
+.instance-seperation {
+  width: 100%;
+  position: relative;
+}
+
+  .instance-seperation i {
+    float: right;
+    display: block;
+    background: #FFF;
+    padding: 0 10px;
+    margin-top: -33px;
+    color: #DDD;
+  }
+
+.instance-row-title,
+.instance-seperation,
+.instance-row-content,
+.instance-row-collection,
+.instance-row-content-edit,
+.instance-row-value,
+.instance-row-buttons {
+  float: left;
+}
+
+.instance-row-behavior {
+  display: list-item;
+  list-style-type: disc;
+  list-style-position: inside;
+}
+
+.instance-row-title {
+  min-width: 15%;
+  height: 100%;
+  font-weight: bold;
+}
+
+.instance-row-content,
+.instance-row-content-edit,
+.instance-row-collection {
+  vertical-align: text-top;
+  margin: 0px;
+  border: 0px;
+  padding: 0px;
+  width: 85%;
+  display: flex;
+}
+
+ul.instance-row-content {
+  display: block;
+}
+
+.instance-row-value {
+  padding-right: 10px;
+}
+
+.instance-row-copy,
+.instance-row-download {
+  width: 25px;
+  height: 25px;
+  padding: 0px !important;
+}
+
+.instance-row-download i {
+  padding-top: 5px !important;
+}
+
+.error-message {
+    color: red;
+}
+
+:global(#report-service-wrapper) {
+  position: relative;
+}
+
+:global(#report-service-message) {
+  max-width: 100%;
+  padding: 0px;
+  margin: 0;
+  position: relative;
+}
+
+:global(#report-service-wrapper button) {
+  position: relative;
+  top: -190px;
+  float: right;
+  left: -5px;
+  width: 25px;
+  height: 25px;
+  padding: 0px !important;
+}
+
+:global(#report-service-message) {
+  overflow: scroll;
+  height: 200px;
+  width: 760px;
+  padding: 20px;
+  margin: 30px 0 0 0;
+  color: #ffffff;
+  position: relative;
+  box-shadow: inset 0px 0px 5px #cccccc;
+  font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
+  background-color: rgb(24, 25, 64);
+}
+
+.instance-report-header button {
+  top: -2px;
+  left: 10px;
+  position: relative;
+}
+
+:global(i.succeeded-report) {
+  color: greenyellow;
+}
+
+:global(i.failed-report) {
+  color: tomato;
+  font-weight: bold;
+}
+
+:global(i.cancelled-report) {
+  color: goldenrod;
+}
+
+:global(i.bt-report) {
+  color: lavender;
+}
+
+:global(i.normal-report) {
+  color: cyan;
+}
+
+/* clearfix */
+.clearfix::before,
+.clearfix::after {
+  content: " ";
+  display: table;
+}
+
+.clearfix::after {
+  clear: both;
+}
+
+.clearfix {
+  *zoom: 1; /* Für den IE6 und IE7 */
+}
+

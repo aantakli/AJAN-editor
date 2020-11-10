@@ -1,0 +1,37 @@
+{{#ui/menu-bar}}
+
+<div id="tabbar-overview" class="vcenter btn tabbar-button">
+  {{#link-to "editor.services.actions" class="vcenter tabbar-link"}}
+  Definitions
+  {{/link-to}}
+</div>
+
+<div id="tabbar-vocabulary" class="vcenter btn tabbar-button">
+  {{#link-to "editor.services.service" class="vcenter tabbar-link"}}
+  Test Service
+  {{/link-to}}
+</div>
+
+{{ui/menu-bar/input-button
+        label="Load File"
+        compAction=(action "load")
+}}
+
+{{ui/menu-bar/download-button
+      label="Export Repo"
+      content=this.fileContent
+      fileName=this.fileName
+}}
+
+<div class="store-url-cont vcenter" local-class="rightmost">
+  <div>
+    <div local-class="store">Triplestore:</div>
+    <div class="store-url">---</div>
+  </div>
+</div>
+
+{{yield}}
+{{/ui/menu-bar}}
+
+{{ui/message/save-confirmation}}
+{{ui/message/error-message}}

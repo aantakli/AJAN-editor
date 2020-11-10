@@ -1,0 +1,29 @@
+{{#component 'behaviors/properties/query-wrapper'
+  title=title
+  removeButtonAction=removeButtonAction
+  editQuery=(action 'editQuery')
+}}
+	{{#if hasOriginBase}}
+		{{behaviors/properties/parameter/query-base
+			title="Origin Base"
+			uri=uri
+			basePredicate=originBasePredicate
+			template=template
+		}}
+	{{/if}}
+	{{#if hasTargetBase}}
+		{{behaviors/properties/parameter/query-base
+		  title="Target Base"
+			uri=uri
+			basePredicate=targetBasePredicate
+			template=template
+		}}
+	{{/if}}
+
+  {{ui/textarea-field
+    placeholder="Query"
+    value=queryValue
+    tooltip="SPARQL query"
+  }}
+
+{{/component}}

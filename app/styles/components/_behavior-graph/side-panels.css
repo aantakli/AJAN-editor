@@ -1,0 +1,53 @@
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+@value color-select from 'ajan-editor/styles/_globals/custom-select';
+
+@value color-title-bg: color-primary-4;
+@value color-subtitle-bg: color-primary-5;
+@value color-h-bg: color-primary;
+@value color-h-font: #ffffff;
+@value color-odd-bg: color-primary-6;
+@value color-font: #000000;
+
+:global(.title-behaviors:not(.wrapped)) {
+  font-weight: bold;
+  font-size: larger !important;
+  padding: 0.5em 0.5em;
+  background-color: color-title-bg;
+  border-style: solid;
+  border-width: 0 0 2px 0;
+  border-color: lightgrey;
+  height: 2.5em;
+}
+
+:global(.title-behaviors.wrapped) {
+  padding-left: 0.5em;
+}
+
+:global(.behaviors.title.wrapper) {
+  /* font-size: inherit !important; */
+  padding: 0.5em 0 0.5em 0.5em;
+
+}
+
+:global(.subtitle-behaviors) {
+  font-weight: bold;
+  font-size: large !important;
+  padding: 0.2em 0.5em;
+  background-color: color-subtitle-bg;
+  border-style: solid;
+  border-width: 0 0 2px 0;
+  border-color: lightgrey;
+}
+
+:global(.wrapper) {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: flex-end;
+  padding: 0;
+  margin: 0;
+}
+
+:global(.even) {
+  background-color: color-odd-bg;
+}

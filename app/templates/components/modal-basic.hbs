@@ -1,0 +1,29 @@
+
+<div id="{{modalID}}" class='modal' local-class="modal" style={{display-helpers/visibility-property show}}>
+  <!-- Modal content -->
+  <div class="modal-content" local-class="modal-content">
+    <div class="modal-header">
+      <span class="modal-close" {{action 'close'}}><i class="close icon"></i></span>
+      <h2 id="modal-query-header-title" class="modal-header-title">{{title}}</h2>
+    </div>
+
+    <div id="" class="modal-body query-selection" local-class="modal-body">
+      {{yield}}
+    </div>
+
+    <div class="modal-footer">
+      {{#unless hideFooterButtons}}
+      <div class="modal-buttons">
+        <div class="ui negative right labeled icon button" {{action 'cancel'}}>
+          Cancel
+          <i class="close icon"></i>
+        </div>
+        <div id="save-button" class="ui positive right labeled icon button" {{action 'confirm'}}>
+          Save
+          <i class="save icon"></i>
+        </div>
+      </div>
+      {{/unless}}
+    </div>
+  </div>
+</div>

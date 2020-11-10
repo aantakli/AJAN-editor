@@ -1,0 +1,52 @@
+{{#ui/overlay-component show=editorEmpty content="Provide a query before modifying parameters"}}
+
+  <div class="flex-container vertical param-field">
+    <div class="template-def param-header wrapper">
+      <div class="leftmost template-def param-title subtitle">{{param.title}}</div>
+      <!-- <div class="template-def button rightmost list-button negative" {{action "removeComponent"}}> - </div> -->
+      <!-- <div id="remove-button-placeholder" class="template-def button rightmost list-button negative"> - </div> -->
+      {{component 'ui/buttons/remove-button'
+        onClick=(action 'removeComponent')
+      }}
+    </div>
+
+    {{ui/titled-input
+      title="Label"
+      placeholder="Label"
+      value=param.label
+      tooltip="Label by which the parameter will be identified."
+    }}
+
+    {{ui/titled-dropdown
+     title="Variable"
+     placeholder="Variable"
+     value=param.variable
+     selected=param.variable
+     possibleValues=variables
+     onChange=(action (mut param.variable))
+     tooltip="Variable from the SPARQL query which can be modified via this parameter."
+    }}
+
+    {{ui/titled-dropdown
+      title="Selection Mode"
+      placeholder="Mode"
+      possibleValues=modeValues
+      selected=param.mode
+      onChange=(action (mut param.mode))
+      tooltip="Pick one of several ways of selecting the parameter."
+    }}
+
+    {{ui/titled-input
+      title="Note / Tooltip"
+      placeholder="Note"
+      value=param.note
+      tooltip="Additional information for the parameter, should it be required. Will be displayed as a note next to the parameter, or as tooltip, depending on the view."
+    }}
+
+    {{#if showChoices}}
+    {{definitions/template/parameter-choices
+        param=param
+    }}
+    {{/if}}
+  </div>
+{{/ui/overlay-component}}

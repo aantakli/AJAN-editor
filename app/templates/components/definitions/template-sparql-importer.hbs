@@ -1,0 +1,11 @@
+<div class="flex-horizontal editor action-bar" local-class="bar">
+
+    {{component 'editor/action-bar/action-button'
+      text="Load Query"
+      onClick=(action "load")
+      icon="folder open"
+      local-class="button"
+    }}
+</div>
+
+{{component 'editor/modals/load-modal' show=showLoadModal labelValue=labelValue}}

@@ -1,0 +1,14 @@
+{{#modals/modal-wrapper
+  title="Vocabulary Definition"
+  id="vocabulary-modal"
+  show=show
+  onConfirm=(action "onConfirm")
+  onCancel=(action "onCancel")
+  onClose=(action "onCancel")
+}}
+
+  {{definitions/vocabulary/modal-content
+    vocabulary=vocabulary
+  }}
+
+{{/modals/modal-wrapper}}

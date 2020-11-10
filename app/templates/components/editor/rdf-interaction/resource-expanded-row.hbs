@@ -1,0 +1,27 @@
+<div class="subtable triples">
+
+  {{#light-table table as |t|}}
+    <!-- {{t.head
+      onColumnClick=(action 'onColumnClick')
+      iconSortable='fa fa-sort'
+      iconAscending='fa fa-sort-asc'
+      iconDescending='fa fa-sort-desc'
+      resizeOnDrag=true
+    }} -->
+
+    {{#t.head as |groups subColumns|}}
+      {{#each groups as |group|}}
+        {{!-- ... --}}
+      {{/each}}
+    {{/t.head}}
+
+    {{#t.body as |body|}}
+      {{#if table.isEmpty}}
+        {{#body.no-data}}
+          No content found.
+        {{/body.no-data}}
+      {{/if}}
+    {{/t.body}}
+  {{/light-table}}
+
+</div>

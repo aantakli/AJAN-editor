@@ -1,0 +1,27 @@
+<div local-class="container">
+  {{#ui-accordion class="" local-class="accordion" exclusive=false }}
+    <div class="title" local-class="title first" style="font-size: 1.5em">
+      <i class="dropdown icon"></i> Choose new Triplestore
+    </div>
+    <div class="content triplestore-listing cf" style="padding: 0px; font-size: 1.2em" local-class="new-triplestore">
+      <div class="blocks input label">
+        <input id="label" placeholder="Triplestore Name">
+      </div>
+      <div class="blocks input uri">
+        <input id="uri" placeholder="URI">
+      </div>
+      <div class="blocks btn right">
+        <div class="ui positive right labeled icon button" local-class="button" {{action 'addTriplestore'}}>
+          Add
+          <i class="checkmark icon"></i>
+        </div>
+      </div>
+    </div>
+    <div class="title active" local-class="title not1" style="font-size: 1.5em; padding-top: 1.5em; margin-top: 1em;">
+      <i class="dropdown icon"></i> Choose existing Triplestore
+    </div>
+
+    <div id="triplestore-list" class="content active" style="padding: 0px; font-size: 1.2em" >
+    </div>
+  {{/ui-accordion}}
+</div>

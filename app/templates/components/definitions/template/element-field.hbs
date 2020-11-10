@@ -1,0 +1,14 @@
+{{#definitions/template/element-labeled-wrapper
+  label=param.title
+  note=param.note
+  compactView=compactView
+}}
+
+  {{ui/input-field
+    class="modal-creation-input modal-flex-item flexed-input"
+    placeholder=param.label
+    value=param.variableBinding
+    onChange=onChange
+  }}
+
+{{/definitions/template/element-labeled-wrapper}}

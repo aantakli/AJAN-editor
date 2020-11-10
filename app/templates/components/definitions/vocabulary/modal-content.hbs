@@ -1,0 +1,24 @@
+<div class="flex-container vertical">
+
+  {{ui/titled-input
+    title="Prefix"
+    placeholder="Prefix"
+    value=vocabulary.prefix
+    tooltip="Prefix by which the vocabulary can be identified."
+  }}
+
+  {{ui/titled-input
+    title="URI"
+    placeholder="URI"
+    value=vocabulary.uri
+    tooltip="URI of the vocabulary. Ideally this points to an existing vocabulary definition."
+  }}
+
+  {{ui/titled-textarea
+    title="Description"
+    placeholder="Description"
+    value=vocabulary.description
+    tooltip="Description of the vocabulary."
+  }}
+
+</div>

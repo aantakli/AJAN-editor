@@ -1,0 +1,56 @@
+<div class="flex-container vertical" local-class="body">
+  {{ui/titled-input
+    inputID="label-input"
+    title="Title"
+    placeholder="Title"
+    value=template.title
+    tooltip='Title, under which the template will be displayed.'
+  }}
+
+  {{ui/titled-textarea
+    inputID="description-input"
+    title="Description"
+    placeholder="Description"
+    value=template.description
+    tooltip='Description of the template, which will be visible when selecting it.'
+  }}
+
+  {{ui/titled-multiinput
+    inputID="nodes-input"
+    title="Nodes"
+    placeholder="Select Nodes"
+    values=template.nodes
+    possibleValues=possibleNodesValues
+    tooltip='Node types for which this template will be available. Select "All" to make it available for all nodes.'
+  }}
+
+  {{ui/titled-input
+    title="Target Base"
+    placeholder="Target Base"
+    value=template.targetBase
+    tooltip="The default targeted data source for the query of this template."
+  }}
+
+</div>
+
+<div class="template-def subsubheader wrapper">
+  {{#ui/tool-tip class="full-width" tooltip="Define parameters which can be manipulated by modifying this template."}}
+    <div class="leftmost template-def subtitle subsubtitle-text">Exposed Parameters</div>
+    <!-- <div id="add-button" class="template-def button rightmost list-button positive" {{action 'addParameter'}}> + </div> -->
+    {{component 'ui/buttons/add-button'
+      onClick=(action 'addParameter')
+    }}
+  {{/ui/tool-tip}}
+</div>
+
+{{#each template.parameters as |param|}}
+  {{definitions/template/parameter-config
+    param=param
+    template=template
+    variableValues=availableQueryVariables
+    removeComponent=(action "removeComponent" param)
+    editorEmpty=editorEmpty
+  }}
+{{/each}}
+
+{{yield}}

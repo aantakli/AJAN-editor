@@ -1,0 +1,26 @@
+<div class="flex-container" local-class="header {{if template "" "highlight"}} {{if compactView "compact"}}">
+  <div class="flex-container" local-class="container {{if compactView "compact"}}">
+    <div local-class="label {{if compactView "compact"}}">Template: </div>
+
+    {{#ui-dropdown
+      class="selection template-selector"
+      local-class="input"
+      allowAdditions=false
+      selected=templateID
+      onChange=(action 'changeTemplate')
+    }}
+      <div class="default text">Select a template</div>
+      <i class="dropdown icon"></i>
+      <div class="menu">
+        {{#each templates as |templateValue|}}
+          <div data-value={{templateValue.id}} class="item">
+            {{templateValue.title}}
+          </div>
+        {{/each}}
+      </div>
+    {{/ui-dropdown}}
+  </div>
+
+</div>
+
+{{yield}}

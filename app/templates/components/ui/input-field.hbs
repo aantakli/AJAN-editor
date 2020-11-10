@@ -1,0 +1,16 @@
+{{#ui/tool-tip tooltip=tooltip}}
+  <div class="ui {{if icon "icon"}} input full-width">
+    {{#if icon}}
+      <i class="{{icon}} icon"></i>
+    {{/if}}
+
+    {{input
+      id=inputID
+      placeholder=placeholder
+      readonly=readonly
+      value=intermediateValue
+      onChange=onChange
+      type=type
+    }}
+  </div>
+{{/ui/tool-tip}}

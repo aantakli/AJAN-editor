@@ -1,0 +1,36 @@
+:global(.subtable.triples) {
+  padding-left: 100pt;
+}
+
+:global(.lt-expanded-row)>td {
+  padding-top: 0;
+}
+
+tr:global(.lt-expanded-row) {
+  background-color: white;
+}
+
+:global(.expanded-row.resource) tr:nth-child(odd) {
+  background-color: blanchedalmond;
+}
+
+:global(.lt-row.is-expanded) {
+  background-color: blanchedalmond;
+}
+
+.bool {
+  height: 50pt;
+  line-height: 50pt;
+  font-size: 20pt;
+  text-align: center;
+  vertical-align: middle;
+  width: 100%,
+}
+
+.true {
+    background-color: palegreen;
+}
+
+.false {
+    background-color: lightcoral;
+}

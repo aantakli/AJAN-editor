@@ -1,0 +1,14 @@
+<!-- {{ember-ace lines=10 value=value update=(action 'valueUpdated')}} -->
+
+{{#ember-ace
+  id="ace-editor"
+  class="full-height"
+  as |editor|
+}}
+  <!-- {{#editor.completion-tooltip as |suggestion|}}
+    Caption: {{suggestion.caption}}
+  {{/editor.completion-tooltip}} -->
+{{/ember-ace}}
+
+
+{{yield}}

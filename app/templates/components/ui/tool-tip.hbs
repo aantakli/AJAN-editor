@@ -1,0 +1,11 @@
+{{#if tooltip}}
+  {{#ui-popup
+    content=tooltip
+    delay=popupDelay
+    class="fit-child full-width flex-container justify-inherit"
+  }}
+    {{yield}}
+  {{/ui-popup}}
+{{else}}
+  {{yield}}
+{{/if}}

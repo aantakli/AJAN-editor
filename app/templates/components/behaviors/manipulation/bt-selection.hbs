@@ -1,0 +1,19 @@
+<p class="node-adder-class title-behaviors" local-class="bt-dropdown">Behavior Tree</p>
+{{#ui-dropdown
+  class="fluid search selection"
+  allowAdditions=true
+  fullTextSearch=true
+  sortSelected=true
+  selected=selectedValueName
+  onChange=(action (mut selectedValue))
+}}
+ <div class="default text">Behavior Tree</div>
+ <i class="dropdown icon"></i>
+ <div class="menu" id="bt-select">
+  {{#each availableBTs as |value|}}
+   <div data-value={{value.uri}} class="item">
+    {{value.name}}
+   </div>
+  {{/each}}
+ </div>
+{{/ui-dropdown}}

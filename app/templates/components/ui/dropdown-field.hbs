@@ -1,0 +1,23 @@
+{{#ui-dropdown
+  id=inputID
+  class="fluid search selection"
+  allowAdditions=true
+  fullTextSearch=true
+  sortSelect=true
+  clearable=false
+  onChange=onChange
+  selected=selected
+  as |execute mapper|
+}}
+<!-- onChange=(action (mut values)) -->
+
+  <i class="dropdown icon"></i>
+  <div class="default text">{{placeholder}}</div>
+  <div class="menu">
+    {{#each possibleValues as |item|}}
+      <div data-value={{item}} class="item">
+        {{item}}
+      </div>
+    {{/each}}
+  </div>
+{{/ui-dropdown}}

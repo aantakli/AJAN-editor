@@ -1,0 +1,104 @@
+{{#ui/menu-bar}}
+  {{#ui/menu-bar/dropdown
+    label="File"
+  }}
+    {{ui/menu-bar/dropdown-button
+      label="New"
+      icon="file"
+      onClick=(action "new")
+    }}
+    {{ui/menu-bar/dropdown-button
+      label="Load"
+      onClick=(action "load")
+      icon="folder open"
+    }}
+    {{ui/menu-bar/dropdown-button
+      label="Save"
+      onClick=(action "save")
+      icon="save"
+    }}
+    {{ui/menu-bar/dropdown-button
+      label="Save as ..."
+      onClick=(action "saveAs")
+      icon="archive"
+    }}
+    {{ui/menu-bar/dropdown-button
+      label="Import"
+      onClick=(action "import")
+      icon="upload"
+    }}
+    {{ui/menu-bar/dropdown-button
+      label="Export"
+      onClick=(action "export")
+      icon="download"
+    }}
+  {{/ui/menu-bar/dropdown}}
+
+  {{#ui/menu-bar/dropdown
+    label="Insert"
+  }}
+    {{ui/menu-bar/dropdown-button
+      label="ASK"
+      onClick=(action "ask")
+      icon=""
+    }}
+    {{ui/menu-bar/dropdown-button
+      label="CONSTRUCT"
+      onClick=(action "construct")
+      icon=""
+    }}
+    {{ui/menu-bar/dropdown-button
+      label="DESCRIBE"
+      onClick=(action "describe")
+      icon=""
+    }}
+    {{ui/menu-bar/dropdown-button
+      label="SELECT"
+      onClick=(action "select")
+      icon=""
+    }}
+    {{ui/menu-bar/dropdown-button
+      label="SELECT DISTINCT"
+      onClick=(action "selectDistinct")
+      icon=""
+    }}
+    {{ui/menu-bar/dropdown-button
+      label="UPDATE"
+      onClick=(action "update")
+      icon=""
+    }}
+    {{ui/menu-bar/dropdown-button
+      label="Prefixes"
+      onClick=(action "prefixes")
+      icon=""
+    }}
+  {{/ui/menu-bar/dropdown}}
+
+  {{#ui/menu-bar/dropdown
+    label="View"
+  }}
+    {{ui/menu-bar/dropdown-button
+      label="Toggle Results"
+      onClick=(action "toggleResults")
+      icon=""
+    }}
+    {{ui/menu-bar/dropdown-button
+      label="Toogle References"
+      onClick=(action "toggleReferences")
+      icon=""
+    }}
+  {{/ui/menu-bar/dropdown}}
+{{/ui/menu-bar}}
+
+
+{{component 'editor/modals/load-modal'
+  show=showLoadModal
+  labelValue=labelValue
+}}
+{{component 'editor/modals/save-as-modal'
+  show=showSaveAsModal
+  labelValue=labelValue
+}}
+
+{{ui/message/save-confirmation}}
+{{ui/message/error-message}}

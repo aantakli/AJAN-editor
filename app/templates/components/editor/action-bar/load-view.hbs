@@ -1,0 +1,30 @@
+
+{{#light-table table tableActions=(hash
+  deleteEntry=(action 'deleteEntry')
+  editEntry=(action 'editEntry')
+  ) as |t|}}
+  {{t.head
+    onColumnClick=(action 'onColumnClick')
+    iconSortable='fa fa-sort'
+    iconAscending='fa fa-sort-asc'
+    iconDescending='fa fa-sort-desc'
+    resizeOnDrag=true
+  }}
+
+  {{#t.body
+    onRowClick=(action 'onRowClick')
+    onRowDoubleClick=(action 'onRowDoubleClick')
+    as |body|}}
+    {{#if isLoading}}
+      {{#body.loader}}
+        Loading...
+      {{/body.loader}}
+    {{/if}}
+
+    {{#if table.isEmpty}}
+      {{#body.no-data}}
+        No entries found.
+      {{/body.no-data}}
+    {{/if}}
+  {{/t.body}}
+{{/light-table}}

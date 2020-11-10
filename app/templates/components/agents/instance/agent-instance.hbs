@@ -1,0 +1,160 @@
+{{#if activeInstance.name}}
+<div local-class="agent-instance-header clearfix">
+  <div local-class="agent-instance-header-text">{{activeInstance.name}}</div>
+  <button {{action "deleteAgent" activeInstance.uri}} class="ui red icon button rightmost">
+    <i class="minus icon no-side-margins"></i>
+  </button>
+</div>
+
+<div local-class="instance-seperation">
+  <hr><i>Properties</i>
+</div>
+
+<!-- URI -->
+
+<div local-class="instance-row clearfix">
+  <div local-class="instance-row-title" data-tooltip="Agent's URI" data-position="top left">
+    URI:
+  </div>
+
+  <div local-class="instance-row-content">
+    <div local-class="instance-row-value">
+      {{activeInstance.uri}}
+    </div>
+    <div>
+      <button data-tooltip="copy URI" class="ui right icon button" local-class="instance-row-copy" {{action "clipboarCopy" activeInstance.uri}}>
+        <i class="icon copy no-side-margins"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Template -->
+
+<div local-class="instance-row clearfix">
+  <div local-class="instance-row-title" data-tooltip="Agent's URI" data-position="top left">
+    Template:
+  </div>
+
+  <div local-class="instance-row-content">
+    <div local-class="instance-row-value">
+      {{activeInstance.template}}
+    </div>
+  </div>
+</div>
+
+<!-- Knowledge -->
+
+<div local-class="instance-row clearfix">
+  <div local-class="instance-row-title" data-tooltip="Agent's Knowledge" data-position="top left">
+    Knowledge:
+  </div>
+
+  <div local-class="instance-row-content">
+    <div local-class="instance-row-value">
+      {{activeInstance.knowledge}}
+    </div>
+    <div>
+      <a data-tooltip="download knowledge" class="ui right icon button" local-class="instance-row-download" target="_blank" rel="noopener" href={{activeInstance.knowledge}}>
+        <i class="icon download no-side-margins"></i>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Behaviors -->
+
+<div local-class="instance-row clearfix">
+  <div local-class="instance-row-title" data-tooltip="Agent's Knowledge" data-position="top left">
+    Behaviors:
+  </div>
+
+  <ul local-class="instance-row-content" style="list-style-type:none;">
+    {{#each this.activeInstance.behaviors as |value|}}
+    <li>
+      <div local-class="instance-row-value instance-row-behavior " class="list-item">
+        {{value.name}}
+      </div>
+      <div>
+        <a data-tooltip="open behaviors state knowledge" class="ui right icon button" local-class="instance-row-download" rel="noopener noreferrer" target="_blank" rel="noopener" href={{concat value.uri '?mode=detail'}}>
+          <i class="icon external alternate no-side-margins"></i>
+        </a>
+      </div>
+    </li>
+    {{/each}}
+  </ul>
+</div>
+
+<!-- Send Message -->
+
+<div local-class="instance-seperation">
+  <hr><i>Reports</i>
+</div>
+
+<div local-class="instance-report-header">
+  <h3>
+    Agent LeafNode Status Reports
+    {{#if wssConnection}}
+    <button class="ui right icon button" onclick={{action "disconnect"}}>
+      Disconnect <i class="icon red bell slash no-side-margins"></i>
+    </button>
+    {{/if}}
+    {{#unless wssConnection}}
+    <button class="ui right icon button" onclick={{action "connect"}}>
+      Connect <i class="icon green bell no-side-margins"></i>
+    </button>
+    {{/unless}}
+  </h3>
+</div>
+
+<div local-class="instance-row">
+  <div id="test" local-class="instance-row-content">
+    <div id="report-service-wrapper" local-class="instance-row-value">
+      <div id="report-service-message">
+        <div id="report-service-message-content"><p>To receive report messages from the agent LeafNodes, please run the ReportService (reportService.js) and instantiate the agent with the Initial Knowledge RDF statement:</p><p>&lt;http://test> &lt;http://www.ajan.de/ajan-ns#agentReportURI&gt; 'http://localhost:4202/report'^^&lt;http://www.w3.org/2001/XMLSchema#anyURI&gt; .</p></div>
+      </div>
+      <button class="ui right icon button" onclick={{action "clean"}}>
+        <i class="icon ban no-side-margins"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Send Message -->
+
+<div local-class="instance-seperation">
+  <hr><i>Capability/Endpoint</i>
+</div>
+
+<h3>Messages to Agent Endpoints</h3>
+<br />
+{{#each this.activeInstance.actions as |value|}}
+<div local-class="instance-row clearfix">
+  <h4>
+    <span data-tooltip={{value.uri}}>{{value.label}}</span>
+  </h4>
+  <div local-class="instance-row-content">
+    <div id="test" local-class="instance-row-value">
+      {{textarea value=value.agentMessage cols="80" rows="6"}}
+    </div>
+    {{#if (eq messageError value.uri)}}
+    <p local-class="error-message">Invalide "text/turtle" RDF Graph!</p>
+    {{/if}}
+    <div>
+      <button data-tooltip="send Message" class="ui right icon yellow button" local-class="instance-row-copy" {{action "sendMsgToAgent" value.uri value.agentMessage}}>
+        <i class="icon send no-side-margins"></i>
+      </button>
+    </div>
+  </div>
+</div>
+{{/each}}
+{{/if}}
+{{#unless activeInstance.name}}
+<div local-class="agent-instance-reminder clearfix">
+  <div local-class="agent-instance-reminder-text">
+    <i class="icon angle double right no-side-margins"></i>
+    Reload Instance Overview or Create Agent Instance
+    <i class="icon angle double left no-side-margins"></i>
+  </div>
+</div>
+{{/unless}}

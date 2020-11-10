@@ -1,0 +1,18 @@
+<div class="flex-container vertical" local-class="body margined">
+
+  {{definitions/template/element-default
+    title=template.title
+    description=template.description
+  }}
+
+  {{#each template.parameters as |param|}}
+    {{definitions/template/parameter-element
+      param=param
+      onChange=onParamValueChange
+      compactView=compactView
+    }}
+  {{/each}}
+
+</div>
+
+{{yield}}

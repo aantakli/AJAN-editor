@@ -1,0 +1,8 @@
+:global(.ace_highlightedVariable) {
+  background-color: #ffb499;
+}
+
+:global(.ace_editor.ace_autocomplete) {
+  width: 600pt;
+	height: 600pt;
+}

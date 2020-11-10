@@ -1,0 +1,32 @@
+<div class="auto-height">
+  {{#light-table table as |t|}}
+    {{t.head
+      onColumnClick=(action 'onColumnClick')
+      iconSortable='fa fa-sort'
+      iconAscending='fa fa-sort-asc'
+      iconDescending='fa fa-sort-desc'
+      resizeOnDrag=true
+    }}
+
+    {{#t.body
+      onRowClick=(action 'onRowClick')
+      rowComponent=(component 'editor/help/table-row-tooltiped')
+      as |body|
+    }}
+
+      {{#if isLoading}}
+        {{#body.loader}}
+          Loading...
+        {{/body.loader}}
+      {{/if}}
+
+      {{#if table.isEmpty}}
+        {{#body.no-data}}
+          No results found.
+        {{/body.no-data}}
+      {{/if}}
+    {{/t.body}}
+  {{/light-table}}
+</div>
+
+{{yield}}

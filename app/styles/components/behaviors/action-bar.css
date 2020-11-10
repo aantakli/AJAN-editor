@@ -1,0 +1,56 @@
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+
+@value color-interaction-bg: color-primary-1;
+@value color-hover: color-primary-2;
+@value color-interaction-font: white;
+
+.actionbar {
+  background-color: color-interaction-bg;
+  color: color-interaction-font;
+  height: 50px;
+}
+
+.actionbar-button {
+  flex-basis: 10em;
+  text-align: center;
+  vertical-align: middle;
+  border: 0;
+  border-right: 2px;
+  border-style: solid;
+  border-color: lightgrey;
+  font-weight: bold;
+}
+
+.actionbar-button:hover {
+  background-color: color-hover;
+}
+
+:global(.flex-horizontal) {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+.rightmost {
+  margin-left: auto;
+  margin-right: 0;
+  text-align: right;
+}
+
+/***********************/
+/* Triplestore Display */
+/***********************/
+
+:global(.store-url-cont) {
+  padding: 0.5em 1em;
+}
+
+:global(.store-url) {
+  display: inline;
+}
+
+.store {
+  display:inline;
+  font-weight: bold;
+}

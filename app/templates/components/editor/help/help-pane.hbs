@@ -1,0 +1,52 @@
+<div class="flex-container vertical">
+
+  {{editor/help/menu-bar
+    viewMode=viewMode
+  }}
+
+
+  <div class="flex-container" local-class="title">
+    <div>
+      {{viewMode}} Help
+    </div>
+
+    <div class="rightmost">
+      {{#if showPrefixes}}
+        {{#link-to "editor.definitions.vocabulary" target="_blank"}}
+          <i class="external square alternate large icon"></i>
+        {{/link-to}}
+      {{else if showShorthands}}
+      {{#link-to "editor.definitions.snippets" target="_blank"}}
+        <i class="external square alternate large icon"></i>
+      {{/link-to}}
+      {{else if showSparql}}
+        <a href="https://www.w3.org/TR/2013/REC-sparql11-query-20130321/" target="_blank">
+          <i class="external square alternate large icon"></i>
+        </a>
+      {{else}}
+
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="flex-fill-item full-width no-overflow-x">
+
+    {{#if showAjan}}
+      {{component 'editor/help/ajan-view'
+      }}
+    {{else if showPrefixes}}
+      {{component 'editor/help/prefix-view'
+      }}
+    {{else if showShorthands}}
+      {{component 'editor/help/shorthands-view'
+      }}
+    {{else if showSparql}}
+      {{component 'editor/help/sparql-view'
+      }}
+    {{else}}
+      <!-- Default -->
+      {{component 'editor/help/shorthands-view'
+      }}
+    {{/if}}
+  </div>
+</div>

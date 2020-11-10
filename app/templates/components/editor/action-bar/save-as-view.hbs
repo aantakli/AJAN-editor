@@ -1,0 +1,36 @@
+<div class="flex-container vertical">
+<div>
+{{ui/titled-input
+  inputID="label-input"
+  title="Label"
+  placeholder="Label"
+  value=tempLabelValue
+}}
+
+{{ui/titled-textarea
+  inputID="description-input"
+  title="Description"
+  placeholder="Description"
+  value=tempDescriptionValue
+}}
+
+{{ui/titled-multiinput
+  inputID="tags-input"
+  title="Tags"
+  placeholder="Tags"
+  values=tempTagValues
+  possibleValues=possibleTagValues
+}}
+
+{{ui/delimiter-horizontal}}
+</div>
+<div class="flex-fill-item component-mini">
+
+{{component 'editor/action-bar/load-view'
+  class=""
+  show=show
+  overrideRowClick=(action "onRowClick")
+}}
+</div>
+
+</div>

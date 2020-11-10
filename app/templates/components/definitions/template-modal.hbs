@@ -1,0 +1,59 @@
+{{#modals/modal-wrapper
+  title="Template Definition"
+  id="template-modal"
+	class-modal="custom-modal template"
+	class-content="custom-modal-content template"
+	class-body="custom-modal-body template"
+  show=show
+  onConfirm=(action "onConfirm")
+  onCancel=(action "onCancel")
+  onClose=(action "onCancel")
+}}
+
+      <div id='split-left' class="split content split-horizontal">
+        <div id='split-top' class="split content split-vertical">
+          {{definitions/template-sparql-editor editorEmpty=editorEmpty}}
+        </div>
+
+        <div id='split-bot' class="split content split-vertical">
+          {{#ui/overlay-component show=editorEmpty content="Provide a query first" class="full-height"}}
+
+            <div class="template-def subheader wrapper">
+              <div class="leftmost template-def title subtitle-text">Template Preview</div>
+              {{component 'ui/buttons/button-placeholder'}}
+            </div>
+
+            {{definitions/template-view
+              class="auto-size"
+              template=template
+              editorEmpty=editorEmpty
+            }}
+          {{/ui/overlay-component}}
+
+        </div>
+      </div>
+
+      <div id='split-right' class="split content split-horizontal">
+
+        <div class="flex-container vertical auto-height">
+          <div class="template-def subheader wrapper">
+            <div class="leftmost template-def title subtitle-text">Template Parameters</div>
+            {{component 'ui/buttons/button-placeholder'}}
+          </div>
+
+          <div class="flex-content vertical" local-class="template-def editor">
+            {{definitions/template-parameters
+              class="full-size full-height"
+              template=template
+              queryVariables=queryVariables
+              editorEmpty=editorEmpty
+            }}
+          </div>
+        </div>
+
+      </div>
+
+
+{{/modals/modal-wrapper}}
+
+{{yield}}

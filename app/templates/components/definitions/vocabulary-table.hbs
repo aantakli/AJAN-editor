@@ -1,0 +1,51 @@
+{{definitions/table-title
+  title="Vocabulary Table"
+  short=short
+  addButtonClick=(action "addEntry")
+}}
+
+{{#light-table table
+  tableActions=(hash
+    deleteEntry=(action 'deleteEntry')
+    editEntry=(action 'editEntry')
+  )as |t|
+}}
+
+  {{t.head
+    onColumnClick=(action 'onColumnClick')
+    iconSortable='fa fa-sort'
+    iconAscending='fa fa-sort-asc'
+    iconDescending='fa fa-sort-desc'
+    resizeOnDrag=true
+  }}
+
+  {{#t.body
+    onRowDoubleClick=(action 'editEntry')
+    as |body|
+  }}
+    {{#if isLoading}}
+      {{#body.loader}}
+        Loading...
+      {{/body.loader}}
+    {{/if}}
+
+    {{#if table.isEmpty}}
+      {{#body.no-data}}
+        No entries found.
+      {{/body.no-data}}
+    {{/if}}
+  {{/t.body}}
+
+{{/light-table}}
+
+{{#unless short}}
+  {{definitions/vocabulary/vocabulary-modal
+    class="modal-parent"
+    table=table
+    vocabulary=vocabulary
+		activeRow=activeRow
+    show=showModal
+  }}
+{{/unless}}
+
+{{yield}}

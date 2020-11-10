@@ -1,0 +1,22 @@
+{{#ui/side-pane/field-wrapper title=title  tooltip="Base targeted by the query"}}
+	{{#ui-dropdown
+		class="flexed-input fluid search selection"
+		allowAdditions=true
+		fullTextSearch=true
+		sortSelect=true
+		selected=selectedBaseValue
+		onChange=(action (mut selected))
+	}}
+
+		<i class="dropdown icon"></i>
+		<div class="default text">{{title}}</div>
+		<div class="menu">
+			{{#each queryTargets as |item|}}
+				<div data-value={{item.value}} class="item">
+					{{item.label}}
+				</div>
+			{{/each}}
+		</div>
+	{{/ui-dropdown}}
+
+{{/ui/side-pane/field-wrapper}}

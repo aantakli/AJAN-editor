@@ -1,0 +1,11 @@
+{{#each items as |item|}}
+
+  {{yield
+  (hash
+  	item=item
+
+   checkbox=(component "ui/checkbox-field" class=item.label click=(action "onnewCheck" item)   )
+  )
+
+  }}
+{{/each}}

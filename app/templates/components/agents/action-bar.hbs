@@ -1,0 +1,34 @@
+<div class="flex-horizontal tabbar">
+  <div id="tabbar-overview" class="vcenter btn tabbar-button">
+    {{#link-to "editor.agents.template" class="vcenter tabbar-link"}}
+      Templates
+    {{/link-to}}
+  </div>
+
+  <div id="tabbar-vocabulary" class="vcenter btn tabbar-button">
+    {{#link-to "editor.agents.instance" class="vcenter tabbar-link"}}
+      Instances
+    {{/link-to}}
+  </div>
+  
+    {{ui/menu-bar/input-button
+        label="Load File"
+        compAction=(action "load")
+      }}
+    {{ui/menu-bar/download-button
+      label="Export Repo"
+      content=this.fileContent
+      fileName=this.fileName
+    }}
+
+  <div class="store-url-cont vcenter" local-class="rightmost">
+    <div>
+      <div local-class="store">Triplestore:</div>
+      <div class="store-url">---</div>
+    </div>
+  </div>
+</div>
+
+{{yield}}
+{{ui/message/save-confirmation}}
+{{ui/message/error-message}}

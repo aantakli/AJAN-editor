@@ -1,0 +1,82 @@
+@value color-primary, color-primary-1, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+/* @value color-select: color-primary-1; */
+@value color-select: color-primary-5;
+/* @value color-option: color-primary-2; */
+@value color-option: color-primary-6;
+/* @value color-option: #595ac0; */
+@value color-title-bg: color-primary-4;
+@value color-subtitle-bg: color-primary-5;
+@value color-h-bg: color-primary;
+@value color-h-font: #ffffff;
+@value color-odd-bg: color-primary-6;
+@value color-font: #000000;
+@value color-even-row: white;
+@value color-odd-row: #f2f2f2;
+
+:global(.table-header), th {
+  background-color: color-subtitle-bg;
+}
+
+table {
+  width: 100%;
+  max-width: 100%;
+}
+
+th, td {
+  padding: 3pt;
+  padding-top: 7pt;
+  padding-bottom: 7pt;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+:global(td.ember-view) {
+  height: 2em;
+  max-height: 2em;
+  min-height: 2em;
+}
+
+tr:nth-child(odd) {
+  background-color: color-odd-row;
+}
+
+tr:nth-child(even) {
+  background-color: color-even-row;
+}
+
+tr:not(:global(.lt-expanded-row)):hover :not(th) {
+  background-color: color-option;
+}
+
+:global(div.table-title) {
+  /* padding: 1em 0.8em; */
+  background-color: color-h-bg;
+  color: color-h-font;
+}
+
+:global(.table-title div) {
+  font-weight: bold;
+  font-size: 1.8em;
+}
+
+:global(.table-title-text) {
+  padding-left: 0.8em;
+}
+
+:global(.cell-actions) {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+:global(th > i.fa) {
+  padding-top: 3pt;
+  padding-right: 3pt;
+}
+
+:global(.lt-head-wrap.ember-view) {
+  height: 0;
+}

@@ -1,0 +1,16 @@
+{{#if ignore}}
+  {{yield}}
+{{else if removeButtonAction}}
+  {{#component 'ui/side-pane/title-wrapper' title=title}}
+    {{component 'ui/buttons/remove-button'
+      onClick=removeButtonAction
+    }}
+  {{/component}}
+
+  {{yield}}
+
+{{else}}
+  {{#component 'ui/side-pane/field-wrapper' title=title}}
+    {{yield}}
+  {{/component}}
+{{/if}}

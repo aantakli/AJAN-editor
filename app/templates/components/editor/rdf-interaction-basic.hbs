@@ -1,0 +1,51 @@
+<div class="flex-container vertical">
+
+  {{editor/rdf-interaction/menu
+    viewMode=viewMode
+    resultMode=resultMode
+  }}
+
+  {{editor/rdf-interaction-header
+    class="component-mini"
+    repositories=repositories
+    tableData=tableData
+    data=data
+    mode=resultMode
+    dataFormat=dataFormat
+    malformedQuery=malformedQuery
+    filter=filter
+  }}
+
+  <div class="flex-fill-item full-width no-overflow-x">
+
+    {{#if showGroupedSubjectView}}
+      {{component 'editor/rdf-interaction/resource-table'
+        dataFormat=dataFormat
+        filter=filter
+        malformedQuery=malformedQuery
+        mode=resultMode
+        tableData=tableData
+        data=data
+      }}
+    {{else if showTripleView}}
+      {{component 'editor/rdf-interaction/triple-table'
+        tableData=tableData
+        mode=resultMode
+        dataFormat=dataFormat
+        malformedQuery=malformedQuery
+        filter=filter
+        data=data
+      }}
+    {{else}}
+      <!-- Default -->
+      {{component 'editor/rdf-interaction/resource-table'
+        tableData=tableData
+        mode=resultMode
+        dataFormat=dataFormat
+        malformedQuery=malformedQuery
+        filter=filter
+        data=data
+      }}
+    {{/if}}
+  </div>
+</div>

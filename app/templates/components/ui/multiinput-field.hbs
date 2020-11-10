@@ -1,0 +1,27 @@
+{{#ui/tool-tip tooltip=tooltip}}
+  {{#ui-dropdown
+    id=inputID
+    class="fluid search multiple selection"
+    allowAdditions=true
+    fullTextSearch=true
+    selected=values
+    onChange=(action (mut values))
+    as |execute mapper|
+  }}
+    <i class="dropdown icon"></i>
+    <div class="default text">{{placeholder}}</div>
+    <div class="menu">
+      <!-- {{#each countries as |item|}}
+        <div data-value="{{map-value mapper item}}" class="item">
+          <i class="{{item.iso2}} flag"></i>
+          {{item.name}}
+        </div>
+      {{/each}} -->
+      {{#each possibleValues as |item|}}
+        <div data-value={{item}} class="item">
+          {{item}}
+        </div>
+      {{/each}}
+    </div>
+  {{/ui-dropdown}}
+{{/ui/tool-tip}}

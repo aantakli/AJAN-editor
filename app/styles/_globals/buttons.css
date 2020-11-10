@@ -1,0 +1,62 @@
+@value color-positive: #33cc33;
+@value color-positive-hover: #70db70;
+@value color-positive-font: white;
+
+@value color-negative: red;
+@value color-negative-hover: OrangeRed;
+@value color-negative-font: white;
+
+:global(.button) {
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
+
+  cursor: -webkit-pointer;
+  cursor: pointer;
+
+  border: none;
+  display: inline-block;
+  padding: 8px 16px;
+  vertical-align: middle;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  background-color: inherit;
+  text-align: center;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+:global(.button.rightmost) {
+  text-align: center;
+  display: inline-block;
+}
+
+:global(.button.positive) {
+  color: color-positive-font;
+  background-color: color-positive;
+}
+
+:global(.button.positive:hover) {
+  background-color: color-positive-hover;
+}
+
+:global(.button.negative) {
+  color: color-negative-font;
+  background-color: color-negative;
+}
+
+:global(.button.negative:hover) {
+  background-color: color-negative-hover;
+}
+
+:global(.button.top-right-corner) {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+:global(.button.query-edit) {
+  margin: 0;
+}

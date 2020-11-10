@@ -1,0 +1,29 @@
+{{behaviors/properties-casual/default-content
+  node=node
+}}
+
+{{#each node.structure.parameters as |parameter|}}
+  {{component 'behaviors/properties/parameter-structure'
+    parameter=parameter
+    uri=node.uri
+    casualMode="true"
+  }}
+{{/each}}
+
+{{#each node.structure.parameterSets as |set|}}
+  {{component 'behaviors/properties/set-structure'
+    set=set
+    uri=node.uri
+    casualMode="true"
+  }}
+{{/each}}
+
+{{#each node.structure.lists as |list|}}
+  {{component 'behaviors/properties/list-structure'
+    list=list
+    uri=node.uri
+    casualMode="true"
+  }}
+{{/each}}
+
+{{yield}}

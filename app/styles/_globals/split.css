@@ -1,0 +1,31 @@
+
+:global(.split) {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+:global(.gutter) {
+    background-color: black;
+    background-repeat: no-repeat;
+    background-position: 50%;
+    opacity: 0.5;
+}
+
+:global(.gutter.gutter-horizontal) {
+    cursor: col-resize;
+    background-image: url(/assets/images/ui/grips-vertical.png);
+}
+
+:global(.gutter.gutter-vertical) {
+    cursor: row-resize;
+    background-image: url(/assets/images/ui/grips-horizontal.png);
+}
+
+:global(.split.split-horizontal),
+:global(.gutter.gutter-horizontal) {
+    height: 100%;
+    float: left;
+}

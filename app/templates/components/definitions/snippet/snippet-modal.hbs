@@ -1,0 +1,14 @@
+{{#modals/modal-wrapper
+  title="Snippet Definition"
+  id="snippet-modal"
+  show=show
+  onConfirm=(action "onConfirm")
+  onCancel=(action "onCancel")
+  onClose=(action "onCancel")
+}}
+
+  {{definitions/snippet/modal-content
+    snippet=snippet
+  }}
+
+{{/modals/modal-wrapper}}

@@ -19,8 +19,8 @@ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABI
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ********************************************************************************
 
-THIRD-PARTY COMPONENT                                                 LICENSE
---------------------------------------------------------------------------------
+THIRD-PARTY COMPONENT (Version)                     LICENSE
+--------------------------------------------------------------------------
 Jquery 1.1.0                       				          JQUERY-LICENSE
 Babel Eslint 10.0.1                    				      BABEL-ESLINT-LICENSE
 Brocoli-Asset-Rev 3.0.0                				      MIT-LICENSE

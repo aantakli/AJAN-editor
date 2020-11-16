@@ -27,7 +27,7 @@ You will need the following things properly installed on your computer.
 
 The AJAN-editor needs several repositories to store editor data and to load node definitions. Especially the node definitions are necessary to interpret and display an AJAN Behavior Tree correctly. To create these repositories, start the triplestore provided with the AJAN service and create two new repositories.
 
-To do this, open the RDF4J Workbench (http://localhost:8090/workbench/repositories by default) and follow the steps below:
+To do this, open the RDF4J Workbench ([http://localhost:8090/workbench/repositories](http://localhost:8090/workbench/repositories) by default) and follow the steps below:
 
 * create Node Definitions repository:
 -> open `New Repository`

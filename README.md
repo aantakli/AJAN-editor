@@ -20,7 +20,7 @@ You will need the following things properly installed on your computer.
 
 ## Running / Development
 
-* `ember serve`
+* cmd: `ember serve` or run `startEditor.bat`
 * Visit your app at [http://localhost:4200](http://localhost:4200).
 
 ## Setup RDF4J Triplestore for AJAN-editor

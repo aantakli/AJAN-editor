@@ -1,6 +1,6 @@
 # AJAN-editor
 
-This is the web editor to create and run agents with the AJAN service.
+This is the web editor to create and run agents with the AJAN-service.
 
 ## Prerequisites
 
@@ -23,7 +23,7 @@ You will need the following things properly installed on your computer.
 * `ember serve`
 * Visit your app at [http://localhost:4200](http://localhost:4200).
 
-## Interaction with AJAN-service
+## Setup RDF4J Triplestore for AJAN-editor
 
 The AJAN-editor needs several repositories to store editor data and to load node definitions. Especially the node definitions are necessary to interpret and display an AJAN Behavior Tree correctly. To create these repositories, start the triplestore provided with the AJAN service and create two new repositories.
 
@@ -48,6 +48,14 @@ Now do the same with the Editor Data Repository:
 -> select the newly created repository and open the `Add` dialog
 -> unselect `use base URI as context identifier`
 -> load RDF Data File: `<AJAN-editor Root Folder>/Triplestore Repos/editor_data.trig`
+
+## Interaction with AJAN-service
+
+After the AJAN-editor is prepared, interaction with the AJAN-service is now possible. For this, however, the AJAN-service must run with its triplestore. If this is the case, please open `http://localhost:4200/home` and follow the next steps:
+
+* Choose new Triplestore, and define a `Triplestore Name`
+* Now define the AJAN-service Triplestore URI. By default `http://localhost:8090/rdf4j/repositories/`
+* After clicking `Add`, the newly created location can be opend via `Choose existing Triplestore`
 
 ### Code Generators
 

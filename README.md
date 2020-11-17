@@ -40,7 +40,7 @@ To do this, open the RDF4J Workbench ([http://localhost:8090/workbench/repositor
 
 Now do the same with the Editor Data Repository:
 
-* create Node Definitions repository:
+* create Editor Data repository:
 -> open `New Repository`
 -> select Type: `Native Store` and click `Next`
 -> specify Id: `editor_data` and click `Create`

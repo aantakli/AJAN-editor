@@ -224,11 +224,11 @@
         nd:paddingTo "width";
     ] .
 
-:Succeed nd:class nd:Decorator;
-    nd:name "Succeed";
+:IsSucceeding nd:class nd:Decorator;
+    nd:name "IsSucceeding";
     nd:labelType nd:Fixed;
     rdfs:label "\u2713";
-    nd:type bt:Succeed;
+    nd:type bt:IsSucceeding;
     nd:style [
         a nd:styleDef;
         nd:color "#ede8ff";
@@ -238,11 +238,11 @@
         nd:paddingTo "width";
     ] .
 
-:Fail nd:class nd:Decorator;
-    nd:name "Fail";
+:IsFailing nd:class nd:Decorator;
+    nd:name "IsFailing";
     nd:labelType nd:Fixed;
     rdfs:label "X";
-    nd:type bt:Fail;
+    nd:type bt:IsFailing;
     nd:style [
         a nd:styleDef;
         nd:color "#ede8ff";
@@ -257,6 +257,38 @@
 # --------------------------------------------
 # ------------------- Leafs ------------------
 # --------------------------------------------
+
+:Success nd:class nd:Leaf;
+	nd:name "Success";
+    nd:labelType nd:Dynamic;
+    rdfs:label "Success";
+    nd:type bt:Success;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#00BF00";
+        nd:shape nd:Polygon;
+        nd:polygon "[-1, 0, -0.9, 1, 0.9, 1, 1, 0, 0.9, -1, -0.9, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-success.png";
+    ]
+.
+
+:Fail nd:class nd:Leaf;
+	nd:name "Fail";
+    nd:labelType nd:Dynamic;
+    rdfs:label "Fail";
+    nd:type bt:Fail;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#C40000";
+        nd:shape nd:Polygon;
+        nd:polygon "[-1, 0, -0.9, 1, 0.9, 1, 1, 0, 0.9, -1, -0.9, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-fail.png";
+    ]
+.
 
 :Action nd:class nd:Leaf;
     nd:name "Action";
@@ -604,43 +636,6 @@
     ] )
 .
 
-:QueryJsonDomain nd:class nd:Leaf;
-	nd:name "Query Json Domain";
-    nd:labelType nd:Dynamic;
-    rdfs:label "DefaultQueryJsonDomain";
-    nd:type bt:QueryJsonDomain;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#00ff84";
-        nd:shape nd:Polygon;
-        nd:polygon "[-1, 0, -0.9, 1, 0.9, 1, 1, 0, 0.9, -1, -0.9, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "icons8-new-post.png";
-    ];
-	nd:parameters ( [
-            a nd:Parameter;
-            nd:mapsTo bt:mapping;
-            nd:title "Mapping";
-            nd:input xsd:anyURI ;
-            nd:default <http://localhost:8090/rdf4j/repositories/domain#>;
-        ][
-            a nd:Parameter;
-            nd:mapsTo bt:targetBase;
-            nd:title "Target Base";
-            nd:input nd:Repo ;
-        ][
-	        a nd:Parameter;
-	        nd:mapsTo bt:queryUri;
-	        nd:title "Query URI";
-	        nd:input nd:Query;
-	        bt:originBase "true";
-	        bt:targetBase "false";
-	        nd:type bt:ConstructQuery;
-	        nd:type bt:QueryUri;
-    ] )
-.
-
 :SyncMessage nd:class nd:Leaf;
 	nd:name "SyncMessage";
 	nd:labelType nd:Dynamic;
@@ -920,6 +915,29 @@
 # ------------------ Plugins ----------------------
 # -------------------------------------------------
 
+:Wait nd:class nd:Leaf;
+	nd:name "Wait";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultWait";
+    nd:type bt:Wait;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#eea5ff";
+        nd:shape nd:Roundrectangle;
+        nd:padding "600%";
+        nd:paddingTo "width";
+        nd:icon "wait.png";
+    ];
+	nd:parameters ([
+            a nd:Parameter;
+            nd:mapsTo bt:milliseconds;
+            nd:title "Milliseconds";
+            nd:input xsd:int ;
+            nd:default 0;
+        ]
+    )
+.
+
 :Timestamp nd:class nd:Leaf;
 	nd:name "Timestamp";
     nd:labelType nd:Dynamic;
@@ -931,7 +949,7 @@
         nd:shape nd:Roundrectangle;
         nd:padding "600%";
         nd:paddingTo "width";
-        nd:icon "icons8-timer.png";
+        nd:icon "timestamp.png";
     ];
 	nd:parameters ([
             a nd:Parameter;
@@ -953,6 +971,43 @@
             nd:default xsd:long;
         ]
     )
+.
+
+:QueryJsonDomain nd:class nd:Leaf;
+	nd:name "Query Json Domain";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultQueryJsonDomain";
+    nd:type bt:QueryJsonDomain;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#00ff84";
+        nd:shape nd:Polygon;
+        nd:polygon "[-1, 0, -0.9, 1, 0.9, 1, 1, 0, 0.9, -1, -0.9, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-new-post.png";
+    ];
+	nd:parameters ( [
+            a nd:Parameter;
+            nd:mapsTo bt:mapping;
+            nd:title "Mapping";
+            nd:input xsd:anyURI ;
+            nd:default <http://localhost:8090/rdf4j/repositories/domain#>;
+        ][
+            a nd:Parameter;
+            nd:mapsTo bt:targetBase;
+            nd:title "Target Base";
+            nd:input nd:Repo ;
+        ][
+	        a nd:Parameter;
+	        nd:mapsTo bt:queryUri;
+	        nd:title "Query URI";
+	        nd:input nd:Query;
+	        bt:originBase "true";
+	        bt:targetBase "false";
+	        nd:type bt:ConstructQuery;
+	        nd:type bt:QueryUri;
+    ] )
 .
 
 # --------------- GraphPlan -------------------

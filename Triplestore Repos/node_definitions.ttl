@@ -396,6 +396,12 @@
         nd:paddingTo "width";
         nd:icon "icons8-new-post.png";
     ];
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt:targetBase;
+	    nd:title "Target Base";
+	    nd:input nd:Repo;
+    ];
     nd:parameterSet [
         a nd:ParameterSet;
         nd:mapsTo bt:binding;
@@ -464,65 +470,6 @@
                 ]
             )
 	    ];
-    ];
-    nd:parameter [
-        a nd:Parameter;
-        nd:mapsTo bt:queryUri;
-        nd:type bt:QueryUri;
-        nd:type bt:ConstructQuery;
-        nd:title "Query URI";
-        nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-    ]
-.
-
-:Websocket nd:class nd:Leaf;
-	nd:name "Websocket";
-	nd:labelType nd:Dynamic;
-	rdfs:label "DefaultWebsocket";
-	nd:type bt:Websocket;
-	nd:style [
-        a nd:StyleDef;
-        nd:color "#ff3aff";
-        nd:shape nd:Polygon;
-        nd:polygon "[-1, 0, -0.9, 1, 0.9, 1, 1, 0, 0.9, -1, -0.9, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "icons8-new-post.png";
-    ];
-    nd:parameter [
-        a nd:Parameter;
-        nd:mapsTo ajan:event;
-        nd:input xsd:anyURI;
-        nd:default "http://"^^xsd:anyURI;
-        nd:title "Event";
-    ] ;
-    nd:parameterSet [
-        a nd:ParameterSet;
-        nd:mapsTo bt:wsBinding;
-        nd:type ws:Connection;
-        nd:title "Websocket Binding Configuration";
-        nd:parameterSet [
-	        a nd:ParameterSet;
-	        nd:mapsTo ws:parameters;
-	        nd:title "Parameters";
-            nd:type http-core:Header;
-            nd:parameters ([
-                    a nd:Parameter;
-                    nd:mapsTo http-core:hdrName;
-                    nd:title "Header Name";
-                    nd:input xsd:anyURI ;
-                    nd:default "http://www.w3.org/2008/http-headers#accept"^^xsd:anyURI;
-                ][
-                    a nd:Parameter;
-                    nd:mapsTo http-core:fieldValue;
-                    nd:title "Field Value";
-                    nd:input xsd:string ;
-                    nd:default "text/turtle"^^xsd:string;
-                ]
-            )
-        ];
     ];
     nd:parameter [
         a nd:Parameter;
@@ -634,81 +581,6 @@
 	        nd:type bt:ConstructQuery;
 	        nd:type bt:QueryUri;
     ] )
-.
-
-:SyncMessage nd:class nd:Leaf;
-	nd:name "SyncMessage";
-	nd:labelType nd:Dynamic;
-	rdfs:label "DefaultSyncMessage";
-	nd:type bt:SyncMessage;
-	nd:style [
-        a nd:StyleDef;
-        nd:color "#8c0f86";
-        nd:shape nd:Polygon;
-        nd:polygon "[-1, 0, -0.9, 1, 0.9, 1, 1, 0, 0.9, -1, -0.9, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "icons8-new-post.png";
-    ];
-    nd:parameter [
-        a nd:Parameter;
-        nd:mapsTo bt:requestUri;
-        nd:title "Request URI";
-        nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:ConstructQuery;
-        nd:type bt:RequestUri;
-    ];
-    nd:parameter [
-        a nd:Parameter;
-        nd:mapsTo bt:validate;
-        nd:title "Construct Query";
-        nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:ConstructQuery;
-    ];
-    nd:parameterSet [
-        a nd:ParameterSet;
-        nd:mapsTo bt:binding;
-        nd:type http-core:Request;
-        nd:title "BindingConfig";
-        nd:parameters ([
-	        a nd:Parameter;
-	        nd:mapsTo http-core:httpVersion;
-	        nd:title "HttpVersion";
-	        nd:default "1.1"^^xsd:string;
-	        nd:input xsd:string;
-	    ][
-	        a nd:Parameter;
-	        nd:mapsTo http-core:mthd;
-	        nd:title "HttpMethod";
-	        nd:input xsd:anyURI ;
-	        nd:default "http://www.w3.org/2008/http-methods#GET"^^xsd:anyURI;
-	    ]);
-        nd:parameterSet [
-	        a nd:ParameterSet;
-	        nd:mapsTo http-core:headers;
-	        nd:title "HttpHeaders";
-            nd:type http-core:Header;
-            nd:parameters ([
-                    a nd:Parameter;
-                    nd:mapsTo http-core:mthd;
-                    nd:title "HttpMethod";
-                    nd:input xsd:anyURI ;
-                    nd:default "http://www.w3.org/2008/http-headers#accept"^^xsd:anyURI;
-                ][
-                    a nd:Parameter;
-                    nd:mapsTo http-core:fieldValue;
-                    nd:title "FieldValue";
-                    nd:input xsd:string ;
-                    nd:default "text/turtle"^^xsd:string;
-                ]
-            )
-
-	    ];
-    ]
 .
 
 :Update nd:class nd:Leaf;

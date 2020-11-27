@@ -1130,6 +1130,45 @@
 	    nd:input nd:Repo;
     ].
 
+:GetAvatarTransform nd:class nd:Leaf;
+    nd:name "GetAvatarTransform";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultGetAvatarTransform";
+    nd:type bt-mosim:GetAvatarTransform;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#ddf2f7";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "scene-mosim.png";
+    ];
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mosim:avatarID;
+	    nd:title "Avatar URI&ID";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mosim:host;
+	    nd:title "SkeletonAccess Host&Port";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ];
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt:targetBase;
+	    nd:title "Target Base";
+	    nd:input nd:Repo;
+    ].
+
 :RegisterListener nd:class nd:Leaf;
 	nd:name "RegisterListener";
     nd:labelType nd:Dynamic;
@@ -1383,6 +1422,72 @@
 	    a nd:Parameter;
 	    nd:mapsTo bt-mosim:host;
 	    nd:title "Walkpoint Service";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ] .
+
+:PathAvailable nd:class nd:Leaf;
+	nd:name "PathAvailable";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultPathAvailable";
+    nd:type bt-mosim:PathAvailable;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#ddf2f7";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "walkPoint.png";
+    ];
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt:targetBase;
+	    nd:title "Target Base";
+	    nd:input nd:Repo;
+    ];
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mosim:avatar;
+	    nd:title "Avatar";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:ConstructQuery;
+    ];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mosim:walkTarget;
+	    nd:title "Walk Target";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:ConstructQuery;
+    ];
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mosim:sceneObjects;
+	    nd:title "SceneObjects";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ];
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mosim:scene;
+	    nd:title "Scene Service";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ];
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mosim:host;
+	    nd:title "PathPlanning Service";
 	    nd:input nd:Query;
         bt:originBase "true";
         bt:targetBase "false";

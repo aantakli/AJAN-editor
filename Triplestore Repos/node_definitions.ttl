@@ -631,38 +631,6 @@
     ]
 .
 
-:HandleJ3VectorEvent nd:class nd:Leaf;
-	nd:name "Handle J3Vector Event";
-    nd:labelType nd:Dynamic;
-    rdfs:label "HandleJ3VectorEvent";
-    nd:type bt:HandleJ3VectorEvent;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#99db00";
-        nd:shape nd:Roundrectangle;
-        nd:padding "900%";
-        nd:paddingTo "width";
-        nd:icon "icons8-ok.png";
-    ];
-    nd:parameters (
-    	[
-            a nd:Parameter;
-            nd:mapsTo bt:mapping;
-            nd:title "Mapping";
-            nd:input xsd:anyURI ;
-            nd:default "http://"^^xsd:anyURI;
-        ][
-	        a nd:Parameter;
-	        nd:mapsTo bt:validate;
-	        nd:title "Construct Query";
-	        nd:input nd:Query;
-	        bt:originBase "false";
-	        bt:targetBase "true";
-	        nd:type bt:ConstructQuery;
-    	]
-    )
-.
-
 :HandleJsonEvent nd:class nd:Leaf;
 	nd:name "Handle Json Event";
     nd:labelType nd:Dynamic;
@@ -806,41 +774,6 @@
             nd:title "Milliseconds";
             nd:input xsd:int ;
             nd:default 0;
-        ]
-    )
-.
-
-:Timestamp nd:class nd:Leaf;
-	nd:name "Timestamp";
-    nd:labelType nd:Dynamic;
-    rdfs:label "DefaultTimestamp";
-    nd:type bt:Timestamp;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#eea5ff";
-        nd:shape nd:Roundrectangle;
-        nd:padding "600%";
-        nd:paddingTo "width";
-        nd:icon "timestamp.png";
-    ];
-	nd:parameters ([
-            a nd:Parameter;
-            nd:mapsTo bt:subject;
-            nd:title "Subject";
-            nd:input xsd:anyURI ;
-            nd:default <http://localhost:8090/rdf4j/repositories/behaviors#timestamp>;
-        ][
-            a nd:Parameter;
-            nd:mapsTo bt:predicate;
-            nd:title "Predicate";
-            nd:input xsd:anyURI ;
-            nd:default bt:current;
-        ][
-            a nd:Parameter;
-            nd:mapsTo bt:valueType;
-            nd:title "Value Type";
-            nd:input xsd:anyURI ;
-            nd:default xsd:long;
         ]
     )
 .

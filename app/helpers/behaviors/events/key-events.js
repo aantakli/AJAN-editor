@@ -35,7 +35,7 @@ function keyUpHandler(event) {
 	let cy = globals.cy;
 	let ur = globals.ur;
 	let selection = cy.$(":selected");
-	if (event.ctrlKey && event.target.nodeName === "BODY") {
+  if (event.ctrlKey && event.target.nodeName === "BODY") {
 		switch (event.which) {
 			case 67: // CTRL + C
 				console.log("copy");

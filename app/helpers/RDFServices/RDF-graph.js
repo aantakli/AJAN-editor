@@ -18,7 +18,7 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import {RDF, XSD, AGENTS} from "ajan-editor/helpers/RDFServices/vocabulary";
+import {RDF, RDFS, XSD, AGENTS} from "ajan-editor/helpers/RDFServices/vocabulary";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 
 class RDFGraph {
@@ -198,6 +198,7 @@ class RDFGraph {
       }
 		});
    }
+
   //remove some Agent's behavior, activeAgent here is uri
   removeRelatedFinalbehavior(activeAgenturi) {
     console.warn("Delete behavior related to", activeAgenturi);
@@ -207,6 +208,7 @@ class RDFGraph {
       }
     });
   }
+
   //remove some Agent's behavior, activeAgent here is uri
   removeRelatedbehavior(activeAgenturi) {
     console.warn("Delete behavior related to", activeAgenturi);
@@ -216,6 +218,7 @@ class RDFGraph {
       }
     });
   }
+
 	//remove Agent event
    removeRelatedevent(activeAgenturi) {
 		console.warn("Delete event related to", activeAgenturi);
@@ -224,7 +227,8 @@ class RDFGraph {
         this.data.remove(quad);
       }
 		});
-	}
+   }
+
 	//remove Agent endpoint
    removeRelatedendpoint(activeAgenturi) {
 		console.warn("Delete behavior related to", activeAgenturi);
@@ -288,7 +292,10 @@ function termEval(term) {
 	let result = undefined;
 	switch (term.termType) {
 		case "Literal":
-			switch (term.datatype.value) {
+      switch (term.datatype.value) {
+        case RDFS.Resource:
+          result = "<" + term.value + ">";
+          break;
 				case XSD.double:
 					result = '"""' + term.value + '"""^^xsd:double';
 					break;

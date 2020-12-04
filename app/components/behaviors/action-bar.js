@@ -32,7 +32,7 @@ let that = undefined;
 
 export default Component.extend({
   dataBus: Ember.inject.service('data-bus'),
-  fileName: "behavior.ttl",
+  fileName: "behaviors.ttl",
   fileContent: "",
   init() {
     this._super(...arguments);
@@ -62,7 +62,7 @@ export default Component.extend({
   },
 
   actions: {
-    addBehavior() {
+    createBehavior() {
       this.get('dataBus').createBT();
     },
 

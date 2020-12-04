@@ -347,7 +347,7 @@
 		bt:originBase "true";
 		bt:targetBase "false";
 		nd:type bt:AskQuery;
-    ];
+    ]
 .
 
 :LoadBehavior nd:class nd:Leaf;
@@ -505,7 +505,7 @@
     ];
 	nd:parameterSet [
         a nd:ParameterSet;
-        nd:mapsTo bt:bindings;
+        nd:mapsTo ajan:bindings;
         nd:type ajan:Bindings;
         nd:title "Bindings";
         nd:parameter [
@@ -516,7 +516,7 @@
 		        bt:originBase "true";
 		        bt:targetBase "false";
 		        nd:type bt:SelectQuery;
-		        nd:type bt:QueryUri;
+				nd:type bt:QueryUri;
 	    	]
     ]
 .

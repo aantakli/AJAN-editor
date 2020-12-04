@@ -105,7 +105,6 @@ function deleteNode(node, indegree) {
 	let indegreeRDF = rdfGraph.getAllQuads(undefined, RDF.first, nodeURI).length;
 	if (indegreeRDF > 0 && indegree < indegreeRDF) {
 		// Other references to node exist, do not delete all related data!
-
 		// Find node in childList of parent
 		let parentURI = parentNode.data("uri");
 		let edges = parentNode.outgoers("edge");
@@ -141,25 +140,32 @@ function deleteNode(node, indegree) {
 
 	console.log("Deleting ", nodeURI);
 	//TODO: Special case: indegree > 1
-	rdfGraph.forEach(quad => {
+  rdfGraph.forEach(quad => {
+    // Look for child Nodes and remove the connection to them
+    if (quad.subject.value === nodeURI) {
+      if (quad.predicate.value === BT.hasChildren) {
+        let blanky = quad.object.value;
+        removeRDFListStructure(blanky);
+      }
+    }
 		// Look for references to the node
 		if (quad.object.value === nodeURI) {
-			if (quad.predicate.value === RDF.first) {
-				let blanky = quad.subject.value;
-				let prevQuad = rdfGraph.findQuad("", RDF.rest, blanky);
-				if (!prevQuad) {
-					// Quad is most likely the first int the List
-					// Get parent
-					prevQuad = rdfGraph.findQuad("", BT.hasChildren, blanky);
-					if (!prevQuad) {
-						prevQuad = rdfGraph.findQuad("", BT.hasChild, blanky);
-					}
-				}
-				let nextQuad = rdfGraph.findQuad(blanky, RDF.rest);
-				prevQuad.object = nextQuad.object;
-				// Also remove the blank node
-				rdfGraph.removeAllRelated(blanky);
-			} else {
+      if (quad.predicate.value === RDF.first) {
+        let blanky = quad.subject.value;
+        let prevQuad = rdfGraph.findQuad("", RDF.rest, blanky);
+        if (!prevQuad) {
+          // Quad is most likely the first int the List
+          // Get parent
+          prevQuad = rdfGraph.findQuad("", BT.hasChildren, blanky);
+          if (!prevQuad) {
+            prevQuad = rdfGraph.findQuad("", BT.hasChild, blanky);
+          }
+        }
+        let nextQuad = rdfGraph.findQuad(blanky, RDF.rest);
+        prevQuad.object = nextQuad.object;
+        // Also remove the blank node
+        rdfGraph.removeAllRelated(blanky);
+      } else {
 				quad.object = rdf.namedNode(RDF.nil);
 			}
 		}
@@ -172,6 +178,27 @@ function deleteNode(node, indegree) {
 	removeStructureElements(nodeURI);
 	// Remove the node itself from the graph
 	rdfGraph.removeMatches(rdf.namedNode(nodeURI));
+}
+
+function removeRDFListStructure(root) {
+  console.log("removeRDFListStructure");
+  console.log(root);
+  console.log("---");
+  rdfGraph.forEach(quad => {
+    if (quad.subject.value === root) {
+      if (quad.predicate.value === RDF.rest) {
+        let blanky = quad.object.value;
+        if (blanky === RDF.nil) {
+          rdfGraph.removeQuad(quad);
+        } else {
+          rdfGraph.removeQuad(quad);
+          removeRDFListStructure(blanky);
+        }
+      } else if (quad.predicate.value === RDF.first) {
+        rdfGraph.removeQuad(quad);
+      }
+    }
+  })
 }
 
 function removeStructureElements(nodeURI) {

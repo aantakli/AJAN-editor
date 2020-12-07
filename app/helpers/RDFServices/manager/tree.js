@@ -141,15 +141,19 @@ function reorderChildren(parentURI, childList) {
 		});
 	}
 	// Reorder / reconstruct the list according to the NEW order
-	childData.forEach((ele, index) => {
-		let toNext = rdfGraph.findQuad(ele.blank.value, RDF.rest);
-		if (index >= childData.length - 1) {
-			// Last blanky has no successor: Point to Nil
-			toNext.object = rdf.namedNode(RDF.nil);
-			return;
-		}
-		toNext.object = childData[index + 1].blank;
-	});
+  childData.forEach((ele, index) => {
+    let toNext = undefined;
+    if (ele.blank != undefined) {
+      toNext = rdfGraph.findQuad(ele.blank.value, RDF.rest);
+      if (index >= childData.length - 1) {
+        // Last blanky has no successor: Point to Nil
+        toNext.object = rdf.namedNode(RDF.nil);
+        return;
+      }
+      toNext.object = childData[index + 1].blank;
+    }
+  });
+  
 	// Direct the parent's BTChildren pointer to the first blanky in the list
 	let childrenPointer = rdfGraph.findQuad(parentURI, BT.hasChildren);
 	if (childrenPointer) {

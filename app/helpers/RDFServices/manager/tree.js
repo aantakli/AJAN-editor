@@ -117,7 +117,13 @@ function removeChildAt(parentURI, index) {
 }
 
 function reorderChildren(parentURI, childList) {
-	if (childList.length <= 1) return;
+  if (childList.length <= 1) {
+    let hasChildrenQuad = rdfGraph.findQuad(parentURI, BT.hasChildren);
+    if (hasChildrenQuad && hasChildrenQuad.object.value === RDF.nil) {
+      rdfGraph.remove(hasChildrenQuad);
+    }
+    return;
+  }
 	// For each child, get its blank node representing the element in the list
 	// rely on bt:hasChildren of parent to get first child
 	// based on first child, use list.getBlankElements to get all the other child blank nodes

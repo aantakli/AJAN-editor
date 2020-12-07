@@ -165,18 +165,16 @@ function removeAt(currentObj, index) {
 		console.error("Could not find next element in RDF:List");
 		return undefined;
 	}
-
 	if (index > 0) {
 		return removeAt(next.object.value, --index);
 	}
 
 	let target_ = rdfGraph.findQuad(currentObj, RDF.first);
 	// let targetURI = target_.object.value;
-
 	// If such a quad exists
-	if (target_) {
+  if (target_) {
 		// Get previous
-		let prev = rdfGraph.findQuad("", RDF.rest, currentObj);
+    let prev = rdfGraph.findQuad("", RDF.rest, currentObj);
 		if (!prev) {
 			// Special case: First node in list
 			prev =
@@ -184,11 +182,12 @@ function removeAt(currentObj, index) {
 				rdfGraph.findQuad("", BT.hasChild, currentObj);
 		}
 		// Set previous.rest to next
-		prev.object = next.object;
+    prev.object = next.object;
+
 		// Delete the blank node
-		rdfGraph.removeQuad(target_);
+    rdfGraph.removeAllRelated(target_.subject.value);
 		return target_;
-	}
+  }
 	if (next.object.value === RDF.nil) return undefined;
 }
 

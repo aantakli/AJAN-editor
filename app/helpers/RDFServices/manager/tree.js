@@ -46,8 +46,7 @@ function getChild(parentURI, index) {
 }
 
 function insertChild(parentURI, childURI) {
-	let child = rdfFact.toNode(childURI);
-
+  let child = rdfFact.toNode(childURI);
 	if (rdfUtil.parentHasSingleChild(parentURI)) {
 		let quad = rdfGraph.findQuad(parentURI, BT.hasChild);
 		if (quad) {
@@ -83,8 +82,7 @@ function removeChild(parentURI, childURI) {
 
 	//console.log(graph);
 	//TODO: Case handling: parent is root? -> child or children?
-	let parentTypes = rdfGraph.getTypes(parentURI);
-
+  let parentTypes = rdfGraph.getTypes(parentURI);
 	if (parentTypes.includes(BT.Root)) {
 		let quad = rdfGraph.findQuad(parentURI, BT.hasChild, childURI);
 		if (quad) {
@@ -109,7 +107,7 @@ function removeChildAt(parentURI, index) {
 	console.log("delete ", parentURI, index);
 	// Find in list and change prev.rest to this.rest
 	// Find parent
-	let parentQuad = rdfGraph.findQuad(parentURI, BT.hasChildren);
+  let parentQuad = rdfGraph.findQuad(parentURI, BT.hasChildren);
 	if (parentQuad) {
 		rdfList.removeAt(parentQuad.object.value, index);
 		return;
@@ -128,8 +126,8 @@ function reorderChildren(parentURI, childList) {
 	// rely on bt:hasChildren of parent to get first child
 	// based on first child, use list.getBlankElements to get all the other child blank nodes
 	// map children from childList to their respective blank node
-	let head = rdfGraph.getObjectValue(parentURI, BT.hasChildren);
-	let bl = rdfList.getBlankElements(head);
+  let head = rdfGraph.getObjectValue(parentURI, BT.hasChildren);
+  let bl = rdfList.getBlankElements(head);
 	let childData = [];
 	childList.forEach(child => {
 		childData.push({child: child, blank: undefined});
@@ -137,11 +135,11 @@ function reorderChildren(parentURI, childList) {
 	// pop node from bl, an attach it to matching child
 	// make sure not to assign the same child to several blankies, or vice versa
 	while (bl.length > 0) {
-		let popped = bl.pop();
+    let popped = bl.pop();
 		childData.find(child => {
 			if (child.blank) return false; // Already defined
 			if (rdfGraph.findQuad(popped, RDF.first, child.child)) {
-				child.blank = rdf.blankNode(popped);
+        child.blank = rdf.blankNode(popped);
 				return true;
 			}
 		});
@@ -149,20 +147,18 @@ function reorderChildren(parentURI, childList) {
 	// Reorder / reconstruct the list according to the NEW order
   childData.forEach((ele, index) => {
     let toNext = undefined;
-    if (ele.blank != undefined) {
-      toNext = rdfGraph.findQuad(ele.blank.value, RDF.rest);
-      if (index >= childData.length - 1) {
-        // Last blanky has no successor: Point to Nil
-        toNext.object = rdf.namedNode(RDF.nil);
-        return;
-      }
-      toNext.object = childData[index + 1].blank;
+    toNext = rdfGraph.findQuad(ele.blank.value, RDF.rest);
+    if (index >= childData.length - 1) {
+      // Last blanky has no successor: Point to Nil
+      toNext.object = rdf.namedNode(RDF.nil);
+      return;
     }
+    toNext.object = childData[index + 1].blank;
   });
   
 	// Direct the parent's BTChildren pointer to the first blanky in the list
 	let childrenPointer = rdfGraph.findQuad(parentURI, BT.hasChildren);
 	if (childrenPointer) {
 		childrenPointer.object = childData[0].blank;
-	}
+  }
 }

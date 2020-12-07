@@ -98,7 +98,6 @@ function deleteNode(node, indegree) {
 	// Case indegreeRDF == 0: delete it all
 	// Case indegree >= indegreeRDF: delete it all
 	// Case indegree < indegreeRDF: just change list pointer
-
 	let parentNode = node.incomers("node").first();
 	let nodeURI = node.data("uri");
 	indegree = indegree || node.indegree();
@@ -181,9 +180,6 @@ function deleteNode(node, indegree) {
 }
 
 function removeRDFListStructure(root) {
-  console.log("removeRDFListStructure");
-  console.log(root);
-  console.log("---");
   rdfGraph.forEach(quad => {
     if (quad.subject.value === root) {
       if (quad.predicate.value === RDF.rest) {

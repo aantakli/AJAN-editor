@@ -103,7 +103,7 @@ function removeChild(parentURI, childURI) {
 
 function removeChildAt(parentURI, index) {
 	//TODO: Case handling: parent is root? -> child or children?
-	if (!index || index < 0) return;
+  if (index == undefined || index == null || index < 0) return;
 	let parentTypes = rdfGraph.getTypes(parentURI);
 	console.log("parentTypes", parentTypes);
 	console.log("delete ", parentURI, index);

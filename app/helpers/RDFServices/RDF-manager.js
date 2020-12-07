@@ -49,10 +49,11 @@ export default {
 
 function generateNodeData(type) {
 	//TODO: currently only for behaviors
-	let baseURI = globals.baseURI;
+  let baseURI = globals.baseURI;
 	let label = util.camelize("default " + type);
-	let label_ = label;
-	let uri = baseURI + label;
+  let label_ = label;
+  let uuid = util.generateUUID();
+  let uri = baseURI + type + "-" + uuid;
 	let index = 1;
 	// Adjust index if the same URI exists anywhere in the graph
 	while (rdfGraph.existsSome(uri)) {

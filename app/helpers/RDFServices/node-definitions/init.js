@@ -93,8 +93,10 @@ function bindDragEvent($div, node, btData) {
 		e.originalEvent.dataTransfer.setData(
 			"type",
 			btData ? btData.name : node.id
-		);
-		if (btData) e.originalEvent.dataTransfer.setData("uri", btData.uri);
+    );
+    if (btData) {
+      e.originalEvent.dataTransfer.setData("uri", btData.uri);
+    }
 		console.log("dragstart:", e.originalEvent.dataTransfer.getData("type"));
 	});
 }
@@ -119,7 +121,7 @@ function bindDropEvent(cy) {
 			// Special case for Behavior Tree node
 			if (dropClass === "BehaviorTree") {
 				label = dropType;
-				uri = e.originalEvent.dataTransfer.getData("uri");
+        uri = e.originalEvent.dataTransfer.getData("uri");
 				rdfManager.generateNode(dropClass, uri, label);
 				dropType = dropClass;
 				dropClass = "Leaf";

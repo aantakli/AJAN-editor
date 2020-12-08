@@ -214,6 +214,7 @@ function removeStructureElements(nodeURI) {
 }
 
 function removeStructure(structure, parentURI) {
+  let node = rdfGraph.getNode(parentURI);
 	if (structure.parameters)
 		structure.parameters.forEach(subStructure => {
 			removeParameter(subStructure, parentURI);
@@ -226,7 +227,7 @@ function removeStructure(structure, parentURI) {
 		structure.lists.forEach(subStructure => {
 			removeList(subStructure, parentURI);
 		});
-	if (parentURI.termType === "BlankNode") rdfGraph.removeAllRelated(parentURI);
+  if (node != undefined && node.termType === "BlankNode") rdfGraph.removeAllRelated(parentURI);
 }
 
 function removeParameter(structure, parentURI) {

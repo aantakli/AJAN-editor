@@ -129,15 +129,13 @@ function generateParameter(
 
 function generateParameterSet(structure, parent, isListItem) {
 	// Mapping undefined: parent is the blank node the substructure will be attached to
-	if (!structure.mapping) {
+  if (!structure.mapping || isListItem) {
 		attachTypes(parent, structure.types);
 		generateStructure(structure, parent);
 		return;
-	}
-	let quad = isListItem
-		? rdfFact.quadBlank(parent, RDF.first)
-		: rdfFact.quadBlank(parent, structure.mapping);
-	//let quad = rdfFact.quadBlank(parent, structure.mapping);
+  }
+
+	let quad = rdfFact.quadBlank(parent, structure.mapping);
 	rdfGraph.add(quad);
 	attachTypes(quad.object, structure.types);
 	generateStructure(structure, quad.object);

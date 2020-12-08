@@ -420,55 +420,44 @@
 	        nd:input xsd:anyURI ;
 	        nd:default "http://www.w3.org/2008/http-methods#POST"^^xsd:anyURI;
 	    ]);
-        nd:parameterSet [
-	        a nd:ParameterSet;
+		nd:list [
+			a nd:List;
+			nd:title "HTTP Headers";
 	        nd:mapsTo http-core:headers;
-	        nd:title "HTTP Header";
-            nd:type http-core:Header;
-            nd:parameters ([
-                    a nd:Parameter;
-                    nd:mapsTo http-core:hdrName;
-                    nd:title "Header Name";
-                    nd:input xsd:anyURI ;
-                    nd:default "http://www.w3.org/2008/http-headers#content-type"^^xsd:anyURI;
-                ][
-                    a nd:Parameter;
-                    nd:mapsTo http-core:fieldValue;
-                    nd:title "Field Value";
-                    nd:input xsd:string ;
-                    nd:default "text/turtle"^^xsd:string;
-                ]
-            );
-			nd:parameters ([
-                    a nd:Parameter;
-                    nd:mapsTo http-core:hdrName;
-                    nd:title "Header Name";
-                    nd:input xsd:anyURI ;
-                    nd:default "http://www.w3.org/2008/http-headers#accept"^^xsd:anyURI;
-                ][
-                    a nd:Parameter;
-                    nd:mapsTo http-core:fieldValue;
-                    nd:title "Field Value";
-                    nd:input xsd:string ;
-                    nd:default "text/turtle"^^xsd:string;
-                ]
-            )
-        ];
+			nd:parameterSet [
+				a nd:ParameterSet;
+				nd:title "HTTP Header";
+				nd:type http-core:Header;
+				nd:parameters ( [
+						a nd:Parameter;
+						nd:mapsTo http-core:hdrName;
+						nd:title "Header Name";
+						nd:input xsd:anyURI ;
+						nd:default "http://www.w3.org/2008/http-headers#content-type"^^xsd:anyURI;
+					] [
+						a nd:Parameter;
+						nd:mapsTo http-core:fieldValue;
+						nd:title "Field Value";
+						nd:input xsd:string ;
+						nd:default "text/turtle"^^xsd:string;
+					] 
+				)
+			]
+		];
         nd:parameterSet [
 	        a nd:ParameterSet;
 	        nd:mapsTo http-core:body;
 	        nd:title "HTTP Body";
             nd:type actn:Payload;
-            nd:parameters ([
-                    a nd:Parameter;
-                    nd:mapsTo bt:query;
-                    nd:title "Construct Query";
-                    nd:input nd:Query;
-                    bt:originBase "true";
-                    bt:targetBase "false";
-                    nd:type bt:ConstructQuery;
-                ]
-            )
+            nd:parameter [
+				a nd:Parameter;
+				nd:mapsTo bt:query;
+				nd:title "Construct Query";
+				nd:input nd:Query;
+				bt:originBase "true";
+				bt:targetBase "false";
+				nd:type bt:ConstructQuery;
+            ]
 	    ];
     ];
     nd:parameter [

@@ -28,7 +28,7 @@ let $ = Ember.$;
 export default clickNode;
 
 function clickNode(cy) {
-	cy.off("click").on("click", function(event) {
+  cy.off("click").on("click", function (event) {
 		details.blur();
 		$("#node-properties").trigger("blurProperties");
 		trySettingDetails(event);

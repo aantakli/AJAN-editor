@@ -47,6 +47,10 @@ export default Component.extend({
         return { actndef: true };
       case ND.Repo:
         return { repo: true };
+      case ND.Event:
+        return { event: true };
+      case ND.Goal:
+        return { goal: true };
 			default:
 				console.warn("Unknown parameter type", type);
 				return {};

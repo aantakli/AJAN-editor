@@ -45,6 +45,14 @@ export default Component.extend({
     this.set("selected", this.selected);
     setBase(this.get("uri"), this.get("structure.mapping"), this.selected);
   }),
+
+  uriChange: observer("uri", function () {
+    let baseValue = getBase(this.get("uri"), this.get("structure.mapping"));
+    if (!baseValue || baseValue === "http://") {
+      baseValue = rdfFact.toNode(targetDefault.value);
+    }
+    this.set("selected", baseValue);
+  })
 });
 
 function getBase(uri, basePredicate) {

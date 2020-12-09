@@ -52,7 +52,15 @@ export default Component.extend({
 			this.set("selected", newBase);
 			setBase(this.get("uri"), this.get("basePredicate"), newBase);
 		}
-	})
+  }),
+
+  uriChange: observer("uri", function () {
+    let baseValue = getBase(this.get("uri"), this.get("basePredicate"));
+    if (!baseValue || baseValue === "http://") {
+      this.set("baseValue", targetDefault.value);
+    }
+    this.set("selected", baseValue);
+  })
 });
 
 function getBase(uri, basePredicate) {

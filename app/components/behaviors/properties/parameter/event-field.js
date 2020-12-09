@@ -2,7 +2,7 @@
  * Created on Tue Nov 10 2020
  *
  * The MIT License (MIT)
- * Copyright (c) 2020 André Antakli, Alex Grethen (German Research Center for Artificial Intelligence, DFKI).
+ * Copyright (c) 2020 André Antakli (German Research Center for Artificial Intelligence, DFKI).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -22,7 +22,7 @@ import {observer} from "@ember/object";
 import Component from "@ember/component";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import globals from "ajan-editor/helpers/global-parameters";
-import actionsACTN from "ajan-editor/helpers/services/actions";
+import actionsAgnt from "ajan-editor/helpers/agents/actions";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 
 let ajax = null;
@@ -31,7 +31,7 @@ let that;
 export default Component.extend({
   ajax: Ember.inject.service(),
 
-  availableACTNs: null,
+  availableEvents: null,
   selected: undefined,
   uri: null,
 
@@ -48,7 +48,7 @@ export default Component.extend({
   }),
 
   uriChange: observer("uri", function () {
-    setAvailableActions();
+    setAvailableEvents();
   })
 });
 
@@ -68,15 +68,15 @@ function initializeAjax() {
 
 function loadActionsRdfGraphData() {
   let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
-    + globals.servicesRepository;
-  actionsACTN.getFromServer(ajax, repo).then(setAvailableActions);
+    + globals.agentsRepository;
+  actionsAgnt.getEventsFromServer(ajax, repo).then(setAvailableEvents);
 }
 
-function setAvailableActions() {
-  let actionLists = actionsACTN.getActions();
-  let allActions = actionLists.services.concat(actionLists.plugins);
-  that.set("availableACTNs", allActions);
-  var base = getSelected(that.get("availableACTNs"), that.get("value"));
+function setAvailableEvents() {
+  let eventLists = actionsAgnt.getEvents();
+  console.log(eventLists);
+  that.set("availableEvents", eventLists);
+  var base = getSelected(that.get("availableEvents"), that.get("value"));
   that.set("selectedBaseValue", base);
 }
 

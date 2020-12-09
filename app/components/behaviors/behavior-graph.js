@@ -126,7 +126,10 @@ function loadRdfGraphData() {
 	let repo =
 		(localStorage.currentStore || "http://localhost:8090/rdf4j/repositories") +
 		"/" +
-		globals.behaviorsRepository;
+    globals.behaviorsRepository;
+  if (repo.includes("repositories//behaviors")) {
+    repo = repo.replace("repositories//behaviors", "repositories/behaviors");
+  }
 	actions.getFromServer(cy, ajax, repo).then(rdfDataHasLoaded);
 }
 

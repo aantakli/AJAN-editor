@@ -55,8 +55,9 @@ export default Mixin.create({
 	queryChangedViaTemplate: observer(
 		"template.parameters.@each.variableBinding",
 		function() {
-			setTemplate(this.uri, this.get("template"));
-			this.set("queryValue", this.get("template").toSparql());
+      setTemplate(this.uri, this.get("template"));
+      if (this.get("template") != undefined)
+			  this.set("queryValue", this.get("template").toSparql());
 		}
 	),
 

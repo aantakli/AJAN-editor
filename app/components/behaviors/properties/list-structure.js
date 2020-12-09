@@ -62,7 +62,7 @@ export default Component.extend({
 	}),
 
 	actions: {
-		addItem: function() {
+    addItem: function () {
 			insertItemInRDF(this.get("uri"), this.get("list"));
 			this.notifyPropertyChange("listItemChanged");
 		},
@@ -93,7 +93,7 @@ function getItemList(nextUri) {
 }
 
 function insertItemInRDF(uri, structure) {
-	let blankNode;
+  let blankNode;
 	({blankNode} = rdfManager.listPushBlankNode(uri, structure.mapping));
 	rdfManager.generateStructure(structure, blankNode, true);
 }

@@ -486,10 +486,9 @@
          nd:icon "goal.png";
     ];
     nd:parameter [
-        a nd:Parameter;
+		a nd:Parameter;
         nd:mapsTo ajan:goal;
-        nd:input xsd:anyURI;
-        nd:default "http://"^^xsd:anyURI;
+        nd:input nd:Goal;
         nd:title "Goal";
     ];
 	nd:parameterSet [
@@ -526,8 +525,7 @@
     nd:parameter [
         a nd:Parameter;
         nd:mapsTo ajan:event;
-        nd:input xsd:anyURI;
-        nd:default "http://"^^xsd:anyURI;
+        nd:input nd:Event;
         nd:title "Event";
     ];
 	nd:parameter [

@@ -69,11 +69,13 @@ function createModal() {
   let elem = document.getElementById("universal-modal");
   elem.addEventListener("modal:confirm", () => {
     let label = $labelInput.val();
-    let uri = globals.baseURI + "BT_" + util.generateUUID();;
-    rdfManager.generateBT(uri, label);
-    btNodes.addNewBT(uri, label);
-    actions.addNewBT($("#bt-select"), uri, label);
-    that.dataBus.addBT(createBT(label, uri));
+    if (label != undefined && label != null && label != "") {
+      let uri = globals.baseURI + "BT_" + util.generateUUID();;
+      rdfManager.generateBT(uri, label);
+      btNodes.addNewBT(uri, label);
+      actions.addNewBT($("#bt-select"), uri, label);
+      that.dataBus.addBT(createBT(label, uri));
+    }
   });
 }
 

@@ -373,12 +373,12 @@
 	nd:parameter [
         a nd:Parameter;
         nd:mapsTo bt:behaviorUri;
-        nd:title "Behavior URI";
+        nd:title "Select Query: ?behaviorURI";
         nd:input nd:Query;
         bt:originBase "true";
         bt:targetBase "false";
         nd:type bt:BehaviorUri;
-        nd:type bt:ConstructQuery;
+        nd:type bt:SelectQuery;
     ]
 .
 
@@ -464,8 +464,8 @@
         a nd:Parameter;
         nd:mapsTo bt:queryUri;
         nd:type bt:QueryUri;
-        nd:type bt:ConstructQuery;
-        nd:title "Query URI";
+        nd:type bt:SelectQuery;
+        nd:title "Select Query: ?requestURI";
         nd:input nd:Query;
         bt:originBase "true";
         bt:targetBase "false";

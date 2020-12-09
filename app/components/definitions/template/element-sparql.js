@@ -23,7 +23,7 @@ import {
   sendSelectQuery
 } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import { ValueChoice } from "ajan-editor/objects/definitions/template";
-import { XSD } from "ajan-editor/helpers/RDFServices/vocabulary";
+import { XSD, RDFS } from "ajan-editor/helpers/RDFServices/vocabulary";
 
 export default Component.extend({
   init() {
@@ -51,6 +51,9 @@ export default Component.extend({
 function getLiteral(data, type) {
   let result = undefined;
   switch (type) {
+    case RDFS.Resource:
+      result = "<" + data + ">";
+      break;
     case XSD.double:
       result = '"' + data + '"^^xsd:double';
       break;
@@ -58,7 +61,7 @@ function getLiteral(data, type) {
       result = '"' + data + '"^^xsd:float';
       break;
     case XSD.anyURI:
-      result = "<" + data + ">";
+      result = '"' + data + '"^^xsd:anyURI';
       break;
     case XSD.long:
       result = '"' + data + '"^^xsd:long';

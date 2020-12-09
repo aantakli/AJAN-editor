@@ -39,8 +39,8 @@ export default Component.extend({
 	didInsertElement() {
 		let that = this;
 
-		$("#node-properties").on("sendNodeData", function(e, nodeData) {
-			let node = Node.create(nodeData);
+    $("#node-properties").on("sendNodeData", function (e, nodeData) {
+      let node = Node.create(nodeData);
 			that.set("node", node);
 			that.set("showProperties", true);
 			that.get("queryInsertion").set("nodeType", node.nodeType);

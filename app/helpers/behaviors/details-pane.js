@@ -47,7 +47,7 @@ class NodeData {
 
 function set(evt) {
 	let target = evt.target;
-	let nodeData = new NodeData(target);
+  let nodeData = new NodeData(target);
 	$("#node-properties").trigger("sendNodeData", nodeData);
 }
 

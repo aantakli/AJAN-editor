@@ -111,7 +111,6 @@ function generateParameter(
 		// Add quads to graph
 		rdfGraph.add(rdfFact.quadLiteral(node, BT.sparql, "", XSD.string));
 		// Differentiate between target and origin base
-		console.log("generate query", structure);
 		if (!structure.targetBase && !structure.originBase) {
 			rdfGraph.add(rdfFact.quad(node, BT.beliefBase, "http://www.ajan.de/ajan-ns#AgentKnowledge"));
 		}

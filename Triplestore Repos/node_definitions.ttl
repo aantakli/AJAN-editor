@@ -175,7 +175,7 @@
 				a nd:Parameter;
 				nd:mapsTo bt:query;
 				nd:type bt:SelectQuery;
-				nd:title "Select Query";
+				nd:title "Select Query: ?intValue";
 				nd:input nd:Query;
 				bt:originBase "true";
 				bt:targetBase "false";
@@ -563,11 +563,11 @@
         ][
 	        a nd:Parameter;
 	        nd:mapsTo bt:queryUri;
-	        nd:title "Query URI";
+	        nd:title "Select Query: ?requestURI";
 	        nd:input nd:Query;
 	        bt:originBase "true";
 	        bt:targetBase "false";
-	        nd:type bt:ConstructQuery;
+	        nd:type bt:SelectQuery;
 	        nd:type bt:QueryUri;
     ] )
 .
@@ -795,11 +795,11 @@
         ][
 	        a nd:Parameter;
 	        nd:mapsTo bt:queryUri;
-	        nd:title "Query URI";
+	        nd:title "Select Query: ?requestURI";
 	        nd:input nd:Query;
 	        bt:originBase "true";
 	        bt:targetBase "false";
-	        nd:type bt:ConstructQuery;
+	        nd:type bt:SelectQuery;
 	        nd:type bt:QueryUri;
     ] )
 .

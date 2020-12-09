@@ -46,6 +46,10 @@ export default Component.extend({
     this.set("selected", this.selected);
     setBase(this.get("uri"), this.get("structure.mapping"), this.selected);
   }),
+
+  uriChange: observer("uri", function () {
+    setAvailableActions();
+  })
 });
 
 function initializeGlobals(currentComponent) {

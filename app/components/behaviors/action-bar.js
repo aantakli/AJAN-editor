@@ -94,9 +94,12 @@ export default Component.extend({
       this.get('dataBus').deleteBT();
     },
 
-    load() {
-      console.log(event.target.files);
-      loadFile(event);
+    loadBT() {
+      loadBT(event);
+    },
+
+    loadRepo() {
+      loadRepo(event);
     }
   }
 });
@@ -114,7 +117,19 @@ function saveGraph() {
   window.location.reload();
 }
 
-function loadFile(event) {
+function loadBT(event) {
+  let file = event.target.files[0];
+  console.log("File: " + file.name);
+  var reader = new FileReader();
+  reader.onload = function () {
+    let content = reader.result;
+    sendFile(repo, content)
+      .then(window.location.reload());
+  };
+  reader.readAsText(file);
+}
+
+function loadRepo(event) {
   let file = event.target.files[0];
   console.log("File: " + file.name);
   var reader = new FileReader();

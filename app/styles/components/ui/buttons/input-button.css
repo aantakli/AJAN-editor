@@ -1,13 +1,20 @@
 
-:global(#file-upload)::-webkit-file-upload-button {
+:global(.file-upload)::-webkit-file-upload-button {
   visibility: hidden;
 }
 
-:global(#file-upload)::before {
+:global(.file-upload)::before {
   color: #ffffff;
-  content: "Load File";
   text-align: center;
   width: 100%;
   height: 100%;
   display: block;
+}
+
+:global(.loadBT .file-upload)::before {
+  content: "Add BT";
+}
+
+:global(.loadRepo .file-upload)::before {
+  content: "Load Repo";
 }

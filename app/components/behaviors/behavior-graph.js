@@ -47,8 +47,15 @@ export default Ember.Component.extend({
 
   init() {
     this._super(...arguments);
+    that = this;
     this.get('dataBus').on('addBT', function (bt) {
-      addBT(bt);
+      createBT(bt);
+    });
+    this.get('dataBus').on('exportBT', function () {
+      that.get('dataBus').saveExportedBT(exportBT());
+    });
+    this.get('dataBus').on('importBT', function (bt) {
+      importBT(bt);
     });
     this.get('dataBus').on('deleteBT', function () {
       deleteBT();
@@ -58,8 +65,6 @@ export default Ember.Component.extend({
 	// After the element has been inserted into the DOM
 	didInsertElement() {
 		this._super(...arguments);
-		// ...
-		that = this;
 
 		initializeCytoscape(this);
 		initializeGlobals(this);
@@ -146,9 +151,23 @@ function setAvailableBTs() {
   that.set("availableBTs", behaviorTrees);
 }
 
-function addBT(bt) {
+function createBT(bt) {
   that.get("availableBTs").push(bt);
   that.dataBus.save();
+}
+
+function importBT(bt) {
+  console.log("Import BT");
+}
+
+function exportBT() {
+  let bt = {};
+  let selected = localStorage.getItem("bt-selected");
+  let bts = that.get("availableBTs").filter(item => item.uri == selected);
+  bt.label = bts[0].name;
+  bt.definition = rdfManager.exportBT(bts[0].uri);
+  console.log(bt);
+  return bt;
 }
 
 function deleteBT() {

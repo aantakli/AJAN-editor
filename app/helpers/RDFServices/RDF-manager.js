@@ -36,6 +36,7 @@ export default {
 	reorderChildren: rdfTree.reorderChildren,
   deleteNode: rdfDestr.deleteNode,
   deleteBT: rdfDestr.deleteBT,
+  exportBT: rdfTree.exportBT,
 	getListObjects: rdfList.getElements,
 	getListBlanks: rdfList.getBlankElements,
 	getListTail: rdfList.getEnd,

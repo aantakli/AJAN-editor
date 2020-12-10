@@ -5,9 +5,14 @@
       compAction=(action "load")
     }}
   {{ui/menu-bar/download-button
-    label="Export Repo"
-    content=this.fileContent
-    fileName=this.fileName
+    label="Export All"
+    content=this.repoContent
+    fileName=this.repoFileName
+  }}
+  {{ui/menu-bar/download-button
+    label="Export BT"
+    content=this.btContent
+    fileName=this.btFileName
   }}
   {{ui/menu-bar/button
     label="Create BT"

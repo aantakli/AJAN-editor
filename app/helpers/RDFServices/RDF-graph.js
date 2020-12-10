@@ -31,7 +31,8 @@ class RDFGraph {
 	reset() {
 		this.data = undefined;
 		this.unsavedChanges = false;
-	}
+  }
+
 	set(newData) {
 		this.data = newData;
 	}

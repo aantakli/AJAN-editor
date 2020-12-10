@@ -13,14 +13,15 @@
 </div>
 
 {{ui/menu-bar/input-button
-        label="Load File"
-        compAction=(action "load")
+    label="Load File"
+    class="loadRepo"
+    compAction=(action "load")
 }}
 
 {{ui/menu-bar/download-button
-      label="Export Repo"
-      content=this.fileContent
-      fileName=this.fileName
+    label="Export Repo"
+    content=this.fileContent
+    fileName=this.fileName
 }}
 
 <div class="store-url-cont vcenter" local-class="rightmost">

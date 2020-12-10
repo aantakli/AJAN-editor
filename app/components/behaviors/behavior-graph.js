@@ -164,9 +164,10 @@ function exportBT() {
   let bt = {};
   let selected = localStorage.getItem("bt-selected");
   let bts = that.get("availableBTs").filter(item => item.uri == selected);
-  bt.label = bts[0].name;
-  bt.definition = rdfManager.exportBT(bts[0].uri);
-  console.log(bt);
+  if (bts.length > 0) {
+    bt.label = bts[0].name;
+    bt.definition = rdfManager.exportBT(bts[0].uri);
+  }
   return bt;
 }
 

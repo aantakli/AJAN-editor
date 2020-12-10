@@ -153,7 +153,8 @@ function reorderChildren(parentURI, childList) {
     toNext = rdfGraph.findQuad(ele.blank.value, RDF.rest);
     if (index >= childData.length - 1) {
       // Last blanky has no successor: Point to Nil
-      toNext.object = rdf.namedNode(RDF.nil);
+      if (toNext != undefined)
+        toNext.object = rdf.namedNode(RDF.nil);
       return;
     }
     toNext.object = childData[index + 1].blank;

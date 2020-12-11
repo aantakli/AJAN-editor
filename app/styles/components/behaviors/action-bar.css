@@ -54,3 +54,7 @@
   display:inline;
   font-weight: bold;
 }
+
+:global(.behaviorFile div.menu) {
+  background-color: #f0f0f0 !important;
+}

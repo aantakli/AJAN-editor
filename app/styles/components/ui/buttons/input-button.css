@@ -4,17 +4,25 @@
 }
 
 :global(.file-upload)::before {
-  color: #ffffff;
-  text-align: center;
-  width: 100%;
-  height: 100%;
-  display: block;
+  font-size: 15px;
+  color: #000;
+}
+
+:global(.loadBT i),
+:global(.loadRepo i) {
+  padding-left: 10px;
+  color: #000;
 }
 
 :global(.loadBT .file-upload)::before {
-  content: "Add BT";
+  content: "Import BT";
 }
 
 :global(.loadRepo .file-upload)::before {
-  content: "Load Repo";
+  content: "Import Repo";
+}
+
+:global(.loadBT .file-upload):hover,
+:global(.loadRepo .file-upload):hover {
+  background-color: rgba(0, 0, 0, 0.0) !important;
 }

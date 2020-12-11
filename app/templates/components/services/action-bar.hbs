@@ -11,19 +11,25 @@
   Test Service
   {{/link-to}}
 </div>
-
+{{#ui/menu-bar/dropdown
+    label="File"
+    class="action-bar"
+  }}
 {{ui/menu-bar/input-button
-    label="Load File"
+    label="Import Repo"
     class="loadRepo"
     compAction=(action "load")
+    icon="upload"
 }}
 
 {{ui/menu-bar/download-button
     label="Export Repo"
+    class="exportRepo"
     content=this.fileContent
     fileName=this.fileName
+    icon="download"
 }}
-
+{{/ui/menu-bar/dropdown}}
 <div class="store-url-cont vcenter" local-class="rightmost">
   <div>
     <div local-class="store">Triplestore:</div>

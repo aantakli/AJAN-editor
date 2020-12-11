@@ -36,6 +36,11 @@
 }
 
 /* Container */
+:global(.action-bar div.menu) {
+  background-color: #f0f0f0 !important;
+}
+
+
 :global(.menu.dropdown.container) {
   color: color-font;
   position: relative;

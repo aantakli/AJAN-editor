@@ -18,7 +18,7 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import {BT, RDF} from "ajan-editor/helpers/RDFServices/vocabulary";
+import { BT, RDF, RDFS, XSD } from "ajan-editor/helpers/RDFServices/vocabulary";
 import rdf from "npm:rdf-ext";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
@@ -30,7 +30,10 @@ export default {
 	removeChild,
 	removeChildAt,
 	reorderChildren,
-	getChild
+  getChild,
+  exportBT,
+  visitNode,
+  checkBTLinking
 };
 
 // Returns blank child at given index
@@ -150,7 +153,8 @@ function reorderChildren(parentURI, childList) {
     toNext = rdfGraph.findQuad(ele.blank.value, RDF.rest);
     if (index >= childData.length - 1) {
       // Last blanky has no successor: Point to Nil
-      toNext.object = rdf.namedNode(RDF.nil);
+      if (toNext != undefined)
+        toNext.object = rdf.namedNode(RDF.nil);
       return;
     }
     toNext.object = childData[index + 1].blank;
@@ -161,4 +165,96 @@ function reorderChildren(parentURI, childList) {
 	if (childrenPointer) {
 		childrenPointer.object = childData[0].blank;
   }
+}
+
+function exportBT(nodeURI) {
+  let bt = new Array();
+  let nodes = new Array();
+  visitNode(nodeURI, nodes);
+  visitNode(nodeURI, nodes);
+  nodes.forEach(uri => {
+    let quads = rdfGraph.getAllQuads(uri);
+    quads.forEach(quad => {
+      bt.push(quad);
+    })
+  });
+  let array = [];
+  bt.forEach(quad => {
+    let subj = termEval(quad.subject);
+    let pred = termEval(quad.predicate);
+    let obje = termEval(quad.object);
+    let str = subj + " " + pred + " " + obje;
+    array.push(str);
+  });
+  return array.join(". ") + ".";
+}
+
+function visitNode(uri, nodes) {
+  rdfGraph.forEach(quad => {
+    if (quad.subject.value === uri) {
+      if (quad.object.value !== RDF.nil && quad.predicate.value !== RDF.type) {
+        let child = quad.object.value;
+        if (!nodes.includes(uri))
+          nodes.push(uri);
+        visitNode(child, nodes);
+      }
+    }
+  });
+}
+
+function checkBTLinking(nodeURI, bts, links) {
+  bts.forEach(bt => {
+    let uri = bt.uri;
+    let nodes = new Array();
+    visitNode(uri, nodes);
+    if (nodes.includes(nodeURI)) {
+      links.push(uri);
+    }
+  });
+}
+
+function termEval(term) {
+  let result = undefined;
+  switch (term.termType) {
+    case "Literal":
+      switch (term.datatype.value) {
+        case RDFS.Resource:
+          result = "<" + term.value + ">";
+          break;
+        case XSD.double:
+          result = '"""' + term.value + '"""^^xsd:double';
+          break;
+        case XSD.float:
+          result = '"""' + term.value + '"""^^xsd:float';
+          break;
+        case XSD.anyURI:
+          result = "<" + term.value + ">";
+          break;
+        case XSD.long:
+          result = '"""' + term.value + '"""^^xsd:long';
+          break;
+        case XSD.int:
+          result = '"""' + term.value + '"""^^xsd:int';
+          break;
+        case XSD.boolean:
+          result = '"""' + term.value + '"""^^xsd:boolean';
+          break;
+        case XSD.string:
+          result = '"""' + term.value + '"""^^xsd:string';
+          break;
+        default:
+          result = '"""' + term.value + '"""^^xsd:string';
+      }
+      break;
+    case "NamedNode":
+      result = "<" + term.value + ">";
+      break;
+    case "BlankNode":
+      result = "_:" + term.value;
+      break;
+    default:
+      console.warn("Unknown term type: ", term.termType);
+      result = "<" + term.value + ">";
+  }
+  return result;
 }

@@ -1,14 +1,36 @@
 {{behaviors/create-bt}}
 {{#ui/menu-bar}}
+  {{#ui/menu-bar/dropdown
+    label="File"
+    class="action-bar"
+  }}
   {{ui/menu-bar/input-button
-      label="Load File"
-      compAction=(action "load")
+      label="Load Repo"
+      class="loadRepo"
+      compAction=(action "loadRepo")
+      icon="upload"
+    }}
+  {{ui/menu-bar/input-button
+      label="Load BT"
+      class="loadBT"
+      compAction=(action "loadBT")
+      icon="upload"
     }}
   {{ui/menu-bar/download-button
     label="Export Repo"
-    content=this.fileContent
-    fileName=this.fileName
+    class="exportRepo"
+    content=this.repoContent
+    fileName=this.repoFileName
+    icon="download"
   }}
+  {{ui/menu-bar/download-button
+    label="Export BT"
+    class="exportBT"
+    content=this.btContent
+    fileName=this.btFileName
+    icon="download"
+  }}
+{{/ui/menu-bar/dropdown}}
   {{ui/menu-bar/button
     label="Create BT"
     onClick=(action "createBehavior")

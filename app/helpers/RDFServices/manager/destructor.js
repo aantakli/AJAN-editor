@@ -24,6 +24,7 @@ import rdf from "npm:rdf-ext";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import rdfUtil from "ajan-editor/helpers/RDFServices/manager/util";
+import rdfTree from "ajan-editor/helpers/RDFServices/manager/tree";
 
 // Remove RDF data for a given node
 export default {
@@ -34,17 +35,17 @@ export default {
 function deleteBT(nodeURI, behaviors) {
   let nodes = new Array();
   let links = {bts: new Array(), nodes: new Array()};
-  visitNode(nodeURI, nodes);
-  checkBTLinking(nodeURI, behaviors, links.bts);
+  rdfTree.visitNode(nodeURI, nodes);
+  rdfTree.checkBTLinking(nodeURI, behaviors, links.bts);
   nodes.forEach(uri => {
     let node = {uri: uri, bts: new Array()};
-    checkBTLinking(uri, behaviors, node.bts);
+    rdfTree.checkBTLinking(uri, behaviors, node.bts);
     if (node.bts.length > 0) {
       links.nodes.push(node);
     }
   });
   if (links.bts.length === 0 && links.nodes.length === 0) {
-    visitNode(nodeURI, nodes);
+    rdfTree.visitNode(nodeURI, nodes);
     nodes.forEach(uri => {
         rdfGraph.removeAllRelated(uri);
     });
@@ -68,30 +69,6 @@ function deleteBT(nodeURI, behaviors) {
     ]);
     return false;
   }
-}
-
-function visitNode(uri, nodes) {
-  rdfGraph.forEach(quad => {
-    if (quad.subject.value === uri) {
-      if (quad.object.value !== RDF.nil && quad.predicate.value !== RDF.type) {
-        let child = quad.object.value;
-        if (!nodes.includes(uri))
-          nodes.push(uri);
-        visitNode(child, nodes);
-      }
-    }
-  });
-}
-
-function checkBTLinking(nodeURI, bts, links) {
-  bts.forEach(bt => {
-    let uri = bt.uri;
-    let nodes = new Array();
-    visitNode(uri, nodes);
-    if (nodes.includes(nodeURI)) {
-      links.push(uri);
-    }
-  });
 }
 
 function deleteNode(node, indegree) {

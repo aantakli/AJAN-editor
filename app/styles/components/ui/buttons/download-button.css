@@ -1,0 +1,19 @@
+:global(.exportRepo i),
+:global(.exportBT i) {
+  padding-left: 10px;
+  color: #000;
+}
+
+:global(.exportRepo a),
+:global(.exportBT a) {
+  color: #000 !important;
+  text-align: left;
+  font-size: 15px;
+}
+
+  :global(.exportRepo i):hover,
+  :global(.exportBT i):hover,
+  :global(.exportRepo a):hover,
+  :global(.exportBT a):hover {
+    background-color: rgba(0, 0, 0, 0.0) !important;
+  }

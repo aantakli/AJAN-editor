@@ -32,8 +32,10 @@ let that = undefined;
 
 export default Component.extend({
   dataBus: Ember.inject.service('data-bus'),
-  fileName: "behaviors.ttl",
-  fileContent: "",
+  repoFileName: "behaviors.ttl",
+  repoContent: "",
+  btFileName: "",
+  btContent: "",
   init() {
     this._super(...arguments);
     that = this;
@@ -46,6 +48,11 @@ export default Component.extend({
       saveGraph();
     });
 
+    this.get('dataBus').on('saveExportedBT', function (bt) {
+      that.set("btFileName", bt.label + "_bt.ttl");
+      that.set("btContent", URL.createObjectURL(new Blob([bt.definition])));
+    });
+
     this.get('dataBus').on('updatedBT', function () {
       $.ajax({
         url: repo,
@@ -56,7 +63,7 @@ export default Component.extend({
         },
         data: queries.constructGraph
       }).then(function (data) {
-        that.set("fileContent", URL.createObjectURL(new Blob([data])));
+        that.set("repoContent", URL.createObjectURL(new Blob([data])));
       });
     });
   },
@@ -72,7 +79,7 @@ export default Component.extend({
 
     save() {
       saveGraph();
-      this.set("fileContent", rdfGraph.get());
+      this.set("repoContent", rdfGraph.get());
     },
 
     restoreSave() {
@@ -87,9 +94,12 @@ export default Component.extend({
       this.get('dataBus').deleteBT();
     },
 
-    load() {
-      console.log(event.target.files);
-      loadFile(event);
+    loadBT() {
+      loadBT(event);
+    },
+
+    loadRepo() {
+      loadRepo(event);
     }
   }
 });
@@ -107,7 +117,19 @@ function saveGraph() {
   window.location.reload();
 }
 
-function loadFile(event) {
+function loadBT(event) {
+  let file = event.target.files[0];
+  console.log("File: " + file.name);
+  var reader = new FileReader();
+  reader.onload = function () {
+    let content = reader.result;
+    sendFile(repo, content)
+      .then(window.location.reload());
+  };
+  reader.readAsText(file);
+}
+
+function loadRepo(event) {
   let file = event.target.files[0];
   console.log("File: " + file.name);
   var reader = new FileReader();

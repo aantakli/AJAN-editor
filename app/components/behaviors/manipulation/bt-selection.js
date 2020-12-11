@@ -27,7 +27,7 @@ import graphOperations from "ajan-editor/helpers/graph/graph-operations";
 export default Component.extend({
 	selectedValue: undefined,
 	selectedValueName: undefined,
-
+  dataBus: Ember.inject.service(),
 	selectedValueChange: observer("selectedValue", function() {
     let bt = this.get("availableBTs").find((bt) => bt.uri === this.get("selectedValue"));
     if (bt)
@@ -48,6 +48,7 @@ export default Component.extend({
 });
 
 function selectBT(that) {
+  that.get('dataBus').exportBT();
 	let selectedURI = that.get("selectedValue");
 	let behaviorGraphs = that.get("availableBTs");
 	let cy = that.get("cyRef");

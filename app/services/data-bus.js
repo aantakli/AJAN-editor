@@ -25,6 +25,18 @@ export default Ember.Service.extend(Ember.Evented, {
     this.trigger('createBT');
   },
 
+  importBT() {
+    this.trigger('importBT');
+  },
+
+  exportBT() {
+    this.trigger('exportBT');
+  },
+
+  saveExportedBT(bt) {
+    this.trigger('saveExportedBT', bt);
+  },
+
   deleteBT() {
     this.trigger('deleteBT');
   },
@@ -60,5 +72,4 @@ export default Ember.Service.extend(Ember.Evented, {
   deletedAI() {
     this.trigger('deletedAI');
   }
-
 });

@@ -18,7 +18,7 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { ND } from "ajan-editor/helpers/RDFServices/vocabulary";
+import { ND, RDF } from "ajan-editor/helpers/RDFServices/vocabulary";
 import ndParameter from "./parameter";
 import util from "./util";
 
@@ -37,28 +37,33 @@ export default function(quads, URI) {
 }
 
 function getSet(URI, quads) {
+  let toggleSet = {};
+  toggleSet.toggle = [];
+  toggleSet.parameters = [];
+  toggleSet.parameterSets = [];
+  toggleSet.list = [];
+
   quads.forEach(quad => {
     if (quad.subject.value === URI) {
-      let objURI = quad.object.value;
-      switch (quad.predicate.value) {
-        case ND.toggle:
-          toggle.push(ndToggle(quads, objURI));
-          break;
-        case ND.parameter:
-          parameters.push(ndParameter(quads, objURI));
-          break;
-        case ND.parameters:
-          parameters = parameters.concat(ndParameters(quads, objURI));
-          break;
-        case ND.parameterSet:
-          parameterSets.push(ndParameterSet(quads, objURI));
-          break;
-        case ND.list:
-          list.push(ndList(quads, objURI));
-          break;
-        default:
-          break;
+      if (quad.predicate.value === RDF.type) {
+        switch (quad.object.value) {
+          case ND.Toggle:
+            toggleSet.toggle.push(ndToggle(quads, URI));
+            break;
+          case ND.Parameter:
+            toggleSet.parameters.push(ndParameter(quads, URI));
+            break;
+          case ND.ParameterSet:
+            toggleSet.parameterSets.push(ndParameterSet(quads, URI));
+            break;
+          case ND.List:
+            toggleSet.list.push(ndList(quads, URI));
+            break;
+          default:
+            break;
+        }
       }
     }
   });
+  return toggleSet;
 }

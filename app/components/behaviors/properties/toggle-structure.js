@@ -21,5 +21,6 @@
 import Component from "@ember/component";
 
 export default Component.extend({
-  classNames: ["auto-size"]
+  classNames: ["auto-size"],
+  toggleValue: true
 });

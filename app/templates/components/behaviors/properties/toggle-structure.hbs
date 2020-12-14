@@ -1,4 +1,16 @@
-{{toggleValue}}
+{{#behaviors/properties/parameter-wrapper
+  title=toggle.title
+  removeButtonAction=removeButtonAction
+  ignore=type.query
+}}
+
+  {{component 'behaviors/properties/parameter/boolean-field'
+    class="flexed-input"
+    value=toggleValue
+  }}
+{{/behaviors/properties/parameter-wrapper}}
+
+
 {{#if toggleValue}}
   {{component 'behaviors/properties/toggle-item'
     node=node
@@ -9,6 +21,6 @@
   {{component 'behaviors/properties/toggle-item'
     node=node
     item=toggle.last
-    class="flex-fill-item"
+    class="flexed-input"
   }}
 {{/if}}

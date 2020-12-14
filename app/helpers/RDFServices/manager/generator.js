@@ -64,6 +64,8 @@ function generateNode(type, uri, label) {
 }
 
 function generateStructure(structure, parent, isListItem = false) {
+  if (structure.toggle)
+    console.log("toggle 1");
 	if (structure.parameters)
 		structure.parameters.forEach(subStructure => {
 			generateParameter(subStructure, parent, isListItem);

@@ -449,15 +449,28 @@
 	        nd:mapsTo http-core:body;
 	        nd:title "HTTP Body";
             nd:type actn:Payload;
-            nd:parameter [
-				a nd:Parameter;
-				nd:mapsTo bt:query;
-				nd:title "Construct Query";
-				nd:input nd:Query;
-				bt:originBase "true";
-				bt:targetBase "false";
-				nd:type bt:ConstructQuery;
-            ]
+			nd:toggle [
+				a nd:Toggle;
+				nd:title "Send RDF or Template";
+				nd:first [
+					a nd:Parameter;
+					nd:mapsTo bt:query;
+					nd:title "Construct Query 1";
+					nd:input nd:Query;
+					bt:originBase "true";
+					bt:targetBase "false";
+					nd:type bt:ConstructQuery;
+				];
+				nd:last [
+					a nd:Parameter;
+					nd:mapsTo bt:query;
+					nd:title "Construct Query 2";
+					nd:input nd:Query;
+					bt:originBase "true";
+					bt:targetBase "false";
+					nd:type bt:ConstructQuery;
+				]
+			]
 	    ];
     ];
     nd:parameter [

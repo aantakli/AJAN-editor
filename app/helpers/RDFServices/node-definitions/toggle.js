@@ -2,7 +2,7 @@
  * Created on Tue Nov 10 2020
  *
  * The MIT License (MIT)
- * Copyright (c) 2020 André Antakli, Alex Grethen (German Research Center for Artificial Intelligence, DFKI).
+ * Copyright (c) 2020 André Antakli (German Research Center for Artificial Intelligence, DFKI).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -19,55 +19,46 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { ND } from "ajan-editor/helpers/RDFServices/vocabulary";
-import ndToggle from "./toggle";
-import ndList from "./list";
 import ndParameter from "./parameter";
-import ndParameters from "./parameters";
 import util from "./util";
 
-export default ndParameterSet;
+// Construct a list of parameters
+export default function(quads, URI) {
+  let first = util.getObjectValue(quads, URI, ND.first);
+  let last = util.getObjectValue(quads, URI, ND.last);
+  let firstSet = getSet(first, quads);
+  let lastSet = getSet(last, quads);
 
-// Construct a bundled set of parameters
-function ndParameterSet(quads, URI) {
-  let toggle = [];
-	let parameters = [];
-	let parameterSets = [];
-	let list = [];
+  return {
+    title: util.getObjectValue(quads, URI, ND.title),
+    first: firstSet,
+    last: lastSet
+  };
+}
 
-	quads.forEach(quad => {
-		if (quad.subject.value === URI) {
-			let objURI = quad.object.value;
+function getSet(URI, quads) {
+  quads.forEach(quad => {
+    if (quad.subject.value === URI) {
+      let objURI = quad.object.value;
       switch (quad.predicate.value) {
         case ND.toggle:
-          console.log("toggle");
           toggle.push(ndToggle(quads, objURI));
           break;
-				case ND.parameter:
-					parameters.push(ndParameter(quads, objURI));
-					break;
-				case ND.parameters:
-					parameters = parameters.concat(ndParameters(quads, objURI));
-					break;
-				case ND.parameterSet:
-					parameterSets.push(ndParameterSet(quads, objURI));
-					break;
-				case ND.list:
-					list.push(ndList(quads, objURI));
-					break;
-				default:
-					break;
-			}
-		}
-	});
-	let types = util.getObjectValues(quads, URI, ND.type);
-
-	return {
-		mapping: util.getObjectValue(quads, URI, ND.mapsTo),
-		title: util.getObjectValue(quads, URI, ND.title),
-    types,
-    toggle: toggle,
-		parameters: parameters,
-		parameterSets: parameterSets,
-		lists: list
-	};
+        case ND.parameter:
+          parameters.push(ndParameter(quads, objURI));
+          break;
+        case ND.parameters:
+          parameters = parameters.concat(ndParameters(quads, objURI));
+          break;
+        case ND.parameterSet:
+          parameterSets.push(ndParameterSet(quads, objURI));
+          break;
+        case ND.list:
+          list.push(ndList(quads, objURI));
+          break;
+        default:
+          break;
+      }
+    }
+  });
 }

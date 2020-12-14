@@ -1,0 +1,15 @@
+{{toggle.title}}
+
+{{#if toggle}}
+  {{component 'behaviors/properties/toggle-item'
+    node=node
+    item=0
+    class="flex-fill-item"
+  }}
+{{else}}
+  {{component 'behaviors/properties/toggle-item'
+    node=node
+    item=1
+    class="flex-fill-item"
+  }}
+{{/if}}

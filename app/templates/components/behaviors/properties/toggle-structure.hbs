@@ -10,17 +10,18 @@
   }}
 {{/behaviors/properties/parameter-wrapper}}
 
-
 {{#if toggleValue}}
   {{component 'behaviors/properties/toggle-item'
     node=node
-    item=toggle.first
+    select="first"
+    toggle=toggle
     class="flexed-input"
   }}
 {{else}}
   {{component 'behaviors/properties/toggle-item'
     node=node
-    item=toggle.last
+    select="last"
+    toggle=toggle
     class="flexed-input"
   }}
 {{/if}}

@@ -451,24 +451,37 @@
             nd:type actn:Payload;
 			nd:toggle [
 				a nd:Toggle;
-				nd:title "Send RDF or Template";
+				nd:title "Send RDF";
 				nd:first [
 					a nd:Parameter;
 					nd:mapsTo bt:query;
-					nd:title "Construct Query 1";
+					nd:title "Construct Query";
 					nd:input nd:Query;
 					bt:originBase "true";
 					bt:targetBase "false";
 					nd:type bt:ConstructQuery;
 				];
 				nd:last [
-					a nd:Parameter;
-					nd:mapsTo bt:query;
-					nd:title "Construct Query 2";
-					nd:input nd:Query;
-					bt:originBase "true";
-					bt:targetBase "false";
-					nd:type bt:ConstructQuery;
+					a nd:ParameterSet;
+					nd:mapsTo bt:template;
+					nd:type bt:SelectQueryTemplate;
+					nd:title "Template";
+					nd:parameter [
+							a nd:Parameter;
+							nd:mapsTo bt:stringTemplate;
+							nd:title "String template";
+							nd:input xsd:string;
+							nd:default "";
+						];
+					nd:parameter [
+							a nd:Parameter;
+							nd:mapsTo bt:query;
+							nd:title "Select Query";
+							nd:input nd:Query;
+							bt:originBase "true";
+							bt:targetBase "false";
+							nd:type bt:SelectQuery;
+					]
 				]
 			]
 	    ];

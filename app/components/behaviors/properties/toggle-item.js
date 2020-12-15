@@ -21,5 +21,11 @@
 import Component from "@ember/component";
 
 export default Component.extend({
-	classNames: ["auto-size"]
+  classNames: ["auto-size"],
+  item: undefined,
+  didInsertElement() {
+    this._super(...arguments);
+    self = this;
+    this.set("item", this.get("toggle." + this.get("select")));
+  }
 });

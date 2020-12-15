@@ -39,7 +39,6 @@ function ndParameterSet(quads, URI) {
 			let objURI = quad.object.value;
       switch (quad.predicate.value) {
         case ND.toggle:
-          console.log("toggle");
           toggle.push(ndToggle(quads, objURI));
           break;
 				case ND.parameter:

@@ -65,7 +65,9 @@ function generateNode(type, uri, label) {
 
 function generateStructure(structure, parent, isListItem = false) {
   if (structure.toggle)
-    console.log("toggle 1");
+    structure.toggle.forEach(subStructure => {
+      generateToggle(subStructure, parent, isListItem);
+    });
 	if (structure.parameters)
 		structure.parameters.forEach(subStructure => {
 			generateParameter(subStructure, parent, isListItem);
@@ -78,6 +80,11 @@ function generateStructure(structure, parent, isListItem = false) {
 		structure.lists.forEach(subStructure => {
 			generateList(subStructure, parent, isListItem);
 		});
+}
+
+function generateToggle(structure, parent, isListItem) {
+  rdfGraph.add(rdfFact.quad(parent, ND.toggle, ND.First));
+  generateStructure(structure.first, parent, isListItem);
 }
 
 function generateParameter(

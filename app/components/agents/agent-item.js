@@ -43,8 +43,8 @@ export default Component.extend({
   edit: "",
 
 	init() {
-	    this._super(...arguments);
-	    self = this;
+	  this._super(...arguments);
+	  self = this;
 		reset();
 	},
 

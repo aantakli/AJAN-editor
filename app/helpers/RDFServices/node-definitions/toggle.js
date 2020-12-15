@@ -20,6 +20,8 @@
  */
 import { ND, RDF } from "ajan-editor/helpers/RDFServices/vocabulary";
 import ndParameter from "./parameter";
+import ndParameterSet from "./parameter-set";
+import ndList from "./list";
 import util from "./util";
 
 // Construct a list of parameters

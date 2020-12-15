@@ -24,18 +24,9 @@ import {observer} from "@ember/object";
 export default Component.extend({
   init() {
     this._super(...arguments);
-
   },
 
 	valueChanged: observer("value", function() {
 		if (this.get("onChange")) this.get("onChange")();
-		console.log('heeeeeeeeeeeeeeee');
-		console.log(this.get("id"));
-		console.log(this.get("value"));
-
-
-	}),
-
-
-
+	})
 });

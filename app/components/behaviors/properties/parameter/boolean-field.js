@@ -25,9 +25,9 @@ export default Component.extend({
 	checked: computed("uri", "value", function() {
 		let value = this.get("value");
 		return !(!value || value == "false");
-	}),
+  }),
 
-	checkedChanged: observer("checked", function() {
+  checkedChanged: observer("checked", function () {
 		this.set("value", this.get("checked"));
 	})
 });

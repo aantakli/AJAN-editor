@@ -19,6 +19,7 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Component from "@ember/component";
+import { computed, observer } from "@ember/object";
 
 export default Component.extend({
   classNames: ["auto-size"],
@@ -27,5 +28,18 @@ export default Component.extend({
     this._super(...arguments);
     self = this;
     this.set("item", this.get("toggle." + this.get("select")));
-  }
+  },
+
+  selectChanged: observer("select", function () {
+    this.set("item", this.get("toggle." + this.get("select")));
+  }),
+
+  parentUri: computed("uri", "node.uri", function () {
+    let uri =
+      this.get("node.uri") ||
+      this.get("uri");
+    if (!uri)
+      console.warn("Could not identify URI for set ", this.get("node.title"));
+    return uri;
+  })
 });

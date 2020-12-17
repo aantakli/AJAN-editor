@@ -55,17 +55,17 @@ export default Component.extend({
 				console.warn("Unknown parameter type", type);
 				return {};
 		}
-	}),
+  }),
+
+  uriChange: observer("uri", function () {
+    this.set("value", getValue(this));
+  }),
 
 	value: computed("uri", "parameter", function() {
 		return getValue(this);
 	}),
 
-	uriChange: observer("uri", function() {
-		this.set("value", getValue(this));
-	}),
-
-	valueChanged: observer("value", function() {
+  valueChanged: observer("value", function () {
 		rdfGraph.setObjectValue(
 			this.get("uri"),
 			this.get("parameter").mapping,
@@ -75,13 +75,13 @@ export default Component.extend({
 });
 
 function getValue(that) {
-	let structure = that.get("parameter");
+  let structure = that.get("parameter");
 	let value = rdfGraph.getObjectValue(that.get("uri"), structure.mapping);
 	if (!value && typeof value !== "boolean")
 		console.warn(
 			"Value not defined, using default",
 			that.get("uri"),
 			structure
-		);
-	return value || structure.default;
+    );
+  return value || structure.default;
 }

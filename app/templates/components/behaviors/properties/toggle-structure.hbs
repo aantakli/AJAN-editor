@@ -4,23 +4,25 @@
   ignore=type.query
 }}
 
-  {{component 'behaviors/properties/parameter/boolean-field'
+{{component 'behaviors/properties/parameter/boolean-field'
     class="flexed-input"
-    value=toggleValue
-  }}
+    checked=toggleValue
+}}
 {{/behaviors/properties/parameter-wrapper}}
 
 {{#if toggleValue}}
   {{component 'behaviors/properties/toggle-item'
     node=node
-    select="first"
+    uri=parentUri
+    select=select
     toggle=toggle
     class="flexed-input"
   }}
 {{else}}
   {{component 'behaviors/properties/toggle-item'
     node=node
-    select="last"
+    uri=parentUri
+    select=select
     toggle=toggle
     class="flexed-input"
   }}

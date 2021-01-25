@@ -1148,9 +1148,11 @@
 	nd:parameter [
 	    a nd:Parameter;
 	    nd:mapsTo bt-mosim:callback;
-	    nd:title "CallbackPort";
-	    nd:input xsd:int;
-	    nd:default bt:current;
+	    nd:title "CallbackPort: ?port";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
     ];
 	nd:parameter [
 	    a nd:Parameter;
@@ -1192,9 +1194,11 @@
 	nd:parameter [
 	    a nd:Parameter;
 	    nd:mapsTo bt-mosim:callback;
-	    nd:title "CallbackPort";
-	    nd:input xsd:int;
-	    nd:default bt:current;
+	    nd:title "CallbackPort: ?port";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
     ];
 	nd:parameter [
 	    a nd:Parameter;
@@ -1220,9 +1224,11 @@
 	nd:parameter [
 	    a nd:Parameter;
 	    nd:mapsTo bt-mosim:callback;
-	    nd:title "CallbackPort";
-	    nd:input xsd:int;
-	    nd:default bt:current;
+	    nd:title "CallbackPort: ?port";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
     ].
 
 :DeleteCallbackServer nd:class nd:Leaf;
@@ -1242,9 +1248,11 @@
 	nd:parameter [
 	    a nd:Parameter;
 	    nd:mapsTo bt-mosim:callback;
-	    nd:title "CallbackPort";
-	    nd:input xsd:int;
-	    nd:default bt:current;
+	    nd:title "CallbackPort: ?port";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
     ].
 
 :GetMMUs nd:class nd:Leaf;

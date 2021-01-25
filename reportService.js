@@ -23,6 +23,12 @@ app.get('/', cors(), (req, res) => {
   res.send('Hello World!');
 });
 
+app.post('/test', (req, res) => {
+  body = req.body;
+  console.log(body);
+  res.send('');
+});
+
 app.post('/report', (req, res) => {
   body = req.body;
 	console.log(body);

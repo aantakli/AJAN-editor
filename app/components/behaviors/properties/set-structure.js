@@ -32,12 +32,12 @@ export default Component.extend({
 			});
 	},
 
-	parentUri: computed("uri", "node.uri", function() {
+  parentUri: computed("uri", "node.uri", function () {
 		let uri =
 			this.get("node.uri") ||
 			rdfGraph.getObjectValue(this.get("uri"), this.get("set").mapping);
 		if (!uri)
-			console.warn("Could not identify URI for set ", this.get("node.title"));
+      console.warn("Could not identify URI for set ", this.get("node.title"));
 		return uri;
 	})
 });

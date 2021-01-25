@@ -171,7 +171,6 @@ function exportBT(nodeURI) {
   let bt = new Array();
   let nodes = new Array();
   visitNode(nodeURI, nodes);
-  visitNode(nodeURI, nodes);
   nodes.forEach(uri => {
     let quads = rdfGraph.getAllQuads(uri);
     quads.forEach(quad => {

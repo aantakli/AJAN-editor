@@ -142,10 +142,12 @@ function getAgentInstance(graph, uri, templates) {
     }
   });
   let template = templates.filter(tmpl => tmpl.uri === agent.template)[0];
-  actions.forEach(actn => {
-    let endpoint = template.endpoints.filter(endp => endp.capability === actn.capability)[0];
-    actn.label = endpoint.label;
-  });
+  if (template) {
+    actions.forEach(actn => {
+      let endpoint = template.endpoints.filter(endp => endp.capability === actn.capability)[0];
+      actn.label = endpoint.label;
+    });
+  }
   agent.actions = actions;
   return agent;
 }

@@ -2,6 +2,13 @@
   node=node
 }}
 
+{{#each node.structure.toggle as |toggle|}}
+  {{component 'behaviors/properties/toggle-structure'
+    toggle=toggle
+    uri=node.uri
+  }}
+{{/each}}
+
 {{#each node.structure.parameters as |parameter|}}
   {{component 'behaviors/properties/parameter-structure'
     parameter=parameter

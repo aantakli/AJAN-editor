@@ -1,0 +1,29 @@
+{{#behaviors/properties/parameter-wrapper
+  title=toggle.title
+  removeButtonAction=removeButtonAction
+  ignore=type.query
+}}
+
+{{component 'behaviors/properties/parameter/boolean-field'
+    class="flexed-input"
+    checked=toggleValue
+}}
+{{/behaviors/properties/parameter-wrapper}}
+
+{{#if toggleValue}}
+  {{component 'behaviors/properties/toggle-item'
+    node=node
+    uri=parentUri
+    select=select
+    toggle=toggle
+    class="flexed-input"
+  }}
+{{else}}
+  {{component 'behaviors/properties/toggle-item'
+    node=node
+    uri=parentUri
+    select=select
+    toggle=toggle
+    class="flexed-input"
+  }}
+{{/if}}

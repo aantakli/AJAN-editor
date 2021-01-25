@@ -14,7 +14,14 @@
   {{/ui/side-pane/title-wrapper}}
 
   <div class="behavior side-pane set item-container content active">
-
+    {{#each set.toggle as |toggle|}}
+      {{component 'behaviors/properties/toggle-structure'
+        class="toga"
+        toggle=toggle
+        uri=parentUri
+        casualMode=casualMode
+      }}
+    {{/each}}
 
     {{#each set.parameters as |parameter|}}
       {{component 'behaviors/properties/parameter-structure'

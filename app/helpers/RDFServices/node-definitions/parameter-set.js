@@ -18,7 +18,8 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import {ND} from "ajan-editor/helpers/RDFServices/vocabulary";
+import { ND } from "ajan-editor/helpers/RDFServices/vocabulary";
+import ndToggle from "./toggle";
 import ndList from "./list";
 import ndParameter from "./parameter";
 import ndParameters from "./parameters";
@@ -28,6 +29,7 @@ export default ndParameterSet;
 
 // Construct a bundled set of parameters
 function ndParameterSet(quads, URI) {
+  let toggle = [];
 	let parameters = [];
 	let parameterSets = [];
 	let list = [];
@@ -35,7 +37,10 @@ function ndParameterSet(quads, URI) {
 	quads.forEach(quad => {
 		if (quad.subject.value === URI) {
 			let objURI = quad.object.value;
-			switch (quad.predicate.value) {
+      switch (quad.predicate.value) {
+        case ND.toggle:
+          toggle.push(ndToggle(quads, objURI));
+          break;
 				case ND.parameter:
 					parameters.push(ndParameter(quads, objURI));
 					break;
@@ -58,7 +63,8 @@ function ndParameterSet(quads, URI) {
 	return {
 		mapping: util.getObjectValue(quads, URI, ND.mapsTo),
 		title: util.getObjectValue(quads, URI, ND.title),
-		types,
+    types,
+    toggle: toggle,
 		parameters: parameters,
 		parameterSets: parameterSets,
 		lists: list

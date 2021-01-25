@@ -1,0 +1,27 @@
+
+{{#each item.parameters as |parameter|}}
+  {{component 'behaviors/properties/parameter-structure'
+    class="para"
+    parameter=parameter
+    uri=parentUri
+    casualMode=casualMode
+  }}
+{{/each}}
+
+{{#each item.parameterSets as |subset|}}
+  {{component 'behaviors/properties/set-structure'
+    class="sata"
+    set=subset
+    uri=parentUri
+    casualMode=casualMode
+  }}
+{{/each}}
+
+{{#each item.lists as |list|}}
+  {{component 'behaviors/properties/list-structure'
+    class="lista"
+    list=list
+    uri=parentUri
+    casualMode=casualMode
+  }}
+{{/each}}

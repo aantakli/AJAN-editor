@@ -192,6 +192,10 @@ function removeStructureElements(nodeURI) {
 
 function removeStructure(structure, parentURI) {
   let node = rdfGraph.getNode(parentURI);
+  if (structure.toggle)
+    structure.toggle.forEach(subStructure => {
+      removeToggle(subStructure, parentURI);
+    });
 	if (structure.parameters)
 		structure.parameters.forEach(subStructure => {
 			removeParameter(subStructure, parentURI);
@@ -206,6 +210,11 @@ function removeStructure(structure, parentURI) {
 		});
   if (node != undefined && node.termType === "BlankNode") rdfGraph.removeAllRelated(parentURI);
 }
+
+function removeToggle(structure, parentURI) {
+  // TBD
+}
+
 
 function removeParameter(structure, parentURI) {
 	let paramQuad = rdfGraph.findQuad(parentURI, structure.mapping);

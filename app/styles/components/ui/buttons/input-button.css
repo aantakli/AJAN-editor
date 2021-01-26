@@ -8,6 +8,7 @@
   color: #000;
 }
 
+:global(.loadFile i),
 :global(.loadBT i),
 :global(.loadRepo i) {
   padding-left: 10px;
@@ -18,10 +19,15 @@
   content: "Import BT";
 }
 
+:global(.loadFile .file-upload)::before {
+  content: "Import File";
+}
+
 :global(.loadRepo .file-upload)::before {
   content: "Import Repo";
 }
 
+:global(.loadFile .file-upload):hover,
 :global(.loadBT .file-upload):hover,
 :global(.loadRepo .file-upload):hover {
   background-color: rgba(0, 0, 0, 0.0) !important;

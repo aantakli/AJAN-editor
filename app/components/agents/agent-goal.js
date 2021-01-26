@@ -19,7 +19,7 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Component from '@ember/component';
-import {XSD, RDFS, SPIN, AGENTS} from "ajan-editor/helpers/RDFServices/vocabulary";
+import { XSD, RDF, RDFS, SPIN, AGENTS} from "ajan-editor/helpers/RDFServices/vocabulary";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
@@ -36,7 +36,9 @@ export default Component.extend({
 	overview: null,
 	activeAgent: null,
 	activeValue: null,
-	newVariable: "?",
+  newVariable: "?",
+  content: "",
+  fileName: "",
 	edit: "",
   types: [{uri: RDFS.Resource, label: "rdfs:Resource"},
           {uri: XSD.string, label: "xsd:string"},
@@ -54,7 +56,10 @@ export default Component.extend({
   },
 
 	didReceiveAttrs() {
-		this._super(...arguments);
+    this._super(...arguments);
+    if (this.get("activeGoal") != null) {
+      setFileContent(this.get("activeGoal.uri"));
+    }
 	},
 
   actions: {
@@ -113,7 +118,8 @@ export default Component.extend({
 		  rdfGraph.setObjectValue(s, p, o, type = XSD.string);
 			self.actions.toggle(self.edit);
 			reset();
-			updateRepo();
+      updateRepo();
+      setFileContent(self.get("activeGoal.uri"));
 		},
 
     addVariable() {
@@ -130,6 +136,7 @@ export default Component.extend({
       self.actions.toggle(self.edit);
       reset();
       updateRepo();
+      setFileContent(self.get("activeGoal.uri"));
     },
 
 		deletegoalvariable(ele, val) {
@@ -207,6 +214,39 @@ function updateRepo() {
 function reset() {
 	self.activeValue = null;
 	self.edit = "";
+}
+
+function setFileContent(uri) {
+  let label = rdfGraph.getObject(uri, RDFS.label);
+  let eventRDF = exportGoal(uri);
+  self.set("fileName", "agents_goals_" + label.value + ".ttl");
+  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF) + "."])));
+}
+
+function exportGoal(nodeURI) {
+  let goal = new Array();
+  let nodes = new Array();
+  visitNode(nodeURI, nodes);
+  nodes.forEach(uri => {
+    let quads = rdfGraph.getAllQuads(uri);
+    quads.forEach(quad => {
+      goal.push(quad);
+    })
+  });
+  return goal;
+}
+
+function visitNode(uri, nodes) {
+  rdfGraph.forEach(quad => {
+    if (quad.subject.value === uri) {
+      if (quad.object.value !== RDF.nil && quad.predicate.value !== RDF.type) {
+        let child = quad.object.value;
+        if (!nodes.includes(uri))
+          nodes.push(uri);
+        visitNode(child, nodes);
+      }
+    }
+  });
 }
 
 

@@ -36,16 +36,21 @@ export default Component.extend({
 	overview: null,
 	activeAgent: null,
 	activeValue: null,
-	newVariable: "?",
+  newVariable: "?",
+  content: "",
+  fileName: "",
 	edit: "",
 	init() {
-	    this._super(...arguments);
-	    self = this;
-			reset();
+	  this._super(...arguments);
+	  self = this;
+    reset();
   },
 
 	didReceiveAttrs() {
-		this._super(...arguments);
+    this._super(...arguments);
+    if (this.get("activeEvent") != null) {
+      setFileContent(this.get("activeEvent.uri"));
+    }
 	},
 
   actions: {
@@ -85,7 +90,8 @@ export default Component.extend({
 		  rdfGraph.setObjectValue(s, p, o, type = XSD.string);
 			self.actions.toggle(self.edit);
 			reset();
-			updateRepo();
+      updateRepo();
+      setFileContent(self.get("activeEvent.uri"));
 		},
 
 		deleteevent() {
@@ -125,5 +131,12 @@ function updateRepo() {
 function reset() {
 	self.activeValue = null;
 	self.edit = "";
+}
+
+function setFileContent(uri) {
+  let label = rdfGraph.getObject(uri, RDFS.label);
+  let eventRDF = rdfGraph.getAllQuads(uri);
+  self.set("fileName", "agents_events_" + label.value + ".ttl");
+  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF) + "."])));
 }
 

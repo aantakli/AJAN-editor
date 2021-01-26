@@ -31,6 +31,12 @@
   margin-bottom: 20px;
 }
 
+.agent-item-header a {
+  font-size: 20px;
+  margin-bottom: -5px !important;
+  margin-right: 10px !important;
+}
+
 .agent-item-header button {
   font-size: 20px;
   display: block;

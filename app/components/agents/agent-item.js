@@ -19,7 +19,7 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Component from '@ember/component';
-import {XSD} from "ajan-editor/helpers/RDFServices/vocabulary";
+import {XSD, RDFS} from "ajan-editor/helpers/RDFServices/vocabulary";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
@@ -39,7 +39,9 @@ export default Component.extend({
   selectedInitBehavior: null,
   selectedFinalBehavior: null,
 	JSnewcheckedPermissions:null,
-	newVariable: "?",
+  newVariable: "?",
+  content: "",
+  fileName: "",
   edit: "",
 
 	init() {
@@ -52,7 +54,10 @@ export default Component.extend({
 		this._super(...arguments);
 		self.set('selectedEvents',[]);
 		self.set('selectedEndpoints',[]);
-		self.set('selectedBehaviors',[]);
+    self.set('selectedBehaviors', []);
+    if (this.get("activeAgent") != null) {
+      setFileContent(this.get("activeAgent.uri"));
+    }
 	},
 
   actions: {
@@ -95,7 +100,8 @@ export default Component.extend({
       rdfGraph.setObjectValue(s, p, o, type = XSD.string);
 			self.actions.toggle(self.edit);
 			reset();
-			updateRepo();
+      updateRepo();
+      setFileContent(self.get("activeAgent.uri"));
 		},
 
 /////////////////////////////////for AgentTemplate///////////////////////////////////////////////
@@ -117,6 +123,7 @@ export default Component.extend({
       rdfGraph.add(rdftriple);
       updateRepo();
       reset();
+      setFileContent(self.get("activeAgent.uri"));
       self.actions.toggle("finalBehavior");
     },
 
@@ -128,7 +135,8 @@ export default Component.extend({
 			  rdfGraph.add(rdftriple);
 			  updateRepo();
 			  reset();
-	    }
+      }
+      setFileContent(self.get("activeAgent.uri"));
 		  self.actions.toggle("behavior");
     },
 
@@ -141,7 +149,8 @@ export default Component.extend({
 			rdfGraph.add(rdftriple);
 			updateRepo();
 			reset();
-	    }
+      }
+      setFileContent(self.get("activeAgent.uri"));
       self.actions.toggle("event");
  },
      savenewendpoints(newendpoints){
@@ -153,7 +162,8 @@ export default Component.extend({
         rdfGraph.add(rdftriple);
 			  updateRepo();
 			  reset();
-	    }
+      }
+       setFileContent(self.get("activeAgent.uri"));
       self.actions.toggle("endpoint");
  },
 
@@ -314,4 +324,9 @@ function reset() {
 	self.edit = "";
 }
 
-
+function setFileContent(uri) {
+  let label = rdfGraph.getObject(uri, RDFS.label);
+  let eventRDF = rdfGraph.getAllQuads(uri);
+  self.set("fileName", "agents_agent_" + label.value + ".ttl");
+  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF) + "."])));
+}

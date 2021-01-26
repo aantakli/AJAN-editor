@@ -116,7 +116,7 @@ class RDFGraph {
 				(g ? quad.graph.value === g : true)
 			);
 		});
-	}
+  }
 
 	getObjectValue(s, p) {
 		try {
@@ -275,17 +275,21 @@ class RDFGraph {
 		});
 	}
 
-	toString() {
-		let array = [];
-		this.data.forEach(quad => {
-			let subj = termEval(quad.subject);
-			let pred = termEval(quad.predicate);
-			let obje = termEval(quad.object);
-			let str = subj + " " + pred + " " + obje;
-			array.push(str);
-		});
-		return array.join(". ");
-	}
+  toString(quads) {
+    if (quads == null) {
+      quads = this.data;
+    }
+    let array = [];
+    array.push("@prefix xsd: <http://www.w3.org/2001/XMLSchema#>");
+    quads.forEach(quad => {
+      let subj = termEval(quad.subject);
+      let pred = termEval(quad.predicate);
+      let obje = termEval(quad.object);
+      let str = subj + " " + pred + " " + obje;
+      array.push(str);
+    });
+    return array.join(". ");
+  }
 } // end class def
 
 // Helpers

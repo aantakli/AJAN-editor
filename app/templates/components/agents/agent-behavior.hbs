@@ -1,11 +1,16 @@
 
 
-<div local-class="agent-item-header clearfix">
-  <div local-class="agent-item-header-text">  {{activeBehavior.label}}</div>
-  <button {{action "deletebehavior"}} class="ui red icon button rightmost">
-    <i class="minus icon no-side-margins"></i>
-  </button>
-</div>
+  <div local-class="agent-item-header clearfix">
+    <div local-class="agent-item-header-text">  {{activeBehavior.label}}</div>
+    <a class="ui icon button"
+       download={{fileName}}
+       href="{{content}}">
+      <i class="download icon no-side-margins"></i>
+    </a>
+    <button {{action "deletebehavior"}} class="ui red icon button rightmost">
+      <i class="minus icon no-side-margins"></i>
+    </button>
+  </div>
 
 <div local-class="item-seperation">
   <hr><i> URI</i>

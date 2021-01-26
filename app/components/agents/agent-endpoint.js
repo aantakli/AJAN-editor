@@ -20,7 +20,7 @@
  */
 
 import Component from '@ember/component';
-import {XSD} from "ajan-editor/helpers/RDFServices/vocabulary";
+import {XSD, RDFS} from "ajan-editor/helpers/RDFServices/vocabulary";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 import globals from "ajan-editor/helpers/global-parameters";
@@ -37,6 +37,8 @@ export default Component.extend({
 	selectedConnectedEvents:null,
   newVariable: "?",
   dataBus: Ember.inject.service('data-bus'),
+  content: "",
+  fileName: "",
 	edit: "",
 	init() {
 	    this._super(...arguments);
@@ -45,7 +47,10 @@ export default Component.extend({
 	},
 	didReceiveAttrs() {
 		this._super(...arguments);
-		self.set('selectedConnectedEvents',[]);
+    self.set('selectedConnectedEvents', []);
+    if (this.get("activeEndpoint") != null) {
+      setFileContent(this.get("activeEndpoint.uri"));
+    }
 	},
 
   actions: {
@@ -65,7 +70,8 @@ export default Component.extend({
 		    rdfGraph.setObjectValue(s, p, o, type = XSD.string);
 			  self.actions.toggle(self.edit);
 			  reset();
-			  updateRepo();
+      updateRepo();
+      setFileContent(self.get("activeEndpoint.uri"));
 		},
 
     /////////////////////////////////for Individual Endpoint ///////////////////////////////////////////////
@@ -79,7 +85,8 @@ export default Component.extend({
         rdfGraph.add(rdftriple);
 			  updateRepo();
 			  reset();
-	    }
+      }
+      setFileContent(self.get("activeEndpoint.uri"));
       self.actions.toggle("endpointevent");
  },
 
@@ -141,3 +148,9 @@ function reset() {
 	self.edit = "";
 }
 
+function setFileContent(uri) {
+  let label = rdfGraph.getObject(uri, RDFS.label);
+  let eventRDF = rdfGraph.getAllQuads(uri);
+  self.set("fileName", "agents_endpoints_" + label.value + ".ttl");
+  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF) + "."])));
+}

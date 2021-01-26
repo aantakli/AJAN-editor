@@ -20,7 +20,7 @@
  */
 
 import Component from '@ember/component';
-import {XSD, AGENTS} from "ajan-editor/helpers/RDFServices/vocabulary";
+import {XSD, RDFS, AGENTS} from "ajan-editor/helpers/RDFServices/vocabulary";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 import globals from "ajan-editor/helpers/global-parameters";
@@ -40,6 +40,8 @@ export default Component.extend({
 	selectedTriggers: null,
   newVariable: "?",
   oldType: "",
+  content: "",
+  fileName: "",
 	edit: "",
 
 	init() {
@@ -50,7 +52,10 @@ export default Component.extend({
 
 	didReceiveAttrs() {
 		this._super(...arguments);
-		self.set('selectedTriggers',[]);
+    self.set('selectedTriggers', []);
+    if (this.get("activeBehavior") != null) {
+      setFileContent(this.get("activeBehavior.uri"));
+    }
 	},
 
 	actions: {
@@ -96,6 +101,7 @@ export default Component.extend({
       self.actions.toggle(self.edit);
       reset();
       updateRepo();
+      setFileContent(self.get("activeBehavior.uri"));
     },
 
 		savenewtriggers(newtriggers){
@@ -107,7 +113,8 @@ export default Component.extend({
 				rdfGraph.add(rdftriple);
 				updateRepo();
 				reset();
-			}
+      }
+      setFileContent(self.get("activeBehavior.uri"));
 			self.actions.toggle("trigger");
 		},
 
@@ -192,5 +199,12 @@ function updateRepo() {
 function reset() {
 	self.activeValue = null;
 	self.edit = "";
+}
+
+function setFileContent(uri) {
+  let label = rdfGraph.getObject(uri, RDFS.label);
+  let eventRDF = rdfGraph.getAllQuads(uri);
+  self.set("fileName", "agents_behaviors_" + label.value + ".ttl");
+  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF) + "."])));
 }
 

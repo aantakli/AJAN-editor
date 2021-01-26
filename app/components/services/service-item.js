@@ -19,7 +19,7 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Component from '@ember/component';
-import { ACTN, HTTP } from "ajan-editor/helpers/RDFServices/vocabulary";
+import { ACTN, RDF, RDFS, HTTP } from "ajan-editor/helpers/RDFServices/vocabulary";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
@@ -37,7 +37,9 @@ export default Component.extend({
 	overview: null,
 	activeAction: null,
 	activeValue: null,
-	newVariable: "?",
+  newVariable: "?",
+  content: "",
+  fileName: "",
   edit: "",
   abort: false,
 	communication: [{uri: ACTN.Synchronous, label: "Synchronous"}, {uri: ACTN.Asynchronous, label: "Asynchronous"}],
@@ -68,7 +70,10 @@ export default Component.extend({
       }
 			else {
         self.set("abort", true);
-			}
+      }
+      if (this.get("activeAction") != null) {
+        setFileContent(this.get("activeAction.uri"));
+      }
 		}
 	},
   actions: {
@@ -187,6 +192,7 @@ export default Component.extend({
       let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
         + globals.servicesRepository;
       actions.saveGraph(globals.ajax, repo, self.dataBus, "updated");
+      setFileContent(self.get("activeAction.uri"));
     },
 
 		toggle(key) {
@@ -257,4 +263,37 @@ function reset() {
 	self.activeValue = null;
 	self.actions.activate("run");
 	self.edit = "";
+}
+
+function setFileContent(uri) {
+  let label = rdfGraph.getObject(uri, RDFS.label);
+  let eventRDF = exportService(uri);
+  self.set("fileName", "actions_service_" + label.value + ".ttl");
+  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF) + "."])));
+}
+
+function exportService(nodeURI) {
+  let service = new Array();
+  let nodes = new Array();
+  visitNode(nodeURI, nodes);
+  nodes.forEach(uri => {
+    let quads = rdfGraph.getAllQuads(uri);
+    quads.forEach(quad => {
+      service.push(quad);
+    })
+  });
+  return service;
+}
+
+function visitNode(uri, nodes) {
+  rdfGraph.forEach(quad => {
+    if (quad.subject.value === uri) {
+      if (quad.object.value !== RDF.nil && quad.predicate.value !== RDF.type) {
+        let child = quad.object.value;
+        if (!nodes.includes(uri))
+          nodes.push(uri);
+        visitNode(child, nodes);
+      }
+    }
+  });
 }

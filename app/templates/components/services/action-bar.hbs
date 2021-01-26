@@ -15,12 +15,18 @@
     label="File"
     class="action-bar"
   }}
-{{ui/menu-bar/input-button
-    label="Import Repo"
-    class="loadRepo"
-    compAction=(action "load")
-    icon="upload"
-}}
+  {{ui/menu-bar/input-button
+      label="Load Repo"
+      class="loadRepo"
+      compAction=(action "loadRepo")
+      icon="upload"
+     }}
+  {{ui/menu-bar/input-button
+      label="Load File"
+      class="loadFile"
+      compAction=(action "loadFile")
+      icon="upload"
+    }}
 
 {{ui/menu-bar/download-button
     label="Export Repo"

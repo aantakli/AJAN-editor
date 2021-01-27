@@ -32,7 +32,7 @@ export default {
   deleteBT
 };
 
-function deleteBT(nodeURI, behaviors) {
+function deleteBT(nodeURI, behaviors, check) {
   let nodes = new Array();
   let links = {bts: new Array(), nodes: new Array()};
   rdfTree.visitNode(nodeURI, nodes);
@@ -44,7 +44,7 @@ function deleteBT(nodeURI, behaviors) {
       links.nodes.push(node);
     }
   });
-  if (links.bts.length === 0 && links.nodes.length === 0) {
+  if (!check || links.bts.length === 0 && links.nodes.length === 0) {
     rdfTree.visitNode(nodeURI, nodes);
     nodes.forEach(uri => {
         rdfGraph.removeAllRelated(uri);

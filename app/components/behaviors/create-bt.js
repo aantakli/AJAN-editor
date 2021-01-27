@@ -42,7 +42,7 @@ export default Ember.Component.extend({
 }); 
 
 function createModal() {
-  console.log("Adding a Behavior Tree");
+  console.log("Create a Behavior Tree");
   $("#modal-header-title").text("New Behavior Tree");
   let $body = $("#modal-body"),
     $modal = $("#universal-modal");

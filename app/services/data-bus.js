@@ -41,12 +41,16 @@ export default Ember.Service.extend(Ember.Evented, {
     this.trigger('deleteBT');
   },
 
+  overrideBTs(bts, content) {
+    this.trigger('overrideBTs', bts, content);
+  },
+
   addBT(bt) {
       this.trigger('addBT', bt);
   },
 
-  save() {
-    this.trigger('save');
+  save(content) {
+    this.trigger('save', content);
   },
 
   updatedBT() {

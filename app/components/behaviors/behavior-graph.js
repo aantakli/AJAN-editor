@@ -177,14 +177,14 @@ function exportBT() {
 function deleteBT() {
   let selected = localStorage.getItem("bt-selected");
   let bts = that.get("availableBTs").filter(item => item.uri == selected);
-  if (rdfManager.deleteBT(bts[0].uri, that.get("availableBTs").filter(item => item.uri !== selected, true))) {
+  if (rdfManager.deleteBT(bts[0].uri, that.get("availableBTs").filter(item => item.uri !== selected), true)) {
     that.dataBus.save();
   }
 }
 
 function overrideBTs(bts, content) {
   bts.forEach((uri) => {
-    rdfManager.deleteBT(uri, that.get("availableBTs").filter(item => item.uri !== uri, false));
+    rdfManager.deleteBT(uri, that.get("availableBTs").filter(item => item.uri !== uri), false);
   });
   console.log(content);
   that.dataBus.save(content);

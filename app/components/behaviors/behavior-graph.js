@@ -186,7 +186,6 @@ function overrideBTs(bts, content) {
   bts.forEach((uri) => {
     rdfManager.deleteBT(uri, that.get("availableBTs").filter(item => item.uri !== uri), false);
   });
-  console.log(content);
   that.dataBus.save(content);
 }
 

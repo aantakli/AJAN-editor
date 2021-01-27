@@ -110,7 +110,6 @@ export default Component.extend({
 });
 
 function saveGraph(content) {
-  console.log(content);
   if (content != undefined && content.length > 0) {
     rdfGraph.addAll(content);
   }
@@ -132,7 +131,6 @@ function loadBT(event) {
   var reader = new FileReader();
   reader.onload = function () {
     let content = reader.result;
-    console.log(content);
     let parser = new N3({ factory: rdf });
     let quadStream = parser.import(stringToStream(content));
     let resources = [];

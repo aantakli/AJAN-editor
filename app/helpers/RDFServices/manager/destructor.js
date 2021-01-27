@@ -47,7 +47,12 @@ function deleteBT(nodeURI, behaviors, check) {
   if (!check || links.bts.length === 0 && links.nodes.length === 0) {
     rdfTree.visitNode(nodeURI, nodes);
     nodes.forEach(uri => {
+      if (!check && nodeURI === uri) {
+        let quads = rdfGraph.getAllQuads(nodeURI);
+        quads.forEach((quad) => { rdfGraph.removeQuad(quad) });
+      } else {
         rdfGraph.removeAllRelated(uri);
+      }
     });
     return true;
   } else {

@@ -57,9 +57,6 @@ export default Ember.Component.extend({
     this.get('dataBus').on('importBT', function (bt) {
       importBT(bt);
     });
-    this.get('dataBus').on('overrideBTs', function (bts, content) {
-      overrideBTs(bts, content);
-    });
     this.get('dataBus').on('deleteBT', function () {
       deleteBT();
     });
@@ -180,13 +177,6 @@ function deleteBT() {
   if (rdfManager.deleteBT(bts[0].uri, that.get("availableBTs").filter(item => item.uri !== selected), true)) {
     that.dataBus.save();
   }
-}
-
-function overrideBTs(bts, content) {
-  bts.forEach((uri) => {
-    rdfManager.deleteBT(uri, that.get("availableBTs").filter(item => item.uri !== uri), false);
-  });
-  that.dataBus.save(content);
 }
 
 function bindRequiredEvents() {

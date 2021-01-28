@@ -33,6 +33,7 @@ export default {
 };
 
 function deleteBT(nodeURI, behaviors, check) {
+  console.log(nodeURI);
   let nodes = new Array();
   let links = {bts: new Array(), nodes: new Array()};
   rdfTree.visitNode(nodeURI, nodes);
@@ -44,10 +45,13 @@ function deleteBT(nodeURI, behaviors, check) {
       links.nodes.push(node);
     }
   });
+  console.log(nodes);
+  console.log(links);
   if (!check || links.bts.length === 0 && links.nodes.length === 0) {
     rdfTree.visitNode(nodeURI, nodes);
     nodes.forEach(uri => {
       if (!check && nodeURI === uri) {
+        console.log(nodeURI);
         let quads = rdfGraph.getAllQuads(nodeURI);
         quads.forEach((quad) => { rdfGraph.removeQuad(quad) });
       } else {

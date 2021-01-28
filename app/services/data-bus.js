@@ -71,5 +71,9 @@ export default Ember.Service.extend(Ember.Evented, {
 
   deletedAI() {
     this.trigger('deletedAI');
+  },
+
+  updateAgentDefs() {
+    this.trigger('updateAgentDefs');
   }
 });

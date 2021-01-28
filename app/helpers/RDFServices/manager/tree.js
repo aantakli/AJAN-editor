@@ -167,10 +167,10 @@ function reorderChildren(parentURI, childList) {
   }
 }
 
-function exportBT(nodeURI) {
+function exportBT(nodeURI, bts) {
   let bt = new Array();
   let nodes = new Array();
-  visitNode(nodeURI, nodes);
+  visitNode(nodeURI, nodes, bts);
   nodes.forEach(uri => {
     let quads = rdfGraph.getAllQuads(uri);
     quads.forEach(quad => {
@@ -188,14 +188,18 @@ function exportBT(nodeURI) {
   return array.join(". ") + ".";
 }
 
-function visitNode(uri, nodes) {
+function visitNode(uri, nodes, bts, linking) {
   rdfGraph.forEach(quad => {
     if (quad.subject.value === uri) {
-      if (quad.object.value !== RDF.nil && quad.predicate.value !== RDF.type) {
+      let bt = [];
+      if (!linking) {
+        bt = bts.filter(item => item.uri == uri);
+      }
+      if (bt.length == 0 && quad.object.value !== RDF.nil && quad.predicate.value !== RDF.type) {
         let child = quad.object.value;
         if (!nodes.includes(uri))
           nodes.push(uri);
-        visitNode(child, nodes);
+        visitNode(child, nodes, bts);
       }
     }
   });
@@ -205,7 +209,7 @@ function checkBTLinking(nodeURI, bts, links) {
   bts.forEach(bt => {
     let uri = bt.uri;
     let nodes = new Array();
-    visitNode(uri, nodes);
+    visitNode(uri, nodes, bts, true);
     if (nodes.includes(nodeURI)) {
       links.push(uri);
     }

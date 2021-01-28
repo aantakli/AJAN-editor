@@ -56,7 +56,7 @@ export default Component.extend({
 
     this.get('dataBus').on('saveExportedBT', function (bt) {
       that.set("btFileName", bt.label + "_bt.ttl");
-      that.set("btContent", URL.createObjectURL(new Blob([bt.definition])));
+      that.set("btContent", URL.createObjectURL(new Blob(["@prefix xsd: <http://www.w3.org/2001/XMLSchema#> . " + bt.definition])));
     });
 
     this.get('dataBus').on('updatedBT', function () {
@@ -148,9 +148,10 @@ function loadBT(event) {
       });
       console.log(resources);
       let matchingBTs = [];
-      resources.forEach((uri) => { matchingBTs.push((that.get("availableBTs").filter(item => item.uri == uri))[0]) });
+      if (that.get("availableBTs"))
+        resources.forEach((uri) => { matchingBTs.push((that.get("availableBTs").filter(item => item.uri == uri))[0]) });
       console.log(matchingBTs);
-      if (matchingBTs.length > 0) {
+      if (matchingBTs.length > 0 && matchingBTs[0] != undefined) {
         createModal(quads, matchingBTs);
       } else {
         console.log("loadBTs: " + resources);

@@ -635,6 +635,18 @@
     ];
 	nd:parameter [
         a nd:Parameter;
+        nd:mapsTo ajan:event;
+        nd:input nd:Event;
+        nd:title "Event";
+    ];
+	nd:parameter [
+		a nd:Parameter;
+        nd:mapsTo ajan:goal;
+        nd:input nd:Goal;
+        nd:title "Goal";
+    ];
+	nd:parameter [
+        a nd:Parameter;
         nd:mapsTo bt:validate;
         nd:title "Construct Query";
         nd:input nd:Query;

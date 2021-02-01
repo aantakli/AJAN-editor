@@ -21,10 +21,15 @@
 import actions from "ajan-editor/helpers/behaviors/actions";
 import Component from "@ember/component";
 import globals from "ajan-editor/helpers/global-parameters";
+import { BT, RDF } from "ajan-editor/helpers/RDFServices/vocabulary";
 import graphOperations from "ajan-editor/helpers/graph/graph-operations";
+import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import { sendFile, deleteRepo } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import queries from "ajan-editor/helpers/RDFServices/queries";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
+import rdf from "npm:rdf-ext";
+import N3 from "npm:rdf-parser-n3";
+import stringToStream from "npm:string-to-stream";
 
 let $ = Ember.$;
 let repo = undefined;
@@ -33,6 +38,7 @@ let that = undefined;
 export default Component.extend({
   dataBus: Ember.inject.service('data-bus'),
   repoFileName: "behaviors.ttl",
+  availableBTs: undefined,
   repoContent: "",
   btFileName: "",
   btContent: "",
@@ -44,13 +50,13 @@ export default Component.extend({
         "http://localhost:8090/rdf4j/repositories") +
       globals.behaviorsRepository;
 
-    this.get('dataBus').on('save', function () {
-      saveGraph();
+    this.get('dataBus').on('save', function (content) {
+      saveGraph(content);
     });
 
     this.get('dataBus').on('saveExportedBT', function (bt) {
       that.set("btFileName", bt.label + "_bt.ttl");
-      that.set("btContent", URL.createObjectURL(new Blob([bt.definition])));
+      that.set("btContent", URL.createObjectURL(new Blob(["@prefix xsd: <http://www.w3.org/2001/XMLSchema#> . " + bt.definition])));
     });
 
     this.get('dataBus').on('updatedBT', function () {
@@ -77,8 +83,8 @@ export default Component.extend({
       graphOperations.updateGraph(globals.cy);
     },
 
-    save() {
-      saveGraph();
+    save(content) {
+      saveGraph(content);
       this.set("repoContent", rdfGraph.get());
     },
 
@@ -104,7 +110,10 @@ export default Component.extend({
   }
 });
 
-function saveGraph() {
+function saveGraph(content) {
+  if (content != undefined && content.length > 0) {
+    rdfGraph.addAll(content);
+  }
   try {
     actions.saveGraph(globals.ajax, repo, globals.cy);
     $("#save-confirmation").trigger("showToast");
@@ -123,8 +132,33 @@ function loadBT(event) {
   var reader = new FileReader();
   reader.onload = function () {
     let content = reader.result;
-    sendFile(repo, content)
-      .then(window.location.reload());
+    let parser = new N3({ factory: rdf });
+    let quadStream = parser.import(stringToStream(content));
+    let resources = [];
+    rdf.dataset().import(quadStream).then((dataset) => {
+      let quads = [];
+      dataset.forEach((quad) => {
+        quads.push(quad);
+        if (
+          quad.predicate.value === RDF.type &&
+          quad.object.value === BT.BehaviorTree
+        ) {
+          resources.push(quad.subject.value);
+        }
+      });
+      console.log(resources);
+      let matchingBTs = [];
+      if (that.get("availableBTs"))
+        resources.forEach((uri) => { matchingBTs.push((that.get("availableBTs").filter(item => item.uri == uri))[0]) });
+      console.log(matchingBTs);
+      if (matchingBTs.length > 0 && matchingBTs[0] != undefined) {
+        createModal(quads, matchingBTs);
+      } else {
+        console.log("loadBTs: " + resources);
+        sendFile(repo, content)
+          .then(window.location.reload());
+      }
+    });
   };
   reader.readAsText(file);
 }
@@ -140,4 +174,36 @@ function loadRepo(event) {
       .then(window.location.reload());
   };
   reader.readAsText(file);
+}
+
+function createModal(content, bts) {
+  console.log("Ask for overriding a Behavior Tree");
+  $("#modal-header-title").text("Override Behavior Tree");
+  let $body = $("#modal-body"),
+    $modal = $("#universal-modal");
+  $body.empty();
+  $modal.show();
+
+  // Label
+  let $labelTitle = $("<div>", {});
+  bts.forEach((bt) => {
+    $labelTitle.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>" + bt.name + "</b> | " + bt.uri));
+  });
+  let $labelDiv = $("<div>", {
+    class: "modal-body-div"
+  }).append($labelTitle);
+
+  // Append to modal body
+  $body.append($labelDiv);
+
+  // Listen for the confirm event
+  let elem = document.getElementById("universal-modal");
+  elem.addEventListener("modal:confirm", () => {
+    bts.forEach((bt) => {
+      rdfManager.deleteBT(bt.uri, that.get("availableBTs").filter(item => item.uri !== bt.uri), false);
+    });
+    saveGraph(content);
+  });
 }

@@ -166,7 +166,7 @@ function exportBT() {
   let bts = that.get("availableBTs").filter(item => item.uri == selected);
   if (bts.length > 0) {
     bt.label = bts[0].name;
-    bt.definition = rdfManager.exportBT(bts[0].uri);
+    bt.definition = rdfManager.exportBT(bts[0].uri, that.get("availableBTs").filter(item => item.uri !== selected));
   }
   return bt;
 }
@@ -174,7 +174,7 @@ function exportBT() {
 function deleteBT() {
   let selected = localStorage.getItem("bt-selected");
   let bts = that.get("availableBTs").filter(item => item.uri == selected);
-  if (rdfManager.deleteBT(bts[0].uri, that.get("availableBTs").filter(item => item.uri !== selected))) {
+  if (rdfManager.deleteBT(bts[0].uri, that.get("availableBTs").filter(item => item.uri !== selected), true)) {
     that.dataBus.save();
   }
 }

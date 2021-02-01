@@ -57,7 +57,7 @@ export default {
     return $.ajax({
       url: endpoint,
       type: "POST",
-      contentType: "text/turtle",
+      contentType: "application/trig",
       data: content,
       headers: { Accept: "application/ld+json" }
     }).catch(function (error) {

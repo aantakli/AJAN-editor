@@ -635,6 +635,12 @@
     ];
 	nd:parameter [
         a nd:Parameter;
+        nd:mapsTo ajan:event;
+        nd:input nd:EventGoal;
+        nd:title "Event/Goal";
+    ];
+	nd:parameter [
+        a nd:Parameter;
         nd:mapsTo bt:validate;
         nd:title "Construct Query";
         nd:input nd:Query;
@@ -713,21 +719,15 @@
         nd:paddingTo "width";
         nd:icon "icons8-write.png";
     ];
-	nd:parameters ([
-            a nd:Parameter;
-            nd:mapsTo bt:context;
-            nd:title "Context";
-            nd:input xsd:anyURI ;
-            nd:default bt:current;
-        ][
-            a nd:Parameter;
-            nd:mapsTo bt:query;
-            nd:title "Construct Query";
-            nd:input nd:Query;
-            bt:originBase "true";
-            bt:targetBase "true";
-            nd:type bt:ConstructQuery
-        ])
+	nd:parameter [
+		a nd:Parameter;
+		nd:mapsTo bt:query;
+		nd:title "Construct Query";
+		nd:input nd:Query;
+		bt:originBase "true";
+		bt:targetBase "true";
+		nd:type bt:ConstructQuery
+	]
 .
 
 :Evaluate nd:class nd:Leaf;

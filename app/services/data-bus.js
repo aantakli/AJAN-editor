@@ -45,8 +45,8 @@ export default Ember.Service.extend(Ember.Evented, {
       this.trigger('addBT', bt);
   },
 
-  save() {
-    this.trigger('save');
+  save(content) {
+    this.trigger('save', content);
   },
 
   updatedBT() {
@@ -71,5 +71,9 @@ export default Ember.Service.extend(Ember.Evented, {
 
   deletedAI() {
     this.trigger('deletedAI');
+  },
+
+  updateAgentDefs() {
+    this.trigger('updateAgentDefs');
   }
 });

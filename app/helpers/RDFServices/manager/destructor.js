@@ -32,22 +32,27 @@ export default {
   deleteBT
 };
 
-function deleteBT(nodeURI, behaviors) {
+function deleteBT(nodeURI, bts, check) {
   let nodes = new Array();
   let links = {bts: new Array(), nodes: new Array()};
-  rdfTree.visitNode(nodeURI, nodes);
-  rdfTree.checkBTLinking(nodeURI, behaviors, links.bts);
+  rdfTree.visitNode(nodeURI, nodes, bts);
+  rdfTree.checkBTLinking(nodeURI, bts, links.bts);
   nodes.forEach(uri => {
     let node = {uri: uri, bts: new Array()};
-    rdfTree.checkBTLinking(uri, behaviors, node.bts);
+    rdfTree.checkBTLinking(uri, bts, node.bts);
     if (node.bts.length > 0) {
       links.nodes.push(node);
     }
   });
-  if (links.bts.length === 0 && links.nodes.length === 0) {
-    rdfTree.visitNode(nodeURI, nodes);
+  if (!check || links.bts.length === 0 && links.nodes.length === 0) {
+    rdfTree.visitNode(nodeURI, nodes, bts);
     nodes.forEach(uri => {
+      if (!check && nodeURI === uri) {
+        let quads = rdfGraph.getAllQuads(nodeURI);
+        quads.forEach((quad) => { rdfGraph.removeQuad(quad) });
+      } else {
         rdfGraph.removeAllRelated(uri);
+      }
     });
     return true;
   } else {
@@ -55,13 +60,13 @@ function deleteBT(nodeURI, behaviors) {
     if (links.bts.length > 0) {
       mssg = "Behavior Tree is linked in another BT:";
       links.bts.forEach(uri => {
-        mssg = mssg + " -> " + behaviors.filter(item => item.uri == uri)[0].name;
+        mssg = mssg + " -> " + bts.filter(item => item.uri == uri)[0].name;
       });
     } else if (links.nodes.length > 0) {
       let node = links.nodes[0];
       mssg = "Node " + node.uri + " is linked in another BT:";
       node.bts.forEach(uri => {
-        mssg = mssg + " -> " + behaviors.filter(item => item.uri == uri)[0].name;
+        mssg = mssg + " -> " + bts.filter(item => item.uri == uri)[0].name;
       });
     }
     $("#error-message").trigger("showToast", [

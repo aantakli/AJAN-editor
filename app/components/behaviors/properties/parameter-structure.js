@@ -51,6 +51,8 @@ export default Component.extend({
         return { event: true };
       case ND.Goal:
         return { goal: true };
+      case ND.EventGoal:
+        return { eventgoal: true };
 			default:
 				console.warn("Unknown parameter type", type);
 				return {};

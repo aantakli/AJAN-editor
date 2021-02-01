@@ -31,6 +31,7 @@ export default {
 };
 
 function getGoalsGraph(data) {
+  console.log("get goal definition");
 	const quadStream = parser.import(stringToStream(JSON.stringify(data)));
 	let obj = rdf
 		.dataset()

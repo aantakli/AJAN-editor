@@ -59,6 +59,7 @@ let ND = {
   Repo: "http://www.ajan.de/behavior/nd-ns#Repo",
   Event: "http://www.ajan.de/behavior/nd-ns#Event",
   Goal: "http://www.ajan.de/behavior/nd-ns#Goal",
+  EventGoal: "http://www.ajan.de/behavior/nd-ns#EventGoal",
 	StyleDef: "http://www.ajan.de/behavior/nd-ns#StyleDef",
 	default: "http://www.ajan.de/behavior/nd-ns#default",
 	icon: "http://www.ajan.de/behavior/nd-ns#icon"

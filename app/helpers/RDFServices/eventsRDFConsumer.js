@@ -75,7 +75,7 @@ function getEvents(graph, agents) {
 
 
 function getEventsDefinitions(graph, resource) {
-    console.log("get event definition");
+  console.log("get event definition");
   let agents = {};
   agents.id = util.generateUUID();
   agents.uri = resource.value;

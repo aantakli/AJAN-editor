@@ -62,6 +62,14 @@
       structure=parameter
       title=parameter.title
     }}
+  {{else if type.eventgoal}}
+      {{component 'behaviors/properties/parameter/event-goal-field'
+        class="flexed-input"
+        value=value
+        uri=uri
+        structure=parameter
+        title=parameter.title
+      }}
   {{else if type.query}}
     {{#if casualMode}}
       {{component 'behaviors/properties-casual/parameter/query-field'

@@ -31,7 +31,7 @@ let that;
 export default Component.extend({
   ajax: Ember.inject.service(),
 
-  availableEvents: null,
+  availableEventsGoals: null,
   selected: undefined,
   uri: null,
 
@@ -69,13 +69,18 @@ function initializeAjax() {
 function loadActionsRdfGraphData() {
   let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
     + globals.agentsRepository;
-  actionsAgnt.getEventsFromServer(ajax, repo).then(setAvailableEvents);
+  actionsAgnt.getEventsFromServer(ajax, repo)
+    .then(actionsAgnt.getGoalsFromServer(ajax, repo))
+    .then(setAvailableEvents);
 }
 
 function setAvailableEvents() {
-  let eventLists = actionsAgnt.getEvents();
-  that.set("availableEvents", eventLists);
-  var base = getSelected(that.get("availableEvents"), that.get("value"));
+  let eventLists = [];
+  eventLists.push({ uri: "http://www.ajan.de/ajan-ns#All", label: "AJAN:All" });
+  eventLists = eventLists.concat(actionsAgnt.getEvents());
+  eventLists = eventLists.concat(actionsAgnt.getGoals());
+  that.set("availableEventsGoals", eventLists);
+  var base = getSelected(that.get("availableEventsGoals"), that.get("value"));
   that.set("selectedBaseValue", base);
 }
 

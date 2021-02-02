@@ -70,8 +70,14 @@ function buttonEdit() {
 	);
 }
 
+function buttonImport() {
+  return $('<div class="triplestore-import ui grey icon button"></div>').append(
+    $('<input class="upload icon" type="file" accept=".zip" value="">')
+  );
+}
+
 function buttons() {
 	return $("<div>", {
 		class: "blocks btn right"
-	}).append(buttonEdit(), buttonRemove());
+  }).append(buttonImport(), buttonEdit(), buttonRemove());
 }

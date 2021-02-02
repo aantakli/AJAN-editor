@@ -19,7 +19,7 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Ember from "ember";
-import {TriplestoreCollection} from "ajan-editor/helpers/home/triplestore-collection";
+import { TriplestoreCollection } from "ajan-editor/helpers/home/triplestore-collection";
 import triplestoreHelper from "ajan-editor/helpers/home/triplestore-helper";
 
 let $ = Ember.$;

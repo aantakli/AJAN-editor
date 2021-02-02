@@ -48,7 +48,8 @@ class TriplestoreListing {
 	setAuxiliaryFields() {
 		this.$parent = $("#triplestore-list");
 		this.$removeButton = this.$buttons.children(".triplestore-remove");
-		this.$editButton = this.$buttons.children(".triplestore-edit");
+    this.$editButton = this.$buttons.children(".triplestore-edit");
+    this.$importButton = this.$buttons.children(".triplestore-import");
 		this.$editButtonContent = this.$editButton.children();
 	}
 
@@ -60,7 +61,8 @@ class TriplestoreListing {
 	bindEvents() {
 		this.bindTransitionEvent();
 		this.bindRemoveTriplestoreEvent();
-		this.bindEditClickEvent();
+    this.bindEditClickEvent();
+    this.bindImportClickEvent();
 	}
 
 	bindTransitionEvent() {
@@ -189,7 +191,16 @@ class TriplestoreListing {
 	updateStorageTriplestore(triplestores, triplestoreIndex) {
 		triplestores[triplestoreIndex] = this.triplestore;
 		localStorage.triplestores = JSON.stringify(triplestores);
-	}
+  }
+
+  bindImportClickEvent() {
+    this.$importButton.on("change", (event) => {
+      event.stopPropagation();
+      console.log(this.triplestore.uri);
+      let file = event.target.files[0];
+      console.log(file);
+    })
+  }
 }
 
 function fixUri(uri) {

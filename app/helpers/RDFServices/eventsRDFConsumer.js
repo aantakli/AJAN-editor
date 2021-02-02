@@ -69,11 +69,6 @@ function getEvents(graph, agents) {
 	});
 }
 
-
-
-// Parse the ServiceAction
-
-
 function getEventsDefinitions(graph, resource) {
   console.log("get event definition");
   let agents = {};

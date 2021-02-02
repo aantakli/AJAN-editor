@@ -50,9 +50,9 @@ export default Ember.Component.extend({
   availableEndpoints: null,
 
   activeEvent: null,
-  availableEvents: null,
+  availableEvents: [],
   activeGoal: null,
-  availableGoals: null,
+  availableGoals: [],
   availableEventsandGoals:null,
 
   // After the element has been inserted into the DOM
@@ -62,11 +62,7 @@ export default Ember.Component.extend({
     self = this;
     initializeGlobals(this);
   
-    loadagentRdfGraphData();
-	  loadbehaviorRdfGraphData();
-    loadeventRdfGraphData();
-    loadendpointRdfGraphData();
-    loadgoalRdfGraphData();
+    loadRdfGraphData();
 	
     setTriplestoreField();
     loadNodeDefinitionsThenGraph();
@@ -229,34 +225,14 @@ function loadNodeDefinitionsThenGraph() {
 	nodeDefs(ajax,null).then(loadbtRdfGraphData);
 }
 
-function loadbehaviorRdfGraphData() {
+function loadRdfGraphData() {
 	let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
             + globals.agentsRepository;
-	actions.getBehaviorsFromServer(ajax,repo).then(behaviorrdfDataHasLoaded);
-}
-
-function loadagentRdfGraphData() {
-	let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
-            + globals.agentsRepository;
-	actions.getAgentFromServer(ajax,repo).then(agentrdfDataHasLoaded);
-}
-
-function loadeventRdfGraphData() {
-  let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
-    + globals.agentsRepository;
-  actions.getEventsFromServer(ajax, repo).then(eventrdfDataHasLoaded);
-}
-
-function loadendpointRdfGraphData() {
-	let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
-            + globals.agentsRepository;
-	actions.getEndpointsFromServer(ajax,repo).then(endpointrdfDataHasLoaded);
-}
-
-function loadgoalRdfGraphData() {
-	let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
-            + globals.agentsRepository;
-	actions.getGoalsFromServer(ajax,repo).then(goalrdfDataHasLoaded);
+  actions.getAgentFromServer(ajax, repo).then(agentrdfDataHasLoaded)
+    .then(actions.getBehaviorsFromServer(ajax, repo).then(behaviorrdfDataHasLoaded)
+      .then(actions.getEventsFromServer(ajax, repo).then(eventrdfDataHasLoaded)
+        .then(actions.getEndpointsFromServer(ajax, repo).then(endpointrdfDataHasLoaded)
+          .then(actions.getGoalsFromServer(ajax, repo).then(goalrdfDataHasLoaded)))));
 }
 
 function loadbtRdfGraphData() {
@@ -274,7 +250,7 @@ function agentrdfDataHasLoaded(rdfData) {
 function behaviorrdfDataHasLoaded(rdfData) {
 	rdfGraph.reset();
 	rdfGraph.set(rdfData);
-	setAvailableBehaviors();
+  setAvailableBehaviors();
 }
 
 function eventrdfDataHasLoaded(rdfData) {
@@ -292,7 +268,8 @@ function endpointrdfDataHasLoaded(rdfData) {
 function goalrdfDataHasLoaded(rdfData) {
 	rdfGraph.reset();
 	rdfGraph.set(rdfData);
-	setAvailableGoals();
+  setAvailableGoals();
+  updateActionBar();
 }
 
 function btrdfDataHasLoaded(rdfData) {
@@ -313,13 +290,13 @@ function setAvailableBehaviors() {
 }
 
 function setAvailableEvents() {
-	let agents = actions.getEvents();
-	self.set("availableEvents", agents);
+	let events = actions.getEvents();
+  self.set("availableEvents", events);
 }
 
 function setAvailableEndpoints() {
-	let agents = actions.getEndpoints();
-	self.set("availableEndpoints", agents);
+	let endpoints = actions.getEndpoints();
+  self.set("availableEndpoints", endpoints);
 }
 
 function setAvailableGoals() {
@@ -336,10 +313,22 @@ function setAvailableBTs() {
 
 function updateRepo() {
 	let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
-						+ globals.agentsRepository;
+    + globals.agentsRepository;
+  updateActionBar();
   actions.saveAgentGraph(globals.ajax, repo, self.dataBus);
 }
 
 function setTriplestoreField() {
 	$(".store-url").text(localStorage.currentStore);
+}
+
+function updateActionBar() {
+  let agentDefs = {
+    templates: self.get("availableAgents"),
+    behaviors: self.get("availableBehaviors"),
+    endpoints: self.get("availableEndpoints"),
+    events: self.get("availableEvents"),
+    goals: self.get("availableGoals"),
+  };
+  self.dataBus.updateAgentDefs(agentDefs);
 }

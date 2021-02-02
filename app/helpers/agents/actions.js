@@ -24,21 +24,23 @@ import eventajaxActions from "ajan-editor/helpers/agents/actions/eventajax";
 import endpointajaxActions from "ajan-editor/helpers/agents/actions/endpointajax";
 import goalajaxActions from "ajan-editor/helpers/agents/actions/goalajax";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
+import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import utility from "ajan-editor/helpers/RDFServices/utility";
 import agentProducer from "ajan-editor/helpers/RDFServices/agentsRDFProducer";
 import behaviorProducer from "ajan-editor/helpers/RDFServices/behaviorsRDFProducer";
 import eventProducer from "ajan-editor/helpers/RDFServices/eventsRDFProducer";
 import endpointProducer from "ajan-editor/helpers/RDFServices/endpointsRDFProducer";
 import goalProducer from "ajan-editor/helpers/RDFServices/goalsRDFProducer";
-import { XSD, RDFS } from "ajan-editor/helpers/RDFServices/vocabulary";
+import { AGENTS, XSD, RDFS } from "ajan-editor/helpers/RDFServices/vocabulary";
 
 export default {
 	// Delete Service Object
   deleteAgent: deleteAgent,
-  deleteBehavior:deleteBehavior,
-  deleteEvent:deleteEvent,
-  deleteEndpoint:deleteEndpoint,
-  deleteGoal:deleteGoal,
+  deleteBehavior: deleteBehavior,
+  deleteEvent: deleteEvent,
+  deleteEndpoint: deleteEndpoint,
+  deleteGoal: deleteGoal,
+  deleteVariable: deleteVariable,
 
   deleteactiveAgentsInitialbehavior: deleteactiveAgentsInitialbehavior,
   deleteactiveAgentsFinalbehavior: deleteactiveAgentsFinalbehavior,
@@ -109,8 +111,22 @@ function deleteEndpoint(endpoint) {
 }
 
 function deleteGoal(goal) {
-	console.log(goal);
+  console.log(goal);
+  deleteVariables(goal.variables)
 	rdfGraph.removeAllRelated(goal.uri);
+}
+
+function deleteVariables(variables) {
+  variables.forEach(function (item, index, arr) {
+    deleteVariable(variables, item);
+  });
+}
+
+function deleteVariable(ele, val) {
+  rdfManager.removeListItem(val.pointerUri);
+  ele = ele.filter(item => item !== val);
+  rdfGraph.removeAllRelated(val.uri);
+  return ele;
 }
 
 function deleteactiveAgentsInitialbehavior(activeAgent) {
@@ -158,6 +174,7 @@ function deleteactiveEndpointsevent(activeEndpoint){
 function createDefaultAgent(repo) {
   let agent = {};
   agent.uri = repo + "agents#AG_" + utility.generateUUID();
+  agent.type = AGENTS.AgentTemplate;
   agent.label = "Default AgentTemplate";
   agent.behaviors = new Array();
   agent.events = new Array();
@@ -168,6 +185,7 @@ function createDefaultAgent(repo) {
 function createDefaultInitialBehavior(repo) {
   let behavior = {};
   behavior.uri = repo + "agents#IB_" + utility.generateUUID();
+  behavior.type = AGENTS.InitialBehavior;
   behavior.label = "Default InitialBehavior";
   let bt = {};
   bt.label = "";
@@ -179,6 +197,7 @@ function createDefaultInitialBehavior(repo) {
 function createDefaultFinalBehavior(repo) {
   let behavior = {};
   behavior.uri = repo + "agents#FB_" + utility.generateUUID();
+  behavior.type = AGENTS.FinalBehavior;
   behavior.label = "Default FinalBehavior";
   let bt = {};
   bt.label = "";
@@ -190,6 +209,7 @@ function createDefaultFinalBehavior(repo) {
 function createDefaultBehavior(repo) {
   let behavior = {};
   behavior.uri = repo + "agents#BE_" + utility.generateUUID();
+  behavior.type = AGENTS.Behavior;
   behavior.label = "Default Behavior";
   behavior.addtype = "";
   behavior.requires = "";
@@ -202,8 +222,8 @@ function createDefaultBehavior(repo) {
 }
 
 function createDefaultEvent(repo) {
-
   let event = {};
+  event.type = AGENTS.Event;
   event.uri = repo + "agents#EV_" + utility.generateUUID();
   event.label = "Default Event";
   return event;
@@ -212,6 +232,7 @@ function createDefaultEvent(repo) {
 function createDefaultEndpoint(repo) {
   let endpoint = {};
   endpoint.uri = repo + "agents#EP_" + utility.generateUUID();
+  endpoint.type = AGENTS.Endpoint;
   endpoint.label = "Default Endpoint";
   endpoint.capability = "";
   endpoint.events = new Array();
@@ -222,6 +243,7 @@ function createDefaultGoal(repo) {
   let goal = {};
   goal.uri = repo + "agents#GO_" + utility.generateUUID();
   goal.label = "Default Goal";
+  goal.type = AGENTS.Goal;
   goal.variables = new Array();
   goal.variables.push({ pointerUri: "", uri: "", varName: "s", dataType: RDFS.Resource });
   goal.variables.push({ pointerUri: "", uri: "", varName: "p", dataType: RDFS.Resource });

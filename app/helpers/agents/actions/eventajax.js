@@ -64,21 +64,13 @@ export default {
 
 				return promiseValue;
 			},
-
-
-
-
 			function(jqXHR) {
 				// On reject
 				console.log("Request failed", jqXHR);
 			}
-
 		);
-
 		return promisedRdfGraph;
 	},
-
-
 
 	saveGraph: function(ajax, tripleStoreRepository) {
 		console.log("Saving to triple store: ", tripleStoreRepository);

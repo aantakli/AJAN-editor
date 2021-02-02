@@ -21,7 +21,6 @@
 import Component from '@ember/component';
 import { XSD, RDF, RDFS, SPIN, AGENTS} from "ajan-editor/helpers/RDFServices/vocabulary";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
-import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 import globals from "ajan-editor/helpers/global-parameters";
 import actions from "ajan-editor/helpers/agents/actions";
@@ -139,13 +138,17 @@ export default Component.extend({
       setFileContent(self.get("activeGoal.uri"));
     },
 
-		deletegoalvariable(ele, val) {
-      deleteVariable(ele, val);
-			updateRepo();
+    deletegoalvariable(ele, val) {
+      self.set("activeGoal.variables", actions.deleteVariable(ele, val));
+      updateRepo();
+      setFileContent(self.get("activeGoal.uri"));
 		},
 
     deletegoal() {
-      deleteActiveGoal();
+      actions.deleteGoal(self.activeGoal);
+      console.log(self.overview.get("availableGoals"));
+      self.overview.set("availableGoals", self.overview.availableGoals.filter(item => item !== self.activeGoal));
+      self.overview.actions.setActiveGoal(self.overview.availableGoals[0]);
       updateRepo();
       reset();
     },
@@ -173,25 +176,6 @@ function copyArray(value) {
     oldValue.push({ uri: item.uri, pointerUri: item.pointerUri, varName: item.varName, dataType: item.dataType });
   });
   return oldValue;
-}
-
-function deleteActiveGoal() {
-  deleteVariables();
-	actions.deleteGoal(self.activeGoal);
-	self.overview.set("availableGoals", self.overview.availableGoals.filter(item => item !== self.activeGoal));
-	self.overview.actions.setActiveGoal(self.overview.availableGoals[0]);
-}
-
-function deleteVariables() {
-  self.get("activeGoal.variables").forEach(function (item, index, arr) {
-    deleteVariable(self.get("activeGoal.variables"),item);
-  });
-}
-
-function deleteVariable(ele,val) {
-  rdfManager.removeListItem(val.pointerUri);
-  self.set("activeGoal.variables", ele.filter(item => item !== val));
-  rdfGraph.removeAllRelated(val.uri);
 }
 
 function newVariable() {

@@ -97,7 +97,9 @@ export default {
 				// SPARQL query
 				data: dataString
       }).then(function () {
-        event.updatedAG();
+        if (event) {
+          event.updatedAG();
+        }
       })
 			.catch(function(error) {
 				if (isServerError(error)) {

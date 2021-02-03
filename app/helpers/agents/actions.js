@@ -94,7 +94,10 @@ export default {
 	getGoalsFromServer: goalajaxActions.getFromServer,
   saveGoalsGraph: goalajaxActions.saveGraph,
   //
-  readTTLInput: readTTLInput
+  readTTLInput: readTTLInput,
+  getAgentDefsMatches: getAgentDefsMatches,
+  getTTLMatches: getTTLMatches,
+  createOverrideModal: createOverrideModal
 };
 
 function deleteAgent(agent) {
@@ -261,6 +264,7 @@ function readTTLInput(content, onend) {
   let parser = new N3({ factory: rdf });
   let quadStream = parser.import(stringToStream(content));
   let importFile = {
+    raw: content,
     quads: [],
     agents: [],
     behaviors: [],
@@ -288,5 +292,78 @@ function readTTLInput(content, onend) {
       }
     });
     onend(importFile);
+  });
+}
+
+function getAgentDefsMatches(agentDefs, importFile) {
+  let matches = getTTLMatches(agentDefs.templates, importFile.agents);
+  matches = matches.concat(getTTLMatches(agentDefs.behaviors.final, importFile.behaviors));
+  matches = matches.concat(getTTLMatches(agentDefs.behaviors.initial, importFile.behaviors));
+  matches = matches.concat(getTTLMatches(agentDefs.behaviors.regular, importFile.behaviors));
+  matches = matches.concat(getTTLMatches(agentDefs.endpoints, importFile.endpoints));
+  matches = matches.concat(getTTLMatches(agentDefs.events, importFile.events));
+  matches = matches.concat(getTTLMatches(agentDefs.goals, importFile.goals));
+  return matches;
+}
+
+function getTTLMatches(defs, imports) {
+  let matches = [];
+  if (imports) {
+    defs.forEach((data) => {
+      imports.forEach((item) => {
+        if (data.uri === item) {
+          matches.push(data);
+        }
+      });
+    });
+  }
+  return matches;
+}
+
+
+function createOverrideModal(matches, onConfirm) {
+  console.log("Ask for overriding definitions");
+  $("#modal-header-title").text("Override");
+  let $body = $("#modal-body"),
+    $modal = $("#universal-modal");
+  $body.empty();
+  $modal.show();
+
+  // Label
+  let $labelTitle = $("<div>", {});
+  matches.forEach((item) => {
+    console.log(item);
+    $labelTitle.append($("<p>", {
+      class: "modal-p"
+    }).append("<i>" + item.type + "<i> | <b>" + item.label + "</b> | " + item.uri));
+  });
+  let $labelDiv = $("<div>", {
+    class: "modal-body-div"
+  }).append($labelTitle);
+
+  // Append to modal body
+  $body.append($labelDiv);
+
+  // Listen for the confirm event
+  let elem = document.getElementById("universal-modal");
+  elem.addEventListener("modal:confirm", () => {
+    matches.forEach((data) => {
+      if (data.type === AGENTS.AgentTemplate)
+        deleteAgent(data);
+      else if (data.type === AGENTS.InitialBehavior)
+        deleteBehavior(data);
+      else if (data.type === AGENTS.FinalBehavior)
+        deleteBehavior(data);
+      else if (data.type === AGENTS.Behavior)
+        deleteBehavior(data);
+      else if (data.type === AGENTS.Endpoint)
+        deleteEndpoint(data);
+      else if (data.type === AGENTS.Event) {
+        deleteEvent(data);
+      } else if (data.type === AGENTS.Goal) {
+        deleteGoal(data);
+      }
+    });
+    onConfirm();
   });
 }

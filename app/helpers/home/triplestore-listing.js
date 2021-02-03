@@ -19,11 +19,15 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Ember from "ember";
+import { sendFile } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
+import globals from "ajan-editor/helpers/global-parameters";
 import htmlGen from "ajan-editor/helpers/home/html-generator";
 import agtActions from "ajan-editor/helpers/agents/actions";
+import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import * as zip from "zip-js-webpack";
 
 let $ = Ember.$;
+let repoAgents;
 
 class TriplestoreListing {
 	constructor(triplestore, parentComponent) {
@@ -201,8 +205,9 @@ class TriplestoreListing {
   bindImportClickEvent() {
     this.$importButton.on("change", (event) => {
       event.stopPropagation();
+      console.log(this.parentComponent);
       console.log(this.triplestore.uri);
-      unzip(event.target.files[0]);
+      unzip(event.target.files[0], this.triplestore.uri, this.parentComponent.ajax);
     })
   }
 }
@@ -213,25 +218,25 @@ function fixUri(uri) {
 	return (regexHttp.test(uri) || regexHttps.test(uri)) ? uri : "http://" + uri;
 }
 
-function unzip(file) {
+function unzip(file, triplestore, ajax) {
   getEntries(file, function (entries) {
     entries.forEach(function (entry) {
       console.log(entry);
       if (entry.filename === "use-case/agents/agents.ttl") {
-        console.log(zip);
-        readAgentsTTL(entry);
+        readAgentsTTL(entry, triplestore, ajax);
       }
     });
   });
 }
 
-function readAgentsTTL(entry) {
+function readAgentsTTL(entry, triplestore, ajax) {
   let writer = new zip.BlobWriter();
   entry.getData(writer, function (blob) {
     let oFReader = new FileReader()
     oFReader.onloadend = function (e) {
-      let importFile = agtActions.readTTLInput(this.result);
-      console.log(importFile);
+      agtActions.readTTLInput(this.result, function (importFile) {
+        loadRdfGraphData(importFile, triplestore, ajax);
+      });
     };
     oFReader.readAsText(blob);
   }, onprogress);
@@ -241,6 +246,43 @@ function getEntries(file, onend) {
   zip.createReader(new zip.BlobReader(file), function (zipReader) {
     zipReader.getEntries(onend);
   }, onerror);
+}
+
+function loadRdfGraphData(importFile, triplestore, ajax) {
+  let repo = (triplestore || "http://localhost:8090/rdf4j/repositories")
+    + globals.agentsRepository;
+  loadAgentRdfGraphData(ajax, repo, function () {
+    let agentDefs = {
+      templates: agtActions.getAgents(),
+      behaviors: agtActions.getBehaviors(),
+      endpoints: agtActions.getEndpoints(),
+      events: agtActions.getEvents(),
+      goals: agtActions.getGoals(),
+    };
+    let matches = agtActions.getAgentDefsMatches(agentDefs, importFile);
+    if (matches.length > 0) {
+      agtActions.createOverrideModal(matches, function () {
+        rdfGraph.addAll(importFile.quads);
+        agtActions.saveAgentGraph(ajax, repo, null);
+      });
+    } else {
+      sendFile(repo, importFile.raw);
+    }
+    
+  });
+}
+
+function loadAgentRdfGraphData(ajax, repo, onend) {
+  agtActions.getAgentFromServer(ajax, repo).then(addRDFDataToGraph)
+    .then(agtActions.getBehaviorsFromServer(ajax, repo).then(addRDFDataToGraph)
+      .then(agtActions.getEventsFromServer(ajax, repo).then(addRDFDataToGraph)
+        .then(agtActions.getEndpointsFromServer(ajax, repo).then(addRDFDataToGraph)
+          .then(agtActions.getGoalsFromServer(ajax, repo).then(addRDFDataToGraph)
+          .then(onend)))));
+}
+
+function addRDFDataToGraph(rdfData) {
+  rdfGraph.set(rdfData);
 }
 
 export {TriplestoreListing};

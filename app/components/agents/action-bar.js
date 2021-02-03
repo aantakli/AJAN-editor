@@ -108,85 +108,15 @@ function readInput(content) {
 }
 
 function updateType(content, importFile) {
-  console.log(that.get("agentDefs"));
-  let overrides = getOverrides(that.get("agentDefs.templates"), importFile.agents);
-  overrides = overrides.concat(getOverrides(that.get("agentDefs.behaviors.final"), importFile.behaviors));
-  overrides = overrides.concat(getOverrides(that.get("agentDefs.behaviors.initial"), importFile.behaviors));
-  overrides = overrides.concat(getOverrides(that.get("agentDefs.behaviors.regular"), importFile.behaviors));
-  overrides = overrides.concat(getOverrides(that.get("agentDefs.endpoints"), importFile.endpoints));
-  overrides = overrides.concat(getOverrides(that.get("agentDefs.events"), importFile.events));
-  overrides = overrides.concat(getOverrides(that.get("agentDefs.goals"), importFile.goals));
-  if (overrides.length > 0)
-    createModal(overrides, importFile.quads);
-  else {
+  let matches = actions.getAgentDefsMatches(that.get("agentDefs"), importFile);
+  if (matches.length > 0) {
+    actions.createOverrideModal(matches, function () {
+      rdfGraph.addAll(importFile.quads);
+      actions.saveAgentGraph(globals.ajax, repo, that.dataBus);
+      window.location.reload();
+    });
+  } else {
     sendFile(repo, content)
       .then(window.location.reload());
   }
-}
-
-function getOverrides(defs, imports) {
-  let overrides = [];
-  console.log(imports);
-  if (imports) {
-    defs.forEach((data) => {
-      imports.forEach((item) => {
-        console.log(data.uri);
-        console.log(item);
-        if (data.uri === item) {
-          console.log(data);
-          overrides.push(data);
-        }
-      });
-    });
-  }
-  return overrides;
-}
-
-function createModal(overrides, quads) {
-  console.log("Ask for overriding definitions");
-  $("#modal-header-title").text("Override");
-  let $body = $("#modal-body"),
-    $modal = $("#universal-modal");
-  $body.empty();
-  $modal.show();
-
-  // Label
-  let $labelTitle = $("<div>", {});
-  overrides.forEach((item) => {
-    console.log(item);
-    $labelTitle.append($("<p>", {
-      class: "modal-p"
-    }).append("<i>" + item.type + "<i> | <b>" + item.label + "</b> | " + item.uri));
-  });
-  let $labelDiv = $("<div>", {
-    class: "modal-body-div"
-  }).append($labelTitle);
-
-  // Append to modal body
-  $body.append($labelDiv);
-
-  // Listen for the confirm event
-  let elem = document.getElementById("universal-modal");
-  elem.addEventListener("modal:confirm", () => {
-    overrides.forEach((data) => {
-      if (data.type === AGENTS.AgentTemplate)
-        actions.deleteAgent(data);
-      else if (data.type === AGENTS.InitialBehavior)
-        actions.deleteBehavior(data);
-      else if (data.type === AGENTS.FinalBehavior)
-        actions.deleteBehavior(data);
-      else if (data.type === AGENTS.Behavior)
-        actions.deleteBehavior(data);
-      else if (data.type === AGENTS.Endpoint)
-        actions.deleteEndpoint(data);
-      else if (data.type === AGENTS.Event) {
-        actions.deleteEvent(data);
-      } else if (data.type === AGENTS.Goal) {
-        actions.deleteGoal(data);
-      }
-    });
-    rdfGraph.addAll(quads);
-    actions.saveAgentGraph(globals.ajax, repo, that.dataBus)
-    window.location.reload();
-  });
 }

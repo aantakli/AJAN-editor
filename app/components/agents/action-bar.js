@@ -24,10 +24,7 @@ import globals from "ajan-editor/helpers/global-parameters";
 import { sendFile, deleteRepo } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import queries from "ajan-editor/helpers/RDFServices/queries";
-import { AGENTS, RDF } from "ajan-editor/helpers/RDFServices/vocabulary";
-import rdf from "npm:rdf-ext";
-import N3 from "npm:rdf-parser-n3";
-import stringToStream from "npm:string-to-stream";
+import { AGENTS } from "ajan-editor/helpers/RDFServices/vocabulary";
 import actions from "ajan-editor/helpers/agents/actions";
 
 let $ = Ember.$;
@@ -104,41 +101,13 @@ function loadFile(event) {
 }
 
 function readInput(content) {
-  let parser = new N3({ factory: rdf });
-  let quadStream = parser.import(stringToStream(content));
-  let importFile = {
-    agents: [],
-    behaviors: [],
-    endpoints: [],
-    events: [],
-    goals: []
-  };
-  rdf.dataset().import(quadStream).then((dataset) => {
-    console.log(dataset);
-    let quads = [];
-    dataset.forEach((quad) => {
-      quads.push(quad);
-      if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.AgentTemplate) {
-        importFile.agents.push(quad.subject.value);
-      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.InitialBehavior) {
-        importFile.behaviors.push(quad.subject.value);
-      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.FinalBehavior) {
-        importFile.behaviors.push(quad.subject.value);
-      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Behavior) {
-        importFile.behaviors.push(quad.subject.value);
-      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Endpoint) {
-        importFile.endpoints.push(quad.subject.value);
-      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Event) {
-        importFile.events.push(quad.subject.value);
-      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Goal) {
-        importFile.goals.push(quad.subject.value);
-      }
-    });
-    updateType(content, quads, importFile);
+  actions.readTTLInput(content, function (importFile) {
+    console.log(importFile);
+    updateType(content, importFile);
   });
 }
 
-function updateType(content, quads, importFile) {
+function updateType(content, importFile) {
   console.log(that.get("agentDefs"));
   let overrides = getOverrides(that.get("agentDefs.templates"), importFile.agents);
   overrides = overrides.concat(getOverrides(that.get("agentDefs.behaviors.final"), importFile.behaviors));
@@ -148,7 +117,7 @@ function updateType(content, quads, importFile) {
   overrides = overrides.concat(getOverrides(that.get("agentDefs.events"), importFile.events));
   overrides = overrides.concat(getOverrides(that.get("agentDefs.goals"), importFile.goals));
   if (overrides.length > 0)
-    createModal(overrides, quads);
+    createModal(overrides, importFile.quads);
   else {
     sendFile(repo, content)
       .then(window.location.reload());
@@ -201,7 +170,7 @@ function createModal(overrides, quads) {
   elem.addEventListener("modal:confirm", () => {
     overrides.forEach((data) => {
       if (data.type === AGENTS.AgentTemplate)
-        actions.deleteAgent(AgentTemplate);
+        actions.deleteAgent(data);
       else if (data.type === AGENTS.InitialBehavior)
         actions.deleteBehavior(data);
       else if (data.type === AGENTS.FinalBehavior)

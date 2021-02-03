@@ -31,7 +31,10 @@ import behaviorProducer from "ajan-editor/helpers/RDFServices/behaviorsRDFProduc
 import eventProducer from "ajan-editor/helpers/RDFServices/eventsRDFProducer";
 import endpointProducer from "ajan-editor/helpers/RDFServices/endpointsRDFProducer";
 import goalProducer from "ajan-editor/helpers/RDFServices/goalsRDFProducer";
-import { AGENTS, XSD, RDFS } from "ajan-editor/helpers/RDFServices/vocabulary";
+import { AGENTS, XSD, RDF, RDFS } from "ajan-editor/helpers/RDFServices/vocabulary";
+import rdf from "npm:rdf-ext";
+import N3 from "npm:rdf-parser-n3";
+import stringToStream from "npm:string-to-stream";
 
 export default {
 	// Delete Service Object
@@ -89,7 +92,9 @@ export default {
   //
   getGoals: goalajaxActions.getGoals,
 	getGoalsFromServer: goalajaxActions.getFromServer,
-	saveGoalsGraph: goalajaxActions.saveGraph,
+  saveGoalsGraph: goalajaxActions.saveGraph,
+  //
+  readTTLInput: readTTLInput
 };
 
 function deleteAgent(agent) {
@@ -250,4 +255,38 @@ function createDefaultGoal(repo) {
   goal.variables.push({ pointerUri: "", uri: "", varName: "o", dataType: XSD.string });
   goal.condition = "ASK WHERE { ?s ?p ?o }";
   return goal;
+}
+
+function readTTLInput(content, onend) {
+  let parser = new N3({ factory: rdf });
+  let quadStream = parser.import(stringToStream(content));
+  let importFile = {
+    quads: [],
+    agents: [],
+    behaviors: [],
+    endpoints: [],
+    events: [],
+    goals: []
+  };
+  rdf.dataset().import(quadStream).then((dataset) => {
+    dataset.forEach((quad) => {
+      importFile.quads.push(quad);
+      if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.AgentTemplate) {
+        importFile.agents.push(quad.subject.value);
+      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.InitialBehavior) {
+        importFile.behaviors.push(quad.subject.value);
+      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.FinalBehavior) {
+        importFile.behaviors.push(quad.subject.value);
+      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Behavior) {
+        importFile.behaviors.push(quad.subject.value);
+      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Endpoint) {
+        importFile.endpoints.push(quad.subject.value);
+      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Event) {
+        importFile.events.push(quad.subject.value);
+      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Goal) {
+        importFile.goals.push(quad.subject.value);
+      }
+    });
+    onend(importFile);
+  });
 }

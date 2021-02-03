@@ -20,6 +20,8 @@
  */
 import Ember from "ember";
 import htmlGen from "ajan-editor/helpers/home/html-generator";
+import agtActions from "ajan-editor/helpers/agents/actions";
+import * as zip from "zip-js-webpack";
 
 let $ = Ember.$;
 
@@ -27,11 +29,14 @@ class TriplestoreListing {
 	constructor(triplestore, parentComponent) {
 		this.triplestore = triplestore;
 		this.parentComponent = parentComponent;
-
+    zip.useWebWorkers = true;
+    zip.workerScripts = null;
+    zip.workerScriptsPath = ".";
 		this.initiate();
 	}
 
-	initiate() {
+  initiate() {
+
 		this.createFields();
 		this.setAuxiliaryFields();
 		this.attachFields();
@@ -197,8 +202,7 @@ class TriplestoreListing {
     this.$importButton.on("change", (event) => {
       event.stopPropagation();
       console.log(this.triplestore.uri);
-      let file = event.target.files[0];
-      console.log(file);
+      unzip(event.target.files[0]);
     })
   }
 }
@@ -207,6 +211,36 @@ function fixUri(uri) {
 	let regexHttp = RegExp("^http://");
 	let regexHttps = RegExp("^https://");
 	return (regexHttp.test(uri) || regexHttps.test(uri)) ? uri : "http://" + uri;
+}
+
+function unzip(file) {
+  getEntries(file, function (entries) {
+    entries.forEach(function (entry) {
+      console.log(entry);
+      if (entry.filename === "use-case/agents/agents.ttl") {
+        console.log(zip);
+        readAgentsTTL(entry);
+      }
+    });
+  });
+}
+
+function readAgentsTTL(entry) {
+  let writer = new zip.BlobWriter();
+  entry.getData(writer, function (blob) {
+    let oFReader = new FileReader()
+    oFReader.onloadend = function (e) {
+      let importFile = agtActions.readTTLInput(this.result);
+      console.log(importFile);
+    };
+    oFReader.readAsText(blob);
+  }, onprogress);
+}
+
+function getEntries(file, onend) {
+  zip.createReader(new zip.BlobReader(file), function (zipReader) {
+    zipReader.getEntries(onend);
+  }, onerror);
 }
 
 export {TriplestoreListing};

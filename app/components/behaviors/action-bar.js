@@ -27,6 +27,7 @@ import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import { sendFile, deleteRepo } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import queries from "ajan-editor/helpers/RDFServices/queries";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
+import modal from "ajan-editor/helpers/ui/import-modal";
 import rdf from "npm:rdf-ext";
 import N3 from "npm:rdf-parser-n3";
 import stringToStream from "npm:string-to-stream";
@@ -147,12 +148,18 @@ function loadBT(event) {
         }
       });
       console.log(resources);
-      let matchingBTs = [];
+      let matches = [];
       if (that.get("availableBTs"))
-        resources.forEach((uri) => { matchingBTs.push((that.get("availableBTs").filter(item => item.uri == uri))[0]) });
-      console.log(matchingBTs);
-      if (matchingBTs.length > 0 && matchingBTs[0] != undefined) {
-        createModal(quads, matchingBTs);
+        resources.forEach((uri) => { matches.push((that.get("availableBTs").filter(item => item.uri == uri))[0]) });
+      console.log(matches);
+      if (matches.length > 0) {
+        modal.createImportModal(matches, function () {
+          matches.forEach((bt) => {
+            if (bt != undefined)
+              rdfManager.deleteBT(bt.uri, that.get("availableBTs").filter(item => item.uri !== bt.uri), false);
+          });
+          saveGraph(quads);
+        });
       } else {
         console.log("loadBTs: " + resources);
         sendFile(repo, content)
@@ -174,36 +181,4 @@ function loadRepo(event) {
       .then(window.location.reload());
   };
   reader.readAsText(file);
-}
-
-function createModal(content, bts) {
-  console.log("Ask for overriding a Behavior Tree");
-  $("#modal-header-title").text("Override Behavior Tree");
-  let $body = $("#modal-body"),
-    $modal = $("#universal-modal");
-  $body.empty();
-  $modal.show();
-
-  // Label
-  let $labelTitle = $("<div>", {});
-  bts.forEach((bt) => {
-    $labelTitle.append($("<p>", {
-      class: "modal-p"
-    }).append("<b>" + bt.name + "</b> | " + bt.uri));
-  });
-  let $labelDiv = $("<div>", {
-    class: "modal-body-div"
-  }).append($labelTitle);
-
-  // Append to modal body
-  $body.append($labelDiv);
-
-  // Listen for the confirm event
-  let elem = document.getElementById("universal-modal");
-  elem.addEventListener("modal:confirm", () => {
-    bts.forEach((bt) => {
-      rdfManager.deleteBT(bt.uri, that.get("availableBTs").filter(item => item.uri !== bt.uri), false);
-    });
-    saveGraph(content);
-  });
 }

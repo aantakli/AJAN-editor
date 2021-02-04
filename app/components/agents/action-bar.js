@@ -24,7 +24,7 @@ import globals from "ajan-editor/helpers/global-parameters";
 import { sendFile, deleteRepo } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import queries from "ajan-editor/helpers/RDFServices/queries";
-import { AGENTS } from "ajan-editor/helpers/RDFServices/vocabulary";
+import modal from "ajan-editor/helpers/ui/import-modal";
 import actions from "ajan-editor/helpers/agents/actions";
 
 let $ = Ember.$;
@@ -110,7 +110,7 @@ function readInput(content) {
 function updateType(content, importFile) {
   let matches = actions.getAgentDefsMatches(that.get("agentDefs"), importFile);
   if (matches.length > 0) {
-    actions.createImportModal(matches, function () {
+    modal.createImportModal(matches, function () {
       rdfGraph.addAll(importFile.quads);
       actions.saveAgentGraph(globals.ajax, repo, that.dataBus);
       window.location.reload();

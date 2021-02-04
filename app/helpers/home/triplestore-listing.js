@@ -23,11 +23,12 @@ import { sendFile } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import globals from "ajan-editor/helpers/global-parameters";
 import htmlGen from "ajan-editor/helpers/home/html-generator";
 import agtActions from "ajan-editor/helpers/agents/actions";
+import btActions from "ajan-editor/helpers/behaviors/actions";
+import modal from "ajan-editor/helpers/ui/import-modal";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import * as zip from "zip-js-webpack";
 
 let $ = Ember.$;
-let repoAgents;
 
 class TriplestoreListing {
 	constructor(triplestore, parentComponent) {
@@ -272,6 +273,20 @@ function readAgentsTTL(zipFile, triplestore, ajax) {
   }, onprogress);
 }
 
+function readBTsTTL(zipFile, triplestore, ajax) {
+  let writer = new zip.BlobWriter();
+  zipFile.agents.entry.getData(writer, function (blob) {
+    let oFReader = new FileReader()
+    oFReader.onloadend = function (e) {
+      btActions.readTTLInput(this.result, function (importFile) {
+        zipFile.agents.import = importFile;
+        loadRdfGraphData(zipFile, triplestore, ajax);
+      });
+    };
+    oFReader.readAsText(blob);
+  }, onprogress);
+}
+
 function getEntries(file, onend) {
   zip.createReader(new zip.BlobReader(file), function (zipReader) {
     zipReader.getEntries(onend);
@@ -291,12 +306,15 @@ function loadRdfGraphData(zipFile, triplestore, ajax) {
     };
     let matches = agtActions.getAgentDefsMatches(agentDefs, zipFile.agents.import);
     if (matches.length > 0) {
-      agtActions.createImportModal(matches, function () {
+      modal.createImportModal(matches, function () {
+        if (matches.length > 0) {
+          agtActions.deleteMatches(matches);
+        }
         rdfGraph.addAll(zipFile.agents.import.quads);
         agtActions.saveAgentGraph(ajax, repo, null);
       }, zipFile.info.input);
     } else {
-      agtActions.createImportModal(matches, function () {
+      modal.createImportModal(matches, function () {
         sendFile(repo, zipFile.agents.import.raw);
       }, zipFile.info.input);
     }

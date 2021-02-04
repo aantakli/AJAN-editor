@@ -84,3 +84,30 @@ input {
     zoom: 1;
 }
 /*http://nicolasgallagher.com/micro-clearfix-hack/*/
+
+:global(.triplestore-import input[type=file])::-webkit-file-upload-button,
+:global(.triplestore-import input[type=file]) {
+  content: '';
+  display: inline-block;
+  background: #767676;
+  padding: 5px 8px;
+  outline: none;
+  width: 100% !important;
+  height: 100% !important;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: pointer;
+  font-size: 0pt;
+  border: 0px solid;
+}
+
+:global(.triplestore-import input.upload.icon) {
+  padding: 0px !important;
+}
+
+:global(.triplestore-import) {
+  padding: 0px !important;
+  height: 38px !important;
+  width: 42.23px !important;
+}

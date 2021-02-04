@@ -20,6 +20,7 @@
  */
 import Ember from "ember";
 import { sendFile } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
+import nodeDefs from "ajan-editor/helpers/RDFServices/node-definitions/common";
 import globals from "ajan-editor/helpers/global-parameters";
 import htmlGen from "ajan-editor/helpers/home/html-generator";
 import agtActions from "ajan-editor/helpers/agents/actions";
@@ -29,11 +30,13 @@ import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import * as zip from "zip-js-webpack";
 
 let $ = Ember.$;
+let that = null;
 
 class TriplestoreListing {
 	constructor(triplestore, parentComponent) {
 		this.triplestore = triplestore;
-		this.parentComponent = parentComponent;
+    this.parentComponent = parentComponent;
+    that = this;
     zip.useWebWorkers = true;
     zip.workerScripts = null;
     zip.workerScriptsPath = ".";
@@ -266,7 +269,7 @@ function readAgentsTTL(zipFile, triplestore, ajax) {
     oFReader.onloadend = function (e) {
       agtActions.readTTLInput(this.result, function (importFile) {
         zipFile.agents.import = importFile;
-        loadRdfGraphData(zipFile, triplestore, ajax);
+        readBTsTTL(zipFile, triplestore, ajax);
       });
     };
     oFReader.readAsText(blob);
@@ -275,11 +278,11 @@ function readAgentsTTL(zipFile, triplestore, ajax) {
 
 function readBTsTTL(zipFile, triplestore, ajax) {
   let writer = new zip.BlobWriter();
-  zipFile.agents.entry.getData(writer, function (blob) {
+  zipFile.behaviors.entry.getData(writer, function (blob) {
     let oFReader = new FileReader()
     oFReader.onloadend = function (e) {
       btActions.readTTLInput(this.result, function (importFile) {
-        zipFile.agents.import = importFile;
+        zipFile.behaviors.import = importFile;
         loadRdfGraphData(zipFile, triplestore, ajax);
       });
     };
@@ -294,9 +297,7 @@ function getEntries(file, onend) {
 }
 
 function loadRdfGraphData(zipFile, triplestore, ajax) {
-  let repo = (triplestore || "http://localhost:8090/rdf4j/repositories")
-    + globals.agentsRepository;
-  loadAgentRdfGraphData(ajax, repo, function () {
+  loadAgentRdfGraphData(ajax, triplestore, function () {
     let agentDefs = {
       templates: agtActions.getAgents(),
       behaviors: agtActions.getBehaviors(),
@@ -305,29 +306,50 @@ function loadRdfGraphData(zipFile, triplestore, ajax) {
       goals: agtActions.getGoals(),
     };
     let matches = agtActions.getAgentDefsMatches(agentDefs, zipFile.agents.import);
-    if (matches.length > 0) {
-      modal.createImportModal(matches, function () {
-        if (matches.length > 0) {
-          agtActions.deleteMatches(matches);
-        }
-        rdfGraph.addAll(zipFile.agents.import.quads);
-        agtActions.saveAgentGraph(ajax, repo, null);
-      }, zipFile.info.input);
-    } else {
-      modal.createImportModal(matches, function () {
-        sendFile(repo, zipFile.agents.import.raw);
-      }, zipFile.info.input);
-    }
+    loadBTsRdfGraphData(ajax, triplestore, function (bts) {
+      console.log(bts);
+      if (matches.length > 0) {
+        modal.createImportModal(matches, function () {
+          if (matches.length > 0) {
+            agtActions.deleteMatches(matches);
+          }
+          rdfGraph.addAll(zipFile.agents.import.quads);
+          agtActions.saveAgentGraph(ajax, triplestore + globals.agentsRepository, null);
+        }, zipFile.info.input);
+      } else {
+        modal.createImportModal(matches, function () {
+          sendFile(triplestore + globals.agentsRepository, zipFile.agents.import.raw);
+        }, zipFile.info.input);
+      }
+    });
   });
 }
 
-function loadAgentRdfGraphData(ajax, repo, onend) {
+function loadAgentRdfGraphData(ajax, triplestore, onend) {
+  let repo = (triplestore || "http://localhost:8090/rdf4j/repositories")
+    + globals.agentsRepository;
   agtActions.getAgentFromServer(ajax, repo).then(addRDFDataToGraph)
     .then(agtActions.getBehaviorsFromServer(ajax, repo).then(addRDFDataToGraph)
       .then(agtActions.getEventsFromServer(ajax, repo).then(addRDFDataToGraph)
         .then(agtActions.getEndpointsFromServer(ajax, repo).then(addRDFDataToGraph)
           .then(agtActions.getGoalsFromServer(ajax, repo).then(addRDFDataToGraph)
           .then(onend)))));
+}
+
+function loadBTsRdfGraphData(ajax, triplestore, onend) {
+  let repo = (triplestore || "http://localhost:8090/rdf4j/repositories")
+    + globals.behaviorsRepository;
+  console.log(that);
+  let cy = that.parentComponent.cytoscapeService.newCytoscapeInstance();
+  console.log(cy);
+  nodeDefs(ajax, cy).then(function () {
+    btActions.getFromServer(null, ajax, repo).then(function (rdfData) {
+      console.log(rdfGraph);
+      //rdfGraph.reset();
+      //rdfGraph.set(rdfData);
+      onend(btActions.getBehaviorTrees());
+    });
+  })
 }
 
 function addRDFDataToGraph(rdfData) {

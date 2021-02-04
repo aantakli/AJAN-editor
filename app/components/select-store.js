@@ -29,6 +29,8 @@ let ajax = null; // ajax
 
 export default Ember.Component.extend({
   ajax: Ember.inject.service(),
+  cytoscapeService: Ember.inject.service("behaviors/cytoscape"),
+
 	didInsertElement() {
 		this._super(...arguments);
 		// ...

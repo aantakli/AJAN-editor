@@ -205,9 +205,11 @@ class TriplestoreListing {
   bindImportClickEvent() {
     this.$importButton.on("change", (event) => {
       event.stopPropagation();
-      console.log(this.parentComponent);
-      console.log(this.triplestore.uri);
-      unzip(event.target.files[0], this.triplestore.uri, this.parentComponent.ajax);
+      let ajax = this.parentComponent.ajax;
+      let triplestore = this.triplestore.uri;
+      unzip(event.target.files[0], function (zipFile) {
+        readInfoJSON(zipFile, triplestore, ajax, readAgentsTTL);
+      });
     })
   }
 }
@@ -218,24 +220,57 @@ function fixUri(uri) {
 	return (regexHttp.test(uri) || regexHttps.test(uri)) ? uri : "http://" + uri;
 }
 
-function unzip(file, triplestore, ajax) {
+function unzip(file, onEnd) {
+  let zipFile = {
+    info: { entry: null, import: null },
+    agents: { entry: null, import: null },
+    behaviors: { entry: null, import: null },
+    domains: { entry: null, import: null },
+    actions: { entry: null, import: null }
+  };
   getEntries(file, function (entries) {
     entries.forEach(function (entry) {
       console.log(entry);
-      if (entry.filename === "use-case/agents/agents.ttl") {
-        readAgentsTTL(entry, triplestore, ajax);
+      switch (entry.filename) {
+        case "WalkToBreakdown/info.json":
+          zipFile.info.entry = entry;
+          break;
+        case "WalkToBreakdown/agents/agents.ttl":
+          zipFile.agents.entry = entry;
+          break;
+        case "./behaviors/behaviors.ttl":
+          zipFile.behaviors.entry = entry;
+          break;
+        default:
+          console.log("none");
       }
     });
+    onEnd(zipFile);
   });
 }
 
-function readAgentsTTL(entry, triplestore, ajax) {
+function readInfoJSON(zipFile, triplestore, ajax, onEnd) {
   let writer = new zip.BlobWriter();
-  entry.getData(writer, function (blob) {
+  zipFile.info.entry.getData(writer, function (blob) {
+    let oFReader = new FileReader()
+    oFReader.onloadend = function (e) {
+      let content = JSON.parse(this.result);
+      console.log(content);
+      zipFile.info.input = content;
+      onEnd(zipFile, triplestore, ajax);
+    };
+    oFReader.readAsText(blob);
+  }, onprogress);
+}
+
+function readAgentsTTL(zipFile, triplestore, ajax) {
+  let writer = new zip.BlobWriter();
+  zipFile.agents.entry.getData(writer, function (blob) {
     let oFReader = new FileReader()
     oFReader.onloadend = function (e) {
       agtActions.readTTLInput(this.result, function (importFile) {
-        loadRdfGraphData(importFile, triplestore, ajax);
+        zipFile.agents.import = importFile;
+        loadRdfGraphData(zipFile, triplestore, ajax);
       });
     };
     oFReader.readAsText(blob);
@@ -248,7 +283,7 @@ function getEntries(file, onend) {
   }, onerror);
 }
 
-function loadRdfGraphData(importFile, triplestore, ajax) {
+function loadRdfGraphData(zipFile, triplestore, ajax) {
   let repo = (triplestore || "http://localhost:8090/rdf4j/repositories")
     + globals.agentsRepository;
   loadAgentRdfGraphData(ajax, repo, function () {
@@ -259,16 +294,15 @@ function loadRdfGraphData(importFile, triplestore, ajax) {
       events: agtActions.getEvents(),
       goals: agtActions.getGoals(),
     };
-    let matches = agtActions.getAgentDefsMatches(agentDefs, importFile);
+    let matches = agtActions.getAgentDefsMatches(agentDefs, zipFile.agents.import);
     if (matches.length > 0) {
-      agtActions.createOverrideModal(matches, function () {
-        rdfGraph.addAll(importFile.quads);
+      agtActions.createImportModal(matches, function () {
+        rdfGraph.addAll(zipFile.agents.import.quads);
         agtActions.saveAgentGraph(ajax, repo, null);
-      });
+      }, zipFile.info.input);
     } else {
-      sendFile(repo, importFile.raw);
+      sendFile(repo, zipFile.agents.import.raw);
     }
-    
   });
 }
 

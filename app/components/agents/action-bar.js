@@ -110,7 +110,7 @@ function readInput(content) {
 function updateType(content, importFile) {
   let matches = actions.getAgentDefsMatches(that.get("agentDefs"), importFile);
   if (matches.length > 0) {
-    actions.createOverrideModal(matches, function () {
+    actions.createImportModal(matches, function () {
       rdfGraph.addAll(importFile.quads);
       actions.saveAgentGraph(globals.ajax, repo, that.dataBus);
       window.location.reload();

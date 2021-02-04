@@ -97,7 +97,7 @@ export default {
   readTTLInput: readTTLInput,
   getAgentDefsMatches: getAgentDefsMatches,
   getTTLMatches: getTTLMatches,
-  createOverrideModal: createOverrideModal
+  createImportModal: createImportModal
 };
 
 function deleteAgent(agent) {
@@ -184,6 +184,7 @@ function createDefaultAgent(repo) {
   agent.uri = repo + "agents#AG_" + utility.generateUUID();
   agent.type = AGENTS.AgentTemplate;
   agent.label = "Default AgentTemplate";
+  agent.name = "AgentTemplate";
   agent.behaviors = new Array();
   agent.events = new Array();
   agent.endpoints = new Array();
@@ -195,6 +196,7 @@ function createDefaultInitialBehavior(repo) {
   behavior.uri = repo + "agents#IB_" + utility.generateUUID();
   behavior.type = AGENTS.InitialBehavior;
   behavior.label = "Default InitialBehavior";
+  behavior.name = "InitialBehavior";
   let bt = {};
   bt.label = "";
   bt.uri = "";
@@ -207,6 +209,7 @@ function createDefaultFinalBehavior(repo) {
   behavior.uri = repo + "agents#FB_" + utility.generateUUID();
   behavior.type = AGENTS.FinalBehavior;
   behavior.label = "Default FinalBehavior";
+  behavior.name = "FinalBehavior";
   let bt = {};
   bt.label = "";
   bt.uri = "";
@@ -219,6 +222,7 @@ function createDefaultBehavior(repo) {
   behavior.uri = repo + "agents#BE_" + utility.generateUUID();
   behavior.type = AGENTS.Behavior;
   behavior.label = "Default Behavior";
+  behavior.behavior = "Behavior";
   behavior.addtype = "";
   behavior.requires = "";
   behavior.triggers = new Array();
@@ -234,6 +238,7 @@ function createDefaultEvent(repo) {
   event.type = AGENTS.Event;
   event.uri = repo + "agents#EV_" + utility.generateUUID();
   event.label = "Default Event";
+  event.name = "Event";
   return event;
 }
 
@@ -241,6 +246,7 @@ function createDefaultEndpoint(repo) {
   let endpoint = {};
   endpoint.uri = repo + "agents#EP_" + utility.generateUUID();
   endpoint.type = AGENTS.Endpoint;
+  endpoint.name = "Endpoint";
   endpoint.label = "Default Endpoint";
   endpoint.capability = "";
   endpoint.events = new Array();
@@ -252,6 +258,7 @@ function createDefaultGoal(repo) {
   goal.uri = repo + "agents#GO_" + utility.generateUUID();
   goal.label = "Default Goal";
   goal.type = AGENTS.Goal;
+  goal.name = "Goal";
   goal.variables = new Array();
   goal.variables.push({ pointerUri: "", uri: "", varName: "s", dataType: RDFS.Resource });
   goal.variables.push({ pointerUri: "", uri: "", varName: "p", dataType: RDFS.Resource });
@@ -321,29 +328,59 @@ function getTTLMatches(defs, imports) {
 }
 
 
-function createOverrideModal(matches, onConfirm) {
-  console.log("Ask for overriding definitions");
+function createImportModal(matches, onConfirm, info) {
+  console.log("Ask for import AJAN-models");
   $("#modal-header-title").text("Override");
   let $body = $("#modal-body"),
     $modal = $("#universal-modal");
   $body.empty();
   $modal.show();
 
-  // Label
-  let $labelTitle = $("<div>", {});
-  matches.forEach((item) => {
-    console.log(item);
-    $labelTitle.append($("<p>", {
+  if (info) {
+    // Label
+    let $info = $("<div>", {});
+
+    $info.append($("<h2>Package Information</h2>"));
+    $info.append($("<p>", {
       class: "modal-p"
-    }).append("<i>" + item.type + "<i> | <b>" + item.label + "</b> | " + item.uri));
-  });
-  let $labelDiv = $("<div>", {
-    class: "modal-body-div"
-  }).append($labelTitle);
+    }).append("<b>Author:</b> " + info.author));
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Organization:</b> " + info.organization));
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Date:</b> " + info.date));
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Version:</b> " + info.version));
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Comment:</b> " + info.comment));
 
-  // Append to modal body
-  $body.append($labelDiv);
+    let $infoDiv = $("<div>", {
+      class: "modal-body-div"
+    }).append($info);
+    // Append to modal body
+    $body.append($infoDiv);
+  }
 
+  if (matches.length > 0) {
+    // Label
+    let $matches = $("<div>", {});
+    $matches.append($("<h3>Following matches will be overwritten!</h3>"));
+    matches.forEach((item) => {
+      console.log(item);
+      $matches.append($("<p>", {
+        class: "modal-p"
+      }).append("<i>" + item.name + "<i> | <b>" + item.label + "</b> | " + item.uri));
+    });
+    let $matchesDiv = $("<div>", {
+      class: "modal-body-div"
+    }).append($matches);
+    // Append to modal body
+    $body.append($matchesDiv);
+  }
+  
   // Listen for the confirm event
   let elem = document.getElementById("universal-modal");
   elem.addEventListener("modal:confirm", () => {

@@ -231,19 +231,14 @@ function unzip(file, onEnd) {
   getEntries(file, function (entries) {
     entries.forEach(function (entry) {
       console.log(entry);
-      switch (entry.filename) {
-        case "WalkToBreakdown/info.json":
-          zipFile.info.entry = entry;
-          break;
-        case "WalkToBreakdown/agents/agents.ttl":
-          zipFile.agents.entry = entry;
-          break;
-        case "./behaviors/behaviors.ttl":
-          zipFile.behaviors.entry = entry;
-          break;
-        default:
-          console.log("none");
-      }
+      if (entry.filename.includes("/info.json"))
+        zipFile.info.entry = entry;
+      else if (entry.filename.includes("/agents/agents.ttl"))
+        zipFile.agents.entry = entry;
+      else if (entry.filename.includes("/behaviors/behaviors.ttl"))
+        zipFile.behaviors.entry = entry;
+      else
+        console.log("none");
     });
     onEnd(zipFile);
   });
@@ -301,7 +296,9 @@ function loadRdfGraphData(zipFile, triplestore, ajax) {
         agtActions.saveAgentGraph(ajax, repo, null);
       }, zipFile.info.input);
     } else {
-      sendFile(repo, zipFile.agents.import.raw);
+      agtActions.createImportModal(matches, function () {
+        sendFile(repo, zipFile.agents.import.raw);
+      }, zipFile.info.input);
     }
   });
 }

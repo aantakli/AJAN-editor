@@ -337,70 +337,112 @@ function createImportModal(matches, onConfirm, info) {
   $modal.show();
 
   if (info) {
-    // Label
-    let $info = $("<div>", {});
-
-    $info.append($("<h2>Package Information</h2>"));
-    $info.append($("<p>", {
-      class: "modal-p"
-    }).append("<b>Author:</b> " + info.author));
-    $info.append($("<p>", {
-      class: "modal-p"
-    }).append("<b>Organization:</b> " + info.organization));
-    $info.append($("<p>", {
-      class: "modal-p"
-    }).append("<b>Date:</b> " + info.date));
-    $info.append($("<p>", {
-      class: "modal-p"
-    }).append("<b>Version:</b> " + info.version));
-    $info.append($("<p>", {
-      class: "modal-p"
-    }).append("<b>Comment:</b> " + info.comment));
-
-    let $infoDiv = $("<div>", {
-      class: "modal-body-div"
-    }).append($info);
-    // Append to modal body
-    $body.append($infoDiv);
+    getInfoHTML(info, $body);
   }
-
   if (matches.length > 0) {
-    // Label
-    let $matches = $("<div>", {});
-    $matches.append($("<h3>Following matches will be overwritten!</h3>"));
-    matches.forEach((item) => {
-      console.log(item);
-      $matches.append($("<p>", {
-        class: "modal-p"
-      }).append("<i>" + item.name + "<i> | <b>" + item.label + "</b> | " + item.uri));
-    });
-    let $matchesDiv = $("<div>", {
-      class: "modal-body-div"
-    }).append($matches);
-    // Append to modal body
-    $body.append($matchesDiv);
+    getMatchesHTML(matches, $body);
   }
-  
+
   // Listen for the confirm event
   let elem = document.getElementById("universal-modal");
   elem.addEventListener("modal:confirm", () => {
-    matches.forEach((data) => {
-      if (data.type === AGENTS.AgentTemplate)
-        deleteAgent(data);
-      else if (data.type === AGENTS.InitialBehavior)
-        deleteBehavior(data);
-      else if (data.type === AGENTS.FinalBehavior)
-        deleteBehavior(data);
-      else if (data.type === AGENTS.Behavior)
-        deleteBehavior(data);
-      else if (data.type === AGENTS.Endpoint)
-        deleteEndpoint(data);
-      else if (data.type === AGENTS.Event) {
-        deleteEvent(data);
-      } else if (data.type === AGENTS.Goal) {
-        deleteGoal(data);
-      }
-    });
+    if (matches.length > 0) {
+      matches.forEach((data) => {
+        if (data.type === AGENTS.AgentTemplate)
+          deleteAgent(data);
+        else if (data.type === AGENTS.InitialBehavior)
+          deleteBehavior(data);
+        else if (data.type === AGENTS.FinalBehavior)
+          deleteBehavior(data);
+        else if (data.type === AGENTS.Behavior)
+          deleteBehavior(data);
+        else if (data.type === AGENTS.Endpoint)
+          deleteEndpoint(data);
+        else if (data.type === AGENTS.Event) {
+          deleteEvent(data);
+        } else if (data.type === AGENTS.Goal) {
+          deleteGoal(data);
+        }
+      });
+    }
     onConfirm();
   });
+}
+
+function getInfoHTML(info, $body) {
+  console.log(info);
+
+  let $info = $("<div>", {});
+  $info.append($("<h2>Package Information</h2>"));
+  $info.append($("<p>", {
+    class: "modal-p"
+  }).append("<b>Author:</b> " + info.author));
+  $info.append($("<p>", {
+    class: "modal-p"
+  }).append("<b>Organization:</b> " + info.organization));
+  $info.append($("<p>", {
+    class: "modal-p"
+  }).append("<b>Date:</b> " + info.date));
+  $info.append($("<p>", {
+    class: "modal-p"
+  }).append("<b>Version:</b> " + info.version));
+  $info.append($("<p>", {
+    class: "modal-p"
+  }).append("<b>Comment:</b> " + info.comment));
+
+  setContainsHTML(info.contains, $info);
+  setOptionalsHTML(info.optionals, $info);
+
+  let $infoDiv = $("<div>", {
+    class: "modal-body-div"
+  }).append($info);
+  // Append to modal body
+  $body.append($infoDiv);
+}
+
+function setContainsHTML(contains, $info) {
+  if (contains.length > 0) {
+    let $contains = $("<div>", {});
+    $contains.append($("<p><b>Contains:</b>"));
+    let $list = $("<ul>", {}); 
+    contains.forEach((item) => {
+      console.log(item);
+      $list.append($("<li>", {
+        class: "modal-p"
+      }).append("<i>" + item.type + "</i> | <b>" + item.name + "</b> | " + item.uri));
+    });
+    $info.append($contains.append($list));
+  }
+}
+
+function setOptionalsHTML(optionals, $info) {
+  console.log(optionals);
+  if (optionals.length > 0) {
+    let $optionals = $("<div>", {});
+    $optionals.append($("<p><b>Further Information:</b>"));
+    let $list = $("<ul>", {});
+    optionals.forEach((item) => {
+      console.log(item);
+      $list.append($("<li>", {
+        class: "modal-p"
+      }).append("<b>" + item.name + "</b> | " + item.value));
+    });
+    $info.append($optionals.append($list));
+  }
+}
+
+function getMatchesHTML(matches, $body) {
+  let $matches = $("<div>", {});
+  $matches.append($("<hr><h3>Following matches will be overwritten!</h3>"));
+  matches.forEach((item) => {
+    console.log(item);
+    $matches.append($("<p>", {
+      class: "modal-p"
+    }).append("<i>" + item.name + "</i> | <b>" + item.label + "</b> | " + item.uri));
+  });
+  let $matchesDiv = $("<div>", {
+    class: "modal-body-div"
+  }).append($matches);
+  // Append to modal body
+  $body.append($matchesDiv);
 }

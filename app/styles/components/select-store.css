@@ -100,6 +100,10 @@ input {
   cursor: pointer;
   font-size: 0pt;
   border: 0px solid;
+  background-image: url("images/upload.PNG") !important;
+  background-size: 30px;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 :global(.triplestore-import input.upload.icon) {

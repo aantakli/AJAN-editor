@@ -112,10 +112,17 @@ function getMatchesHTML(matches, $body) {
   $matches.append($("<hr><h3>Following matches will be overwritten!</h3>"));
   matches.forEach((item) => {
     if (item != undefined) {
-      $matches.append($("<p>", {
-        style: 'color: #c92306',
-        class: "modal-p"
-      }).append("<i>" + item.name + "</i> | <b>" + item.label + "</b> | " + item.uri));
+      if (item.label != undefined) {
+        $matches.append($("<p>", {
+          style: 'color: #c92306',
+          class: "modal-p"
+        }).append("<i>" + item.name + "</i> | <b>" + item.label + "</b> | " + item.uri));
+      } else {
+        $matches.append($("<p>", {
+          style: 'color: #c92306',
+          class: "modal-p"
+        }).append("<b>" + item.name + "</b> | " + item.uri));
+      }
     }
   });
   let $matchesDiv = $("<div>", {

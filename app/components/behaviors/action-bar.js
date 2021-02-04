@@ -136,7 +136,7 @@ function loadBT(event) {
       if (matches.length > 0) {
         modal.createImportModal(matches, function () {
           deleteBTs(matches);
-          saveGraph(quads);
+          saveGraph(importFile.quads);
         });
       } else {
         console.log("loadBTs: " + resources);

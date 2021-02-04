@@ -21,16 +21,12 @@
 import actions from "ajan-editor/helpers/behaviors/actions";
 import Component from "@ember/component";
 import globals from "ajan-editor/helpers/global-parameters";
-import { BT, RDF } from "ajan-editor/helpers/RDFServices/vocabulary";
 import graphOperations from "ajan-editor/helpers/graph/graph-operations";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import { sendFile, deleteRepo } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import queries from "ajan-editor/helpers/RDFServices/queries";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import modal from "ajan-editor/helpers/ui/import-modal";
-import rdf from "npm:rdf-ext";
-import N3 from "npm:rdf-parser-n3";
-import stringToStream from "npm:string-to-stream";
 
 let $ = Ember.$;
 let repo = undefined;
@@ -133,31 +129,13 @@ function loadBT(event) {
   var reader = new FileReader();
   reader.onload = function () {
     let content = reader.result;
-    let parser = new N3({ factory: rdf });
-    let quadStream = parser.import(stringToStream(content));
-    let resources = [];
-    rdf.dataset().import(quadStream).then((dataset) => {
-      let quads = [];
-      dataset.forEach((quad) => {
-        quads.push(quad);
-        if (
-          quad.predicate.value === RDF.type &&
-          quad.object.value === BT.BehaviorTree
-        ) {
-          resources.push(quad.subject.value);
-        }
-      });
-      console.log(resources);
+    actions.readTTLInput(content, function (importFile) {
       let matches = [];
       if (that.get("availableBTs"))
-        resources.forEach((uri) => { matches.push((that.get("availableBTs").filter(item => item.uri == uri))[0]) });
-      console.log(matches);
+        matches = actions.getTTLMatches(that.get("availableBTs"), importFile);
       if (matches.length > 0) {
         modal.createImportModal(matches, function () {
-          matches.forEach((bt) => {
-            if (bt != undefined)
-              rdfManager.deleteBT(bt.uri, that.get("availableBTs").filter(item => item.uri !== bt.uri), false);
-          });
+          deleteBTs(matches);
           saveGraph(quads);
         });
       } else {
@@ -168,6 +146,13 @@ function loadBT(event) {
     });
   };
   reader.readAsText(file);
+}
+
+function deleteBTs(matches) {
+  matches.forEach((bt) => {
+    if (bt != undefined)
+      rdfManager.deleteBT(bt.uri, that.get("availableBTs").filter(item => item.uri !== bt.uri), false);
+  });
 }
 
 function loadRepo(event) {
@@ -181,4 +166,25 @@ function loadRepo(event) {
       .then(window.location.reload());
   };
   reader.readAsText(file);
+}
+
+function readInput(content) {
+  actions.readTTLInput(content, function (importFile) {
+    console.log(importFile);
+    updateType(content, importFile);
+  });
+}
+
+function updateType(content, importFile) {
+  let matches = actions.getAgentDefsMatches(that.get("agentDefs"), importFile);
+  if (matches.length > 0) {
+    modal.createImportModal(matches, function () {
+      rdfGraph.addAll(importFile.quads);
+      actions.saveAgentGraph(globals.ajax, repo, that.dataBus);
+      window.location.reload();
+    });
+  } else {
+    sendFile(repo, content)
+      .then(window.location.reload());
+  }
 }

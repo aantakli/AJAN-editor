@@ -23,6 +23,10 @@ import freeNodes from "ajan-editor/helpers/graph/free-nodes";
 import modalActions from "ajan-editor/helpers/behaviors/actions/modal";
 import graphActions from "ajan-editor/helpers/behaviors/actions/graph";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
+import { BT, RDF } from "ajan-editor/helpers/RDFServices/vocabulary";
+import rdf from "npm:rdf-ext";
+import N3 from "npm:rdf-parser-n3";
+import stringToStream from "npm:string-to-stream";
 
 export default {
 	// AJAX related Actions
@@ -42,6 +46,9 @@ export default {
 	cancelJson: modalActions.cancelJson,
 	saveJson: modalActions.saveJson,
   addBT: modalActions.addBT,
+
+  readTTLInput: readTTLInput,
+  getTTLMatches: getTTLMatches
   //deleteBT: modalActions.deleteBT
 };
 
@@ -67,4 +74,32 @@ function saveGraph(ajax, tripleStoreRepository, cy) {
 		// No free nodes, just save it
 		ajaxActions.saveGraph(ajax, tripleStoreRepository);
 	}
+}
+
+function readTTLInput(content, onend) {
+  let parser = new N3({ factory: rdf });
+  let quadStream = parser.import(stringToStream(content));
+  let importFile = {
+    raw: content,
+    quads: [],
+    resources: []
+  };
+  rdf.dataset().import(quadStream).then((dataset) => {
+    dataset.forEach((quad) => {
+      importFile.quads.push(quad);
+      if (
+        quad.predicate.value === RDF.type &&
+        quad.object.value === BT.BehaviorTree
+      ) {
+        importFile.resources.push(quad.subject.value);
+      }
+    });
+    onend(importFile);
+  });
+}
+
+function getTTLMatches(defs, imports) {
+  let matches = [];
+  imports.resources.forEach((uri) => { matches.push((defs.filter(item => item.uri == uri))[0]) });
+  return matches;
 }

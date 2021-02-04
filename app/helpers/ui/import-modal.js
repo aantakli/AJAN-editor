@@ -111,7 +111,6 @@ function getMatchesHTML(matches, $body) {
   let $matches = $("<div>", {});
   $matches.append($("<hr><h3>Following matches will be overwritten!</h3>"));
   matches.forEach((item) => {
-    console.log(item);
     if (item != undefined) {
       $matches.append($("<p>", {
         style: 'color: #c92306',

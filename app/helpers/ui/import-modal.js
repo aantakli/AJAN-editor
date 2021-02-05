@@ -53,7 +53,10 @@ function getInfoHTML(info, $body) {
   }).append("<b>Author:</b> " + info.author));
   $info.append($("<p>", {
     class: "modal-p"
-  }).append("<b>Organization:</b> " + info.organization));
+  }).append("<b>Vendor:</b> " + info.vendor));
+  $info.append($("<p>", {
+    class: "modal-p"
+  }).append("<b>Domain:</b> " + info.vendorDomain));
   $info.append($("<p>", {
     class: "modal-p"
   }).append("<b>Date:</b> " + info.date));

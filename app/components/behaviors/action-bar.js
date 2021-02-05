@@ -22,7 +22,6 @@ import actions from "ajan-editor/helpers/behaviors/actions";
 import Component from "@ember/component";
 import globals from "ajan-editor/helpers/global-parameters";
 import graphOperations from "ajan-editor/helpers/graph/graph-operations";
-import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import { sendFile, deleteRepo } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import queries from "ajan-editor/helpers/RDFServices/queries";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";

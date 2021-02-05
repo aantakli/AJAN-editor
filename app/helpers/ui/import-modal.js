@@ -34,7 +34,7 @@ function createImportModal(matches, onConfirm, info) {
   if (info) {
     getInfoHTML(info, $body);
   }
-  if (matches.length > 0) {
+  if (matches) {
     getMatchesHTML(matches, $body);
   }
 
@@ -46,8 +46,6 @@ function createImportModal(matches, onConfirm, info) {
 }
 
 function getInfoHTML(info, $body) {
-  console.log(info);
-
   let $info = $("<div>", {});
   $info.append($("<h2>Package Information</h2>"));
   $info.append($("<p>", {
@@ -82,7 +80,6 @@ function setContainsHTML(contains, $info) {
     $contains.append($("<p><b>Contains:</b>"));
     let $list = $("<ul>", {});
     contains.forEach((item) => {
-      console.log(item);
       $list.append($("<li>", {
         class: "modal-p"
       }).append("<i>" + item.type + "</i> | <b>" + item.name + "</b> | " + item.uri));
@@ -92,13 +89,11 @@ function setContainsHTML(contains, $info) {
 }
 
 function setOptionalsHTML(optionals, $info) {
-  console.log(optionals);
   if (optionals.length > 0) {
     let $optionals = $("<div>", {});
     $optionals.append($("<p><b>Further Information:</b>"));
     let $list = $("<ul>", {});
     optionals.forEach((item) => {
-      console.log(item);
       $list.append($("<li>", {
         class: "modal-p"
       }).append("<b>" + item.name + "</b> | " + item.value));
@@ -110,6 +105,23 @@ function setOptionalsHTML(optionals, $info) {
 function getMatchesHTML(matches, $body) {
   let $matches = $("<div>", {});
   $matches.append($("<hr><h3>Following matches will be overwritten!</h3>"));
+  if (Array.isArray(matches))
+    getTypeMatches(matches, $matches);
+  else {
+    if (matches.agents.length > 0)
+      getTypeMatches(matches.agents, $matches);
+    if (matches.behaviors.length > 0)
+      getTypeMatches(matches.behaviors, $matches);
+  }
+  let $matchesDiv = $("<div>", {
+    class: "modal-body-div"
+  }).append($matches);
+  // Append to modal body
+  $body.append($matchesDiv);
+}
+
+function getTypeMatches(matches, $matches) {
+  console.log(matches);
   matches.forEach((item) => {
     if (item != undefined) {
       if (item.label != undefined) {
@@ -121,13 +133,8 @@ function getMatchesHTML(matches, $body) {
         $matches.append($("<p>", {
           style: 'color: #c92306',
           class: "modal-p"
-        }).append("<b>" + item.name + "</b> | " + item.uri));
+        }).append("<i>BT</i> | <b>" + item.name + "</b> | " + item.uri));
       }
     }
   });
-  let $matchesDiv = $("<div>", {
-    class: "modal-body-div"
-  }).append($matches);
-  // Append to modal body
-  $body.append($matchesDiv);
 }

@@ -111,6 +111,7 @@ function updateType(content, importFile) {
   let matches = actions.getAgentDefsMatches(that.get("agentDefs"), importFile);
   if (matches.length > 0) {
     modal.createImportModal(matches, function () {
+      actions.deleteMatches(matches);
       rdfGraph.addAll(importFile.quads);
       actions.saveAgentGraph(globals.ajax, repo, that.dataBus);
       window.location.reload();

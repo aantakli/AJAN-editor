@@ -227,14 +227,13 @@ function fixUri(uri) {
 function unzip(file, onEnd) {
   let zipFile = {
     info: { entry: null, import: null },
-    agents: { entry: null, import: null },
-    behaviors: { entry: null, import: null },
-    domains: { entry: null, import: null },
-    actions: { entry: null, import: null }
+    agents: { entry: null, import: null, original: { rdf: null, defs: null } },
+    behaviors: { entry: null, import: null, original: { rdf: null, defs: null } },
+    domains: { entry: null, import: null, original: { rdf: null, defs: null } },
+    actions: { entry: null, import: null, original: { rdf: null, defs: null } }
   };
   getEntries(file, function (entries) {
     entries.forEach(function (entry) {
-      console.log(entry);
       if (entry.filename.includes("/info.json"))
         zipFile.info.entry = entry;
       else if (entry.filename.includes("/agents/agents.ttl"))
@@ -297,30 +296,18 @@ function getEntries(file, onend) {
 }
 
 function loadRdfGraphData(zipFile, triplestore, ajax) {
+  let matches = { agents: [], behaviors: [] };
   loadAgentRdfGraphData(ajax, triplestore, function () {
-    let agentDefs = {
-      templates: agtActions.getAgents(),
-      behaviors: agtActions.getBehaviors(),
-      endpoints: agtActions.getEndpoints(),
-      events: agtActions.getEvents(),
-      goals: agtActions.getGoals(),
-    };
-    let matches = agtActions.getAgentDefsMatches(agentDefs, zipFile.agents.import);
-    loadBTsRdfGraphData(ajax, triplestore, function (bts) {
-      console.log(bts);
-      if (matches.length > 0) {
-        modal.createImportModal(matches, function () {
-          if (matches.length > 0) {
-            agtActions.deleteMatches(matches);
-          }
-          rdfGraph.addAll(zipFile.agents.import.quads);
-          agtActions.saveAgentGraph(ajax, triplestore + globals.agentsRepository, null);
-        }, zipFile.info.input);
-      } else {
-        modal.createImportModal(matches, function () {
-          sendFile(triplestore + globals.agentsRepository, zipFile.agents.import.raw);
-        }, zipFile.info.input);
-      }
+    let agentDefs = getAgentDefs();
+    zipFile.agents.original.rdf = rdfGraph.get();
+    zipFile.agents.original.defs = agentDefs;
+    loadBTsRdfGraphData(ajax, triplestore, function (rdfData) {
+      let btDefs = getBTDefs();
+      zipFile.behaviors.original.rdf = rdfData;
+      zipFile.behaviors.original.defs = btDefs;
+      matches.agents = agtActions.getAgentDefsMatches(agentDefs, zipFile.agents.import);
+      matches.behaviors = btActions.getTTLMatches(btDefs, zipFile.behaviors.import);
+      showImportDialog(ajax, triplestore, zipFile, matches);
     });
   });
 }
@@ -336,24 +323,59 @@ function loadAgentRdfGraphData(ajax, triplestore, onend) {
           .then(onend)))));
 }
 
+function addRDFDataToGraph(rdfData) {
+  rdfGraph.set(rdfData);
+}
+
+function getAgentDefs() {
+  let agentDefs = {
+    templates: agtActions.getAgents(),
+    behaviors: agtActions.getBehaviors(),
+    endpoints: agtActions.getEndpoints(),
+    events: agtActions.getEvents(),
+    goals: agtActions.getGoals(),
+  };
+  return agentDefs;
+}
+
 function loadBTsRdfGraphData(ajax, triplestore, onend) {
   let repo = (triplestore || "http://localhost:8090/rdf4j/repositories")
     + globals.behaviorsRepository;
-  console.log(that);
   let cy = that.parentComponent.cytoscapeService.newCytoscapeInstance();
-  console.log(cy);
   nodeDefs(ajax, cy).then(function () {
     btActions.getFromServer(null, ajax, repo).then(function (rdfData) {
-      console.log(rdfGraph);
-      //rdfGraph.reset();
-      //rdfGraph.set(rdfData);
-      onend(btActions.getBehaviorTrees());
+      onend(rdfData);
     });
   })
 }
 
-function addRDFDataToGraph(rdfData) {
-  rdfGraph.set(rdfData);
+function getBTDefs() {
+  return btActions.getBehaviorTrees();
+}
+
+function showImportDialog(ajax, triplestore, zipFile, matches) {
+  if (matches.agents.length > 0) {
+    modal.createImportModal(matches, function () {
+      if (matches.agents.length > 0) {
+        rdfGraph.reset();
+        rdfGraph.set(zipFile.agents.original.rdf);
+        agtActions.deleteMatches(matches.agents);
+        rdfGraph.addAll(zipFile.agents.import.quads);
+        agtActions.saveAgentGraph(ajax, triplestore + globals.agentsRepository, null);
+      }
+      if (matches.behaviors.length > 0) {
+        rdfGraph.reset();
+        rdfGraph.set(zipFile.behaviors.original.rdf);
+        btActions.deleteMatches(matches.behaviors, zipFile.behaviors.original.defs);
+        rdfGraph.addAll(zipFile.behaviors.import.quads);
+        btActions.saveGraph(ajax, triplestore + globals.behaviorsRepository, null);
+      }
+    }, zipFile.info.input);
+  } else {
+    modal.createImportModal(matches, function () {
+      sendFile(triplestore + globals.agentsRepository, zipFile.agents.import.raw);
+    }, zipFile.info.input);
+  }
 }
 
 export {TriplestoreListing};

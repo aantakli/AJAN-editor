@@ -129,30 +129,9 @@ function loadBT(event) {
   var reader = new FileReader();
   reader.onload = function () {
     let content = reader.result;
-    actions.readTTLInput(content, function (importFile) {
-      let matches = [];
-      if (that.get("availableBTs"))
-        matches = actions.getTTLMatches(that.get("availableBTs"), importFile);
-      if (matches.length > 0) {
-        modal.createImportModal(matches, function () {
-          deleteBTs(matches);
-          saveGraph(importFile.quads);
-        });
-      } else {
-        console.log("loadBTs: " + resources);
-        sendFile(repo, content)
-          .then(window.location.reload());
-      }
-    });
+    readInput(content);
   };
   reader.readAsText(file);
-}
-
-function deleteBTs(matches) {
-  matches.forEach((bt) => {
-    if (bt != undefined)
-      rdfManager.deleteBT(bt.uri, that.get("availableBTs").filter(item => item.uri !== bt.uri), false);
-  });
 }
 
 function loadRepo(event) {
@@ -176,12 +155,13 @@ function readInput(content) {
 }
 
 function updateType(content, importFile) {
-  let matches = actions.getAgentDefsMatches(that.get("agentDefs"), importFile);
+  let matches = [];
+  if (that.get("availableBTs"))
+    matches = actions.getTTLMatches(that.get("availableBTs"), importFile);
   if (matches.length > 0) {
     modal.createImportModal(matches, function () {
-      rdfGraph.addAll(importFile.quads);
-      actions.saveAgentGraph(globals.ajax, repo, that.dataBus);
-      window.location.reload();
+      actions.deleteMatches(matches, that.get("availableBTs"));
+      saveGraph(importFile.quads);
     });
   } else {
     sendFile(repo, content)

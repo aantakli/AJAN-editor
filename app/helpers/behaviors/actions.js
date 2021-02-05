@@ -48,7 +48,8 @@ export default {
   addBT: modalActions.addBT,
 
   readTTLInput: readTTLInput,
-  getTTLMatches: getTTLMatches
+  getTTLMatches: getTTLMatches,
+  deleteMatches: deleteMatches
   //deleteBT: modalActions.deleteBT
 };
 
@@ -100,6 +101,17 @@ function readTTLInput(content, onend) {
 
 function getTTLMatches(defs, imports) {
   let matches = [];
-  imports.resources.forEach((uri) => { matches.push((defs.filter(item => item.uri == uri))[0]) });
+  imports.resources.forEach((uri) => {
+    let match = (defs.filter(item => item.uri == uri))[0];
+    if (match != undefined)
+      matches.push(match);
+  });
   return matches;
+}
+
+function deleteMatches(matches, availableBTs) {
+  matches.forEach((bt) => {
+    if (bt != undefined)
+      rdfManager.deleteBT(bt.uri, availableBTs.filter(item => item.uri !== bt.uri), false);
+  });
 }

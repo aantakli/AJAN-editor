@@ -176,7 +176,6 @@ function deleteactiveBehaviorsbt(activeBehavior){
 function deleteactiveEndpointsevent(activeEndpoint){
   console.log(activeEndpoint.event);
 	rdfGraph.removeRelatedEndpointsevent(activeEndpoint.uri);
-
 }
 
 function createDefaultAgent(repo) {

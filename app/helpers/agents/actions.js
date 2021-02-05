@@ -31,7 +31,10 @@ import behaviorProducer from "ajan-editor/helpers/RDFServices/behaviorsRDFProduc
 import eventProducer from "ajan-editor/helpers/RDFServices/eventsRDFProducer";
 import endpointProducer from "ajan-editor/helpers/RDFServices/endpointsRDFProducer";
 import goalProducer from "ajan-editor/helpers/RDFServices/goalsRDFProducer";
-import { AGENTS, XSD, RDFS } from "ajan-editor/helpers/RDFServices/vocabulary";
+import { AGENTS, XSD, RDF, RDFS } from "ajan-editor/helpers/RDFServices/vocabulary";
+import rdf from "npm:rdf-ext";
+import N3 from "npm:rdf-parser-n3";
+import stringToStream from "npm:string-to-stream";
 
 export default {
 	// Delete Service Object
@@ -89,7 +92,12 @@ export default {
   //
   getGoals: goalajaxActions.getGoals,
 	getGoalsFromServer: goalajaxActions.getFromServer,
-	saveGoalsGraph: goalajaxActions.saveGraph,
+  saveGoalsGraph: goalajaxActions.saveGraph,
+  //
+  readTTLInput: readTTLInput,
+  getAgentDefsMatches: getAgentDefsMatches,
+  getTTLMatches: getTTLMatches,
+  deleteMatches: deleteMatches
 };
 
 function deleteAgent(agent) {
@@ -168,7 +176,6 @@ function deleteactiveBehaviorsbt(activeBehavior){
 function deleteactiveEndpointsevent(activeEndpoint){
   console.log(activeEndpoint.event);
 	rdfGraph.removeRelatedEndpointsevent(activeEndpoint.uri);
-
 }
 
 function createDefaultAgent(repo) {
@@ -176,6 +183,7 @@ function createDefaultAgent(repo) {
   agent.uri = repo + "agents#AG_" + utility.generateUUID();
   agent.type = AGENTS.AgentTemplate;
   agent.label = "Default AgentTemplate";
+  agent.name = "AgentTemplate";
   agent.behaviors = new Array();
   agent.events = new Array();
   agent.endpoints = new Array();
@@ -187,6 +195,7 @@ function createDefaultInitialBehavior(repo) {
   behavior.uri = repo + "agents#IB_" + utility.generateUUID();
   behavior.type = AGENTS.InitialBehavior;
   behavior.label = "Default InitialBehavior";
+  behavior.name = "InitialBehavior";
   let bt = {};
   bt.label = "";
   bt.uri = "";
@@ -199,6 +208,7 @@ function createDefaultFinalBehavior(repo) {
   behavior.uri = repo + "agents#FB_" + utility.generateUUID();
   behavior.type = AGENTS.FinalBehavior;
   behavior.label = "Default FinalBehavior";
+  behavior.name = "FinalBehavior";
   let bt = {};
   bt.label = "";
   bt.uri = "";
@@ -211,6 +221,7 @@ function createDefaultBehavior(repo) {
   behavior.uri = repo + "agents#BE_" + utility.generateUUID();
   behavior.type = AGENTS.Behavior;
   behavior.label = "Default Behavior";
+  behavior.behavior = "Behavior";
   behavior.addtype = "";
   behavior.requires = "";
   behavior.triggers = new Array();
@@ -226,6 +237,7 @@ function createDefaultEvent(repo) {
   event.type = AGENTS.Event;
   event.uri = repo + "agents#EV_" + utility.generateUUID();
   event.label = "Default Event";
+  event.name = "Event";
   return event;
 }
 
@@ -233,6 +245,7 @@ function createDefaultEndpoint(repo) {
   let endpoint = {};
   endpoint.uri = repo + "agents#EP_" + utility.generateUUID();
   endpoint.type = AGENTS.Endpoint;
+  endpoint.name = "Endpoint";
   endpoint.label = "Default Endpoint";
   endpoint.capability = "";
   endpoint.events = new Array();
@@ -244,10 +257,93 @@ function createDefaultGoal(repo) {
   goal.uri = repo + "agents#GO_" + utility.generateUUID();
   goal.label = "Default Goal";
   goal.type = AGENTS.Goal;
+  goal.name = "Goal";
   goal.variables = new Array();
   goal.variables.push({ pointerUri: "", uri: "", varName: "s", dataType: RDFS.Resource });
   goal.variables.push({ pointerUri: "", uri: "", varName: "p", dataType: RDFS.Resource });
   goal.variables.push({ pointerUri: "", uri: "", varName: "o", dataType: XSD.string });
   goal.condition = "ASK WHERE { ?s ?p ?o }";
   return goal;
+}
+
+function readTTLInput(content, onend) {
+  let parser = new N3({ factory: rdf });
+  let quadStream = parser.import(stringToStream(content));
+  let importFile = {
+    raw: content,
+    quads: [],
+    agents: [],
+    behaviors: [],
+    endpoints: [],
+    events: [],
+    goals: []
+  };
+  rdf.dataset().import(quadStream).then((dataset) => {
+    dataset.forEach((quad) => {
+      importFile.quads.push(quad);
+      if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.AgentTemplate) {
+        importFile.agents.push(quad.subject.value);
+      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.InitialBehavior) {
+        importFile.behaviors.push(quad.subject.value);
+      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.FinalBehavior) {
+        importFile.behaviors.push(quad.subject.value);
+      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Behavior) {
+        importFile.behaviors.push(quad.subject.value);
+      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Endpoint) {
+        importFile.endpoints.push(quad.subject.value);
+      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Event) {
+        importFile.events.push(quad.subject.value);
+      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Goal) {
+        importFile.goals.push(quad.subject.value);
+      }
+    });
+    onend(importFile);
+  });
+}
+
+function getAgentDefsMatches(agentDefs, importFile) {
+  let matches = getTTLMatches(agentDefs.templates, importFile.agents);
+  matches = matches.concat(getTTLMatches(agentDefs.behaviors.final, importFile.behaviors));
+  matches = matches.concat(getTTLMatches(agentDefs.behaviors.initial, importFile.behaviors));
+  matches = matches.concat(getTTLMatches(agentDefs.behaviors.regular, importFile.behaviors));
+  matches = matches.concat(getTTLMatches(agentDefs.endpoints, importFile.endpoints));
+  matches = matches.concat(getTTLMatches(agentDefs.events, importFile.events));
+  matches = matches.concat(getTTLMatches(agentDefs.goals, importFile.goals));
+  return matches;
+}
+
+function getTTLMatches(defs, imports) {
+  let matches = [];
+  if (imports) {
+    defs.forEach((data) => {
+      imports.forEach((item) => {
+        if (data.uri === item) {
+          matches.push(data);
+        }
+      });
+    });
+  }
+  return matches;
+}
+
+function deleteMatches(matches) {
+  if (matches.length > 0) {
+    matches.forEach((data) => {
+      if (data.type === AGENTS.AgentTemplate)
+        deleteAgent(data);
+      else if (data.type === AGENTS.InitialBehavior)
+        deleteBehavior(data);
+      else if (data.type === AGENTS.FinalBehavior)
+        deleteBehavior(data);
+      else if (data.type === AGENTS.Behavior)
+        deleteBehavior(data);
+      else if (data.type === AGENTS.Endpoint)
+        deleteEndpoint(data);
+      else if (data.type === AGENTS.Event) {
+        deleteEvent(data);
+      } else if (data.type === AGENTS.Goal) {
+        deleteGoal(data);
+      }
+    });
+  }
 }

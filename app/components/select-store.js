@@ -19,19 +19,22 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Ember from "ember";
-import {TriplestoreCollection} from "ajan-editor/helpers/home/triplestore-collection";
+import { TriplestoreCollection } from "ajan-editor/helpers/home/triplestore-collection";
 import triplestoreHelper from "ajan-editor/helpers/home/triplestore-helper";
 
 let $ = Ember.$;
 let self;
 let triplestoreCollection;
+let ajax = null; // ajax
 
 export default Ember.Component.extend({
+  ajax: Ember.inject.service(),
+  cytoscapeService: Ember.inject.service("behaviors/cytoscape"),
+
 	didInsertElement() {
 		this._super(...arguments);
 		// ...
 		self = this;
-
 		triplestoreCollection = new TriplestoreCollection(this);
 		bindEnterEvent();
 	},
@@ -43,7 +46,7 @@ export default Ember.Component.extend({
 
 function addTriplestore() {
 	triplestoreCollection.insertNewTriplestore();
-	triplestoreHelper.clearNewTriplestoreInput();
+	triplestoreHelper.clearNewTriplestoreInput(self.ajax);
 }
 
 function bindEnterEvent() {

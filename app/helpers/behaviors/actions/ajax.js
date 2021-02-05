@@ -77,7 +77,8 @@ export default {
 		console.log("Saving to triple store: ", tripleStoreRepository);
 
 		let postDestination = tripleStoreRepository + "/statements";
-		let rdfString = rdfGraph.toString();
+    let rdfString = rdfGraph.toString();
+    console.log(rdfString);
 		let query = SparqlQueries.update(rdfString);
 		let dataString = $.param({update: query});
 

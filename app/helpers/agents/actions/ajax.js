@@ -72,7 +72,7 @@ export default {
 	},
 
 // save to repository
-	saveGraph: function(ajax, tripleStoreRepository, event) {
+	saveGraph: function(ajax, tripleStoreRepository, event, onEnd) {
 		console.log("Saving to triple store: ", tripleStoreRepository);
 
 		let postDestination = tripleStoreRepository + "/statements";
@@ -97,7 +97,12 @@ export default {
 				// SPARQL query
 				data: dataString
       }).then(function () {
-        event.updatedAG();
+        if (event) {
+          event.updatedAG();
+        }
+        if (onEnd) {
+          onEnd();
+        }
       })
 			.catch(function(error) {
 				if (isServerError(error)) {

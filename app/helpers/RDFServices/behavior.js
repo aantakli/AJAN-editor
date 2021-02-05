@@ -70,7 +70,7 @@ function getBehaviorDefinitions(graph, resource) {
 	let behavior = {};
 	behavior.id = util.generateUUID();
 	behavior.nodes = new Array();
-	behavior.name = "Behavior";
+  behavior.name = "Behavior";
 	behavior.category = "tree";
 	behavior.uri = resource.value;
 	graph.forEach(function(quad) {

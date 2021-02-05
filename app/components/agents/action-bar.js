@@ -24,10 +24,7 @@ import globals from "ajan-editor/helpers/global-parameters";
 import { sendFile, deleteRepo } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import queries from "ajan-editor/helpers/RDFServices/queries";
-import { AGENTS, RDF } from "ajan-editor/helpers/RDFServices/vocabulary";
-import rdf from "npm:rdf-ext";
-import N3 from "npm:rdf-parser-n3";
-import stringToStream from "npm:string-to-stream";
+import modal from "ajan-editor/helpers/ui/import-modal";
 import actions from "ajan-editor/helpers/agents/actions";
 
 let $ = Ember.$;
@@ -104,120 +101,23 @@ function loadFile(event) {
 }
 
 function readInput(content) {
-  let parser = new N3({ factory: rdf });
-  let quadStream = parser.import(stringToStream(content));
-  let importFile = {
-    agents: [],
-    behaviors: [],
-    endpoints: [],
-    events: [],
-    goals: []
-  };
-  rdf.dataset().import(quadStream).then((dataset) => {
-    console.log(dataset);
-    let quads = [];
-    dataset.forEach((quad) => {
-      quads.push(quad);
-      if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.AgentTemplate) {
-        importFile.agents.push(quad.subject.value);
-      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.InitialBehavior) {
-        importFile.behaviors.push(quad.subject.value);
-      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.FinalBehavior) {
-        importFile.behaviors.push(quad.subject.value);
-      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Behavior) {
-        importFile.behaviors.push(quad.subject.value);
-      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Endpoint) {
-        importFile.endpoints.push(quad.subject.value);
-      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Event) {
-        importFile.events.push(quad.subject.value);
-      } else if (quad.predicate.value === RDF.type && quad.object.value === AGENTS.Goal) {
-        importFile.goals.push(quad.subject.value);
-      }
-    });
-    updateType(content, quads, importFile);
+  actions.readTTLInput(content, function (importFile) {
+    console.log(importFile);
+    updateType(content, importFile);
   });
 }
 
-function updateType(content, quads, importFile) {
-  console.log(that.get("agentDefs"));
-  let overrides = getOverrides(that.get("agentDefs.templates"), importFile.agents);
-  overrides = overrides.concat(getOverrides(that.get("agentDefs.behaviors.final"), importFile.behaviors));
-  overrides = overrides.concat(getOverrides(that.get("agentDefs.behaviors.initial"), importFile.behaviors));
-  overrides = overrides.concat(getOverrides(that.get("agentDefs.behaviors.regular"), importFile.behaviors));
-  overrides = overrides.concat(getOverrides(that.get("agentDefs.endpoints"), importFile.endpoints));
-  overrides = overrides.concat(getOverrides(that.get("agentDefs.events"), importFile.events));
-  overrides = overrides.concat(getOverrides(that.get("agentDefs.goals"), importFile.goals));
-  if (overrides.length > 0)
-    createModal(overrides, quads);
-  else {
+function updateType(content, importFile) {
+  let matches = actions.getAgentDefsMatches(that.get("agentDefs"), importFile);
+  if (matches.length > 0) {
+    modal.createImportModal(matches, function () {
+      actions.deleteMatches(matches);
+      rdfGraph.addAll(importFile.quads);
+      actions.saveAgentGraph(globals.ajax, repo, that.dataBus);
+      window.location.reload();
+    });
+  } else {
     sendFile(repo, content)
       .then(window.location.reload());
   }
-}
-
-function getOverrides(defs, imports) {
-  let overrides = [];
-  console.log(imports);
-  if (imports) {
-    defs.forEach((data) => {
-      imports.forEach((item) => {
-        console.log(data.uri);
-        console.log(item);
-        if (data.uri === item) {
-          console.log(data);
-          overrides.push(data);
-        }
-      });
-    });
-  }
-  return overrides;
-}
-
-function createModal(overrides, quads) {
-  console.log("Ask for overriding definitions");
-  $("#modal-header-title").text("Override");
-  let $body = $("#modal-body"),
-    $modal = $("#universal-modal");
-  $body.empty();
-  $modal.show();
-
-  // Label
-  let $labelTitle = $("<div>", {});
-  overrides.forEach((item) => {
-    console.log(item);
-    $labelTitle.append($("<p>", {
-      class: "modal-p"
-    }).append("<i>" + item.type + "<i> | <b>" + item.label + "</b> | " + item.uri));
-  });
-  let $labelDiv = $("<div>", {
-    class: "modal-body-div"
-  }).append($labelTitle);
-
-  // Append to modal body
-  $body.append($labelDiv);
-
-  // Listen for the confirm event
-  let elem = document.getElementById("universal-modal");
-  elem.addEventListener("modal:confirm", () => {
-    overrides.forEach((data) => {
-      if (data.type === AGENTS.AgentTemplate)
-        actions.deleteAgent(AgentTemplate);
-      else if (data.type === AGENTS.InitialBehavior)
-        actions.deleteBehavior(data);
-      else if (data.type === AGENTS.FinalBehavior)
-        actions.deleteBehavior(data);
-      else if (data.type === AGENTS.Behavior)
-        actions.deleteBehavior(data);
-      else if (data.type === AGENTS.Endpoint)
-        actions.deleteEndpoint(data);
-      else if (data.type === AGENTS.Event) {
-        actions.deleteEvent(data);
-      } else if (data.type === AGENTS.Goal) {
-        actions.deleteGoal(data);
-      }
-    });
-    rdfGraph.addAll(quads);
-    actions.saveAgentGraph(globals.ajax, repo, that.dataBus)
-    window.location.reload();
-  });
 }

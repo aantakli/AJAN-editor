@@ -1,1 +1,1 @@
-ember clean-tmp & ember serve --silent
+ember clean-tmp & ember serve 

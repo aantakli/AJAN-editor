@@ -354,28 +354,27 @@ function getBTDefs() {
 }
 
 function showImportDialog(ajax, triplestore, zipFile, matches) {
-  if (matches.agents.length > 0) {
-    modal.createImportModal(matches, function () {
-      if (matches.agents.length > 0) {
-        rdfGraph.reset();
-        rdfGraph.set(zipFile.agents.original.rdf);
-        agtActions.deleteMatches(matches.agents);
-        rdfGraph.addAll(zipFile.agents.import.quads);
-        agtActions.saveAgentGraph(ajax, triplestore + globals.agentsRepository, null);
-      }
-      if (matches.behaviors.length > 0) {
-        rdfGraph.reset();
-        rdfGraph.set(zipFile.behaviors.original.rdf);
-        btActions.deleteMatches(matches.behaviors, zipFile.behaviors.original.defs);
-        rdfGraph.addAll(zipFile.behaviors.import.quads);
-        btActions.saveGraph(ajax, triplestore + globals.behaviorsRepository, null);
-      }
-    }, zipFile.info.input);
-  } else {
-    modal.createImportModal(matches, function () {
+  modal.createImportModal(matches, function () {
+    if (matches.agents.length > 0) {
+      rdfGraph.reset();
+      rdfGraph.set(zipFile.agents.original.rdf);
+      agtActions.deleteMatches(matches.agents);
+      rdfGraph.addAll(zipFile.agents.import.quads);
+      agtActions.saveAgentGraph(ajax, triplestore + globals.agentsRepository, null);
+    } else {
       sendFile(triplestore + globals.agentsRepository, zipFile.agents.import.raw);
-    }, zipFile.info.input);
-  }
+    }
+    console.log(matches.behaviors);
+    if (matches.behaviors.length > 0) {
+      rdfGraph.reset();
+      rdfGraph.set(zipFile.behaviors.original.rdf);
+      btActions.deleteMatches(matches.behaviors, zipFile.behaviors.original.defs);
+      rdfGraph.addAll(zipFile.behaviors.import.quads);
+      btActions.saveGraph(ajax, triplestore + globals.behaviorsRepository, null);
+    } else {
+      sendFile(triplestore + globals.behaviorsRepository, zipFile.behaviors.import.raw);
+    }
+  }, zipFile.info.input);
 }
 
 export {TriplestoreListing};

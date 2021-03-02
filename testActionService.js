@@ -15,6 +15,8 @@ const wss = new WebSocket.Server({ server });
 
 app.use(bodyParser.text({ type: 'text/plain' }));
 app.use(bodyParser.text({ type: 'text/turtle' }));
+app.use(bodyParser.text({ type: 'text/xml' }));
+app.use(bodyParser.text({ type: 'application/sparql-results+xml' }));
 app.use(function (err, req, res, next) {
   console.error(err.stack);
 });

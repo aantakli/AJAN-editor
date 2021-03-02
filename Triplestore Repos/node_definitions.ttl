@@ -1365,15 +1365,6 @@
     ];
 	nd:parameter [
 	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:scene;
-	    nd:title "Scene Service";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
 	    nd:mapsTo bt-mosim:host;
 	    nd:title "Walkpoint Service";
 	    nd:input nd:Query;
@@ -1424,15 +1415,6 @@
 	    a nd:Parameter;
 	    nd:mapsTo bt-mosim:sceneObjects;
 	    nd:title "SceneObjects";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:scene;
-	    nd:title "Scene Service";
 	    nd:input nd:Query;
         bt:originBase "true";
         bt:targetBase "false";

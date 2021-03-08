@@ -83,8 +83,6 @@ export default Component.extend({
     },
 
     handleCheck(item) {
-		  console.log('Selecteditems');
-		  console.log(item);
 		  this.set('Selecteditems', item);
     },
 
@@ -106,9 +104,13 @@ export default Component.extend({
 
     savenewinitbehavior(newbehavior) {
       rdfGraph.removeRelatedQuads(self.get("activeAgent.uri"), "http://www.ajan.de/ajan-ns#initialBehavior");
-      self.set("activeAgent.initialBehavior", self.get("availableBehaviors.initial").filter(item => item.uri == newbehavior)[0]);
-      var rdftriple = rdfFact.quad(self.get("activeAgent.uri"), "http://www.ajan.de/ajan-ns#initialBehavior", newbehavior);
-      rdfGraph.add(rdftriple);
+      if (newbehavior != null) {
+        self.set("activeAgent.initialBehavior", self.get("availableBehaviors.initial").filter(item => item.uri == newbehavior)[0]);
+        var rdftriple = rdfFact.quad(self.get("activeAgent.uri"), "http://www.ajan.de/ajan-ns#initialBehavior", newbehavior);
+        rdfGraph.add(rdftriple);
+      } else {
+        self.set("activeAgent.initialBehavior", undefined);
+      }
       updateRepo();
       reset();
       setFileContent(self.get("activeAgent.uri"));
@@ -117,9 +119,13 @@ export default Component.extend({
 
     savenewfinalbehavior(newbehavior) {
       rdfGraph.removeRelatedQuads(self.get("activeAgent.uri"), "http://www.ajan.de/ajan-ns#finalBehavior");
-      self.set("activeAgent.finalBehavior", self.get("availableBehaviors.final").filter(item => item.uri == newbehavior)[0]);
-      var rdftriple = rdfFact.quad(self.get("activeAgent.uri"), "http://www.ajan.de/ajan-ns#finalBehavior", newbehavior);
-      rdfGraph.add(rdftriple);
+      if (newbehavior != null) {
+        self.set("activeAgent.finalBehavior", self.get("availableBehaviors.final").filter(item => item.uri == newbehavior)[0]);
+        var rdftriple = rdfFact.quad(self.get("activeAgent.uri"), "http://www.ajan.de/ajan-ns#finalBehavior", newbehavior);
+        rdfGraph.add(rdftriple);
+      } else {
+        self.set("activeAgent.finalBehavior", undefined);
+      }
       updateRepo();
       reset();
       setFileContent(self.get("activeAgent.uri"));
@@ -127,7 +133,6 @@ export default Component.extend({
     },
 
     savenewbehaviors(newbehaviors) {
-      console.log(self.get("activeAgent.uri"));
       rdfGraph.removeRelatedQuads(self.get("activeAgent.uri"), "http://www.ajan.de/ajan-ns#behavior");
       self.set("activeAgent.behaviors", newbehaviors);
       for (var i = 0; i < newbehaviors.length; i++){
@@ -156,7 +161,7 @@ export default Component.extend({
 
     savenewendpoints(newendpoints){
 	    self.set("activeAgent.endpoints",[]);
-       rdfGraph.removeRelatedQuads(self.get("activeAgent.uri"), "http://www.ajan.de/ajan-ns#endpoint");
+      rdfGraph.removeRelatedQuads(self.get("activeAgent.uri"), "http://www.ajan.de/ajan-ns#endpoint");
 	    for(var i=0;i<newendpoints.length;i++){
 	      self.get("activeAgent.endpoints").push(newendpoints[i]);//totally new
         var rdftriple= rdfFact.quad(self.get("activeAgent.uri") ,"http://www.ajan.de/ajan-ns#endpoint", newendpoints[i].uri);
@@ -251,8 +256,6 @@ function selectedBehaviors() {
   self.set('selectedBehaviors', []);
   var behaviors = new Array();
   var selected = self.get("activeAgent.behaviors");
-  console.log("selected");
-  console.log(selected);
 	for (var i = 0; i < self.get("availableBehaviors.regular").length; i++) {
     for (var j = 0; j < selected.length; j++) {
       if (self.get("availableBehaviors.regular")[i].uri === selected[j].uri) {
@@ -260,8 +263,6 @@ function selectedBehaviors() {
 			}
 		}
   }
-  console.log("behaviors");
-  console.log(behaviors);
   self.set('selectedBehaviors', behaviors);
 }
 

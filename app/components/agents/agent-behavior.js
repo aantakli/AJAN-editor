@@ -87,8 +87,10 @@ export default Component.extend({
         else {
           let oldQuad = rdfGraph.findQuad(s, p, self.get("oldType"));
           rdfGraph.remove(oldQuad);
-          oldQuad.object.value = o;
-          rdfGraph.add(oldQuad);
+          if (o !== "") {
+            oldQuad.object.value = o;
+            rdfGraph.add(oldQuad);
+          }
         }
         self.actions.update();
         return;

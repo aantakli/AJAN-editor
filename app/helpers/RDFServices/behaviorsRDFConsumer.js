@@ -45,8 +45,8 @@ function getBehaviorsGraph(data) {
 		.then(function(dataset) {
 			// Dataset is array of quads
       let behaviors = {};
-      behaviors.initial = new Array();
-      behaviors.final = new Array();
+      behaviors.initial = new Array({});
+      behaviors.final = new Array({});
       behaviors.regular = new Array();
       getBehaviors(dataset, behaviors);
       return [behaviors, dataset];
@@ -55,10 +55,7 @@ function getBehaviorsGraph(data) {
 
 }
 
-
 // for ?x http://www.w3.org/1999/02/22-rdf-syntax-ns#type http://www.ajan.de/behavior/bt-ns#BehaviorTree
-
-
 
 function getBehaviors(graph, behaviors) {
 	Promise.resolve(graph).then(function(graph) {

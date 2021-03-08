@@ -18,7 +18,7 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import actions from "ajan-editor/helpers/agents/actions";
+
 import behaviorsHlp from "ajan-editor/helpers/RDFServices/behaviorsRDFConsumer";//!
 import Ember from "ember";
 import {
@@ -47,13 +47,11 @@ export default {
 		  );
 
 		let promisedRdfGraph = ajaxPromise.then(
-
 			function(data) {
 				// On accept
 				//console.log('Entire graph:', data);
-				let behaviorsGraph = behaviorsHlp.getBehaviorsGraph(data);//!!!!
+				let behaviorsGraph = behaviorsHlp.getBehaviorsGraph(data);
 				let promise = Promise.resolve(behaviorsGraph);
-
 				let promiseValue = promise.then(function(behaviorsResolved) {
 					// Parse the behaviors graph
 					//console.log('behaviorsResolved', behaviorsResolved)
@@ -61,20 +59,14 @@ export default {
 					let rdfGraph = behaviorsResolved[1];
 					return rdfGraph;
 				});
-
 				return promiseValue;
 			},
-
-
-
 
 			function(jqXHR) {
 				// On reject
 				console.log("Request failed", jqXHR);
 			}
-
 		);
-
 		return promisedRdfGraph;
 	},
 

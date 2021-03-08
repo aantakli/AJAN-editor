@@ -285,8 +285,8 @@ function setAvailableAgents() {
 }
 
 function setAvailableBehaviors() {
-	let agents = actions.getBehaviors();
-	self.set("availableBehaviors", agents);
+	let behaviors = actions.getBehaviors();
+  self.set("availableBehaviors", behaviors);
 }
 
 function setAvailableEvents() {

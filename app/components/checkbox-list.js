@@ -31,41 +31,31 @@ export default Component.extend({
   actions: {
     onCheck(item) {
       let checkedItemsSet = this.get('checkedItemsSet');
+      let checkedItemsArray = Array.from(checkedItemsSet);
+      let checkedItemsArraylabel = [];
+      for (var i = 0; i < checkedItemsArray.length; i++) {
+
+        checkedItemsArraylabel[i]=checkedItemsArray[i].label;
 
 
-       let checkedItemsArray = Array.from(checkedItemsSet);
-
-
-
-       let checkedItemsArraylabel = [];
-       for (var i = 0; i < checkedItemsArray.length; i++) {
-
-         checkedItemsArraylabel[i]=checkedItemsArray[i].label;
-
-
-       }
-       // back to set
+      }
+      // back to set
       let checkedItemsSetlabel = new Set();
-       checkedItemsArraylabel.forEach(item => checkedItemsSetlabel.add(item));
+      checkedItemsArraylabel.forEach(item => checkedItemsSetlabel.add(item));
 
       if (checkedItemsSetlabel.has(item.label)) {
-          // li mao huan taizi
+        // li mao huan taizi
         for (var i = 0; i < checkedItemsArray.length; i++) {
           if(checkedItemsArray[i].label==item.label) {
             checkedItemsSet.delete(checkedItemsArray[i]);
             checkedItemsSet.add(item);
             delete checkedItemsArray[i];
           }
-       }
-
+        }
         checkedItemsSet.delete(item);
-        console.log('hhhhh11111');
-
       } else {
         checkedItemsSet.add(item);
-        console.log('hhhhh2222');
       }
-      console.log("2222222222");
       console.log(checkedItemsSet);
       this.get('onCheck')(Array.from(checkedItemsSet));
     }

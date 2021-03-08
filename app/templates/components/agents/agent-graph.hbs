@@ -37,11 +37,14 @@
     <i class="dropdown icon"></i><b><font size="4">Initial Behaviors</font></b>
   </div>
   <ul class="active content" local-class="agent-list-content">
+
     {{#each this.availableBehaviors.initial as |value|}}
+    {{#if value.uri}}
     <li data-value={{value.uri}} class="item" data-tooltip={{value.uri}} data-position="top left" local-class="agent-list-item">
       <button {{action "setActiveBehavior" value "initial"}}>{{value.label}} </button>
       <i></i>
     </li>
+    {{/if}}
     {{/each}}
   </ul>
   {{/ui-accordion}}
@@ -57,10 +60,12 @@
   </div>
   <ul class="active content" local-class="agent-list-content">
     {{#each this.availableBehaviors.final as |value|}}
+    {{#if value.uri}}
     <li data-value={{value.uri}} class="item" data-tooltip={{value.uri}} data-position="top left" local-class="agent-list-item">
       <button {{action "setActiveBehavior" value "final"}}>{{value.label}} </button>
       <i></i>
     </li>
+    {{/if}}
     {{/each}}
   </ul>
   {{/ui-accordion}}

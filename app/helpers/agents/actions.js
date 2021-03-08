@@ -45,16 +45,6 @@ export default {
   deleteGoal: deleteGoal,
   deleteVariable: deleteVariable,
 
-  deleteactiveAgentsInitialbehavior: deleteactiveAgentsInitialbehavior,
-  deleteactiveAgentsFinalbehavior: deleteactiveAgentsFinalbehavior,
-  deleteactiveAgentsbehavior: deleteactiveAgentsbehavior,
-  deleteactiveAgentsevent:deleteactiveAgentsevent,
-  deleteactiveAgentsendpoint:deleteactiveAgentsendpoint,
-
-  deleteactiveBehaviorstrigger: deleteactiveBehaviorstrigger,
-  deleteactiveBehaviorsbt:deleteactiveBehaviorsbt,
-  deleteactiveEndpointsevent:deleteactiveEndpointsevent,
-
 	createDefaultAgent: createDefaultAgent,
   createDefaultInitialBehavior: createDefaultInitialBehavior,
   createDefaultFinalBehavior: createDefaultFinalBehavior,
@@ -135,47 +125,6 @@ function deleteVariable(ele, val) {
   ele = ele.filter(item => item !== val);
   rdfGraph.removeAllRelated(val.uri);
   return ele;
-}
-
-function deleteactiveAgentsInitialbehavior(activeAgent) {
-  console.log(activeAgent.initialBehavior);
-  rdfGraph.removeRelatedInitialbehavior(activeAgent.uri);
-}
-
-function deleteactiveAgentsFinalbehavior(activeAgent) {
-  console.log(activeAgent.finalBehavior);
-  rdfGraph.removeRelatedFinalbehavior(activeAgent.uri);
-}
-
-function deleteactiveAgentsbehavior(activeAgent) {
-	console.log(activeAgent.behavior);
-	rdfGraph.removeRelatedbehavior(activeAgent.uri);
-}
-
-function deleteactiveAgentsevent(activeAgent) {
-	console.log(activeAgent.event);
-	rdfGraph.removeRelatedevent(activeAgent.uri);
-}
-
-function deleteactiveAgentsendpoint(activeAgent) {
-	console.log(activeAgent.endpoint);
-	rdfGraph.removeRelatedendpoint(activeAgent.uri);
-}
-///////for individual behaviror
-function deleteactiveBehaviorstrigger(activeBehavior){
-  console.log(activeBehavior.trigger);
-	rdfGraph.removeRelatedtrigger(activeBehavior.uri);
-}
-
-function deleteactiveBehaviorsbt(activeBehavior){
-  console.log(activeBehavior.bt);
-	rdfGraph.removeRelatedbt(activeBehavior.uri);
-}
-
-/////////for individual Endpoint
-function deleteactiveEndpointsevent(activeEndpoint){
-  console.log(activeEndpoint.event);
-	rdfGraph.removeRelatedEndpointsevent(activeEndpoint.uri);
 }
 
 function createDefaultAgent(repo) {

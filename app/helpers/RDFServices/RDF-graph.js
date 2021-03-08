@@ -190,82 +190,23 @@ class RDFGraph {
 		});
 	}
 
-	//remove some Agent's behavior, activeAgent here is uri
-   removeRelatedInitialbehavior(activeAgenturi) {
-		console.warn("Delete behavior related to", activeAgenturi);
-		this.data.forEach(quad => {
-		  if(quad.subject.value == activeAgenturi && quad.predicate.value === "http://www.ajan.de/ajan-ns#initialBehavior") {
-        this.data.remove(quad);
-      }
-		});
-   }
-
-  //remove some Agent's behavior, activeAgent here is uri
-  removeRelatedFinalbehavior(activeAgenturi) {
-    console.warn("Delete behavior related to", activeAgenturi);
+  removeRelatedQuads(subject, predicate) {
+    this.unsavedChanges = true;
+    let remove = [];
+    console.warn("Delete related to", subject, predicate);
     this.data.forEach(quad => {
-      if (quad.subject.value == activeAgenturi && quad.predicate.value === "http://www.ajan.de/ajan-ns#finalBehavior") {
-        this.data.remove(quad);
+      if (quad.subject.value == subject && quad.predicate.value === predicate) {
+        remove.push(quad);
       }
     });
+    this.removeQuads(remove);
   }
 
-  //remove some Agent's behavior, activeAgent here is uri
-  removeRelatedbehavior(activeAgenturi) {
-    console.warn("Delete behavior related to", activeAgenturi);
-    this.data.forEach(quad => {
-      if (quad.subject.value == activeAgenturi && quad.predicate.value === "http://www.ajan.de/ajan-ns#behavior") {
-        this.data.remove(quad);
-      }
+  removeQuads(remove) {
+    remove.forEach(quad => {
+      this.data.remove(quad);
     });
   }
-
-	//remove Agent event
-   removeRelatedevent(activeAgenturi) {
-		console.warn("Delete event related to", activeAgenturi);
-		this.data.forEach(quad => {
-		  if(quad.subject.value == activeAgenturi && quad.predicate.value === "http://www.ajan.de/ajan-ns#event") {
-        this.data.remove(quad);
-      }
-		});
-   }
-
-	//remove Agent endpoint
-   removeRelatedendpoint(activeAgenturi) {
-		console.warn("Delete behavior related to", activeAgenturi);
-		this.data.forEach(quad => {
-		  if(quad.subject.value == activeAgenturi && quad.predicate.value === "http://www.ajan.de/ajan-ns#endpoint") {
-        this.data.remove(quad);
-      }
-		});
-	}
-	//remove some Behavior's trigger, activeBehavior here is uri
-   removeRelatedtrigger(activeBehavioruri) {
-		console.warn("Delete trigger related to", activeBehavioruri);
-		this.data.forEach(quad => {
-		  if(quad.subject.value == activeBehavioruri && quad.predicate.value === "http://www.ajan.de/ajan-ns#trigger") {
-        this.data.remove(quad);
-      }
-		});
-	}
-
-	removeRelatedbt(activeBehavioruri) {
-		console.warn("Delete bt related to", activeBehavioruri);
-		this.data.forEach(quad => {
-		  if(quad.subject.value == activeBehavioruri && quad.predicate.value === "http://www.ajan.de/ajan-ns#bt") {
-        this.data.remove(quad);
-      }
-		});
-	}
-	//remove Individual endpoint's event
-  removeRelatedEndpointsevent(activeEndpointuri) {
-		console.warn("Delete event related to", activeEndpointuri);
-		this.data.forEach(quad => {
-		  if(quad.subject.value == activeEndpointuri && quad.predicate.value === "http://www.ajan.de/ajan-ns#event") {
-        this.data.remove(quad);
-      }
-		});
-	}
 
 	removeQuad(removeQuad) {
 		this.unsavedChanges = true;

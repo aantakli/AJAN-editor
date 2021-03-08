@@ -78,14 +78,14 @@ export default Component.extend({
 
     savenewendpointevents(newendpointevents){
 	    self.set("activeEndpoint.events",[]);
-	    actions.deleteactiveEndpointsevent(self.get("activeEndpoint"));
+      rdfGraph.removeRelatedQuads(self.get("activeEndpoint.uri"), "http://www.ajan.de/ajan-ns#event");
 	    for(var i=0;i<newendpointevents.length;i++){
 	      self.get("activeEndpoint.events").push(newendpointevents[i]);//totally new
         var rdftriple= rdfFact.quad(self.get("activeEndpoint.uri") ,"http://www.ajan.de/ajan-ns#event", newendpointevents[i].uri);
         rdfGraph.add(rdftriple);
-			  updateRepo();
-			  reset();
       }
+      updateRepo();
+      reset();
       setFileContent(self.get("activeEndpoint.uri"));
       self.actions.toggle("endpointevent");
  },

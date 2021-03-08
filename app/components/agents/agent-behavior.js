@@ -106,14 +106,14 @@ export default Component.extend({
 
 		savenewtriggers(newtriggers){
 			self.set("activeBehavior.triggers",[]);
-			actions.deleteactiveBehaviorstrigger(self.get("activeBehavior"));
+      rdfGraph.removeRelatedQuads(self.get("activeBehavior.uri"), "http://www.ajan.de/ajan-ns#trigger");
 			for(var i=0;i<newtriggers.length;i++){
 				self.get("activeBehavior.triggers").push(newtriggers[i]);
 				var rdftriple= rdfFact.quad(self.get("activeBehavior.uri") ,"http://www.ajan.de/ajan-ns#trigger", newtriggers[i].uri);
 				rdfGraph.add(rdftriple);
-				updateRepo();
-				reset();
       }
+      updateRepo();
+      reset();
       setFileContent(self.get("activeBehavior.uri"));
 			self.actions.toggle("trigger");
 		},

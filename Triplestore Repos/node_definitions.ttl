@@ -290,6 +290,18 @@
     ]
 .
 
+:Breakpoint nd:class nd:Leaf;
+	nd:name "Breakpoint" ;
+    nd:labelType nd:Fixed ;
+	rdfs:label "\u25A0";
+    nd:type bt:Breakpoint ;
+    nd:style [
+        a nd:styleDef ;
+        nd:color "#C40000" ;
+        nd:shape nd:Ellipse ;
+    ]
+.
+
 :Action nd:class nd:Leaf;
     nd:name "Action";
     nd:labelType nd:Dynamic;

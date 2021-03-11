@@ -147,15 +147,33 @@ function myMessageHandler(event) {
   } else if (report.includes('FINISHED') || report.includes('STARTING')) {
     status = "bt-report";
   }
-  let $report = $("<i>", {
-    class: status
-  }).text(event.data);
 
-  let $message = $("<p>", {
-    class: status
-  }).text(new Date().toUTCString() + ": ")
-    .append($report);
+  let $message = null;
 
+  if (report.includes('DEBUGGING')) {
+    let $debug = $("<i>", {
+      class: "failed-report"
+    }).text("DEBUGGING: ");
+
+    let text = event.data;
+    text = text.replace("DEBUGGING: ", "");
+    let $report = $("<i>", {
+      class: status
+    }).text(text);
+
+    $message = $("<p>", {
+      class: status
+    }).text(new Date().toUTCString() + ": ")
+      .append($debug).append($report);
+  } else {
+    let $report = $("<i>", {
+      class: status
+    }).text(event.data);
+    $message = $("<p>", {
+      class: status
+    }).text(new Date().toUTCString() + ": ")
+      .append($report);
+  }
   let $textarea = $("#report-service-message-content");
   $textarea.append($message);
 

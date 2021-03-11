@@ -127,7 +127,14 @@
         nd:shape nd:Hexagon;
         nd:padding "600%";
         nd:paddingTo "width";
-    ] .
+    ] ;
+	nd:parameter [
+		a nd:Parameter;
+		nd:mapsTo bt:join;
+		nd:title "Join";
+		nd:input xsd:boolean ;
+		nd:default "true"^^xsd:boolean;
+	] .
 
 :PrioParallel nd:class nd:Composite;
     nd:name "PrioParallel";
@@ -140,7 +147,14 @@
         nd:shape nd:Hexagon;
         nd:padding "600%";
         nd:paddingTo "width";
-    ] .
+    ] ;
+	nd:parameter [
+		a nd:Parameter;
+		nd:mapsTo bt:join;
+		nd:title "Join";
+		nd:input xsd:boolean ;
+		nd:default "true"^^xsd:boolean;
+	] .
 
 
 

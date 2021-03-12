@@ -92,6 +92,9 @@ export default Ember.Component.extend({
       const request = new XMLHttpRequest();
       request.open("GET", uri + method);
       request.send();
+      let $behavior = $(".agent-behavior[behavior='" + uri + "']");
+      console.log($behavior);
+      $behavior.find("a.debug").addClass("hidden");
     },
 
     connect() {
@@ -162,10 +165,18 @@ function myMessageHandler(event) {
     }).text("DEBUGGING: ");
 
     let text = event.data;
-    text = text.replace("DEBUGGING: ", "");
+    var split = text.split(": ");
+
     let $report = $("<i>", {
       class: status
-    }).text(text);
+    }).text(split[1]);
+
+    let behavior = split[0].replace("DEBUGGING(", "");
+    behavior = behavior.replace(")", "");
+    console.log(behavior);
+    let $behavior = $(".agent-behavior[behavior='" + behavior + "']");
+    console.log($behavior);
+    $behavior.find("a.debug").removeClass("hidden");
 
     $message = $("<p>", {
       class: status

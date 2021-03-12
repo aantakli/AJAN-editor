@@ -88,6 +88,12 @@ export default Ember.Component.extend({
       });
     },
 
+    debug(uri, method) {
+      const request = new XMLHttpRequest();
+      request.open("GET", uri + method);
+      request.send();
+    },
+
     connect() {
       console.log("connect");
       var socket = that.get('websockets').socketFor('ws://localhost:4202');

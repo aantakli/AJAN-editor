@@ -76,8 +76,14 @@
         {{value.name}}
       </div>
       <div>
-        <a data-tooltip="open behaviors state knowledge" class="ui right icon button" local-class="instance-row-download" rel="noopener noreferrer" target="_blank" rel="noopener" href={{concat value.uri '?mode=detail'}}>
+        <a data-tooltip="open behaviors state knowledge" class="ui right icon button" local-class="instance-row-download" rel="noopener noreferrer" rel="noopener" href={{concat value.uri '?method=info&mode=detail'}}>
           <i class="icon external alternate no-side-margins"></i>
+        </a>
+        <a data-tooltip="resume behavior execution" class="ui right icon button green" local-class="instance-row-download" onclick={{action "debug" value.uri '?method=debug&mode=resume'}}>
+          <i class="icon play alternate no-side-margins"></i>
+        </a>
+        <a data-tooltip="execute next behavior leafe node" class="ui right icon button yellow" local-class="instance-row-download" onclick={{action "debug" value.uri '?method=debug&mode=step'}}>
+          <i class="icon angle double right alternate no-side-margins"></i>
         </a>
       </div>
     </li>

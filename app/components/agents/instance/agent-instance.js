@@ -145,6 +145,11 @@ function myOpenHandler(event) {
 
 function myMessageHandler(event) {
   let report = event.data;
+  console.log(report);
+  if (!report.includes(that.get("activeInstance.uri"))) {
+    return;
+  }
+
   that.set("wssMessage", report);
   let status = "normal-report";
   if (report.includes('SUCCEEDED')) {
@@ -158,14 +163,12 @@ function myMessageHandler(event) {
   }
 
   let $message = null;
+  var split = report.split(": ");
 
   if (report.includes('DEBUGGING')) {
     let $debug = $("<i>", {
       class: "failed-report"
     }).text("DEBUGGING: ");
-
-    let text = event.data;
-    var split = text.split(": ");
 
     let $report = $("<i>", {
       class: status
@@ -173,6 +176,7 @@ function myMessageHandler(event) {
 
     let behavior = split[0].replace("DEBUGGING(", "");
     behavior = behavior.replace(")", "");
+    behavior = behavior.split("] ")[1];
     console.log(behavior);
     let $behavior = $(".agent-behavior[behavior='" + behavior + "']");
     console.log($behavior);
@@ -185,7 +189,7 @@ function myMessageHandler(event) {
   } else {
     let $report = $("<i>", {
       class: status
-    }).text(event.data);
+    }).text(split[1]);
     $message = $("<p>", {
       class: status
     }).text(new Date().toUTCString() + ": ")

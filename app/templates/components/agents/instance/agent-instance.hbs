@@ -76,7 +76,7 @@
         {{behavior.name}}
       </div>
       <div>
-        <a data-tooltip="open behaviors state knowledge" class="ui right icon button" local-class="instance-row-download" rel="noopener noreferrer" rel="noopener" href={{concat behavior.uri '?method=info&mode=detail'}}>
+        <a data-tooltip="open behaviors state knowledge" class="ui right icon button" local-class="instance-row-download" rel="noopener noreferrer" rel="noopener" target="_blank" href={{concat behavior.uri '?method=info&mode=detail'}}>
           <i class="icon external alternate no-side-margins"></i>
         </a>
         <a data-tooltip="resume behavior execution" class="debug hidden ui right icon button green" local-class="instance-row-download" onclick={{action "debug" behavior.uri '?method=debug&mode=resume'}}>

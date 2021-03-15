@@ -30,7 +30,6 @@ export default {
 };
 
 function getReportGraph(data) {
-  console.log("get report graph");
 	const quadStream = parser.import(stringToStream(data));
 
 	let obj = rdf
@@ -69,6 +68,9 @@ function getReportDefinition(graph, resource) {
       }
       if (quad.predicate.value === RDFS.label) {
         report.label = quad.object.value;
+      }
+      if (quad.predicate.value === AGENTS.bt) {
+        report.bt = quad.object.value;
       }
       if (quad.predicate.value === BT.btNode) {
         report.node = quad.object.value;

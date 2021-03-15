@@ -168,6 +168,15 @@ ul.instance-row-content {
   position: relative;
 }
 
+:global(p.report-time) {
+  margin-bottom: 0px;
+}
+
+:global(i.agent-report) {
+  padding-left: 20px;
+  margin-top: -5px;
+}
+
 :global(i.succeeded-report) {
   color: greenyellow;
 }

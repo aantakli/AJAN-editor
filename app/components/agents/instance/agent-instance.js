@@ -145,67 +145,67 @@ function myOpenHandler(event) {
 }
 
 function myMessageHandler(event) {
-  let report = event.data;
-  console.log(report);
-  let rdf = reportConsumer.getReportGraph(report);
+  let rdf = reportConsumer.getReportGraph(event.data);
   let promise = Promise.resolve(rdf);
-  promise.then(function (reportResolved) {
-    console.log(reportResolved);
+  promise.then(function (result) {
+    console.log(result);
+    if (result.length == 0) {
+      return;
+    }
+
+    let report = result[0];
+    if (report.agent != that.get("activeInstance.uri")) {
+      return;
+    }
+
+    that.set("wssMessage", report);
+    let status = "agent-report ";
+    if (report.label.includes('SUCCEEDED')) {
+      status = status + "succeeded-report";
+    } else if (report.label.includes('FAILED')) {
+      status = status + "failed-report";
+    } else if (report.label.includes('CANCELLED')) {
+      status = status + "cancelled-report";
+    } else if (report.label.includes('FINISHED') || report.label.includes('STARTING')) {
+      status = status + "bt-report";
+    } else {
+      status = status + "normal-report";
+    }
+
+    let $messageTime = $("<p>", {
+      class: "report-time"
+    }).text(new Date().toUTCString() + ": ");
+    let $message = null;
+
+    if (report.debugging) {
+      let $debug = $("<i>", {
+        class: "failed-report"
+      }).text("DEBUGGING");
+
+      let $report = $("<i>", {
+        class: status
+      }).text(report.label);
+
+      let behavior = report.bt;
+      console.log(behavior);
+      let $behavior = $(".agent-behavior[behavior='" + behavior + "']");
+      console.log($behavior);
+      $behavior.find("a.debug").removeClass("hidden");
+
+      $messageTime.append($debug);
+      $message = $("<p>", {}).append($report);
+    } else {
+      let $report = $("<i>", {
+        class: status
+      }).text(report.label);
+      $message = $("<p>", {}).append($report);
+    }
+    let $textarea = $("#report-service-message-content");
+    $textarea.append($messageTime).append($message);
+
+    $("#report-service-message").scrollTop($("#report-service-message")[0].scrollHeight);
+
   });
-  
-  if (!report.includes(that.get("activeInstance.uri"))) {
-    return;
-  }
-
-  that.set("wssMessage", report);
-  let status = "normal-report";
-  if (report.includes('SUCCEEDED')) {
-    status = "succeeded-report";
-  } else if (report.includes('FAILED')) {
-    status = "failed-report";
-  } else if (report.includes('CANCELLED')) {
-    status = "cancelled-report";
-  } else if (report.includes('FINISHED') || report.includes('STARTING')) {
-    status = "bt-report";
-  }
-
-  let $message = null;
-  var split = report.split(": ");
-
-  if (report.includes('DEBUGGING')) {
-    let $debug = $("<i>", {
-      class: "failed-report"
-    }).text("DEBUGGING: ");
-
-    let $report = $("<i>", {
-      class: status
-    }).text(split[1]);
-
-    let behavior = split[0].replace("DEBUGGING(", "");
-    behavior = behavior.replace(")", "");
-    behavior = behavior.split("] ")[1];
-    console.log(behavior);
-    let $behavior = $(".agent-behavior[behavior='" + behavior + "']");
-    console.log($behavior);
-    $behavior.find("a.debug").removeClass("hidden");
-
-    $message = $("<p>", {
-      class: status
-    }).text(new Date().toUTCString() + ": ")
-      .append($debug).append($report);
-  } else {
-    let $report = $("<i>", {
-      class: status
-    }).text(split[1]);
-    $message = $("<p>", {
-      class: status
-    }).text(new Date().toUTCString() + ": ")
-      .append($report);
-  }
-  let $textarea = $("#report-service-message-content");
-  $textarea.append($message);
-
-  $("#report-service-message").scrollTop($("#report-service-message")[0].scrollHeight);
 }
 
 function myCloseHandler(event) {

@@ -37,15 +37,17 @@ function getReportGraph(data) {
 		.import(quadStream)
 		.then(function(dataset) {
       let reports = new Array();
-      getReport(dataset, reports);
-      return reports;
+      let quads = new Array();
+      getReport(dataset, quads, reports);
+      return [reports,quads];
 		});
 	return Promise.resolve(obj);
 }
 
-function getReport(graph, reports) {
+function getReport(graph, quads, reports) {
 	Promise.resolve(graph).then(function(graph) {
-		graph.forEach(quad => {
+    graph.forEach(quad => {
+      quads.push(quad);
 			if (
 				quad.predicate.value === RDF.type
 				&& quad.object.value === BT.Report

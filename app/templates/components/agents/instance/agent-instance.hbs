@@ -85,6 +85,9 @@
         <a data-tooltip="execute next behavior leafe node" class="debug hidden ui right icon button yellow" local-class="instance-row-download" onclick={{action "debug" behavior.uri '?method=debug&mode=step'}}>
           <i class="icon angle double right alternate no-side-margins"></i>
         </a>
+        <a data-tooltip="get node debug info" class="debug hidden ui right icon button blue" local-class="instance-row-download" onclick={{action "debugView" behavior.uri}}>
+          <i class="icon eye double right alternate no-side-margins"></i>
+        </a>
       </div>
     </li>
     {{/each}}

@@ -22,6 +22,7 @@ import Ember from "ember";
 import rdf from "npm:rdf-ext";
 import N3Parser from "npm:rdf-parser-n3";
 import stringToStream from "npm:string-to-stream";
+import modal from "ajan-editor/helpers/ui/debug-modal";
 import actions from "ajan-editor/helpers/agents/instance/actions";
 import reportConsumer from "ajan-editor/helpers/RDFServices/reportRDFConsumer";
 
@@ -35,6 +36,7 @@ export default Ember.Component.extend({
   messageError: "",
   wssConnection: false,
   wssMessage: "",
+  debugReport: null,
   socketRef: null,
   websockets: Ember.inject.service(),
 
@@ -98,6 +100,11 @@ export default Ember.Component.extend({
       $behavior.find("a.debug").addClass("hidden");
     },
 
+    debugView(uri) {
+      console.log(this.get("debugReport"));
+      modal.createDebugModal(this.get("debugReport"));
+    },
+
     connect() {
       console.log("connect");
       var socket = that.get('websockets').socketFor('ws://localhost:4202');
@@ -148,12 +155,11 @@ function myMessageHandler(event) {
   let rdf = reportConsumer.getReportGraph(event.data);
   let promise = Promise.resolve(rdf);
   promise.then(function (result) {
-    console.log(result);
-    if (result.length == 0) {
+    if (result[0].length == 0) {
       return;
     }
 
-    let report = result[0];
+    let report = result[0][0];
     if (report.agent != that.get("activeInstance.uri")) {
       return;
     }
@@ -178,6 +184,11 @@ function myMessageHandler(event) {
     let $message = null;
 
     if (report.debugging) {
+
+      if (!report.label.includes('BTRoot')) {
+        that.set("debugReport", result);
+      }
+
       let $debug = $("<i>", {
         class: "failed-report"
       }).text("DEBUGGING");
@@ -187,24 +198,22 @@ function myMessageHandler(event) {
       }).text(report.label);
 
       let behavior = report.bt;
-      console.log(behavior);
       let $behavior = $(".agent-behavior[behavior='" + behavior + "']");
-      console.log($behavior);
       $behavior.find("a.debug").removeClass("hidden");
 
       $messageTime.append($debug);
       $message = $("<p>", {}).append($report);
     } else {
+      that.set("debugReport", null);
       let $report = $("<i>", {
         class: status
       }).text(report.label);
       $message = $("<p>", {}).append($report);
     }
+
     let $textarea = $("#report-service-message-content");
     $textarea.append($messageTime).append($message);
-
     $("#report-service-message").scrollTop($("#report-service-message")[0].scrollHeight);
-
   });
 }
 

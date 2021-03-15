@@ -23,6 +23,7 @@ import rdf from "npm:rdf-ext";
 import N3Parser from "npm:rdf-parser-n3";
 import stringToStream from "npm:string-to-stream";
 import actions from "ajan-editor/helpers/agents/instance/actions";
+import reportConsumer from "ajan-editor/helpers/RDFServices/reportRDFConsumer";
 
 let that;
 
@@ -146,6 +147,12 @@ function myOpenHandler(event) {
 function myMessageHandler(event) {
   let report = event.data;
   console.log(report);
+  let rdf = reportConsumer.getReportGraph(report);
+  let promise = Promise.resolve(rdf);
+  promise.then(function (reportResolved) {
+    console.log(reportResolved);
+  });
+  
   if (!report.includes(that.get("activeInstance.uri"))) {
     return;
   }

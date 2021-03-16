@@ -24,17 +24,20 @@ export default {
   createDebugModal: createDebugModal
 };
 
-function createDebugModal(info) {
+function createDebugModal(info, prefixes) {
   console.log("BT-Node: Debug information");
-  $("#modal-header-title").text("BT-Node: Debug information");
-  let $body = $("#modal-body"),
-    $modal = $("#universal-modal");
+  $("#info-modal-header-title").text("BT-Node: Debug information");
+  let $body = $("#info-modal-body"),
+    $modal = $("#info-modal"),
+    $footer = $(".modal-footer");
+
   $body.empty();
   $modal.show();
+  $footer.hide();
 
   if (info) {
     getInfoHTML(info, $body);
-    getResultHTML(info, $body);
+    getResultHTML(info, prefixes, $body);
   }
 }
 
@@ -62,10 +65,16 @@ function getInfoHTML(info, $body) {
   $body.append($infoDiv);
 }
 
-function getResultHTML(info, $body) {
+function getResultHTML(info, prefixes, $body) {
   let result = info[1];
   let $result = $("<div>", {});
   $result.append($("<hr><h3>Node Result</h3>"));
+
+  for (key in prefixes) {
+    $result.append($("<p>", {
+      class: "modal-prefix"
+    }).append("<b>@prefix " + prefixes[key] + "</b> &lt;" + key + "&gt; ."));
+  }
 
   let report = null;
   let subjects = new Array();
@@ -79,10 +88,21 @@ function getResultHTML(info, $body) {
     if (quad.subject.value != report) {
       if (subjects[quad.subject.value] === undefined) {
         subjects[quad.subject.value] = new Array();
-      } 
+      }
+      let predicate = quad.predicate.value;
+      let object = quad.object.value;
+      let key;
+      for (key in prefixes) {
+        if (predicate.includes(key)) {
+          predicate = predicate.replace(key, prefixes[key]);
+        }
+        if (object.includes(key)) {
+          object = object.replace(key, prefixes[key]);
+        }
+      }
       subjects[quad.subject.value].push({
-        predicate: quad.predicate.value,
-        object: quad.object.value
+        predicate: predicate,
+        object: object
       });
     }
   });
@@ -90,16 +110,20 @@ function getResultHTML(info, $body) {
   console.log(subjects);
 
   let key;
+
   for (key in subjects) {
-    console.log(key);
-    let $input = $("<div>", {});
-    $input.append($("<h4>" + key + "</h4>"));
+    if (key == "_super") {
+      break;
+    }
+    let $input = $("<div class='agent-debug-statement'>", {});
+    $input.append($("<div class='agent-debug-subject'>" + key + "</div>"));
     let values = subjects[key];
     if (Array.isArray(values)) {
       values.forEach(function (info) {
-        let $row = $("<p>", {});
-        $row.append("<b>" + info.predicate + "</b> " + info.object);
-        $input.append($row);
+        let $childs = $("<div>", { class: 'agent-debug-pred-obj' });
+        $childs.append($("<div class='agent-debug-predicate'>" + info.predicate + "</div>"));
+        $childs.append($("<div class='agent-debug-object'>" + info.object + "</div>"));
+        $input.append($childs);
       });
     }
     $result.append($input);

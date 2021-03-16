@@ -198,6 +198,57 @@ ul.instance-row-content {
   color: cyan;
 }
 
+:global(.agent-debug-statement) {
+  margin-top: 15px;
+  float: left;
+  width: 100%;
+  background-color: gainsboro;
+}
+
+:global(.agent-debug-statement):last-child {
+  margin-bottom: 15px;
+}
+
+:global(.agent-debug-subject) {
+  width: 100%;
+  float: left;
+  background-color: gainsboro;
+  padding: 5px;
+  padding-left: 10px;
+  background-color: darkslateblue;
+  color: white;
+}
+
+:global(.agent-debug-pred-obj) {
+  width: 100%;
+  float: left;
+  padding-left: 20px;
+  padding-bottom: 5px;
+  padding-top: 5px;
+}
+
+:global(.agent-debug-predicate),
+:global(.agent-debug-object) {
+  float: left;
+}
+
+:global(.agent-debug-predicate) {
+  margin-left: 20px;
+  padding-right: 20px;
+  font-weight: bold;
+}
+
+:global(.agent-debug-object) {
+  font-style: italic;
+}
+
+:global(.modal-prefix) {
+  padding: 0px;
+  margin-bottom: 2px;
+  font-size: small;
+  color: darkslateblue;
+}
+
 /* clearfix */
 .clearfix::before,
 .clearfix::after {

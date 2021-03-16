@@ -37,6 +37,15 @@ export default Ember.Component.extend({
   wssConnection: false,
   wssMessage: "",
   debugReport: null,
+  prefixes: {
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#": "rdf:",
+    "http://www.w3.org/2000/01/rdf-schema#": "rdfs:",
+    "http://www.w3.org/2001/XMLSchema#": "xsd:",
+    "http://purl.org/dc/terms/": "dct:",
+    "http://www.ajan.de/ajan-ns#": "ajan:",
+    "http://www.ajan.de/behavior/bt-ns#": "bt:",
+    "http://www.ajan.de/actn#": "actn:"
+  },
   socketRef: null,
   websockets: Ember.inject.service(),
 
@@ -96,13 +105,12 @@ export default Ember.Component.extend({
       request.open("GET", uri + method);
       request.send();
       let $behavior = $(".agent-behavior[behavior='" + uri + "']");
-      console.log($behavior);
       $behavior.find("a.debug").addClass("hidden");
     },
 
     debugView(uri) {
-      console.log(this.get("debugReport"));
-      modal.createDebugModal(this.get("debugReport"));
+      console.log(this.get("prefixes"));
+      modal.createDebugModal(this.get("debugReport"), this.get("prefixes"));
     },
 
     connect() {

@@ -15,3 +15,10 @@
   min-height: 2em;
   /* max-height: 24em; */
 }
+
+:global(span.label-icon) {
+  text-align: center;
+  display: block;
+  font-weight: bold;
+  margin-top: 3px;
+}

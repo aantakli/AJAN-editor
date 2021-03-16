@@ -63,10 +63,20 @@ function insertNodeDefs() {
 
 function insertNodeDef(node, btData /*Optional param for behavior trees*/) {
 	let $parent = $("#" + node.class);
-	let evenChild = $parent.children("div").length % 2;
-	let $icon = $('<div class="flex-item node-icon-container"></div>').append(
-		$('<image src="' + (node.style.icon || "") + '" alt="" class="node-icon">')
-	);
+  let evenChild = $parent.children("div").length % 2;
+
+  let $image;
+  console.log(node.style);
+  if (node.style.icon)
+    $image = $('<image src="' + (node.style.icon || "") + '" alt="" class="node-icon">');
+  else {
+    let color = '#000';
+    if (node.style.style.label)
+      color = node.style.style.color;
+    $image = $('<span alt="" style="color:' + color + ';" class="node-icon label-icon">' + node.style.style.label + '</span>');
+  }
+
+	let $icon = $('<div class="flex-item node-icon-container"></div>').append($image);
 	let $div = $("<div>", {
 		id: btData ? btData.name : node.id,
 		class: "node-draggable flex-container " + (evenChild ? "even" : "odd")

@@ -1,0 +1,15 @@
+
+<div id="info-modal" class='modal'>
+  <!-- Modal content -->
+  <div local-class="modal-content">
+    <div local-class="modal-header">
+      <span local-class="close" {{action 'close'}}><i class="close icon"></i></span>
+      <h2 id="info-modal-header-title" local-class="header-title">Modal Header</h2>
+    </div>
+    <div id="info-modal-body" local-class="modal-body">
+      <!-- <p>Placholder. Delete old content first</p> -->
+      {{yield}}
+    </div>
+    <div local-class="modal-footer"></div>
+  </div>
+</div>

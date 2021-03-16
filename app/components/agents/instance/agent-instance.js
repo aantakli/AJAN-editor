@@ -22,7 +22,9 @@ import Ember from "ember";
 import rdf from "npm:rdf-ext";
 import N3Parser from "npm:rdf-parser-n3";
 import stringToStream from "npm:string-to-stream";
+import modal from "ajan-editor/helpers/ui/debug-modal";
 import actions from "ajan-editor/helpers/agents/instance/actions";
+import reportConsumer from "ajan-editor/helpers/RDFServices/reportRDFConsumer";
 
 let that;
 
@@ -34,6 +36,16 @@ export default Ember.Component.extend({
   messageError: "",
   wssConnection: false,
   wssMessage: "",
+  debugReport: null,
+  prefixes: {
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#": "rdf:",
+    "http://www.w3.org/2000/01/rdf-schema#": "rdfs:",
+    "http://www.w3.org/2001/XMLSchema#": "xsd:",
+    "http://purl.org/dc/terms/": "dct:",
+    "http://www.ajan.de/ajan-ns#": "ajan:",
+    "http://www.ajan.de/behavior/bt-ns#": "bt:",
+    "http://www.ajan.de/actn#": "actn:"
+  },
   socketRef: null,
   websockets: Ember.inject.service(),
 
@@ -88,6 +100,19 @@ export default Ember.Component.extend({
       });
     },
 
+    debug(uri, method) {
+      const request = new XMLHttpRequest();
+      request.open("GET", uri + method);
+      request.send();
+      let $behavior = $(".agent-behavior[behavior='" + uri + "']");
+      $behavior.find("a.debug").addClass("hidden");
+    },
+
+    debugView(uri) {
+      console.log(this.get("prefixes"));
+      modal.createDebugModal(this.get("debugReport"), this.get("prefixes"));
+    },
+
     connect() {
       console.log("connect");
       var socket = that.get('websockets').socketFor('ws://localhost:4202');
@@ -135,31 +160,69 @@ function myOpenHandler(event) {
 }
 
 function myMessageHandler(event) {
-  let report = event.data;
-  that.set("wssMessage", report);
-  let status = "normal-report";
-  if (report.includes('SUCCEEDED')) {
-    status = "succeeded-report";
-  } else if (report.includes('FAILED')) {
-    status = "failed-report";
-  } else if (report.includes('CANCELLED')) {
-    status = "cancelled-report";
-  } else if (report.includes('FINISHED') || report.includes('STARTING')) {
-    status = "bt-report";
-  }
-  let $report = $("<i>", {
-    class: status
-  }).text(event.data);
+  let rdf = reportConsumer.getReportGraph(event.data);
+  let promise = Promise.resolve(rdf);
+  promise.then(function (result) {
+    if (result[0].length == 0) {
+      return;
+    }
 
-  let $message = $("<p>", {
-    class: status
-  }).text(new Date().toUTCString() + ": ")
-    .append($report);
+    let report = result[0][0];
+    if (report.agent != that.get("activeInstance.uri")) {
+      return;
+    }
 
-  let $textarea = $("#report-service-message-content");
-  $textarea.append($message);
+    that.set("wssMessage", report);
+    let status = "agent-report ";
+    if (report.label.includes('SUCCEEDED')) {
+      status = status + "succeeded-report";
+    } else if (report.label.includes('FAILED')) {
+      status = status + "failed-report";
+    } else if (report.label.includes('CANCELLED')) {
+      status = status + "cancelled-report";
+    } else if (report.label.includes('FINISHED') || report.label.includes('STARTING')) {
+      status = status + "bt-report";
+    } else {
+      status = status + "normal-report";
+    }
 
-  $("#report-service-message").scrollTop($("#report-service-message")[0].scrollHeight);
+    let $messageTime = $("<p>", {
+      class: "report-time"
+    }).text(new Date().toUTCString() + ": ");
+    let $message = null;
+
+    if (report.debugging) {
+
+      if (!report.label.includes('BTRoot')) {
+        that.set("debugReport", result);
+      }
+
+      let $debug = $("<i>", {
+        class: "failed-report"
+      }).text("DEBUGGING");
+
+      let $report = $("<i>", {
+        class: status
+      }).text(report.label);
+
+      let behavior = report.bt;
+      let $behavior = $(".agent-behavior[behavior='" + behavior + "']");
+      $behavior.find("a.debug").removeClass("hidden");
+
+      $messageTime.append($debug);
+      $message = $("<p>", {}).append($report);
+    } else {
+      that.set("debugReport", null);
+      let $report = $("<i>", {
+        class: status
+      }).text(report.label);
+      $message = $("<p>", {}).append($report);
+    }
+
+    let $textarea = $("#report-service-message-content");
+    $textarea.append($messageTime).append($message);
+    $("#report-service-message").scrollTop($("#report-service-message")[0].scrollHeight);
+  });
 }
 
 function myCloseHandler(event) {

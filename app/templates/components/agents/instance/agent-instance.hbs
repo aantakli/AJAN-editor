@@ -70,14 +70,23 @@
   </div>
 
   <ul local-class="instance-row-content" style="list-style-type:none;">
-    {{#each this.activeInstance.behaviors as |value|}}
-    <li>
+    {{#each this.activeInstance.behaviors as |behavior|}}
+    <li class="agent-behavior" behavior={{behavior.uri}}>
       <div local-class="instance-row-value instance-row-behavior " class="list-item">
-        {{value.name}}
+        {{behavior.name}}
       </div>
       <div>
-        <a data-tooltip="open behaviors state knowledge" class="ui right icon button" local-class="instance-row-download" rel="noopener noreferrer" target="_blank" rel="noopener" href={{concat value.uri '?mode=detail'}}>
+        <a data-tooltip="open behaviors state knowledge" class="ui right icon button" local-class="instance-row-download" rel="noopener noreferrer" rel="noopener" target="_blank" href={{concat behavior.uri '?method=info&mode=detail'}}>
           <i class="icon external alternate no-side-margins"></i>
+        </a>
+        <a data-tooltip="resume behavior execution" class="debug hidden ui right icon button green" local-class="instance-row-download" onclick={{action "debug" behavior.uri '?method=debug&mode=resume'}}>
+          <i class="icon play alternate no-side-margins"></i>
+        </a>
+        <a data-tooltip="execute next behavior leafe node" class="debug hidden ui right icon button yellow" local-class="instance-row-download" onclick={{action "debug" behavior.uri '?method=debug&mode=step'}}>
+          <i class="icon angle double right alternate no-side-margins"></i>
+        </a>
+        <a data-tooltip="get node debug info" class="debug hidden ui right icon button blue" local-class="instance-row-download" onclick={{action "debugView" behavior.uri}}>
+          <i class="icon eye double right alternate no-side-margins"></i>
         </a>
       </div>
     </li>

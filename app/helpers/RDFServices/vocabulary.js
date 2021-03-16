@@ -118,7 +118,10 @@ let BT = {
 	Query: "http://www.ajan.de/behavior/bt-ns#Query",
 	queryTemplate: "http://www.ajan.de/behavior/bt-ns#queryTemplate",
 	queryTemplateDefaultQuery: "http://www.ajan.de/behavior/bt-ns#queryTemplateDefaultQuery",
-	BehaviorTree: "http://www.ajan.de/behavior/bt-ns#BehaviorTree"
+  BehaviorTree: "http://www.ajan.de/behavior/bt-ns#BehaviorTree",
+  Report: "http://www.ajan.de/behavior/bt-ns#Report",
+  debugging: "http://www.ajan.de/behavior/bt-ns#debugging",
+  btNode: "http://www.ajan.de/behavior/bt-ns#btNode"
 };
 let EDITOR = {
 	defaultPrefix: "http://www.ajan.de/behavior/editor-ns#",
@@ -194,6 +197,7 @@ let SPIN = {
 };
 let AGENTS = {
   Agent: "http://www.ajan.de/ajan-ns#Agent",
+  agent: "http://www.ajan.de/ajan-ns#agent",
 	Event: "http://www.ajan.de/ajan-ns#ModelEvent",
   Endpoint: "http://www.ajan.de/ajan-ns#Endpoint",
   InitialBehavior: "http://www.ajan.de/ajan-ns#InitialBehavior",

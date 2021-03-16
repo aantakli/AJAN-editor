@@ -127,7 +127,14 @@
         nd:shape nd:Hexagon;
         nd:padding "600%";
         nd:paddingTo "width";
-    ] .
+    ] ;
+	nd:parameter [
+		a nd:Parameter;
+		nd:mapsTo bt:join;
+		nd:title "Join";
+		nd:input xsd:boolean ;
+		nd:default "true"^^xsd:boolean;
+	] .
 
 :PrioParallel nd:class nd:Composite;
     nd:name "PrioParallel";
@@ -140,7 +147,14 @@
         nd:shape nd:Hexagon;
         nd:padding "600%";
         nd:paddingTo "width";
-    ] .
+    ] ;
+	nd:parameter [
+		a nd:Parameter;
+		nd:mapsTo bt:join;
+		nd:title "Join";
+		nd:input xsd:boolean ;
+		nd:default "true"^^xsd:boolean;
+	] .
 
 
 
@@ -287,6 +301,18 @@
         nd:padding "700%";
         nd:paddingTo "width";
         nd:icon "icons8-fail.png";
+    ]
+.
+
+:Breakpoint nd:class nd:Leaf;
+	nd:name "Breakpoint" ;
+    nd:labelType nd:Fixed ;
+	rdfs:label "\u25A0";
+    nd:type bt:Breakpoint ;
+    nd:style [
+        a nd:styleDef ;
+        nd:color "#C40000" ;
+        nd:shape nd:Ellipse ;
     ]
 .
 

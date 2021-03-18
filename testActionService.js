@@ -27,8 +27,12 @@ app.get('/', cors(), (req, res) => {
 
 app.post('/post', (req, res) => {
   const date = new Date().toUTCString();
-  body = date + " [ " + req.body + " ]";
-	console.log(body);
+  body = "Request ---------------------- ";
+  body = body + "Date: " + date;
+  body = body + "Header: ";
+  body = body + JSON.stringify(req.headers);
+  body = body + "Body: ";
+  body = body + req.body;
   wss.clients.forEach(client => {
     client.send(body);
   });

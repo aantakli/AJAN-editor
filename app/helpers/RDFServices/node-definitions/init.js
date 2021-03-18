@@ -66,7 +66,6 @@ function insertNodeDef(node, btData /*Optional param for behavior trees*/) {
   let evenChild = $parent.children("div").length % 2;
 
   let $image;
-  console.log(node.style);
   if (node.style.icon)
     $image = $('<image src="' + (node.style.icon || "") + '" alt="" class="node-icon">');
   else {

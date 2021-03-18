@@ -162,6 +162,7 @@ let ACTN = {
 	consumes: "http://www.ajan.de/actn#consumes",
   produces: "http://www.ajan.de/actn#produces",
   action: "http://www.ajan.de/actn#action",
+  headers: "http://www.ajan.de/actn#headers",
 };
 let HTTP = {
 	Request: "http://www.w3.org/2006/http#Request",

@@ -472,7 +472,7 @@
 		];
 		nd:parameter [
 			a nd:Parameter;
-			nd:mapsTo actn:headers;
+			nd:mapsTo bt:headers;
 			nd:type bt:QueryUri;
 			nd:type bt:SelectQuery;
 			nd:title "(Opt) Dynamic Headers: ?hdrName ?fieldValue";

@@ -146,6 +146,9 @@ function getBinding(graph, resource) {
       if (quad.predicate.value === HTTP.headers) {
         setHeaders(binding, graph, quad.object);
       }
+      if (quad.predicate.value === ACTN.headers) {
+        binding.actnHeaders = quad.object.value;
+      }
 			if (quad.predicate.value === HTTP.body) {
 				let payload = {};
 				payload.uri = quad.object.value;

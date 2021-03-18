@@ -96,7 +96,7 @@ export default Component.extend({
 
     save(s, p, o, type) {
       console.log(s);
-			if (p == "http://www.ajan.de/actn#sparql") {
+      if (p == "http://www.ajan.de/actn#sparql" || p == "http://www.ajan.de/actn#headers") {
 				try {
 				  var SparqlParser = sparqljs.Parser;
 				  var parser = new SparqlParser();
@@ -207,12 +207,14 @@ export default Component.extend({
         case "run.requestUri": self.toggleProperty('editRunURI'); break;
         case "run.accept": self.toggleProperty('editRunAccept'); break;
         case "run.contentType": self.toggleProperty('editRunContentType'); break;
+        case "run.actnHeaders": self.toggleProperty('editRunAddHeaders'); break;
 				case "run.payload.sparql": self.toggleProperty('editRunPayload'); break;
 				case "abort.mthd": self.toggleProperty('editAbortMthd'); break;
 				case "abort.version": self.toggleProperty('editAbortVersion'); break;
         case "abort.requestUri": self.toggleProperty('editAbortURI'); break;
         case "abort.accept": self.toggleProperty('editAbortAccept'); break;
         case "abort.contentType": self.toggleProperty('editAbortContentType'); break;
+        case "abort.actnHeaders": self.toggleProperty('editAbortAddHeaders'); break;
 				case "abort.payload.sparql": self.toggleProperty('editAbortPayload'); break;
 
 				default:

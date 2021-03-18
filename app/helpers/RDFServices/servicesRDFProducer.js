@@ -92,6 +92,7 @@ function createBinding(type, rootUri, definition) {
 	rdfGraph.add(rdfFact.quad(definition.uri, HTTP.mthd, definition.mthd));
   rdfGraph.add(rdfFact.quad(definition.uri, HTTP.uri, definition.requestUri));
   createHeaders(definition.uri, definition);
+  rdfGraph.add(rdfFact.quadLiteral(definition.uri, ACTN.headers, "", XSD.string));
   if(definition.payload != null)
     createPayload(definition.uri, definition.payload);
 }

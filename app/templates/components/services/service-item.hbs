@@ -410,39 +410,72 @@
               {{/unless}}
             </div>
 
-            <!-- Payload -->
+          <!-- Additional Headers -->
 
-            <div local-class="item-row">
-              <div local-class="item-row-title">Payload:</div>
-              {{#if this.editRunPayload}}
-              <div local-class="item-row-content-edit">
-                <div local-class="item-row-value sparql">
-                  {{textarea value=activeAction.run.payload.sparql cols="50" rows="6"}}
-                </div>
-                <div local-class="item-row-buttons">
-                  <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
-                    <i class="close icon no-side-margins"></i>
-                  </button>
-                  <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeAction.run.payload.uri "http://www.ajan.de/actn#sparql" activeAction.run.payload.sparql "http://www.w3.org/2001/XMLSchema#string"}}>
-                    <i class="pencil icon no-side-margins"></i>
-                  </button>
-                </div>
+          <div local-class="item-row">
+            <div local-class="item-row-title">Additional Headers:</div>
+            {{#if this.editRunAddHeaders}}
+            <div local-class="item-row-content-edit">
+              <div local-class="item-row-value sparql">
+                {{textarea value=activeAction.run.actnHeaders cols="50" rows="6"}}
               </div>
-              {{/if}}
-              {{#unless this.editRunPayload}}
-              <div local-class="item-row-content">
-                <div local-class="item-row-value sparql">
-                  {{textarea value=activeAction.run.payload.sparql readonly=true cols="50" rows="6"}}
-                </div>
-                <div local-class="item-row-buttons">
-                  <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "run.payload.sparql" activeAction.run.payload.sparql}}>
-                    <i class="edit icon no-side-margins"></i>
-                  </button>
-                </div>
+              <div local-class="item-row-buttons">
+                <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
+                  <i class="close icon no-side-margins"></i>
+                </button>
+                <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeAction.run.uri "http://www.ajan.de/actn#headers" activeAction.run.actnHeaders "http://www.w3.org/2001/XMLSchema#string"}}>
+                  <i class="pencil icon no-side-margins"></i>
+                </button>
               </div>
-              {{/unless}}
             </div>
+            {{/if}}
+            {{#unless this.editRunAddHeaders}}
+            <div local-class="item-row-content">
+              <div local-class="item-row-value sparql">
+                {{textarea value=activeAction.run.actnHeaders readonly=true cols="50" rows="6"}}
+              </div>
+              <div local-class="item-row-buttons">
+                <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "run.actnHeaders" activeAction.run.actnHeaders}}>
+                  <i class="edit icon no-side-margins"></i>
+                </button>
+              </div>
+            </div>
+            {{/unless}}
           </div>
+
+          <!-- Payload -->
+
+          <div local-class="item-row">
+            <div local-class="item-row-title">Payload:</div>
+            {{#if this.editRunPayload}}
+            <div local-class="item-row-content-edit">
+              <div local-class="item-row-value sparql">
+                {{textarea value=activeAction.run.payload.sparql cols="50" rows="6"}}
+              </div>
+              <div local-class="item-row-buttons">
+                <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
+                  <i class="close icon no-side-margins"></i>
+                </button>
+                <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeAction.run.payload.uri "http://www.ajan.de/actn#sparql" activeAction.run.payload.sparql "http://www.w3.org/2001/XMLSchema#string"}}>
+                  <i class="pencil icon no-side-margins"></i>
+                </button>
+              </div>
+            </div>
+            {{/if}}
+            {{#unless this.editRunPayload}}
+            <div local-class="item-row-content">
+              <div local-class="item-row-value sparql">
+                {{textarea value=activeAction.run.payload.sparql readonly=true cols="50" rows="6"}}
+              </div>
+              <div local-class="item-row-buttons">
+                <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "run.payload.sparql" activeAction.run.payload.sparql}}>
+                  <i class="edit icon no-side-margins"></i>
+                </button>
+              </div>
+            </div>
+            {{/unless}}
+          </div>
+        </div>
 
         </div>
 
@@ -629,6 +662,39 @@
                 </div>
                 <div local-class="item-row-buttons">
                   <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "abort.contentType" activeAction.abort.contentType}}>
+                    <i class="edit icon no-side-margins"></i>
+                  </button>
+                </div>
+              </div>
+              {{/unless}}
+            </div>
+
+            <!-- Additional Headers -->
+
+            <div local-class="item-row">
+              <div local-class="item-row-title">Additional Headers:</div>
+              {{#if this.editAbortAddHeaders}}
+              <div local-class="item-row-content-edit">
+                <div local-class="item-row-value sparql">
+                  {{textarea value=activeAction.abort.actnHeaders cols="50" rows="6"}}
+                </div>
+                <div local-class="item-row-buttons">
+                  <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
+                    <i class="close icon no-side-margins"></i>
+                  </button>
+                  <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeAction.abort.uri "http://www.ajan.de/actn#headers" activeAction.abort.actnHeaders "http://www.w3.org/2001/XMLSchema#string"}}>
+                    <i class="pencil icon no-side-margins"></i>
+                  </button>
+                </div>
+              </div>
+              {{/if}}
+              {{#unless this.editAbortAddHeaders}}
+              <div local-class="item-row-content">
+                <div local-class="item-row-value sparql">
+                  {{textarea value=activeAction.abort.actnHeaders readonly=true cols="50" rows="6"}}
+                </div>
+                <div local-class="item-row-buttons">
+                  <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "abort.actnHeaders" activeAction.abort.actnHeaders}}>
                     <i class="edit icon no-side-margins"></i>
                   </button>
                 </div>

@@ -546,7 +546,7 @@
 .
 
 :EventProducer nd:class nd:Leaf;
-	nd:name "EventProducer";
+	nd:name "Produce Event";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultEventProducer";
     nd:type bt:EventProducer;
@@ -556,7 +556,7 @@
         nd:shape nd:Roundrectangle;
         nd:padding "900%";
         nd:paddingTo "width";
-         nd:icon "icons8-star.png";
+         nd:icon "produce-event.png";
     ];
     nd:parameter [
         a nd:Parameter;
@@ -641,7 +641,7 @@
         nd:shape nd:Roundrectangle;
         nd:padding "900%";
         nd:paddingTo "width";
-        nd:icon "icons8-ok.png";
+        nd:icon "handle-event.png";
     ];
 	nd:parameter [
         a nd:Parameter;
@@ -671,9 +671,15 @@
         nd:shape nd:Roundrectangle;
         nd:padding "900%";
         nd:paddingTo "width";
-        nd:icon "icons8-ok.png";
+        nd:icon "handle-json-event.png";
     ];
     nd:parameters (
+		[
+			a nd:Parameter;
+			nd:mapsTo ajan:event;
+			nd:input nd:EventGoal;
+			nd:title "Event/Goal";
+		]
     	[
             a nd:Parameter;
             nd:mapsTo bt:mapping;
@@ -703,7 +709,13 @@
         nd:shape nd:Roundrectangle;
         nd:padding "900%";
         nd:paddingTo "width";
-        nd:icon "icons8-ok.png";
+        nd:icon "handle-queue-event.png";
+    ];
+	nd:parameter [
+        a nd:Parameter;
+        nd:mapsTo ajan:event;
+        nd:input nd:EventGoal;
+        nd:title "Event/Goal";
     ];
 	nd:parameter [
         a nd:Parameter;

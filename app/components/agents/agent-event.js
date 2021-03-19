@@ -19,17 +19,12 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Component from '@ember/component';
-import {observer} from "@ember/object";//new for checkbox
-import {BT, XSD, ACTN, RDF, RDFS, HTTP, SPIN,AGENTS} from "ajan-editor/helpers/RDFServices/vocabulary";
+import {XSD, RDFS, AGENTS} from "ajan-editor/helpers/RDFServices/vocabulary";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
-import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
-import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 import globals from "ajan-editor/helpers/global-parameters";
 import actions from "ajan-editor/helpers/agents/actions";
 
-let ajax = null;
 let self;
-let activeAgent;
 
 export default Component.extend({
   dataBus: Ember.inject.service('data-bus'),
@@ -39,7 +34,8 @@ export default Component.extend({
   newVariable: "?",
   content: "",
   fileName: "",
-	edit: "",
+  edit: "",
+  types: [{ uri: AGENTS.Event, label: "Event" }, { uri: AGENTS.QueueEvent, label: "Queue Event" }],
 	init() {
 	  this._super(...arguments);
 	  self = this;
@@ -48,8 +44,16 @@ export default Component.extend({
 
 	didReceiveAttrs() {
     this._super(...arguments);
-    if (this.get("activeEvent") != null) {
-      setFileContent(this.get("activeEvent.uri"));
+    if (this.activeEvent != null) {
+      if (self.activeEvent.type === "Synchronous") {
+        self.set("abort", false);
+      }
+      else {
+        self.set("abort", true);
+      }
+      if (this.get("activeEvent") != null) {
+        setFileContent(this.get("activeEvent.uri"));
+      }
     }
 	},
 
@@ -87,6 +91,12 @@ export default Component.extend({
     },
 
     save(s, p, o, type) {
+      if (o == AGENTS.Event) {
+        self.set("activeEvent." + self.edit, "Event");
+      }
+      else if (o == AGENTS.QueueEvent) {
+        self.set("activeEvent." + self.edit, "QueueEvent");
+      }
 		  rdfGraph.setObjectValue(s, p, o, type = XSD.string);
 			self.actions.toggle(self.edit);
 			reset();
@@ -107,10 +117,10 @@ export default Component.extend({
 		},
 
 		toggle(key) {
-			switch(key) {
-				case "eventlabel": self.toggleProperty('editEventLabel'); break;
-				default:
-					break;
+      switch (key) {
+        case "type": self.toggleProperty('editType'); break;
+				case "label": self.toggleProperty('editLabel'); break;
+				default: break;
 			}
 		}
 	}

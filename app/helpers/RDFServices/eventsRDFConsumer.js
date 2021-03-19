@@ -50,20 +50,14 @@ function getEventsGraph(data) {
 	return Promise.resolve(obj);
 }
 
-
-
-// for ?x http://www.w3.org/1999/02/22-rdf-syntax-ns#type http://www.ajan.de/event/bt-ns#EventTree
-
-
-
-function getEvents(graph, agents) {
+function getEvents(graph, events) {
 	Promise.resolve(graph).then(function(graph) {
 		graph.forEach(quad => {
 			if (
 				quad.predicate.value === RDF.type
-				&& quad.object.value === AGENTS.Event
+        && (quad.object.value === AGENTS.Event || quad.object.value === AGENTS.QueueEvent) 
 			) {
-				agents.push(getEventsDefinitions(graph, quad.subject));
+        events.push(getEventsDefinitions(graph, quad.subject));
 			}
 		});
 	});
@@ -71,21 +65,20 @@ function getEvents(graph, agents) {
 
 function getEventsDefinitions(graph, resource) {
   console.log("get event definition");
-  let agents = {};
-  agents.id = util.generateUUID();
-  agents.uri = resource.value;
-  agents.name = "Event";
+  let event = {};
+  event.id = util.generateUUID();
+  event.uri = resource.value;
+  event.name = "Event";
   graph.forEach(function (quad) {
     if (quad.subject.equals(resource)) {
-
       if (quad.predicate.value === RDFS.label) {
-        agents.label = quad.object.value;
+        event.label = quad.object.value;
       }
       if (quad.predicate.value === RDF.type) {
-				agents.type = quad.object.value;
+        event.type = quad.object.value;
 			}
 
     }
   });
-  return agents;
+  return event;
 }

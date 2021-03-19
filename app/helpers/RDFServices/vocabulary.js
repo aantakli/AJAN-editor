@@ -199,7 +199,8 @@ let SPIN = {
 let AGENTS = {
   Agent: "http://www.ajan.de/ajan-ns#Agent",
   agent: "http://www.ajan.de/ajan-ns#agent",
-	Event: "http://www.ajan.de/ajan-ns#ModelEvent",
+  Event: "http://www.ajan.de/ajan-ns#ModelEvent",
+  QueueEvent: "http://www.ajan.de/ajan-ns#ModelQueueEvent",
   Endpoint: "http://www.ajan.de/ajan-ns#Endpoint",
   InitialBehavior: "http://www.ajan.de/ajan-ns#InitialBehavior",
   FinalBehavior: "http://www.ajan.de/ajan-ns#FinalBehavior",

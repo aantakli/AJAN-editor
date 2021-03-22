@@ -40,15 +40,14 @@ app.post('/response', (req, res) => {
 });
 
 app.post('/post', (req, res) => {
-  const date = new Date().toUTCString();
-  body = "Request ---------------------- ";
-  body = body + "Date: " + date;
-  body = body + "Header: ";
-  body = body + JSON.stringify(req.headers);
-  body = body + "Body: ";
-  body = body + req.body;
+  let wssMessage = {};
+  wssMessage.date = new Date().toUTCString();
+  wssMessage.headers = getHeaders(req.headers);
+  wssMessage.body = req.body;
+  console.log(wssMessage);
   wss.clients.forEach(client => {
-    client.send(body);
+	  body = wssMessage;
+    client.send(JSON.stringify(wssMessage));
   });
   res.set('Content-Type', 'text/turtle');
   res.send(response);
@@ -72,18 +71,28 @@ server.listen(port, () => {
     console.log(`Server started on port ${server.address().port} :)`);
 });
 
+function getHeaders(headers) {
+  let headersList = new Array();
+  for(var propt in headers){
+    headersList.push({"key": propt, "value": headers[propt]});
+  }
+  return headersList;
+}
+
 function sendConnectMessage(ws) {
+  let wssMessage = {};
+  wssMessage.body = "You are now connected to the TestActionService (testActionService.js)!";
   const start = Date.now();
-  ws.send('You are now connected to the TestActionService (testActionService.js)!');
-  let wait = "This is the last response: .";
+  ws.send(JSON.stringify(wssMessage));
+  wssMessage.body = "This is the last response: .";
   let now = Date.now();
   while ((Date.now() - now) < 1000) { }
   while ((Date.now() - start) < 5000) {
     now = Date.now();
     while ((Date.now() - now) < 500) {}
-    wait = wait + ".";
-    ws.send(wait);
+    wssMessage.body = wssMessage.body + ".";
+    ws.send(JSON.stringify(wssMessage));
   }
-  ws.send(body);
+  ws.send(JSON.stringify(body));
   console.log("send!");
 }

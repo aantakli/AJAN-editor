@@ -28,12 +28,13 @@ export default Ember.Component.extend({
   wssConnection: false,
   socketRef: null,
   response: "",
-  wssMessage: "Here you can see the output of the TestService (testService.js) that it received via an HTTP/POST (Content-Type: text/turtle; Request-URI: http://localhost:4201/post) message.",
+  wssMessage: {},
 
   didInsertElement() {
     this._super(...arguments);
     that = this;
     setTriplestoreField();
+    this.set("wssMessage.body", "Here you can see the output of the TestService (testService.js) that it received via an HTTP/POST (Content-Type: text/turtle; Request-URI: http://localhost:4201/post) message.");
     getResponseMessage();
   },
 
@@ -90,7 +91,7 @@ function myOpenHandler(event) {
 
 function myMessageHandler(event) {
   console.log(`Message: ${event.data}`);
-  that.set("wssMessage", event.data);
+  that.set("wssMessage", JSON.parse(event.data));
 }
 
 function myCloseHandler(event) {

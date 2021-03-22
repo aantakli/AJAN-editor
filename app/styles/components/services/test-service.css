@@ -48,6 +48,14 @@
   padding: 0px !important;
 }
 
+.test-service-ser-response {
+  height: 25px;
+  width: 25px;
+  float: right;
+  padding: 0px !important;
+}
+
+
 /* clearfix */
 .clearfix::before,
 .clearfix::after {

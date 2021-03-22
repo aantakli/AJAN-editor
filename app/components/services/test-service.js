@@ -27,12 +27,14 @@ export default Ember.Component.extend({
   websockets: Ember.inject.service(),
   wssConnection: false,
   socketRef: null,
+  response: "",
   wssMessage: "Here you can see the output of the TestService (testService.js) that it received via an HTTP/POST (Content-Type: text/turtle; Request-URI: http://localhost:4201/post) message.",
 
   didInsertElement() {
     this._super(...arguments);
     that = this;
     setTriplestoreField();
+    getResponseMessage();
   },
 
   willDestroyElement() {
@@ -63,6 +65,20 @@ export default Ember.Component.extend({
 
     clean() {
       that.set("wssMessage", "");
+    },
+
+    setResponse(content) {
+      Promise.resolve(content)
+        .then(x => {
+          Promise.resolve(sendResponseMessage(content))
+            .then(function () {
+              $("#send-message").trigger("showToast");
+              that.set("messageError", "");
+            });
+        })
+        .catch(function (error) {
+          that.set("messageError", uri);
+        });
     }
   }
 })
@@ -85,4 +101,31 @@ function myCloseHandler(event) {
 
 function setTriplestoreField() {
   $(".store-url").text(localStorage.currentStore);
+}
+
+function getResponseMessage() {
+  return $.ajax({
+    url: "http://localhost:4201/getResponse",
+    type: "GET",
+    headers: { Accept: "text/plain" }
+  }).then(function (data) {
+    console.log(data);
+    that.set("response", data);
+  }).catch(function (error) {
+    alert("No TestServiceAction Service is running on http://localhost/4201");
+  });
+}
+
+function sendResponseMessage(content) {
+  return $.ajax({
+    url: "http://localhost:4201/response",
+    type: "POST",
+    contentType: "text/plain",
+    data: content,
+  }).then(function (data) {
+    $("#send-message").trigger("showToast");
+    getResponseMessage();
+  }).catch (function (error) {
+    console.log(error);
+  });
 }

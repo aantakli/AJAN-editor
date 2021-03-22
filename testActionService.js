@@ -11,6 +11,7 @@ const port = 4201;
 const server = http.createServer(app);
 
 let body = "";
+let response = "<http://localhost:4201/post> <http://localhost:4201/test-service-ns#message>  <http://localhost:4201/test-service-ns#Received> ."
 const wss = new WebSocket.Server({ server });
 
 app.use(bodyParser.text({ type: 'text/plain' }));
@@ -22,8 +23,20 @@ app.use(function (err, req, res, next) {
   console.error(err.stack);
 });
 
-app.get('/', cors(), (req, res) => {
+app.use(cors());
+
+app.get('/', (req, res) => {
   res.send('Hello World!');
+});
+
+app.get('/getResponse', (req, res) => {
+  res.send(response);
+});
+
+app.post('/response', (req, res) => {
+  console.log(req.body);
+  response = req.body;
+  res.send("");
 });
 
 app.post('/post', (req, res) => {
@@ -38,7 +51,7 @@ app.post('/post', (req, res) => {
     client.send(body);
   });
   res.set('Content-Type', 'text/turtle');
-  res.send('<http://localhost:4201/post> <http://localhost:4201/test-service-ns#message>  <http://localhost:4201/test-service-ns#Received> .');
+  res.send(response);
 });
 
 wss.on('connection', function connection(ws) {

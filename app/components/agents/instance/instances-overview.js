@@ -39,7 +39,7 @@ export default Ember.Component.extend({
   activeInstance: {},
   allInstances: new Array(),
   ajanServiceHost: "",
-  ajanService: "http://localhost:8080/ajan/agents/",
+  ajanService: "",
 
   init() {
     this._super(...arguments);
@@ -53,9 +53,17 @@ export default Ember.Component.extend({
   didInsertElement() {
     initializeGlobals(this);
     loadAgentRdfGraphData();
+    if (localStorage.ajanService == null
+      || localStorage.ajanService === "undefined"
+      || localStorage.ajanService === "") {
+      localStorage.ajanService = "http://localhost:8080/ajan/agents/";
+    }
+
+    this.set("ajanService", localStorage.ajanService);
   },
 
   actions: {
+
     addAgent() {
       createModal();
     },
@@ -70,11 +78,22 @@ export default Ember.Component.extend({
 
     loadAgents() {
       let templates = that.get("availableTemplates");
-      let agents = actions.getAllAgents(that.get("ajanService"), templates);
+      let service = that.get("ajanService");
+      if (service == null
+        || service === "undefined"
+        || service === ""
+        || !service.includes("http://")) {
+        alert("No valid URL defined!");
+        return;
+      }
+      localStorage.ajanService = service;
+      let agents = actions.getAllAgents(service, templates);
       Promise.resolve(agents).then(function (data) {
         that.set("allInstances", data);
         that.actions.setActiveInstance(data[0]);
-      });
+      }).catch(function (error) {
+        alert("The specified AJAN service is not available!");
+      });;
     }
   },
 

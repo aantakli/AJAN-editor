@@ -350,6 +350,12 @@
         nd:input nd:ACTNDef;
         nd:title "Definition";
     ];
+	nd:parameter [
+		a nd:Parameter;
+		nd:mapsTo bt:targetBase;
+		nd:title "Target Base";
+		nd:input nd:Repo ;
+	]
 .
 
 :Condition nd:class nd:Leaf;

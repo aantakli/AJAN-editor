@@ -211,7 +211,9 @@ class TriplestoreListing {
       event.stopPropagation();
       let ajax = this.parentComponent.ajax;
       let triplestore = this.triplestore.uri;
-      unzip(event.target.files[0], function (zipFile) {
+      let file = event.target.files[0];
+      event.target.value = '';
+      unzip(file, function (zipFile) {
         readInfoJSON(zipFile, triplestore, ajax, readAgentsTTL);
       });
     })

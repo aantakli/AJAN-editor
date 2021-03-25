@@ -376,6 +376,7 @@ function showImportDialog(ajax, triplestore, zipFile, matches) {
     } else {
       sendFile(triplestore + globals.behaviorsRepository, zipFile.behaviors.import.raw);
     }
+    $("#save-confirmation").trigger("showToast");
   }, zipFile.info.input);
 }
 

@@ -29,6 +29,8 @@ The AJAN-editor needs several repositories to store editor data and to load node
 
 To do this, open the RDF4J Workbench ([http://localhost:8090/workbench/repositories](http://localhost:8090/workbench/repositories) by default) and follow the steps below:
 
+### Create Repositories
+
 If this is the first time you are connecting to the Triplestore or the associated Wokbench, the "RDF4J Server URL" must first be customized. To do this, adjust the URL in this form: `http://localhost:8090/rdf4j`
 
 The respective repositories must be filled with RDF data. These can be found under `<AJAN-editor Root Folder>/Triplestore Repos/`. This data includes, among other things, information on how the individual Behavior Tree primitives must be represented.

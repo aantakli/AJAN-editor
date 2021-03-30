@@ -249,11 +249,11 @@ function unzip(file, onEnd) {
   };
   getEntries(file, function (entries) {
     entries.forEach(function (entry) {
-      if (entry.filename.includes("/info.json"))
+      if (entry.filename.includes("info.json"))
         zipFile.info.entry = entry;
-      else if (entry.filename.includes("/agents/agents.ttl"))
+      else if (entry.filename.includes("agents/agents.ttl"))
         zipFile.agents.entry = entry;
-      else if (entry.filename.includes("/behaviors/behaviors.ttl"))
+      else if (entry.filename.includes("behaviors/behaviors.ttl"))
         zipFile.behaviors.entry = entry;
       else
         console.log("none");
@@ -265,7 +265,7 @@ function unzip(file, onEnd) {
 function readInfoJSON(zipFile, triplestore, ajax, onEnd) {
   let writer = new zip.BlobWriter();
   zipFile.info.entry.getData(writer, function (blob) {
-    let oFReader = new FileReader()
+    let oFReader = new FileReader();
     oFReader.onloadend = function (e) {
       let content = JSON.parse(this.result);
       console.log(content);
@@ -277,31 +277,39 @@ function readInfoJSON(zipFile, triplestore, ajax, onEnd) {
 }
 
 function readAgentsTTL(zipFile, triplestore, ajax) {
-  let writer = new zip.BlobWriter();
-  zipFile.agents.entry.getData(writer, function (blob) {
-    let oFReader = new FileReader()
-    oFReader.onloadend = function (e) {
-      agtActions.readTTLInput(this.result, function (importFile) {
-        zipFile.agents.import = importFile;
-        readBTsTTL(zipFile, triplestore, ajax);
-      });
-    };
-    oFReader.readAsText(blob);
-  }, onprogress);
+  if (zipFile.agents.entry == null) {
+    readBTsTTL(zipFile, triplestore, ajax);
+  } else {
+    let writer = new zip.BlobWriter();
+    zipFile.agents.entry.getData(writer, function (blob) {
+      let oFReader = new FileReader()
+      oFReader.onloadend = function (e) {
+        agtActions.readTTLInput(this.result, function (importFile) {
+          zipFile.agents.import = importFile;
+          readBTsTTL(zipFile, triplestore, ajax);
+        });
+      };
+      oFReader.readAsText(blob);
+    }, onprogress);
+  }
 }
 
 function readBTsTTL(zipFile, triplestore, ajax) {
-  let writer = new zip.BlobWriter();
-  zipFile.behaviors.entry.getData(writer, function (blob) {
-    let oFReader = new FileReader()
-    oFReader.onloadend = function (e) {
-      btActions.readTTLInput(this.result, function (importFile) {
-        zipFile.behaviors.import = importFile;
-        loadRdfGraphZipData(zipFile, triplestore, ajax);
-      });
-    };
-    oFReader.readAsText(blob);
-  }, onprogress);
+  if (zipFile.behaviors.entry == null) {
+    loadRdfGraphZipData(zipFile, triplestore, ajax);
+  } else {
+    let writer = new zip.BlobWriter();
+    zipFile.behaviors.entry.getData(writer, function (blob) {
+      let oFReader = new FileReader()
+      oFReader.onloadend = function (e) {
+        btActions.readTTLInput(this.result, function (importFile) {
+          zipFile.behaviors.import = importFile;
+          loadRdfGraphZipData(zipFile, triplestore, ajax);
+        });
+      };
+      oFReader.readAsText(blob);
+    }, onprogress);
+  }
 }
 
 function getEntries(file, onend) {
@@ -336,8 +344,10 @@ function loadRdfGraphZipData(zipFile, triplestore, ajax) {
       let btDefs = getBTDefs();
       zipFile.behaviors.original.rdf = rdfData;
       zipFile.behaviors.original.defs = btDefs;
-      matches.agents = agtActions.getAgentDefsMatches(agentDefs, zipFile.agents.import);
-      matches.behaviors = btActions.getTTLMatches(btDefs, zipFile.behaviors.import);
+      if (zipFile.agents.import)
+        matches.agents = agtActions.getAgentDefsMatches(agentDefs, zipFile.agents.import);
+      if (zipFile.behaviors.import)
+        matches.behaviors = btActions.getTTLMatches(btDefs, zipFile.behaviors.import);
       showImportDialog(ajax, triplestore, zipFile, matches);
     });
   });
@@ -392,7 +402,7 @@ function showImportDialog(ajax, triplestore, zipFile, matches) {
       agtActions.deleteMatches(matches.agents);
       rdfGraph.addAll(zipFile.agents.import.quads);
       agtActions.saveAgentGraph(ajax, triplestore + globals.agentsRepository, null);
-    } else {
+    } else if (zipFile.agents.import) {
       sendFile(triplestore + globals.agentsRepository, zipFile.agents.import.raw);
     }
     console.log(matches.behaviors);
@@ -402,7 +412,7 @@ function showImportDialog(ajax, triplestore, zipFile, matches) {
       btActions.deleteMatches(matches.behaviors, zipFile.behaviors.original.defs);
       rdfGraph.addAll(zipFile.behaviors.import.quads);
       btActions.saveGraph(ajax, triplestore + globals.behaviorsRepository, null);
-    } else {
+    } else if (zipFile.behaviors.import) {
       sendFile(triplestore + globals.behaviorsRepository, zipFile.behaviors.import.raw);
     }
     $("#save-confirmation").trigger("showToast");

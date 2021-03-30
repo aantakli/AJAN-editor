@@ -18,6 +18,9 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
+import agtActions from "ajan-editor/helpers/agents/actions";
+import * as zip from "zip-js-webpack";
 
 let $ = Ember.$;
 
@@ -157,10 +160,10 @@ function onConfirm(info, model) {
   console.log(info);
   console.log(model);
   getVals(json, info);
-  getChecks(json, model);
+  let agentsRDF = getChecks(json, model);
   let infotxt = JSON.stringify(json, null, 2);
   console.log(infotxt);
-  downloadFile(infotxt);
+  downloadFile(infotxt, agentsRDF + ".");
 }
 
 function getVals(json, model) {
@@ -173,18 +176,23 @@ function getVals(json, model) {
 }
 
 function getChecks(json, model) {
+  rdfGraph.reset();
+  rdfGraph.set(model.rdf);
   json["contains"] = new Array();
   setTemplates(json, model);
   setBehaviors(json, model);
   setEndpoints(json, model);
   setEvents(json, model);
   setGoals(json, model);
+  return rdfGraph.toString(model.rdf);
 }
 
 function setTemplates(json, model) {
   model.defs.templates.forEach(function (entry) {
     if (entry.field.prop('checked')) {
       createObject(json, entry, "Agent");
+    } else {
+      agtActions.deleteAgent(entry);
     }
   });
 }
@@ -193,18 +201,24 @@ function setBehaviors(json, model) {
   model.defs.behaviors.regular.forEach(function (entry) {
     if (entry.field.prop('checked')) {
       createObject(json, entry, "Behavior");
+    } else {
+      agtActions.deleteBehavior(entry);
     }
   });
   model.defs.behaviors.initial.forEach(function (entry) {
     if (entry.id)
       if (entry.field.prop('checked')) {
         createObject(json, entry, "Initial Behavior");
+      } else {
+        agtActions.deleteBehavior(entry);
       }
   });
   model.defs.behaviors.final.forEach(function (entry) {
     if (entry.id)
       if (entry.field.prop('checked')) {
         createObject(json, entry, "Final Behavior");
+      } else {
+        agtActions.deleteBehavior(entry);
       }
   });
 }
@@ -213,6 +227,8 @@ function setEndpoints(json, model) {
   model.defs.endpoints.forEach(function (entry) {
     if (entry.field.prop('checked')) {
       createObject(json, entry, "Endpoint");
+    } else {
+      agtActions.deleteEndpoint(entry);
     }
   });
 }
@@ -221,6 +237,8 @@ function setEvents(json, model) {
   model.defs.events.forEach(function (entry) {
     if (entry.field.prop('checked')) {
       createObject(json, entry, "Event");
+    } else {
+      agtActions.deleteEvent(entry);
     }
   });
 }
@@ -229,6 +247,8 @@ function setGoals(json, model) {
   model.defs.goals.forEach(function (entry) {
     if (entry.field.prop('checked')) {
       createObject(json, entry, "Goal");
+    } else {
+      agtActions.deleteGoal(entry);
     }
   });
 }
@@ -241,11 +261,23 @@ function createObject(json, entry, type) {
   json["contains"].push(obj);
 }
 
-function downloadFile(data) {
-  var a = window.document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([data]));
-  a.download = 'info.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+function downloadFile(info, agents) {
+  zipBlob(new Blob([info]), new Blob([agents]), function (zip) {
+    var a = window.document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([zip]));
+    a.download = 'ajanPackage.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+}
+
+function zipBlob(info, agents, callback) {
+  zip.createWriter(new zip.BlobWriter("application/zip"), function (zipWriter) {
+    zipWriter.add('info.json', new zip.BlobReader(info), function () {
+      zipWriter.add('agents/agents.ttl', new zip.BlobReader(agents), function () {
+        zipWriter.close(callback);
+      });
+    });
+  }, onerror);
 }

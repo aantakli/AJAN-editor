@@ -92,7 +92,7 @@ function setContainsHTML(contains, $info) {
 }
 
 function setOptionalsHTML(optionals, $info) {
-  if (optionals.length > 0) {
+  if (optionals && optionals.length > 0) {
     let $optionals = $("<div>", {});
     $optionals.append($("<p><b>Further Information:</b>"));
     let $list = $("<ul>", {});

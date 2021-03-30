@@ -25,7 +25,8 @@ import globals from "ajan-editor/helpers/global-parameters";
 import htmlGen from "ajan-editor/helpers/home/html-generator";
 import agtActions from "ajan-editor/helpers/agents/actions";
 import btActions from "ajan-editor/helpers/behaviors/actions";
-import modal from "ajan-editor/helpers/ui/import-modal";
+import importModal from "ajan-editor/helpers/ui/import-modal";
+import exportModal from "ajan-editor/helpers/ui/export-modal";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import * as zip from "zip-js-webpack";
 
@@ -63,6 +64,7 @@ class TriplestoreListing {
 		this.$removeButton = this.$buttons.children(".triplestore-remove");
     this.$editButton = this.$buttons.children(".triplestore-edit");
     this.$importButton = this.$buttons.children(".triplestore-import");
+    this.$exportButton = this.$buttons.children(".triplestore-export");
 		this.$editButtonContent = this.$editButton.children();
 	}
 
@@ -76,6 +78,7 @@ class TriplestoreListing {
 		this.bindRemoveTriplestoreEvent();
     this.bindEditClickEvent();
     this.bindImportClickEvent();
+    this.bindExportClickEvent();
 	}
 
 	bindTransitionEvent() {
@@ -206,6 +209,16 @@ class TriplestoreListing {
 		localStorage.triplestores = JSON.stringify(triplestores);
   }
 
+  bindExportClickEvent() {
+    this.$exportButton.off("click").click(event => {
+      event.stopPropagation();
+      console.log("Export");
+      let ajax = this.parentComponent.ajax;
+      let triplestore = this.triplestore.uri;
+      loadRdfGraphData(triplestore, ajax);
+    });
+  }
+
   bindImportClickEvent() {
     this.$importButton.on("change", (event) => {
       event.stopPropagation();
@@ -284,7 +297,7 @@ function readBTsTTL(zipFile, triplestore, ajax) {
     oFReader.onloadend = function (e) {
       btActions.readTTLInput(this.result, function (importFile) {
         zipFile.behaviors.import = importFile;
-        loadRdfGraphData(zipFile, triplestore, ajax);
+        loadRdfGraphZipData(zipFile, triplestore, ajax);
       });
     };
     oFReader.readAsText(blob);
@@ -297,7 +310,23 @@ function getEntries(file, onend) {
   }, onerror);
 }
 
-function loadRdfGraphData(zipFile, triplestore, ajax) {
+function loadRdfGraphData(triplestore, ajax) {
+  let agents = {};
+  let behaviors = {};
+  loadAgentRdfGraphData(ajax, triplestore, function () {
+    let agentDefs = getAgentDefs();
+    agents.rdf = rdfGraph.get();
+    agents.defs = agentDefs;
+    loadBTsRdfGraphData(ajax, triplestore, function (rdfData) {
+      let btDefs = getBTDefs();
+      behaviors.rdf = rdfData;
+      behaviors.defs = btDefs;
+      exportModal.createExportModal(agents, behaviors);
+    });
+  });
+}
+
+function loadRdfGraphZipData(zipFile, triplestore, ajax) {
   let matches = { agents: [], behaviors: [] };
   loadAgentRdfGraphData(ajax, triplestore, function () {
     let agentDefs = getAgentDefs();
@@ -356,7 +385,7 @@ function getBTDefs() {
 }
 
 function showImportDialog(ajax, triplestore, zipFile, matches) {
-  modal.createImportModal(matches, function () {
+  importModal.createImportModal(matches, function () {
     if (matches.agents.length > 0) {
       rdfGraph.reset();
       rdfGraph.set(zipFile.agents.original.rdf);

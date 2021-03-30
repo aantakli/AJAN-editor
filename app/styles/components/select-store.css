@@ -41,6 +41,16 @@
   margin: 0;
 }
 
+:global(.modal-checkbox) {
+  width: 15px;
+  height: 15px;
+}
+
+:global(.modal-input),
+:global(.modal-checkbox) {
+  margin-right: 20px;
+}
+
 :global(.input.label) {
   width: 20%;
   left: 0;
@@ -113,5 +123,5 @@ input {
 :global(.triplestore-import) {
   padding: 0px !important;
   width: 2.8em !important;
-  height: 2.5em !important;
+  height: 2.55em !important;
 }

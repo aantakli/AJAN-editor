@@ -70,6 +70,12 @@ function buttonEdit() {
 	);
 }
 
+function buttonExport() {
+  return $('<div class="triplestore-export ui grey icon button"></div>').append(
+    $('<i class="download icon"></i>')
+  );
+}
+
 function buttonImport() {
   return $('<div class="triplestore-import ui grey icon button"></div>').append(
     $('<input class="upload icon" type="file" accept=".zip" value="">')
@@ -79,5 +85,5 @@ function buttonImport() {
 function buttons() {
 	return $("<div>", {
 		class: "blocks btn right"
-  }).append(buttonImport(), buttonEdit(), buttonRemove());
+  }).append(buttonExport(), buttonImport(), buttonEdit(), buttonRemove());
 }

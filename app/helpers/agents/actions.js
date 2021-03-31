@@ -87,7 +87,8 @@ export default {
   readTTLInput: readTTLInput,
   getAgentDefsMatches: getAgentDefsMatches,
   getTTLMatches: getTTLMatches,
-  deleteMatches: deleteMatches
+  deleteMatches: deleteMatches,
+  exportGoal: exportGoal
 };
 
 function deleteAgent(agent) {
@@ -295,4 +296,30 @@ function deleteMatches(matches) {
       }
     });
   }
+}
+
+function exportGoal(nodeURI) {
+  let goal = new Array();
+  let nodes = new Array();
+  visitNode(nodeURI, nodes);
+  nodes.forEach(uri => {
+    let quads = rdfGraph.getAllQuads(uri);
+    quads.forEach(quad => {
+      goal.push(quad);
+    })
+  });
+  return goal;
+}
+
+function visitNode(uri, nodes) {
+  rdfGraph.forEach(quad => {
+    if (quad.subject.value === uri) {
+      if (quad.object.value !== RDF.nil && quad.predicate.value !== RDF.type) {
+        let child = quad.object.value;
+        if (!nodes.includes(uri))
+          nodes.push(uri);
+        visitNode(child, nodes);
+      }
+    }
+  });
 }

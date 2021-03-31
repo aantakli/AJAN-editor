@@ -19,16 +19,21 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
+import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import agtActions from "ajan-editor/helpers/agents/actions";
 import * as zip from "zip-js-webpack";
 
 let $ = Ember.$;
+let agents = null;
+let info = {};
+let behaviors = null;
+let elem = null;
 
 export default {
   createExportModal: createExportModal
 };
 
-function createExportModal(agents, behaviors) {
+function createExportModal(agentsModel, behaviorsModel) {
   console.log("Ask for export AJAN-models");
   $("#modal-header-title").text("Export AJAN-models");
   let $body = $("#modal-body"),
@@ -36,19 +41,23 @@ function createExportModal(agents, behaviors) {
   $body.empty();
   $modal.show();
 
+  agents = agentsModel;
+  behaviors = behaviorsModel;
+
   console.log(agents);
   console.log(behaviors);
 
-  let info = {};
+  info = {};
 
   getInfoHTML($body, info);
-  getModels($body, agents);
+  $body.append($("<hr>"));
+  getAgentModels($body, agents);
+  $body.append($("<hr>"));
+  getBehaviorsModels($body, behaviors);
 
   // Listen for the confirm event
-  let elem = document.getElementById("universal-modal");
-  elem.addEventListener("modal:confirm", () => {
-    onConfirm(info, agents);
-  });
+  elem = document.getElementById("universal-modal");
+  elem.addEventListener("modal:confirm", onConfirm);
 }
 
 function getInfoHTML($body, info) {
@@ -68,9 +77,9 @@ function getInfoHTML($body, info) {
   $body.append($infoDiv);
 }
 
-function getModels($body, model) {
+function getAgentModels($body, model) {
   let $info = $("<div>", {});
-  $info.append($("<h2>Add Models</h2>"));
+  $info.append($("<h2>Add Agent Models</h2>"));
   createTemplates($info, model);
   createBehaviors($info, model);
   createEndpoints($info, model);
@@ -96,9 +105,11 @@ function createBehaviors($info, model) {
   model.defs.behaviors.regular.forEach(function (entry) {
     entry.field = createSelectField($info, entry);
   });
+  $info.append($("<h4>Initial Behaviors</h4>"));
   model.defs.behaviors.initial.forEach(function (entry) {
     entry.field = createSelectField($info, entry);
   });
+  $info.append($("<h4>Final Behaviors</h4>"));
   model.defs.behaviors.final.forEach(function (entry) {
     entry.field = createSelectField($info, entry);
   });
@@ -140,12 +151,15 @@ function createInputField($info, name) {
 
 function createSelectField($info, object) {
   if (object.id) {
+    let name = object.name;
+    if (!name)
+      name = object.label;
     let $field = $("<p>", { class: "modal-p" });
-    let $title = $("<i>" + object.label + "</i>");
+    let $title = $("<i>" + name + "</i>");
     let $input = $("<input>", {
       type: "checkbox",
       value: object.uri,
-      name: object.label,
+      name: name,
       class: "modal-checkbox",
     });
     $field.append($input, $title);
@@ -155,15 +169,41 @@ function createSelectField($info, object) {
   return null;
 }
 
-function onConfirm(info, model) {
+function getBehaviorsModels($body, model) {
+  let $info = $("<div>", {});
+  $info.append($("<h2>Add Behavior Models</h2>"));
+  createBTs($info, model);
+
+  let $infoDiv = $("<div>", {
+    class: "modal-body-div"
+  }).append($info);
+  // Append to modal body
+  $body.append($infoDiv);
+}
+
+function createBTs($info, model) {
+  $info.append($("<h3>Behavior Trees</h3>"));
+  model.defs.forEach(function (entry) {
+    entry.field = createSelectField($info, entry);
+  });
+}
+
+// --------------------
+// onConfirm stuff
+// --------------------
+
+function onConfirm() {
   let json = {};
   console.log(info);
-  console.log(model);
+  console.log(agents);
+  console.log(behaviors);
   getVals(json, info);
-  let agentsRDF = getChecks(json, model);
+  let agentsRDF = getAgentChecks(json, agents);
+  let behaviorsRDF = getBehaviorChecks(json, behaviors);
   let infotxt = JSON.stringify(json, null, 2);
   console.log(infotxt);
-  downloadFile(infotxt, agentsRDF + ".");
+  downloadFile(infotxt, agentsRDF, behaviorsRDF);
+  elem.removeEventListener("modal:confirm", onConfirm);
 }
 
 function getVals(json, model) {
@@ -175,94 +215,115 @@ function getVals(json, model) {
   json["comment"] = model.comment.val();
 }
 
-function getChecks(json, model) {
+function getAgentChecks(json, model) {
+  rdfGraph.reset();
+  rdfGraph.set(model.rdf);
+  let quads = [];
+  json["contains"] = new Array();
+  quads = setTemplates(json, model, quads);
+  quads = setBehaviors(json, model, quads);
+  quads = setEndpoints(json, model, quads);
+  quads = setEvents(json, model, quads);
+  quads = setGoals(json, model, quads);
+  console.log(quads);
+  return rdfGraph.toString(quads) + ".";
+}
+
+function getBehaviorChecks(json, model) {
   rdfGraph.reset();
   rdfGraph.set(model.rdf);
   json["contains"] = new Array();
-  setTemplates(json, model);
-  setBehaviors(json, model);
-  setEndpoints(json, model);
-  setEvents(json, model);
-  setGoals(json, model);
-  return rdfGraph.toString(model.rdf);
+  return setBTs(json, model);
 }
 
-function setTemplates(json, model) {
+function setTemplates(json, model, quads) {
   model.defs.templates.forEach(function (entry) {
     if (entry.field.prop('checked')) {
       createObject(json, entry, "Agent");
-    } else {
-      agtActions.deleteAgent(entry);
+      quads = quads.concat(rdfGraph.getAllQuads(entry.uri));
     }
   });
+  return quads;
 }
 
-function setBehaviors(json, model) {
+function setBehaviors(json, model, quads) {
   model.defs.behaviors.regular.forEach(function (entry) {
     if (entry.field.prop('checked')) {
       createObject(json, entry, "Behavior");
-    } else {
-      agtActions.deleteBehavior(entry);
+      quads = quads.concat(rdfGraph.getAllQuads(entry.uri));
     }
   });
   model.defs.behaviors.initial.forEach(function (entry) {
     if (entry.id)
       if (entry.field.prop('checked')) {
         createObject(json, entry, "Initial Behavior");
-      } else {
-        agtActions.deleteBehavior(entry);
+        quads = quads.concat(rdfGraph.getAllQuads(entry.uri));
       }
   });
   model.defs.behaviors.final.forEach(function (entry) {
     if (entry.id)
       if (entry.field.prop('checked')) {
         createObject(json, entry, "Final Behavior");
-      } else {
-        agtActions.deleteBehavior(entry);
+        quads = quads.concat(rdfGraph.getAllQuads(entry.uri));
       }
   });
+  return quads;
 }
 
-function setEndpoints(json, model) {
+function setEndpoints(json, model, quads) {
   model.defs.endpoints.forEach(function (entry) {
     if (entry.field.prop('checked')) {
       createObject(json, entry, "Endpoint");
-    } else {
-      agtActions.deleteEndpoint(entry);
+      quads = quads.concat(rdfGraph.getAllQuads(entry.uri));
     }
   });
+  return quads;
 }
 
-function setEvents(json, model) {
+function setEvents(json, model, quads) {
   model.defs.events.forEach(function (entry) {
     if (entry.field.prop('checked')) {
       createObject(json, entry, "Event");
-    } else {
-      agtActions.deleteEvent(entry);
+      quads = quads.concat(rdfGraph.getAllQuads(entry.uri));
     }
   });
+  return quads;
 }
 
-function setGoals(json, model) {
+function setGoals(json, model, quads) {
   model.defs.goals.forEach(function (entry) {
     if (entry.field.prop('checked')) {
       createObject(json, entry, "Goal");
-    } else {
-      agtActions.deleteGoal(entry);
+      quads = quads.concat(agtActions.exportGoal(entry.uri));
     }
   });
+  return quads;
 }
 
 function createObject(json, entry, type) {
   let obj = {};
+  let name = entry.name;
+  if (!name)
+    name = entry.label;
   obj["type"] = type;
-  obj["name"] = entry.label;
+  obj["name"] = name;
   obj["uri"] = entry.uri;
   json["contains"].push(obj);
 }
 
-function downloadFile(info, agents) {
-  zipBlob(new Blob([info]), new Blob([agents]), function (zip) {
+function setBTs(json, model) {
+  let output = "";
+  model.defs.forEach(function (entry) {
+    if (entry.field.prop('checked')) {
+      createObject(json, entry, "BT");
+      output += rdfManager.exportBT(entry.uri, model.defs.filter(item => item.uri !== entry.uri));
+    }
+  });
+  return "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> . " + output;
+}
+
+function downloadFile(info, agents, behaviors) {
+  zipBlob(new Blob([info]), new Blob([agents]), new Blob([behaviors]), function (zip) {
     var a = window.document.createElement('a');
     a.href = URL.createObjectURL(new Blob([zip]));
     a.download = 'ajanPackage.zip';
@@ -272,11 +333,13 @@ function downloadFile(info, agents) {
   });
 }
 
-function zipBlob(info, agents, callback) {
+function zipBlob(info, agents, behaviors, callback) {
   zip.createWriter(new zip.BlobWriter("application/zip"), function (zipWriter) {
     zipWriter.add('info.json', new zip.BlobReader(info), function () {
       zipWriter.add('agents/agents.ttl', new zip.BlobReader(agents), function () {
-        zipWriter.close(callback);
+        zipWriter.add('behaviors/behaviors.ttl', new zip.BlobReader(behaviors), function () {
+          zipWriter.close(callback);
+        });
       });
     });
   }, onerror);

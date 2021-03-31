@@ -45,11 +45,17 @@ function createImportModal(matches, callbackFunct, info) {
   // Listen for the confirm event
   elem = document.getElementById("universal-modal");
   elem.addEventListener("modal:confirm", onConfirm);
+  elem.addEventListener("modal:cancel", onCancel);
 }
 
 function onConfirm() {
   callback();
   elem.removeEventListener("modal:confirm", onConfirm);
+}
+
+function onCancel() {
+  elem.removeEventListener("modal:confirm", onConfirm);
+  elem.removeEventListener("modal:cancel", onCancel);
 }
 
 function getInfoHTML(info, $body) {

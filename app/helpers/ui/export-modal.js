@@ -21,6 +21,7 @@
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import agtActions from "ajan-editor/helpers/agents/actions";
+import modals from "ajan-editor/helpers/ui/export-modals/info-modal";
 import * as zip from "zip-js-webpack";
 
 let $ = Ember.$;
@@ -45,21 +46,30 @@ function createExportModal(agentsModel, behaviorsModel) {
   behaviors = behaviorsModel;
   info = {};
 
-  getInfoHTML($body, info);
-  getAgentModels($body, agents);
-  getBehaviorsModels($body, behaviors);
+  modals.getInfoHTML($body, info);
+  modals.getOptionals($body, info);
+  modals.getAgentModels($body, agents);
+  modals.getBehaviorsModels($body, behaviors);
 
-  setModelsSectionListener();
+  addModelsSectionListener();
 
   // Listen for the confirm event
   elem = document.getElementById("universal-modal");
   elem.addEventListener("modal:confirm", onConfirm);
+  elem.addEventListener("modal:cancel", onCancel);
 }
 
-function setModelsSectionListener() {
+function addModelsSectionListener() {
   let section = document.getElementsByClassName("modal-models-header");
   for (let item of section) {
     item.addEventListener("click", toggleSection);
+  }
+}
+
+function removeModelsSectionListener() {
+  let section = document.getElementsByClassName("modal-models-header");
+  for (let item of section) {
+    item.removeEventListener("click", toggleSection);
   }
 }
 
@@ -69,157 +79,27 @@ function toggleSection(event) {
   $header.next().toggleClass("active");
 }
 
-function getInfoHTML($body, info) {
-  let $header = $("<h2>Package Information</h2>", {});
-  let $info = $("<div>", { class: "modal-models-overview active" });
-  info.author = createInputField($info, "Author");
-  info.vendor = createInputField($info, "Vendor");
-  info.domain = createInputField($info, "Domain");
-  info.version = createInputField($info, "Version");
-  info.comment = createInputField($info, "Comment");
-
-  let $infoDiv = createModelsDiv($header,$info);
-  // Append to modal body
-  $body.append($infoDiv);
-}
-
-function createHeader(text, active) {
-  let $header = $("<div>", { class: "modal-models-header title " + active })
-  $header.append($("<i>", { class: "dropdown icon" }))
-  $header.append($("<span>", {}).text(text));
-  return $header;
-}
-
-function createModelsDiv($header, $info) {
-  let $infoDiv = $("<div>", {
-    class: "modal-body-div accordion ui"
-  }).append($header, $info);
-  return $infoDiv;
-}
-
-function getAgentModels($body, model) {
-  let $header = createHeader("Add Agent Models");
-  let $info = $("<div>", { class: "modal-models-overview" });
-  createTemplates($info, model);
-  createBehaviors($info, model);
-  createEndpoints($info, model);
-  createEvents($info, model);
-  createGoals($info, model);
-
-  let $infoDiv = createModelsDiv($header,$info);
-  // Append to modal body
-  $body.append($infoDiv);
-}
-
-function createTemplates($info, model) {
-  $info.append($("<h3>Agent Templates</h3>"));
-  model.defs.templates.forEach(function (entry) {
-    entry.field = createSelectField($info, entry);
-  });
-}
-
-function createBehaviors($info, model) {
-  $info.append($("<h3>Behaviors</h3>"));
-  model.defs.behaviors.regular.forEach(function (entry) {
-    entry.field = createSelectField($info, entry);
-  });
-  $info.append($("<h4>Initial Behaviors</h4>"));
-  model.defs.behaviors.initial.forEach(function (entry) {
-    entry.field = createSelectField($info, entry);
-  });
-  $info.append($("<h4>Final Behaviors</h4>"));
-  model.defs.behaviors.final.forEach(function (entry) {
-    entry.field = createSelectField($info, entry);
-  });
-}
-
-function createEndpoints($info, model) {
-  $info.append($("<h3>Endpoints</h3>"));
-  model.defs.endpoints.forEach(function (entry) {
-    entry.field = createSelectField($info, entry);
-  });
-}
-
-function createEvents($info, model) {
-  $info.append($("<h3>Events</h3>"));
-  model.defs.events.forEach(function (entry) {
-    entry.field = createSelectField($info, entry);
-  });
-}
-
-function createGoals($info, model) {
-  $info.append($("<h3>Goals</h3>"));
-  model.defs.goals.forEach(function (entry) {
-    entry.field = createSelectField($info, entry);
-  });
-}
-
-function createInputField($info, name) {
-  let $field = $("<p>", { class: "modal-p" });
-  let $title = $("<i>" + name + "</i>");
-  let $input = $("<input>", {
-    class: "modal-input",
-    id: name + "-input",
-    placeholder: name
-  });
-  $field.append($input, $title);
-  $info.append($field);
-  return $input;
-}
-
-function createSelectField($info, object) {
-  if (object.id) {
-    let name = object.label;
-    if (!name)
-      name = object.name;
-    let $field = $("<p>", { class: "modal-p" });
-    let $title = $("<i>" + name + "</i>");
-    let $input = $("<input>", {
-      type: "checkbox",
-      value: object.uri,
-      name: name,
-      class: "modal-checkbox",
-    });
-    $field.append($input, $title);
-    $info.append($field);
-    return $input;
-  }
-  return null;
-}
-
-function getBehaviorsModels($body, model) {
-  let $header = createHeader("Add Behavior Models");
-  let $info = $("<div>", { class: "modal-models-overview" });
-  createBTs($info, model);
-
-  let $infoDiv = createModelsDiv($header,$info);
-  // Append to modal body
-  $body.append($infoDiv);
-}
-
-function createBTs($info, model) {
-  $info.append($("<h3>Behavior Trees</h3>"));
-  model.defs.forEach(function (entry) {
-    entry.field = createSelectField($info, entry);
-  });
-}
-
 // --------------------
 // onConfirm stuff
 // --------------------
 
+function onCancel() {
+  removeModelsSectionListener();
+  elem.removeEventListener("modal:confirm", onConfirm);
+  elem.removeEventListener("modal:cancel", onCancel);
+}
+
 function onConfirm() {
   let json = {};
-  console.log(info);
-  console.log(agents);
-  console.log(behaviors);
   getVals(json, info);
+  getOptionals(json, info);
   json["contains"] = new Array();
   let agentsRDF = getAgentChecks(json, agents);
   let behaviorsRDF = getBehaviorChecks(json, behaviors);
   let infotxt = JSON.stringify(json, null, 2);
   console.log(infotxt);
   downloadFile(infotxt, agentsRDF, behaviorsRDF);
+  removeModelsSectionListener();
   elem.removeEventListener("modal:confirm", onConfirm);
 }
 
@@ -230,6 +110,16 @@ function getVals(json, model) {
   json["date"] = model.author.val();
   json["version"] = model.version.val();
   json["comment"] = model.comment.val();
+}
+
+function getOptionals(json, model) {
+  json["optionals"] = [];
+  model.optionals.forEach(function (data) {
+    let optional = {};
+    optional["name"] = data.name.val();
+    optional["value"] = data.value.val();
+    json["optionals"].push(optional);
+  });
 }
 
 function getAgentChecks(json, model) {

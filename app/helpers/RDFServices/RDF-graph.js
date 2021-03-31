@@ -178,16 +178,25 @@ class RDFGraph {
 	}
 
 	// Removes all quads which have an element related to val
-	removeAllRelated(val) {
+  removeAllRelated(val, noObject) {
 		this.unsavedChanges = true;
-		console.warn("Delete related to", val);
-    this.data._quads = this.data._quads.filter(quad => {
-			return (
-				quad.subject.value !== val &&
-				quad.predicate.value !== val &&
-				quad.object.value !== val
-			);
-		});
+    console.warn("Delete related to", val);
+    if (noObject) {
+      this.data._quads = this.data._quads.filter(quad => {
+        return (
+          quad.subject.value !== val &&
+          quad.predicate.value !== val
+        );
+      });
+    } else {
+      this.data._quads = this.data._quads.filter(quad => {
+        return (
+          quad.subject.value !== val &&
+          quad.predicate.value !== val &&
+          quad.object.value !== val
+        );
+      });
+    }
 	}
 
   removeRelatedQuads(subject, predicate) {

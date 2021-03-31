@@ -91,28 +91,28 @@ export default {
   exportGoal: exportGoal
 };
 
-function deleteAgent(agent) {
+function deleteAgent(agent, noObject) {
 	console.log(agent);
-	rdfGraph.removeAllRelated(agent.uri);
+  rdfGraph.removeAllRelated(agent.uri, noObject);
 }
 
-function deleteBehavior(behavior) {
+function deleteBehavior(behavior, noObject) {
 	console.log(behavior);
-	rdfGraph.removeAllRelated(behavior.uri);
+  rdfGraph.removeAllRelated(behavior.uri, noObject);
 }
-function deleteEvent(event) {
+function deleteEvent(event, noObject) {
 	console.log(event);
-	rdfGraph.removeAllRelated(event.uri);
+  rdfGraph.removeAllRelated(event.uri, noObject);
 }
-function deleteEndpoint(endpoint) {
+function deleteEndpoint(endpoint, noObject) {
 	console.log(endpoint);
-	rdfGraph.removeAllRelated(endpoint.uri);
+  rdfGraph.removeAllRelated(endpoint.uri, noObject);
 }
 
-function deleteGoal(goal) {
+function deleteGoal(goal, noObject) {
   console.log(goal);
   deleteVariables(goal.variables)
-	rdfGraph.removeAllRelated(goal.uri);
+  rdfGraph.removeAllRelated(goal.uri, noObject);
 }
 
 function deleteVariables(variables) {
@@ -280,19 +280,19 @@ function deleteMatches(matches) {
   if (matches.length > 0) {
     matches.forEach((data) => {
       if (data.type === AGENTS.AgentTemplate)
-        deleteAgent(data);
+        deleteAgent(data, true);
       else if (data.type === AGENTS.InitialBehavior)
-        deleteBehavior(data);
+        deleteBehavior(data, true);
       else if (data.type === AGENTS.FinalBehavior)
-        deleteBehavior(data);
+        deleteBehavior(data, true);
       else if (data.type === AGENTS.Behavior)
-        deleteBehavior(data);
+        deleteBehavior(data, true);
       else if (data.type === AGENTS.Endpoint)
-        deleteEndpoint(data);
+        deleteEndpoint(data, true);
       else if (data.type === AGENTS.Event) {
-        deleteEvent(data);
+        deleteEvent(data, true);
       } else if (data.type === AGENTS.Goal) {
-        deleteGoal(data);
+        deleteGoal(data, true);
       }
     });
   }

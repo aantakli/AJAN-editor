@@ -198,6 +198,7 @@ function onConfirm() {
   console.log(agents);
   console.log(behaviors);
   getVals(json, info);
+  json["contains"] = new Array();
   let agentsRDF = getAgentChecks(json, agents);
   let behaviorsRDF = getBehaviorChecks(json, behaviors);
   let infotxt = JSON.stringify(json, null, 2);
@@ -219,12 +220,11 @@ function getAgentChecks(json, model) {
   rdfGraph.reset();
   rdfGraph.set(model.rdf);
   let quads = [];
-  json["contains"] = new Array();
-  quads = setTemplates(json, model, quads);
-  quads = setBehaviors(json, model, quads);
-  quads = setEndpoints(json, model, quads);
   quads = setEvents(json, model, quads);
   quads = setGoals(json, model, quads);
+  quads = setEndpoints(json, model, quads);
+  quads = setBehaviors(json, model, quads);
+  quads = setTemplates(json, model, quads);
   console.log(quads);
   return rdfGraph.toString(quads) + ".";
 }
@@ -232,7 +232,6 @@ function getAgentChecks(json, model) {
 function getBehaviorChecks(json, model) {
   rdfGraph.reset();
   rdfGraph.set(model.rdf);
-  json["contains"] = new Array();
   return setBTs(json, model);
 }
 

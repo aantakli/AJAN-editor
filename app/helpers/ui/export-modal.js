@@ -151,9 +151,9 @@ function createInputField($info, name) {
 
 function createSelectField($info, object) {
   if (object.id) {
-    let name = object.name;
+    let name = object.label;
     if (!name)
-      name = object.label;
+      name = object.name;
     let $field = $("<p>", { class: "modal-p" });
     let $title = $("<i>" + name + "</i>");
     let $input = $("<input>", {
@@ -302,9 +302,9 @@ function setGoals(json, model, quads) {
 
 function createObject(json, entry, type) {
   let obj = {};
-  let name = entry.name;
+  let name = entry.label;
   if (!name)
-    name = entry.label;
+    name = entry.name;
   obj["type"] = type;
   obj["name"] = name;
   obj["uri"] = entry.uri;

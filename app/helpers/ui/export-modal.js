@@ -70,7 +70,7 @@ function toggleSection(event) {
 }
 
 function getInfoHTML($body, info) {
-  let $header = createHeader("Package Information", "active");
+  let $header = $("<h2>Package Information</h2>", {});
   let $info = $("<div>", { class: "modal-models-overview active" });
   info.author = createInputField($info, "Author");
   info.vendor = createInputField($info, "Vendor");

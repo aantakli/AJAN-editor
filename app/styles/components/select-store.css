@@ -54,7 +54,6 @@
 
 :global(.modal-models-header) {
   padding-left: 10px !important;
-  margin-bottom: 20px;
   font-size: 18px !important;
   background: #A3A4DC;
   -moz-user-select: none;
@@ -77,6 +76,7 @@
 }
 
 :global(.modal-models-overview) {
+  margin-top: 20px;
   display: none;
   height: 0;
   padding-left: 20px;

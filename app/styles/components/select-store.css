@@ -44,11 +44,47 @@
 :global(.modal-checkbox) {
   width: 15px;
   height: 15px;
+  margin-left: 20px;
 }
 
 :global(.modal-input),
 :global(.modal-checkbox) {
   margin-right: 20px;
+}
+
+:global(.modal-models-header) {
+  padding-left: 10px !important;
+  margin-bottom: 20px;
+  font-size: 18px !important;
+  background: #A3A4DC;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+:global(.modal-models-header span) {
+  font-size: 24px !important;
+}
+
+:global(.modal-models-header i) {
+  padding-left: 10px;
+}
+
+:global(.modal-models-header):hover {
+  cursor: pointer;
+}
+
+:global(.modal-models-overview) {
+  display: none;
+  height: 0;
+  padding-left: 20px;
+}
+
+:global(.modal-models-overview.active) {
+  height: auto;
+  display: block;
 }
 
 :global(.input.label) {

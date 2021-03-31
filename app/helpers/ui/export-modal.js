@@ -43,52 +43,70 @@ function createExportModal(agentsModel, behaviorsModel) {
 
   agents = agentsModel;
   behaviors = behaviorsModel;
-
-  console.log(agents);
-  console.log(behaviors);
-
   info = {};
 
   getInfoHTML($body, info);
-  $body.append($("<hr>"));
   getAgentModels($body, agents);
-  $body.append($("<hr>"));
   getBehaviorsModels($body, behaviors);
+
+  setModelsSectionListener();
 
   // Listen for the confirm event
   elem = document.getElementById("universal-modal");
   elem.addEventListener("modal:confirm", onConfirm);
 }
 
-function getInfoHTML($body, info) {
-  let $info = $("<div>", {});
-  $info.append($("<h2>Package Information</h2>"));
+function setModelsSectionListener() {
+  let section = document.getElementsByClassName("modal-models-header");
+  for (let item of section) {
+    item.addEventListener("click", toggleSection);
+  }
+}
 
+function toggleSection(event) {
+  let $header = $(event.target);
+  $header.toggleClass("active");
+  $header.next().toggleClass("active");
+}
+
+function getInfoHTML($body, info) {
+  let $header = createHeader("Package Information", "active");
+  let $info = $("<div>", { class: "modal-models-overview active" });
   info.author = createInputField($info, "Author");
   info.vendor = createInputField($info, "Vendor");
   info.domain = createInputField($info, "Domain");
   info.version = createInputField($info, "Version");
   info.comment = createInputField($info, "Comment");
 
-  let $infoDiv = $("<div>", {
-    class: "modal-body-div"
-  }).append($info);
+  let $infoDiv = createModelsDiv($header,$info);
   // Append to modal body
   $body.append($infoDiv);
 }
 
+function createHeader(text, active) {
+  let $header = $("<div>", { class: "modal-models-header title " + active })
+  $header.append($("<i>", { class: "dropdown icon" }))
+  $header.append($("<span>", {}).text(text));
+  return $header;
+}
+
+function createModelsDiv($header, $info) {
+  let $infoDiv = $("<div>", {
+    class: "modal-body-div accordion ui"
+  }).append($header, $info);
+  return $infoDiv;
+}
+
 function getAgentModels($body, model) {
-  let $info = $("<div>", {});
-  $info.append($("<h2>Add Agent Models</h2>"));
+  let $header = createHeader("Add Agent Models");
+  let $info = $("<div>", { class: "modal-models-overview" });
   createTemplates($info, model);
   createBehaviors($info, model);
   createEndpoints($info, model);
   createEvents($info, model);
   createGoals($info, model);
 
-  let $infoDiv = $("<div>", {
-    class: "modal-body-div"
-  }).append($info);
+  let $infoDiv = createModelsDiv($header,$info);
   // Append to modal body
   $body.append($infoDiv);
 }
@@ -170,13 +188,11 @@ function createSelectField($info, object) {
 }
 
 function getBehaviorsModels($body, model) {
-  let $info = $("<div>", {});
-  $info.append($("<h2>Add Behavior Models</h2>"));
+  let $header = createHeader("Add Behavior Models");
+  let $info = $("<div>", { class: "modal-models-overview" });
   createBTs($info, model);
 
-  let $infoDiv = $("<div>", {
-    class: "modal-body-div"
-  }).append($info);
+  let $infoDiv = createModelsDiv($header,$info);
   // Append to modal body
   $body.append($infoDiv);
 }

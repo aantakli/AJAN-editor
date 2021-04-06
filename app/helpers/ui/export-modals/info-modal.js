@@ -2,7 +2,7 @@
  * Created on Tue Nov 10 2020
  *
  * The MIT License (MIT)
- * Copyright (c) 2020 André Antakli, Xueting Li (German Research Center for Artificial Intelligence, DFKI).
+ * Copyright (c) 2020 André Antakli (German Research Center for Artificial Intelligence, DFKI).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -18,6 +18,9 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
+import utility from "ajan-editor/helpers/RDFServices/utility";
+
 export default {
   getInfoHTML: getInfoHTML,
   getOptionals: getOptionals,
@@ -74,10 +77,28 @@ function addOptional(event) {
   let info = event.data.optional_info;
   let $div = event.data.optional_root;
   let $optional = $("<div>", { class: "modal-models-optional" });
-  let key = createInputField($optional, "Name");
-  let value = createInputField($optional, "Value");
-  info.optionals.push({ "name": key, "value": value });
+  let fields = { "id": utility.generateUUID(), "name": createInputField($optional, "Name"), "value": createInputField($optional, "Value") };
+  //remove Button
+  let $remove = $("<button>", { class: "remove-optional ui red icon button rightmost" })
+    .append($("<i class='remove icon no-side-margins'></i>"));
+  $remove.on('click', { optional_info: info, optional_fields: fields }, removeOptional);
+  $optional.append($remove);
+
+  info.optionals.push(fields);
   $div.append($optional);
+  if (!$div.hasClass("active")) {
+    $div.addClass("active");
+    $div.prev().addClass("active");
+  }
+}
+
+function removeOptional(event) {
+  let info = event.data.optional_info;
+  let fields = event.data.optional_fields;
+  let $target = $(event.target);
+  $target.closest(".modal-models-optional").remove();
+  let index = info.optionals.indexOf(fields);
+  info.optionals.splice(index, 1);
 }
 
 // ---------------------------------

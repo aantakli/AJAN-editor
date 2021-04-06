@@ -60,23 +60,24 @@ function createExportModal(agentsModel, behaviorsModel) {
 }
 
 function addModelsSectionListener() {
-  let section = document.getElementsByClassName("modal-models-header");
-  for (let item of section) {
+  let $header = $("div.modal-models-header");
+  for (let item of $header) {
     item.addEventListener("click", toggleSection);
   }
 }
 
 function removeModelsSectionListener() {
-  let section = document.getElementsByClassName("modal-models-header");
-  for (let item of section) {
+  let $header = $("div.modal-models-header");
+  for (let item of $header) {
     item.removeEventListener("click", toggleSection);
   }
 }
 
 function toggleSection(event) {
-  let $header = $(event.target);
-  $header.toggleClass("active");
-  $header.next().toggleClass("active");
+  let $target = $(event.target);
+  if ($target.is("span")) $target = $target.parent();
+  $target.toggleClass("active");
+  $target.next().toggleClass("active");
 }
 
 // --------------------

@@ -127,12 +127,11 @@ function getAgentChecks(json, model) {
   rdfGraph.reset();
   rdfGraph.set(model.rdf);
   let quads = [];
+  quads = setTemplates(json, model, quads);
+  quads = setBehaviors(json, model, quads);
+  quads = setEndpoints(json, model, quads);
   quads = setEvents(json, model, quads);
   quads = setGoals(json, model, quads);
-  quads = setEndpoints(json, model, quads);
-  quads = setBehaviors(json, model, quads);
-  quads = setTemplates(json, model, quads);
-  console.log(quads);
   return rdfGraph.toString(quads) + ".";
 }
 

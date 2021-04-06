@@ -19,11 +19,15 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+let callback = null;
+let elem = null;
+
 export default {
   createImportModal: createImportModal
 };
 
-function createImportModal(matches, onConfirm, info) {
+function createImportModal(matches, callbackFunct, info) {
+  callback = callbackFunct;
   console.log("Ask for import AJAN-models");
   $("#modal-header-title").text("Import AJAN-models");
   let $body = $("#modal-body"),
@@ -39,10 +43,19 @@ function createImportModal(matches, onConfirm, info) {
   }
 
   // Listen for the confirm event
-  let elem = document.getElementById("universal-modal");
-  elem.addEventListener("modal:confirm", () => {
-    onConfirm();
-  });
+  elem = document.getElementById("universal-modal");
+  elem.addEventListener("modal:confirm", onConfirm);
+  elem.addEventListener("modal:cancel", onCancel);
+}
+
+function onConfirm() {
+  callback();
+  elem.removeEventListener("modal:confirm", onConfirm);
+}
+
+function onCancel() {
+  elem.removeEventListener("modal:confirm", onConfirm);
+  elem.removeEventListener("modal:cancel", onCancel);
 }
 
 function getInfoHTML(info, $body) {
@@ -92,7 +105,7 @@ function setContainsHTML(contains, $info) {
 }
 
 function setOptionalsHTML(optionals, $info) {
-  if (optionals.length > 0) {
+  if (optionals && optionals.length > 0) {
     let $optionals = $("<div>", {});
     $optionals.append($("<p><b>Further Information:</b>"));
     let $list = $("<ul>", {});

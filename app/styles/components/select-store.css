@@ -41,6 +41,99 @@
   margin: 0;
 }
 
+:global(.modal-checkbox) {
+  width: 15px;
+  height: 15px;
+  margin-left: 20px;
+}
+
+:global(.modal-input),
+:global(.modal-checkbox) {
+  margin-right: 20px;
+}
+
+:global(.modal-models-header) {
+  height: 50px;
+  padding-left: 10px !important;
+  padding-top: 7px !important;
+  padding-bottom: 10px !important;
+  font-size: 18px !important;
+  background: #A3A4DC;
+
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+:global(.modal-models-header span) {
+  font-size: 24px !important;
+  margin-top: 10px !important;
+}
+
+:global(.modal-models-header i) {
+  padding-left: 10px;
+  cursor: default;
+}
+
+:global(.modal-models-header):hover {
+  cursor: pointer;
+}
+
+:global(.modal-models-overview) {
+  margin-top: 20px;
+  display: none;
+  height: 0;
+  padding-left: 20px;
+}
+
+:global(.modal-models-overview.active) {
+  height: auto;
+  display: block;
+}
+
+:global(.add-optional) {
+  float: right;
+  height: 50px;
+  width: 50px;
+  margin-top: -7px !important;
+  border-radius: 0em !important;
+}
+
+:global(.add-optional i)::before {
+  margin-left: -7px !important;
+}
+
+:global(.modal-models-optional) {
+  width: 100%;
+  height: 50px;
+}
+
+:global(.modal-models-optional p) {
+  float: left;
+  margin-right: 20px;
+}
+
+:global(.modal-models-optional p:nth-child(1) input) {
+  width: 150px;
+}
+
+:global(.modal-models-optional p:nth-child(2) input) {
+  width: 260px;
+}
+
+:global(.remove-optional) {
+  width: 24px;
+  height: 24px;
+  padding: 0px !important;
+  margin-top: 7.5px !important;
+  margin-left: 20px !important;
+}
+
+:global(.remove-optional i)::before {
+}
+
 :global(.input.label) {
   width: 20%;
   left: 0;
@@ -113,5 +206,5 @@ input {
 :global(.triplestore-import) {
   padding: 0px !important;
   width: 2.8em !important;
-  height: 2.5em !important;
+  height: 2.55em !important;
 }

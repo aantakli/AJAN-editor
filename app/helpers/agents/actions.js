@@ -87,31 +87,32 @@ export default {
   readTTLInput: readTTLInput,
   getAgentDefsMatches: getAgentDefsMatches,
   getTTLMatches: getTTLMatches,
-  deleteMatches: deleteMatches
+  deleteMatches: deleteMatches,
+  exportGoal: exportGoal
 };
 
-function deleteAgent(agent) {
+function deleteAgent(agent, noObject) {
 	console.log(agent);
-	rdfGraph.removeAllRelated(agent.uri);
+  rdfGraph.removeAllRelated(agent.uri, noObject);
 }
 
-function deleteBehavior(behavior) {
+function deleteBehavior(behavior, noObject) {
 	console.log(behavior);
-	rdfGraph.removeAllRelated(behavior.uri);
+  rdfGraph.removeAllRelated(behavior.uri, noObject);
 }
-function deleteEvent(event) {
+function deleteEvent(event, noObject) {
 	console.log(event);
-	rdfGraph.removeAllRelated(event.uri);
+  rdfGraph.removeAllRelated(event.uri, noObject);
 }
-function deleteEndpoint(endpoint) {
+function deleteEndpoint(endpoint, noObject) {
 	console.log(endpoint);
-	rdfGraph.removeAllRelated(endpoint.uri);
+  rdfGraph.removeAllRelated(endpoint.uri, noObject);
 }
 
-function deleteGoal(goal) {
+function deleteGoal(goal, noObject) {
   console.log(goal);
   deleteVariables(goal.variables)
-	rdfGraph.removeAllRelated(goal.uri);
+  rdfGraph.removeAllRelated(goal.uri, noObject);
 }
 
 function deleteVariables(variables) {
@@ -279,20 +280,46 @@ function deleteMatches(matches) {
   if (matches.length > 0) {
     matches.forEach((data) => {
       if (data.type === AGENTS.AgentTemplate)
-        deleteAgent(data);
+        deleteAgent(data, true);
       else if (data.type === AGENTS.InitialBehavior)
-        deleteBehavior(data);
+        deleteBehavior(data, true);
       else if (data.type === AGENTS.FinalBehavior)
-        deleteBehavior(data);
+        deleteBehavior(data, true);
       else if (data.type === AGENTS.Behavior)
-        deleteBehavior(data);
+        deleteBehavior(data, true);
       else if (data.type === AGENTS.Endpoint)
-        deleteEndpoint(data);
+        deleteEndpoint(data, true);
       else if (data.type === AGENTS.Event) {
-        deleteEvent(data);
+        deleteEvent(data, true);
       } else if (data.type === AGENTS.Goal) {
-        deleteGoal(data);
+        deleteGoal(data, true);
       }
     });
   }
+}
+
+function exportGoal(nodeURI) {
+  let goal = new Array();
+  let nodes = new Array();
+  visitNode(nodeURI, nodes);
+  nodes.forEach(uri => {
+    let quads = rdfGraph.getAllQuads(uri);
+    quads.forEach(quad => {
+      goal.push(quad);
+    })
+  });
+  return goal;
+}
+
+function visitNode(uri, nodes) {
+  rdfGraph.forEach(quad => {
+    if (quad.subject.value === uri) {
+      if (quad.object.value !== RDF.nil && quad.predicate.value !== RDF.type) {
+        let child = quad.object.value;
+        if (!nodes.includes(uri))
+          nodes.push(uri);
+        visitNode(child, nodes);
+      }
+    }
+  });
 }

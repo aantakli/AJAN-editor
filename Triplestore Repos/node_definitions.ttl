@@ -67,6 +67,13 @@
         nd:padding "600%";
         nd:paddingTo "width";
     ] ;
+	nd:parameter [
+		a nd:Parameter;
+		nd:mapsTo bt:sequence;
+		nd:title "Sequence";
+		nd:input xsd:boolean ;
+		nd:default "true"^^xsd:boolean;
+	] ;
     nd:parameterSet [
 		a nd:ParameterSet;
 		nd:mapsTo bt:selectChild ;

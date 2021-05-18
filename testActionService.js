@@ -1,7 +1,8 @@
 const express = require('express');
+const fs = require('fs');
 const http = require('http');
 const WebSocket = require('ws');
-const cors = require('cors')
+const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -10,15 +11,24 @@ const port = 4201;
 //initialize a simple http server
 const server = http.createServer(app);
 
+let start;
+let startAll;
+let endAll;
+let performance = "";
+let iterations = 1000;
+let iteration = 0;
+let data = "";
 let body = "";
-let response = "<http://localhost:4201/post> <http://localhost:4201/test-service-ns#message>  <http://localhost:4201/test-service-ns#Received> ."
+let response = "<http://localhost:4201/post> <http://localhost:4201/test-service-ns#message>  <http://localhost:4201/test-service-ns#Received> .";
 const wss = new WebSocket.Server({ server });
 
-app.use(bodyParser.text({ type: 'text/plain' }));
-app.use(bodyParser.text({ type: 'text/turtle' }));
-app.use(bodyParser.text({ type: 'text/xml' }));
-app.use(bodyParser.text({ type: 'application/sparql-results+xml' }));
-app.use(bodyParser.text({ type: 'application/trig' }));
+app.use(bodyParser.text({ type: 'text/plain', limit: '50mb' }));
+app.use(bodyParser.text({ type: 'text/turtle', limit: '50mb' }));
+app.use(bodyParser.text({ type: 'text/xml', limit: '50mb' }));
+app.use(bodyParser.text({ type: 'application/json', limit: '50mb' }));
+app.use(bodyParser.text({ type: 'application/sparql-results+xml', limit: '50mb' }));
+app.use(bodyParser.text({ type: 'application/trig', limit: '50mb' }));
+app.use(bodyParser());
 app.use(function (err, req, res, next) {
   console.error(err.stack);
 });
@@ -27,6 +37,76 @@ app.use(cors());
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
+});
+
+app.get('/performance', (req, res) => {
+  let total = endAll - startAll - (1000 * iterations) ;
+  let average = total / iterations;
+  res.send(performance + " --> " + total + "ms" + ", 1 cycle = " + average + "ms");
+});
+
+app.get('/start', (req, res) => {
+  res.send('start');
+  iteration = iterations;
+  performance = "";
+  startAll = Date.now();
+  /*try {
+    data = fs.readFileSync('/Projects/AJAN/github/AJAN-editor/test_rdf.txt', 'utf8');
+    console.log(data);
+  } catch (err) {
+    console.error(err);
+  }*/
+  sendRequest();
+});
+
+function sendRequest() {
+  const options = {
+    hostname: 'localhost',
+    port: 8080,
+    path: '/ajan/agents/test?capability=execute',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/turtle',
+      'Content-Length': data.length
+    }
+  }
+
+  const reqTest = http.request(options, res => {
+    console.log(`statusCode: ${res.statusCode}`)
+    res.on('data', d => {
+      process.stdout.write(d)
+    });
+  });
+
+  reqTest.on('error', error => {
+    console.error(error)
+  });
+  start = Date.now();
+  reqTest.write(data);
+  reqTest.end();
+}
+
+app.post('/end', (req, res) => {
+  console.log("\r-------------------------------");
+  console.log(req.body);
+  let end = Date.now() - start;
+  console.log("\r-------------------------------");
+  console.log("performance time:" + end);
+  console.log("-------------------------------");
+  console.log(req.body);
+  console.log("-------------------------------");
+  res.send("");
+  iteration -= 1;
+  performance += (iterations - iteration) + ": " + end + "ms; ";
+  console.log(iteration);
+  if (iteration > 0) {
+	var waitTill = new Date(new Date().getTime() + 1 * 1000);
+	while(waitTill > new Date()){}
+    sendRequest();
+	console.log("sent!");
+  } else {
+    endAll = Date.now();
+  }
 });
 
 app.get('/getResponse', (req, res) => {

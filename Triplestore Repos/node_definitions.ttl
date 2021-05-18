@@ -362,7 +362,14 @@
 		nd:mapsTo bt:targetBase;
 		nd:title "Target Base";
 		nd:input nd:Repo ;
-	]
+	] ;
+	nd:parameter [
+        a nd:Parameter;
+        nd:mapsTo bt:evaluate;
+        nd:input xsd:boolean;
+        nd:default "true"^^xsd:boolean;
+        nd:title "Evaluate IO";
+    ];
 .
 
 :Condition nd:class nd:Leaf;
@@ -1341,6 +1348,12 @@
         nd:paddingTo "width";
         nd:icon "abortMMU.png";
     ];
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt:targetBase;
+	    nd:title "Target Base";
+	    nd:input nd:Repo;
+    ];
     nd:parameter [
 	    a nd:Parameter;
 	    nd:mapsTo bt-mosim:host;
@@ -1459,6 +1472,42 @@
 	    a nd:Parameter;
 	    nd:mapsTo bt-mosim:host;
 	    nd:title "PathPlanning Service";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ] .
+
+:SendHTLELogs nd:class nd:Leaf;
+	nd:name "SendHTLELogs";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultSendHTLELogs";
+    nd:type bt-mosim:SendHTLELogs;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#ddf2f7";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "logHTLE.png";
+    ] ;
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mosim:endpointHTLE;
+	    nd:title "HTLE Endpoint";
+	    nd:input xsd:anyURI;
+    ] ;
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt:originBase;
+	    nd:title "Loging Base";
+	    nd:input nd:Repo;
+    ] ;
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mosim:infoHTLE;
+	    nd:title "HTLE Infos: ?token ?resultSet";
 	    nd:input nd:Query;
         bt:originBase "true";
         bt:targetBase "false";

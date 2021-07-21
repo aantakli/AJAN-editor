@@ -215,7 +215,7 @@ let AGENTS = {
   finalBehavior: "http://www.ajan.de/ajan-ns#finalBehavior",
   behavior: "http://www.ajan.de/ajan-ns#behavior",
   agentTemplate: "http://www.ajan.de/ajan-ns#agentTemplate",
-  agentName: "http://www.ajan.de/ajan-ns#agentName",
+  agentId: "http://www.ajan.de/ajan-ns#agentId",
 	trigger: "http://www.ajan.de/ajan-ns#trigger",
 	bt: "http://www.ajan.de/ajan-ns#bt",
 	variables: "http://www.ajan.de/ajan-ns#variables",

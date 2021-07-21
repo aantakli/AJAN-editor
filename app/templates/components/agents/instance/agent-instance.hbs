@@ -1,6 +1,6 @@
-{{#if activeInstance.name}}
+{{#if activeInstance.id}}
 <div local-class="agent-instance-header clearfix">
-  <div local-class="agent-instance-header-text">{{activeInstance.name}}</div>
+  <div local-class="agent-instance-header-text">{{activeInstance.id}}</div>
   <button {{action "deleteAgent" activeInstance.uri}} class="ui red icon button rightmost">
     <i class="minus icon no-side-margins"></i>
   </button>
@@ -158,7 +158,7 @@
 </div>
 {{/each}}
 {{/if}}
-{{#unless activeInstance.name}}
+{{#unless activeInstance.id}}
 <div local-class="agent-instance-reminder clearfix">
   <div local-class="agent-instance-reminder-text">
     <i class="icon angle double right no-side-margins"></i>

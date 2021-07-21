@@ -108,8 +108,8 @@ function getAgentInstance(graph, uri, templates) {
   agent.behaviors = new Array();
   graph.forEach(quad => {
     if (quad.subject.value === uri) {
-      if (quad.predicate.value === AGENTS.agentName) {
-        agent.name = quad.object.value;
+      if (quad.predicate.value === AGENTS.agentId) {
+        agent.id = quad.object.value;
       }
       if (quad.predicate.value === AGENTS.agentTemplate) {
         agent.template = quad.object.value;

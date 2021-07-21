@@ -144,11 +144,11 @@ function createModal() {
   // Label
   let $labelTitle = $("<p>", {
     class: "modal-p"
-  }).text("Name: ");
+  }).text("ID: ");
   let $labelInput = $("<input>", {
     class: "modal-input",
     id: "label-input",
-    placeholder: "Name"
+    placeholder: "ID"
   });
   let $labelDiv = $("<div>", {
     class: "modal-body-div"
@@ -203,7 +203,7 @@ function createInitMessage(label, templateUri, knowledge) {
   console.log(templateUri);
   if (label === "") {
     $("#error-message").trigger("showToast", [
-      "No Agent Name was defined!"
+      "No Agent ID was defined!"
     ]);
     return;
   }
@@ -214,7 +214,7 @@ function createInitMessage(label, templateUri, knowledge) {
     return;
   }
   let type = "_:init <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ajan.de/ajan-ns#AgentInitialisation> . ";
-  let name = "_:init <http://www.ajan.de/ajan-ns#agentName> '" + label + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
+  let name = "_:init <http://www.ajan.de/ajan-ns#agentId> '" + label + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
   let tmpl = "_:init <http://www.ajan.de/ajan-ns#agentTemplate> <" + templateUri + "> . ";
   let know = getAgentInitKnowledge(knowledge);
   Promise.resolve(know).then(x => {

@@ -52,7 +52,7 @@ export default Component.extend({
 
     this.get('dataBus').on('saveExportedBT', function (bt) {
       that.set("btFileName", bt.label + "_bt.ttl");
-      that.set("btContent", URL.createObjectURL(new Blob(["@prefix xsd: <http://www.w3.org/2001/XMLSchema#> . " + bt.definition])));
+      that.set("btContent", URL.createObjectURL(new Blob(["# Root: <" + bt.uri + "> \r\r@prefix xsd: <http://www.w3.org/2001/XMLSchema#> . " + bt.definition])));
     });
 
     this.get('dataBus').on('updatedBT', function () {

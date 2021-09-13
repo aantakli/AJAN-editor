@@ -1,9 +1,0 @@
-:global(.property-warning-container) {
-  border: 0;
-  background-color: Cornsilk;
-  justify-content: center;
-}
-
-:global(.property-warning-message) {
-  padding: 0 5pt;
-}

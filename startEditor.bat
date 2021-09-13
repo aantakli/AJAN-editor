@@ -1,1 +1,0 @@
-ember clean-tmp & ember serve 

@@ -1450,7 +1450,88 @@
         nd:paddingTo "width";
         nd:icon "createCallbackServer.png";
     ].
-    
+
+:DeleteMQTTBroker nd:class nd:Leaf;
+	nd:name "DeleteMQTTBroker";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultDeleteMQTTBroker";
+    nd:type bt-mqtt:DeleteMQTTBroker;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#ddf2f7";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "deleteCallbackServer.png";
+    ].
+
+:PublishMQTTMessage nd:class nd:Leaf;
+	nd:name "PublishMQTTMessage";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultMQTTMessage";
+    nd:type bt-mqtt:PublishMessage;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#ddf2f7";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-tree-loadbt.png";
+    ];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mqtt:serverUrlCallback;
+	    nd:title "Server URL: ?serverUrl";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mqtt:publishDetails;
+	    nd:title "Topic and Message: ?topic ?message";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ].
+
+:SubscribeMQTTTopic nd:class nd:Leaf;
+	nd:name "SubscribeMQTTTopic";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultSubscribeTopic";
+    nd:type bt-mqtt:SubscribeTopic;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#ddf2f7";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-new-post.png";
+    ];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mqtt:serverUrlCallback;
+	    nd:title "Server URL: ?serverUrl";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mqtt:subscribeDetails;
+	    nd:title "Topic: ?topic";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ].
+
 :DeleteCallbackServer nd:class nd:Leaf;
 	nd:name "DeleteCallbackServer";
     nd:labelType nd:Dynamic;

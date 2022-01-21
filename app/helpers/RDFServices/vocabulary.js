@@ -201,6 +201,7 @@ let AGENTS = {
   agent: "http://www.ajan.de/ajan-ns#agent",
   Event: "http://www.ajan.de/ajan-ns#ModelEvent",
   QueueEvent: "http://www.ajan.de/ajan-ns#ModelQueueEvent",
+  MappingEvent: "http://www.ajan.de/ajan-ns#MappingEvent",
   Endpoint: "http://www.ajan.de/ajan-ns#Endpoint",
   InitialBehavior: "http://www.ajan.de/ajan-ns#InitialBehavior",
   FinalBehavior: "http://www.ajan.de/ajan-ns#FinalBehavior",

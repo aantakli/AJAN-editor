@@ -1241,28 +1241,136 @@
         ][
             a nd:Parameter;
             nd:mapsTo bt:targetBase;
-            nd:input xsd:anyURI;
-            nd:default ajan:ExecutionKnowledge;
             nd:title "Target Base";
+            nd:input nd:Repo ;
         ]);
     ];
 .
 
 # --------------- ML Plugin -------------------
 
-:NaiveBayes nd:class nd:Leaf;
-    nd:name "NaiveBayes";
+:KMeans nd:class nd:Leaf;
+    nd:name "KMeans";
     nd:labelType nd:Dynamic;
-    rdfs:label "NaiveBayes";
-    nd:type ml:NaiveBayes;
+    nd:type ml:KMeans;
+    rdfs:label "DefaultKMeans";
     nd:style [
         a nd:StyleDef;
-        nd:color "#ddf2f7";
+        nd:color "#FFCC00";
         nd:shape nd:Polygon;
         nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
         nd:padding "700%";
         nd:paddingTo "width";
-        nd:icon "scene-mosim.png";
+        nd:icon "icons8-rules.png";
+    ];
+	nd:parameters (
+		[
+			a nd:Parameter ;
+			nd:mapsTo ml:clusters ;
+			nd:title "Number of Clusters" ;
+			nd:input xsd:int ;
+			nd:default 2;
+		][
+            a nd:Parameter;
+            nd:mapsTo bt:targetBase;
+            nd:title "Target Base";
+            nd:input nd:Repo ;
+        ][
+			a nd:Parameter ;
+			nd:mapsTo ml:inputTbl ;
+			nd:title "Input Table" ;
+			nd:input nd:Query ;
+			bt:originBase "true" ;
+			bt:targetBase "false" ;
+			nd:type bt:SelectQuery ;
+		]
+	) .
+
+:XMeans nd:class nd:Leaf;
+    nd:name "XMeans";
+    nd:labelType nd:Dynamic;
+    nd:type ml:XMeans;
+    rdfs:label "DefaultXMeans";
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#FFCC00";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-rules.png";
+    ];
+	nd:parameters (
+		[
+			a nd:Parameter ;
+			nd:mapsTo ml:maxIterations ;
+			nd:title "Maximum Iterations" ;
+			nd:input xsd:int ;
+			nd:default 100;
+		][
+            a nd:Parameter;
+            nd:mapsTo bt:targetBase;
+            nd:title "Target Base";
+            nd:input nd:Repo ;
+        ][
+			a nd:Parameter ;
+			nd:mapsTo ml:inputTbl ;
+			nd:title "Input Table" ;
+			nd:input nd:Query ;
+			bt:originBase "true" ;
+			bt:targetBase "false" ;
+			nd:type bt:SelectQuery ;
+		]
+	) .
+
+:GMeans nd:class nd:Leaf;
+    nd:name "GMeans";
+    nd:labelType nd:Dynamic;
+    nd:type ml:GMeans;
+    rdfs:label "DefaultGMeans";
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#FFCC00";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-rules.png";
+    ];
+	nd:parameters (
+		[
+			a nd:Parameter ;
+			nd:mapsTo ml:maxIterations ;
+			nd:title "Maximum Iterations" ;
+			nd:input xsd:int ;
+			nd:default 100;
+		][
+            a nd:Parameter;
+            nd:mapsTo bt:targetBase;
+            nd:title "Target Base";
+            nd:input nd:Repo ;
+        ][
+			a nd:Parameter ;
+			nd:mapsTo ml:inputTbl ;
+			nd:title "Input Table" ;
+			nd:input nd:Query ;
+			bt:originBase "true" ;
+			bt:targetBase "false" ;
+			nd:type bt:SelectQuery ;
+		]
+	) .
+
+:NaiveBayes nd:class nd:Composite;
+    nd:name "NaiveBayes";
+    nd:labelType nd:Fixed;
+    nd:type ml:NaiveBayes;
+    rdfs:label "!";
+    nd:style [
+        a nd:styleDef;
+        nd:color "#FFFFFF";
+        nd:shape nd:Hexagon;
+        nd:padding "600%";
+        nd:paddingTo "width";
     ] ;
 	nd:parameters (
 		[
@@ -1289,5 +1397,107 @@
 			bt:originBase "true" ;
 			bt:targetBase "false" ;
 			nd:type bt:SelectQuery ;
+		]
+	) .
+
+:DecisionTree nd:class nd:Composite;
+    nd:name "DecisionTree";
+    nd:labelType nd:Fixed;
+    nd:type ml:DecisionTree;
+    rdfs:label "!";
+    nd:style [
+        a nd:styleDef;
+        nd:color "#FFFFFF";
+        nd:shape nd:Hexagon;
+        nd:padding "600%";
+        nd:paddingTo "width";
+    ] ;
+	 nd:parameters ([
+		a nd:Parameter ;
+		nd:mapsTo ml:trainingTbl ;
+		nd:title "Training Table" ;
+		nd:input nd:Query ;
+		bt:originBase "true" ;
+		bt:targetBase "false" ;
+		nd:type bt:SelectQuery ;
+	]) .
+
+:XGBoost nd:class nd:Composite;
+    nd:name "XGBoost";
+    nd:labelType nd:Fixed;
+    nd:type ml:XGBoost;
+    rdfs:label "!";
+    nd:style [
+        a nd:styleDef;
+        nd:color "#FFFFFF";
+        nd:shape nd:Hexagon;
+        nd:padding "600%";
+        nd:paddingTo "width";
+    ] ;
+	 nd:parameters ([
+		a nd:Parameter ;
+		nd:mapsTo ml:trainingTbl ;
+		nd:title "Training Table" ;
+		nd:input nd:Query ;
+		bt:originBase "true" ;
+		bt:targetBase "false" ;
+		nd:type bt:SelectQuery ;
+	]) .
+
+:MDP_VI nd:class nd:Leaf;
+    nd:name "MDP_VI";
+    nd:labelType nd:Dynamic;
+    nd:type ml:MDP_VI;
+    rdfs:label "DefaultMDP_VI";
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#FFCC00";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-rules.png";
+    ] .
+
+:ARM nd:class nd:Leaf;
+    nd:name "ARM";
+    nd:labelType nd:Dynamic;
+    nd:type ml:ARM;
+    rdfs:label "DefaultARM";
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#FFCC00";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-rules.png";
+    ] ;
+	nd:parameters (
+		[
+            a nd:Parameter;
+            nd:mapsTo bt:targetBase;
+            nd:title "Target Base";
+            nd:input nd:Repo ;
+        ][
+			a nd:Parameter ;
+			nd:mapsTo ml:minSupport ;
+			nd:title "Minimum Support" ;
+			nd:input xsd:int ;
+			nd:default "3"^^xsd:int ;
+		][
+			a nd:Parameter ;
+			nd:mapsTo ml:confidence ;
+			nd:title "Confidence" ;
+			nd:input xsd:double ;
+			nd:default "0.5"^^xsd:double ;
+		][
+			a nd:Parameter ;
+			nd:mapsTo ml:itemsets ;
+			nd:title "Item Sets" ;
+			nd:input nd:Query ;
+			bt:originBase "true" ;
+			bt:targetBase "false" ;
+			nd:type bt:ConstructQuery ;
 		]
 	) .

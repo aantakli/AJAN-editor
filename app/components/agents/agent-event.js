@@ -35,7 +35,11 @@ export default Component.extend({
   content: "",
   fileName: "",
   edit: "",
-  types: [{ uri: AGENTS.Event, label: "Event" }, { uri: AGENTS.QueueEvent, label: "Queue Event" }],
+  types: [
+    { uri: AGENTS.Event, label: "Event" },
+    { uri: AGENTS.QueueEvent, label: "Queue Event" },
+    { uri: AGENTS.MappingEvent, label: "MappingEvent" },
+  ],
 	init() {
 	  this._super(...arguments);
 	  self = this;

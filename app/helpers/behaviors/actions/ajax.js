@@ -83,10 +83,10 @@ export default {
 		let dataString = $.param({update: query});
 
 		// Keep local copy of saved stuff
-		localStorage.setItem(
+		/*localStorage.setItem(
 			"rdf_graph_saved_T-2",
 			localStorage.getItem("rdf_graph_saved_T-1")
-		);
+		);*/
 		localStorage.setItem("rdf_graph_saved_T-1", dataString);
 
 		ajax

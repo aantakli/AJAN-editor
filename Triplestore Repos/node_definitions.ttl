@@ -689,44 +689,6 @@
     ]
 .
 
-:HandleJsonEvent nd:class nd:Leaf;
-	nd:name "Handle Json Event";
-    nd:labelType nd:Dynamic;
-    rdfs:label "HandleJsonEvent";
-    nd:type bt:HandleJsonEvent;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#7db300";
-        nd:shape nd:Roundrectangle;
-        nd:padding "900%";
-        nd:paddingTo "width";
-        nd:icon "handle-json-event.png";
-    ];
-    nd:parameters (
-		[
-			a nd:Parameter;
-			nd:mapsTo ajan:event;
-			nd:input nd:EventGoal;
-			nd:title "Event/Goal";
-		]
-    	[
-            a nd:Parameter;
-            nd:mapsTo bt:mapping;
-            nd:title "Mapping";
-            nd:input xsd:anyURI ;
-            nd:default "http://"^^xsd:anyURI;
-        ][
-	        a nd:Parameter;
-	        nd:mapsTo bt:validate;
-	        nd:title "Construct Query";
-	        nd:input nd:Query;
-	        bt:originBase "false";
-	        bt:targetBase "true";
-	        nd:type bt:ConstructQuery;
-    	]
-    )
-.
-
 :HandleQueueEvent nd:class nd:Leaf;
 	nd:name "Handle Queue Event";
     nd:labelType nd:Dynamic;
@@ -842,11 +804,50 @@
     )
 .
 
-:QueryJsonDomain nd:class nd:Leaf;
-	nd:name "Query Json Domain";
+# --------------- Mapping -------------------
+
+
+:HandleMappingEvent nd:class nd:Leaf;
+	nd:name "Handle Mapping Event";
     nd:labelType nd:Dynamic;
-    rdfs:label "DefaultQueryJsonDomain";
-    nd:type bt:QueryJsonDomain;
+    rdfs:label "DefaultHandleMappingEvent";
+    nd:type bt:HandleMappingEvent;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#7db300";
+        nd:shape nd:Roundrectangle;
+        nd:padding "900%";
+        nd:paddingTo "width";
+        nd:icon "handle-json-event.png";
+    ];
+    nd:parameters ([
+			a nd:Parameter;
+			nd:mapsTo ajan:event;
+			nd:input nd:EventGoal;
+			nd:title "Event/Goal";
+		][
+            a nd:Parameter;
+            nd:mapsTo bt:mapping;
+            nd:title "Mapping";
+            nd:input xsd:anyURI ;
+            nd:default "http://"^^xsd:anyURI;
+        ][
+	        a nd:Parameter;
+	        nd:mapsTo bt:validate;
+	        nd:title "Construct Query";
+	        nd:input nd:Query;
+	        bt:originBase "false";
+	        bt:targetBase "true";
+	        nd:type bt:ConstructQuery;
+    	]
+    )
+.
+
+:QueryMappingDomain nd:class nd:Leaf;
+	nd:name "Query Mapping Domain";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultQueryMappingDomain";
+    nd:type bt:QueryMappingDomain;
     nd:style [
         a nd:StyleDef;
         nd:color "#00ff84";
@@ -879,10 +880,10 @@
     ] )
 .
 
-:JsonMessage nd:class nd:Leaf;
+:MappingMessage nd:class nd:Leaf;
 	nd:name "Json Message";
     nd:labelType nd:Dynamic;
-    rdfs:label "DefaultJsonMessage";
+    rdfs:label "DefaultMappingMessage";
     nd:type bt:JsonMessage;
     nd:style [
         a nd:StyleDef;
@@ -999,7 +1000,6 @@
 		]
 	]
 .
-
 
 :Convert2UnixTime nd:class nd:Leaf;
 	nd:name "Convert2UnixTime";
@@ -1501,3 +1501,4 @@
 			nd:type bt:ConstructQuery ;
 		]
 	) .
+

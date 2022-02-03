@@ -1256,12 +1256,12 @@
     rdfs:label "DefaultKMeans";
     nd:style [
         a nd:StyleDef;
-        nd:color "#FFCC00";
+        nd:color "#e9c9ff";
         nd:shape nd:Polygon;
         nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
         nd:padding "700%";
         nd:paddingTo "width";
-        nd:icon "icons8-rules.png";
+        nd:icon "cluster.png";
     ];
 	nd:parameters (
 		[
@@ -1278,7 +1278,7 @@
         ][
 			a nd:Parameter ;
 			nd:mapsTo ml:inputTbl ;
-			nd:title "Input Table" ;
+			nd:title "Input Table: ?resource ..." ;
 			nd:input nd:Query ;
 			bt:originBase "true" ;
 			bt:targetBase "false" ;
@@ -1293,18 +1293,18 @@
     rdfs:label "DefaultXMeans";
     nd:style [
         a nd:StyleDef;
-        nd:color "#FFCC00";
+        nd:color "#e9c9ff";
         nd:shape nd:Polygon;
         nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
         nd:padding "700%";
         nd:paddingTo "width";
-        nd:icon "icons8-rules.png";
+        nd:icon "cluster.png";
     ];
 	nd:parameters (
 		[
 			a nd:Parameter ;
-			nd:mapsTo ml:maxIterations ;
-			nd:title "Maximum Iterations" ;
+			nd:mapsTo ml:maxClusters ;
+			nd:title "Maximum Clusters" ;
 			nd:input xsd:int ;
 			nd:default 100;
 		][
@@ -1330,18 +1330,18 @@
     rdfs:label "DefaultGMeans";
     nd:style [
         a nd:StyleDef;
-        nd:color "#FFCC00";
+        nd:color "#e9c9ff";
         nd:shape nd:Polygon;
         nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
         nd:padding "700%";
         nd:paddingTo "width";
-        nd:icon "icons8-rules.png";
+        nd:icon "cluster.png";
     ];
 	nd:parameters (
 		[
 			a nd:Parameter ;
-			nd:mapsTo ml:maxIterations ;
-			nd:title "Maximum Iterations" ;
+			nd:mapsTo ml:maxClusters ;
+			nd:title "Maximum Clusters" ;
 			nd:input xsd:int ;
 			nd:default 100;
 		][
@@ -1364,23 +1364,21 @@
     nd:name "NaiveBayes";
     nd:labelType nd:Fixed;
     nd:type ml:NaiveBayes;
-    rdfs:label "!";
+    rdfs:label "NB";
     nd:style [
         a nd:styleDef;
-        nd:color "#FFFFFF";
+        nd:color "#e9c9ff";
         nd:shape nd:Hexagon;
         nd:padding "600%";
         nd:paddingTo "width";
     ] ;
-	nd:parameters (
-		[
+	nd:parameters ([
 			a nd:Parameter ;
 			nd:mapsTo ml:objective ;
 			nd:title "Objective" ;
 			nd:input xsd:string ;
 			nd:default "play"^^xsd:string ;
-		]
-		[
+		][
 			a nd:Parameter ;
 			nd:mapsTo ml:trainingTbl ;
 			nd:title "Training Table" ;
@@ -1388,8 +1386,7 @@
 			bt:originBase "true" ;
 			bt:targetBase "false" ;
 			nd:type bt:SelectQuery ;
-		]
-		[
+		][
 			a nd:Parameter ;
 			nd:mapsTo ml:stateTbl ;
 			nd:title "State Table" ;
@@ -1400,65 +1397,6 @@
 		]
 	) .
 
-:DecisionTree nd:class nd:Composite;
-    nd:name "DecisionTree";
-    nd:labelType nd:Fixed;
-    nd:type ml:DecisionTree;
-    rdfs:label "!";
-    nd:style [
-        a nd:styleDef;
-        nd:color "#FFFFFF";
-        nd:shape nd:Hexagon;
-        nd:padding "600%";
-        nd:paddingTo "width";
-    ] ;
-	 nd:parameters ([
-		a nd:Parameter ;
-		nd:mapsTo ml:trainingTbl ;
-		nd:title "Training Table" ;
-		nd:input nd:Query ;
-		bt:originBase "true" ;
-		bt:targetBase "false" ;
-		nd:type bt:SelectQuery ;
-	]) .
-
-:XGBoost nd:class nd:Composite;
-    nd:name "XGBoost";
-    nd:labelType nd:Fixed;
-    nd:type ml:XGBoost;
-    rdfs:label "!";
-    nd:style [
-        a nd:styleDef;
-        nd:color "#FFFFFF";
-        nd:shape nd:Hexagon;
-        nd:padding "600%";
-        nd:paddingTo "width";
-    ] ;
-	 nd:parameters ([
-		a nd:Parameter ;
-		nd:mapsTo ml:trainingTbl ;
-		nd:title "Training Table" ;
-		nd:input nd:Query ;
-		bt:originBase "true" ;
-		bt:targetBase "false" ;
-		nd:type bt:SelectQuery ;
-	]) .
-
-:MDP_VI nd:class nd:Leaf;
-    nd:name "MDP_VI";
-    nd:labelType nd:Dynamic;
-    nd:type ml:MDP_VI;
-    rdfs:label "DefaultMDP_VI";
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#FFCC00";
-        nd:shape nd:Polygon;
-        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "icons8-rules.png";
-    ] .
-
 :ARM nd:class nd:Leaf;
     nd:name "ARM";
     nd:labelType nd:Dynamic;
@@ -1466,7 +1404,7 @@
     rdfs:label "DefaultARM";
     nd:style [
         a nd:StyleDef;
-        nd:color "#FFCC00";
+        nd:color "#e9c9ff";
         nd:shape nd:Polygon;
         nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
         nd:padding "700%";
@@ -1501,4 +1439,78 @@
 			nd:type bt:ConstructQuery ;
 		]
 	) .
+
+:MDP_VI nd:class nd:Leaf;
+    nd:name "MDP_VI";
+    nd:labelType nd:Dynamic;
+    nd:type ml:MDP_VI;
+    rdfs:label "DefaultMDP_VI";
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#e9c9ff";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-rules.png";
+    ] .
+	
+:NGram nd:class nd:Leaf;
+    nd:name "NGram";
+    nd:labelType nd:Dynamic;
+    nd:type ml:NGram;
+    rdfs:label "NGram";
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#e9c9ff";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-rules.png";
+    ] .
+
+# :DecisionTree nd:class nd:Composite;
+#     nd:name "DecisionTree";
+#     nd:labelType nd:Fixed;
+#     nd:type ml:DecisionTree;
+#     rdfs:label "!";
+#     nd:style [
+#         a nd:styleDef;
+#         nd:color "#9500ff";
+#         nd:shape nd:Hexagon;
+#         nd:padding "600%";
+#         nd:paddingTo "width";
+#     ] ;
+# 	 nd:parameters ([
+# 		a nd:Parameter ;
+# 		nd:mapsTo ml:trainingTbl ;
+# 		nd:title "Training Table" ;
+# 		nd:input nd:Query ;
+# 		bt:originBase "true" ;
+# 		bt:targetBase "false" ;
+# 		nd:type bt:SelectQuery ;
+# 	]) .
+
+# :XGBoost nd:class nd:Composite;
+#     nd:name "XGBoost";
+#     nd:labelType nd:Fixed;
+#     nd:type ml:XGBoost;
+#     rdfs:label "!";
+#     nd:style [
+#         a nd:styleDef;
+#         nd:color "#9500ff";
+#         nd:shape nd:Hexagon;
+#         nd:padding "600%";
+#         nd:paddingTo "width";
+#     ] ;
+# 	 nd:parameters ([
+# 		a nd:Parameter ;
+# 		nd:mapsTo ml:trainingTbl ;
+# 		nd:title "Training Table" ;
+# 		nd:input nd:Query ;
+# 		bt:originBase "true" ;
+# 		bt:targetBase "false" ;
+# 		nd:type bt:SelectQuery ;
+# 	]) .
 

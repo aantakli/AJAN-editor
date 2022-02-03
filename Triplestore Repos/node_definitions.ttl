@@ -7,6 +7,7 @@
 @prefix http-methods: <http://www.w3.org/2008/http-methods#> .
 @prefix strips: <http://www.ajan.de/behavior/strips-ns#> .
 @prefix bt: <http://www.ajan.de/behavior/bt-ns#> .
+@prefix welcome: <http://www.ajan.de/myWelcome-ns#> .
 
 @prefix metagol: <http://www.ajan.de/behavior/metagol-ns#> .
 
@@ -1675,3 +1676,158 @@
         bt:targetBase "false";
         nd:type bt:SelectQuery;
     ] .
+	
+# --------------- WelcomePlugin -------------------
+
+:Logging nd:class nd:Leaf;
+	nd:name "Logging";
+    nd:labelType nd:Dynamic;
+    rdfs:label "Logging";
+    nd:type welcome:Logging;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#0092bf";
+        nd:shape nd:Polygon;
+        nd:polygon "[-1, 0, -0.9, 1, 0.9, 1, 1, 0, 0.9, -1, -0.9, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-write.png";
+    ] ;
+	nd:parameter [
+        a nd:Parameter;
+        nd:mapsTo welcome:correlatorId;
+        nd:type bt:QueryUri;
+        nd:type bt:SelectQuery;
+        nd:title "Correlator Id: ?correlatorId";
+        nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+    ] ;
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo welcome:lvl;
+	    nd:title "lvl";
+	    nd:input xsd:anyURI;
+    ] ;
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo welcome:comp;
+	    nd:title "comp";
+	    nd:input xsd:string;
+    ] ;
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo welcome:msg;
+	    nd:title "msg";
+	    nd:input xsd:string;
+    ] ;
+.
+
+:WelcomeMessage nd:class nd:Leaf;
+	nd:name "WelcomeMessage";
+	nd:labelType nd:Dynamic;
+	rdfs:label "WelcomeMessage";
+	nd:type welcome:Message;
+	nd:style [
+        a nd:StyleDef;
+        nd:color "#0092bf";
+        nd:shape nd:Polygon;
+        nd:polygon "[-1, 0, -0.9, 1, 0.9, 1, 1, 0, 0.9, -1, -0.9, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-new-post.png";
+    ];
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt:targetBase;
+	    nd:title "Target Base";
+	    nd:input nd:Repo;
+    ];
+    nd:parameterSet [
+        a nd:ParameterSet;
+        nd:mapsTo bt:binding;
+        nd:type http-core:Request;
+        nd:title "Binding Configuration";
+        nd:parameters ([
+	        a nd:Parameter;
+	        nd:mapsTo http-core:httpVersion;
+	        nd:title "HTTP Version";
+	        nd:default "1.1"^^xsd:string;
+	        nd:input xsd:string;
+	    ][
+	        a nd:Parameter;
+	        nd:mapsTo http-core:mthd;
+	        nd:title "HTTP Method";
+	        nd:input xsd:anyURI ;
+	        nd:default "http://www.w3.org/2008/http-methods#POST"^^xsd:anyURI;
+	    ]);
+		nd:list [
+			a nd:List;
+			nd:title "HTTP Headers";
+	        nd:mapsTo http-core:headers;
+			nd:parameterSet [
+				a nd:ParameterSet;
+				nd:title "HTTP Header";
+				nd:type http-core:Header;
+				nd:parameters ( [
+						a nd:Parameter;
+						nd:mapsTo http-core:hdrName;
+						nd:title "Header Name";
+						nd:input xsd:anyURI ;
+						nd:default "http://www.w3.org/2008/http-headers#content-type"^^xsd:anyURI;
+					] [
+						a nd:Parameter;
+						nd:mapsTo http-core:fieldValue;
+						nd:title "Field Value";
+						nd:input xsd:string ;
+						nd:default "text/turtle"^^xsd:string;
+					] 
+				)
+			]
+		];
+		nd:parameter [
+			a nd:Parameter;
+			nd:mapsTo bt:headers;
+			nd:type bt:SelectQuery;
+			nd:title "(Opt) Dynamic Headers: ?hdrName ?fieldValue";
+			nd:input nd:Query;
+			bt:originBase "true";
+			bt:targetBase "false";
+		] ;
+        nd:parameterSet [
+	        a nd:ParameterSet;
+	        nd:mapsTo http-core:body;
+	        nd:title "HTTP Body";
+            nd:type actn:Payload;
+			nd:parameter [
+				a nd:Parameter;
+				nd:mapsTo bt:query;
+				nd:title "Construct Query";
+				nd:input nd:Query;
+				bt:originBase "true";
+				bt:targetBase "false";
+				nd:type bt:ConstructQuery;
+			]
+	    ];
+    ];
+    nd:parameter [
+        a nd:Parameter;
+        nd:mapsTo bt:queryUri;
+        nd:type bt:QueryUri;
+        nd:type bt:SelectQuery;
+        nd:title "Select Query: ?requestURI";
+        nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+    ] ;
+	nd:parameter [
+        a nd:Parameter;
+        nd:mapsTo welcome:correlatorId;
+        nd:type bt:QueryUri;
+        nd:type bt:SelectQuery;
+        nd:title "Correlator Id: ?correlatorId";
+        nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+    ]
+.

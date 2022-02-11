@@ -116,7 +116,6 @@ function getBehaviorsDefinitions(graph, resource, type, short) {
       if (quad.predicate.value === DCT.requires) {
         behaviors.requires = quad.object.value;
       }
-
       if (quad.predicate.value === AGENTS.trigger && type === AGENTS.Behavior) {
         behaviors.triggers = {};
         behaviors.triggers.uri = quad.object.value;
@@ -136,6 +135,9 @@ function getBehaviorsDefinitions(graph, resource, type, short) {
         var start = str.indexOf("#") + 1;
         var end = str.length;
         behaviors.bt.label = str.substring(start, end);
+      }
+      if (quad.predicate.value === AGENTS.clearEKB) {
+        behaviors.clearEKB = quad.object.value;
       }
     }
   });

@@ -42,7 +42,8 @@ export default Component.extend({
   oldType: "",
   content: "",
   fileName: "",
-	edit: "",
+  edit: "",
+  clearOpt: ["true", "false"],
 
 	init() {
 	    this._super(...arguments);
@@ -147,7 +148,8 @@ export default Component.extend({
         case "bt":
 					listBTs();
 					self.toggleProperty('editBt'); 
-					break;
+          break;
+        case "clearEKB": self.toggleProperty('editClearEKB'); break;
 				default:
 					break;
 			}

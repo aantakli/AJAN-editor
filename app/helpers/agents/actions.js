@@ -179,6 +179,7 @@ function createDefaultBehavior(repo) {
   bt.label = "";
   bt.uri = "";
   behavior.bt = bt;
+  behavior.clearEKB = false;
   return behavior;
 }
 

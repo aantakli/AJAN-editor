@@ -74,7 +74,7 @@
 {{#if this.regularBehavior}}
 <!-- AddType -->
 <div local-class="item-seperation">
-  <hr><i> Label</i>
+  <hr><i> AddType</i>
 </div>
 
 <div local-class="item-row clearfix">
@@ -119,7 +119,7 @@
 
 <!-- Requires -->
 <div local-class="item-seperation">
-  <hr><i> Label</i>
+  <hr><i> Requires</i>
 </div>
 
 <div local-class="item-row clearfix">
@@ -245,51 +245,101 @@
     </div>
   </div>
   {{#if this.editBt}}
+  <div local-class="item-row-content-edit">
+    {{#ui-dropdown class="selection service-edit-dropdown" selected=activeBehavior.bt.uri onChange=(action (mut activeBT))}}
+    <div class="default text">{{activeBehavior.bt.label}}</div>
+    <i class="dropdown icon"></i>
+    <div class="menu">
+      {{#each availableBTs as |bt|}}
+      <div data-value="{{bt.uri}}" class="item">
+        {{bt.name}}
+      </div>
+      {{/each}}
+    </div>
+    {{/ui-dropdown}}
+
+    <div local-class="item-row-buttons">
+      <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
+        <i class="close icon no-side-margins"></i>
+      </button>
+
+      <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeBehavior.uri "http://www.ajan.de/ajan-ns#bt" activeBT "http://www.w3.org/2001/XMLSchema#anyURI"}}>
+        <i class="pencil icon no-side-margins"></i>
+      </button>
+    </div>
+  </div>
+
+  {{/if}}
+  {{#unless this.editBt}}
+  <div local-class="item-row-content">
+    {{#if (eq activeBehavior.bt undefined)}}
+    <div class="ajan-mandatory">select a BT!</div>
+    {{/if}}
+    {{#if (eq activeBehavior.bt.label "")}}
+    <div class="ajan-mandatory">select a BT!</div>
+    {{/if}}
+    <div local-class="item-row-value">
+      <div data-tooltip={{activeBehavior.bt.uri}} data-position="top left">
+        <div>{{activeBehavior.bt.label}}</div>
+      </div>
+    </div>
+    <div local-class="item-row-buttons">
+      <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "bt" activeBehavior.bt}}>
+        <i class="edit icon no-side-margins"></i>
+      </button>
+    </div>
+  </div>
+  {{/unless}}
+</div>
+
+  <!-- ClearEKB -->
+<div local-class="item-seperation">
+  <hr><i> Clear EKB</i>
+</div>
+
+<div local-class="item-row clearfix">
+  <div local-class="item-row-title" data-tooltip="Manipulate Behavior's ClearEKB" data-position="top left">Clear EKB:</div>
+  {{#if this.editClearEKB}}
 <div local-class="item-row-content-edit">
-  {{#ui-dropdown class="selection service-edit-dropdown" selected=activeBehavior.bt.uri onChange=(action (mut activeBT))}}
-  <div class="default text">{{activeBehavior.bt.label}}</div>
+  {{#ui-dropdown class="selection service-edit-dropdown" selected=activeBehavior.clearEKB onChange=(action (mut activeBehavior.clearEKB))}}
+  <div class="default text">{{activeBehavior.clearEKB}}</div>
   <i class="dropdown icon"></i>
   <div class="menu">
-    {{#each availableBTs as |bt|}}
-    <div data-value="{{bt.uri}}" class="item">
-      {{bt.name}}
+    {{#each clearOpt as |clear|}}
+    <div data-value="{{clear}}" class="item">
+      {{clear}}
     </div>
     {{/each}}
   </div>
   {{/ui-dropdown}}
 
   <div local-class="item-row-buttons">
+
     <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
       <i class="close icon no-side-margins"></i>
     </button>
 
-    <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeBehavior.uri "http://www.ajan.de/ajan-ns#bt" activeBT "http://www.w3.org/2001/XMLSchema#anyURI"}}>
+    <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeBehavior.uri "http://www.ajan.de/ajan-ns#clearEKB" activeBehavior.clearEKB "http://www.w3.org/2001/XMLSchema#boolean"}}>
       <i class="pencil icon no-side-margins"></i>
     </button>
+
   </div>
 </div>
+  {{/if}}
 
-  {{/if}}
-  {{#unless this.editBt}}
+  {{#unless this.editClearEKB}}
 <div local-class="item-row-content">
-  {{#if (eq activeBehavior.bt undefined)}}
-  <div class="ajan-mandatory">select a BT!</div>
-  {{/if}}
-  {{#if (eq activeBehavior.bt.label "")}}
-  <div class="ajan-mandatory">select a BT!</div>
-  {{/if}}
   <div local-class="item-row-value">
-    <div data-tooltip={{activeBehavior.bt.uri}} data-position="top left">
-      <div>{{activeBehavior.bt.label}}</div>
-    </div>
+    {{activeBehavior.clearEKB}}
   </div>
   <div local-class="item-row-buttons">
-    <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "bt" activeBehavior.bt}}>
+    <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "clearEKB" activeBehavior.clearEKB}}>
       <i class="edit icon no-side-margins"></i>
     </button>
   </div>
 </div>
   {{/unless}}
+
 </div>
 
 

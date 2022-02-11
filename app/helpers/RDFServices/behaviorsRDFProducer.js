@@ -42,7 +42,9 @@ function createFinalBehavior(definition) {
 }
 
 function createBehavior(definition) {
+  console.log(definition);
   rdfGraph.add(rdfFact.quad(definition.uri, RDF.type, AGENTS.Behavior));
   rdfGraph.add(rdfFact.quadLiteral(definition.uri, RDFS.label, definition.label));
+  rdfGraph.add(rdfFact.quadLiteral(definition.uri, AGENTS.clearEKB, definition.clearEKB, XSD.boolean));
 }
 

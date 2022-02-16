@@ -33,6 +33,7 @@ export default {
   getChild,
   exportBT,
   visitNode,
+  parseBT2String,
   checkBTLinking
 };
 
@@ -177,15 +178,7 @@ function exportBT(nodeURI, bts) {
       bt.push(quad);
     })
   });
-  let array = [];
-  bt.forEach(quad => {
-    let subj = termEval(quad.subject);
-    let pred = termEval(quad.predicate);
-    let obje = termEval(quad.object);
-    let str = subj + " " + pred + " " + obje;
-    array.push(str);
-  });
-  return array.join(". ") + ".";
+  return parseBT2String(bt);
 }
 
 function visitNode(uri, nodes, bts, linking) {
@@ -203,6 +196,18 @@ function visitNode(uri, nodes, bts, linking) {
       }
     }
   });
+}
+
+function parseBT2String(bt) {
+  let array = [];
+  bt.forEach(quad => {
+    let subj = termEval(quad.subject);
+    let pred = termEval(quad.predicate);
+    let obje = termEval(quad.object);
+    let str = subj + " " + pred + " " + obje;
+    array.push(str);
+  });
+  return array.join(". ") + ".";
 }
 
 function checkBTLinking(nodeURI, bts, links) {

@@ -20,6 +20,7 @@
  */
 import globals from "ajan-editor/helpers/global-parameters";
 import rdfDestr from "ajan-editor/helpers/RDFServices/manager/destructor";
+import rdfClone from "ajan-editor/helpers/RDFServices/manager/cloneBT";
 import rdfGen from "ajan-editor/helpers/RDFServices/manager/generator";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfList from "ajan-editor/helpers/RDFServices/manager/list";
@@ -45,7 +46,8 @@ export default {
 	listInsert: rdfList.insertBehind,
 	listPushBlankNode: rdfList.pushBlankNode,
 	generateStructure: rdfGen.generateStructure,
-	generateBT: rdfGen.generateBT
+  generateBT: rdfGen.generateBT,
+  cloneBT: rdfClone.cloneBT
 };
 
 function generateNodeData(type) {

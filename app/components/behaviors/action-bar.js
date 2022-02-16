@@ -75,6 +75,11 @@ export default Component.extend({
       this.get('dataBus').createBT();
     },
 
+    cloneBehavior() {
+      console.log("Clone!");
+      this.get('dataBus').cloneBT();
+    },
+
     sort() {
       graphOperations.updateGraph(globals.cy);
     },

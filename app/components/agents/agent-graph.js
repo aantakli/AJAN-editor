@@ -299,6 +299,7 @@ function setAvailableEndpoints() {
 }
 
 function setAvailableGoals() {
+  let goals = actions.getGoals();
 	self.set("availableGoals", goals);
 	let EventsandGoals=self.get("availableEvents").concat(self.get("availableGoals"));
 	self.set("availableEventsandGoals",EventsandGoals);

@@ -549,22 +549,16 @@
         nd:input nd:Goal;
         nd:title "Goal";
     ];
-	nd:parameterSet [
-        a nd:ParameterSet;
-        nd:mapsTo ajan:bindings;
-        nd:type ajan:Bindings;
-        nd:title "Bindings";
-        nd:parameter [
-		        a nd:Parameter;
-		        nd:mapsTo ajan:bindingQuery;
-		        nd:title "Select Query";
-		        nd:input nd:Query;
-		        bt:originBase "true";
-		        bt:targetBase "false";
-		        nd:type bt:SelectQuery;
-				nd:type bt:QueryUri;
-	    	]
-    ]
+	nd:parameter [
+		a nd:Parameter;
+		nd:mapsTo bt:content;
+		nd:title "Construct Query";
+		nd:input nd:Query;
+		bt:originBase "true";
+		bt:targetBase "false";
+		nd:type bt:ConstructQuery;
+		nd:type bt:QueryUri;
+	]
 .
 
 :EventProducer nd:class nd:Leaf;
@@ -794,6 +788,13 @@
         nd:paddingTo "width";
         nd:icon "evaluate.png";
     ];
+	nd:parameter [
+		a nd:Parameter;
+		nd:mapsTo bt:context;
+		nd:title "Context";
+        nd:input xsd:anyURI ;
+        nd:default "http://"^^xsd:anyURI;
+	];
 	nd:parameter [
 		a nd:Parameter;
 		nd:mapsTo bt:targetBase;

@@ -213,7 +213,17 @@ function createDefaultGoal(repo) {
   goal.variables.push({ pointerUri: "", uri: "", varName: "s", dataType: RDFS.Resource });
   goal.variables.push({ pointerUri: "", uri: "", varName: "p", dataType: RDFS.Resource });
   goal.variables.push({ pointerUri: "", uri: "", varName: "o", dataType: XSD.string });
-  goal.condition = "ASK WHERE { ?s ?p ?o }";
+
+  let consumes = {};
+  consumes.uri = "";
+  consumes.sparql = "ASK WHERE { ?s ?p ?o }";
+
+  let produces = {};
+  produces.uri = "";
+  produces.sparql = "ASK WHERE { ?s ?p ?o }";
+
+  goal.consumes = consumes;
+  goal.produces = produces;
   return goal;
 }
 

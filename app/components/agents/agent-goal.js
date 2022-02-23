@@ -101,7 +101,7 @@ export default Component.extend({
     },
 
     save(s, p, o, type) {
-		  if (p == "http://www.ajan.de/ajan-ns#condition") {
+      if (p == "http://www.ajan.de/actn#sparql") {
 			  try {
 			    var SparqlParser = sparqljs.Parser;
 			    var parser = new SparqlParser();
@@ -162,8 +162,9 @@ export default Component.extend({
 		toggle(key) {
 			switch(key) {
         case "label": self.toggleProperty('editGoalLabel'); break;
-        case "condition": self.toggleProperty('editGoalCondition'); break;
         case "variables": self.toggleProperty('editGoalVariables'); break;
+        case "consumes": self.toggleProperty('editGoalConsumes'); break;
+        case "produces": self.toggleProperty('editGoalProduces'); break;
 				default: break;
 			}
 		}

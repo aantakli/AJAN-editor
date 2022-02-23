@@ -219,7 +219,6 @@ let AGENTS = {
 	trigger: "http://www.ajan.de/ajan-ns#trigger",
 	bt: "http://www.ajan.de/ajan-ns#bt",
 	variables: "http://www.ajan.de/ajan-ns#variables",
-	condition: "http://www.ajan.de/ajan-ns#condition",
 	dataType:"http://www.ajan.de/ajan-ns#dataType",
   capability: "http://www.ajan.de/ajan-ns#capability",
   clearEKB: "http://www.ajan.de/ajan-ns#clearEKB",

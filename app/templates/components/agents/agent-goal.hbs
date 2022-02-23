@@ -1,15 +1,15 @@
 
-  <div local-class="agent-item-header clearfix">
-    <div local-class="agent-item-header-text">  {{activeGoal.label}}</div>
-    <a class="ui icon button"
-       download={{fileName}}
-       href="{{content}}">
-      <i class="download icon no-side-margins"></i>
-    </a>
-    <button {{action "deletegoal"}} class="ui red icon button rightmost">
-      <i class="minus icon no-side-margins"></i>
-    </button>
-  </div>
+<div local-class="agent-item-header clearfix">
+  <div local-class="agent-item-header-text">  {{activeGoal.label}}</div>
+  <a class="ui icon button"
+     download={{fileName}}
+     href="{{content}}">
+    <i class="download icon no-side-margins"></i>
+  </a>
+  <button {{action "deletegoal"}} class="ui red icon button rightmost">
+    <i class="minus icon no-side-margins"></i>
+  </button>
+</div>
 
 <div local-class="item-seperation">
   <hr><i> URI</i>
@@ -131,50 +131,92 @@
   {{/unless}}
 </div>
 
-  <!--Condition -->
+<!--Consumable -->
 
-  <div local-class="item-seperation">
-    <hr><i>Condition</i>
-  </div>
-  <div local-class="item-row clearfix">
-    <div local-class="item-row-title">End-Condition:</div>
-
-    {{#if this.editGoalCondition}}
-    <div local-class="border-line">
-      <div local-class="item-row-content-edit">
-        <div local-class="item-row-value sparql" class="sparql-edit">
-          {{textarea value=activeGoal.condition cols="50" rows="6"}}
-        </div>
-        <div local-class="item-row-buttons">
-          <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
-            <i class="close icon no-side-margins"></i>
-          </button>
-          <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeGoal.uri "http://www.ajan.de/ajan-ns#condition" activeGoal.condition "http://www.w3.org/2001/XMLSchema#string"}}>
-            <i class="pencil icon no-side-margins"></i>
-          </button>
-        </div>
-        <p class="error-txt"></p>
+<div local-class="item-seperation">
+  <hr><i>Consumes</i>
+</div>
+<div local-class="item-row clearfix">
+  <div local-class="item-row-title">Consumes:</div>
+  {{#if this.editGoalConsumes}}
+  <div local-class="border-line">
+    <div local-class="item-row-content-edit">
+      <div local-class="item-row-value sparql" class="sparql-edit">
+        {{textarea value=activeGoal.consumes.sparql cols="50" rows="6"}}
       </div>
+      <div local-class="item-row-buttons">
+        <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
+          <i class="close icon no-side-margins"></i>
+        </button>
+        <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeGoal.consumes.uri "http://www.ajan.de/actn#sparql" activeGoal.consumes.sparql "http://www.w3.org/2001/XMLSchema#string"}}>
+          <i class="pencil icon no-side-margins"></i>
+        </button>
+      </div>
+      <p class="error-txt"></p>
     </div>
-    {{/if}}
+  </div>
+  {{/if}}
 
-    {{#unless this.editGoalCondition}}
+  {{#unless this.editGoalConsumes}}
   <div local-class="item-row-content">
-    {{#if (eq activeGoal.condition "")}}
-    <div class="ajan-mandatory">define a Condition (SPARQL ASK)!</div>
+    {{#if (eq activeGoal.consumes "")}}
+    <div class="ajan-mandatory">define a Consumable (SPARQL ASK)!</div>
     {{/if}}
     <div local-class="item-row-value sparql">
-      {{textarea value=activeGoal.condition readonly=true cols="50" rows="6"}}
+      {{textarea value=activeGoal.consumes.sparql readonly=true cols="50" rows="6"}}
     </div>
     <div local-class="item-row-buttons">
-      <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "condition" activeGoal.condition}}>
+      <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "consumes" activeGoal.consumes.sparql}}>
         <i class="edit icon no-side-margins"></i>
       </button>
     </div>
   </div>
-    {{/unless}}
-  </div>
+  {{/unless}}
+</div>
 
+<!--Producible -->
+
+<div local-class="item-seperation">
+  <hr><i>Produces</i>
+</div>
+<div local-class="item-row clearfix">
+  <div local-class="item-row-title">Produces:</div>
+
+  {{#if this.editGoalProduces}}
+  <div local-class="border-line">
+    <div local-class="item-row-content-edit">
+      <div local-class="item-row-value sparql" class="sparql-edit">
+        {{textarea value=activeGoal.produces.sparql cols="50" rows="6"}}
+      </div>
+      <div local-class="item-row-buttons">
+        <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
+          <i class="close icon no-side-margins"></i>
+        </button>
+        <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeGoal.produces.uri "http://www.ajan.de/actn#sparql" activeGoal.produces.sparql "http://www.w3.org/2001/XMLSchema#string"}}>
+          <i class="pencil icon no-side-margins"></i>
+        </button>
+      </div>
+      <p class="error-txt"></p>
+    </div>
+  </div>
+  {{/if}}
+
+  {{#unless this.editGoalProduces}}
+<div local-class="item-row-content">
+  {{#if (eq activeGoal.produces "")}}
+  <div class="ajan-mandatory">define a Producible (SPARQL ASK)!</div>
+  {{/if}}
+<div local-class="item-row-value sparql">
+  {{textarea value=activeGoal.produces.sparql readonly=true cols="50" rows="6"}}
+</div>
+  <div local-class="item-row-buttons">
+    <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "produces" activeGoal.produces.sparql}}>
+      <i class="edit icon no-side-margins"></i>
+    </button>
+  </div>
+</div>
+  {{/unless}}
+</div>
 
 
 

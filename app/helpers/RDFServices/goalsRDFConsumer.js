@@ -18,7 +18,7 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import {RDF, RDFS, SPIN, AGENTS} from "ajan-editor/helpers/RDFServices/vocabulary";
+import {RDF, RDFS, SPIN, AGENTS, ACTN} from "ajan-editor/helpers/RDFServices/vocabulary";
 import JsonLdParser from "npm:rdf-parser-jsonld";
 import rdf from "npm:rdf-ext";
 import stringToStream from "npm:string-to-stream";
@@ -75,9 +75,18 @@ function getGoalsDefinitions(graph, resource) {
 				setVariables(variables, graph, quad.object)
         goal.variables = variables;
 			}
-      if (quad.predicate.value === AGENTS.condition) {
-        goal.condition = quad.object.value;
-			}
+      if (quad.predicate.value === ACTN.consumes) {
+        let consumes = {};
+        consumes.uri = quad.object.value;
+        consumes.sparql = getSparql(graph, quad.object);
+        goal.consumes = consumes; 
+      }
+      if (quad.predicate.value === ACTN.produces) {
+        let produces = {};
+        produces.uri = quad.object.value;
+        produces.sparql = getSparql(graph, quad.object);
+        goal.produces = produces;
+      }
     }
   });
   return goal;
@@ -111,4 +120,16 @@ function getVariable(graph, pointer, resource) {
 		}
 	});
 	return variable;
+}
+
+function getSparql(graph, resource) {
+  let query = "";
+  graph.forEach(function (quad) {
+    if (quad.subject.equals(resource)) {
+      if (quad.predicate.value === ACTN.sparql) {
+        query = quad.object.value;
+      }
+    }
+  });
+  return query;
 }

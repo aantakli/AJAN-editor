@@ -18,7 +18,7 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import {RDF, RDFS, SPIN, AGENTS} from "ajan-editor/helpers/RDFServices/vocabulary";
+import {RDF, RDFS, SPIN, AGENTS, ACTN} from "ajan-editor/helpers/RDFServices/vocabulary";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
@@ -33,8 +33,19 @@ export default {
 function createGoal(definition) {
 	rdfGraph.add(rdfFact.quad(definition.uri, RDF.type, AGENTS.Goal));
   rdfGraph.add(rdfFact.quadLiteral(definition.uri, RDFS.label, definition.label));
-  createVariables(definition.uri,definition.variables);
-  rdfGraph.add(rdfFact.quadLiteral(definition.uri, AGENTS.condition, definition.condition));
+  createVariables(definition.uri, definition.variables);
+
+  let consumes = rdfFact.blankNode();
+  definition.consumes.url = consumes;
+  rdfGraph.add(rdfFact.quad(definition.uri, ACTN.consumes, consumes));
+  rdfGraph.add(rdfFact.quad(consumes, RDF.type, ACTN.Consumable));
+  rdfGraph.add(rdfFact.quadLiteral(consumes, ACTN.sparql, definition.consumes.sparql));
+
+  let produces = rdfFact.blankNode();
+  definition.produces.url = produces;
+  rdfGraph.add(rdfFact.quad(definition.uri, ACTN.produces, produces));
+  rdfGraph.add(rdfFact.quad(produces, RDF.type, ACTN.Producible));
+  rdfGraph.add(rdfFact.quadLiteral(produces, ACTN.sparql, definition.produces.sparql));
 }
 
 function createVariables(rootUri, definition) {

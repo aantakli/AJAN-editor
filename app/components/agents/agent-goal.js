@@ -24,6 +24,7 @@ import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 import globals from "ajan-editor/helpers/global-parameters";
 import actions from "ajan-editor/helpers/agents/actions";
+import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import * as sparqljs from 'sparqljs';
 
 let ajax = null;
@@ -39,14 +40,6 @@ export default Component.extend({
   content: "",
   fileName: "",
 	edit: "",
-  types: [{uri: RDFS.Resource, label: "rdfs:Resource"},
-          {uri: XSD.string, label: "xsd:string"},
-          {uri: XSD.int, label: "xsd:integer"},
-          {uri: XSD.float, label: "xsd:float"},
-          {uri: XSD.double, label: "xsd:double"},
-          {uri: XSD.boolean, label: "xsd:boolean"},
-          {uri: XSD.long, label: "xsd:long"},
-    { uri: XSD.anyURI, label: "xsd:anyURI" }],
 
 	init() {
 	    this._super(...arguments);
@@ -126,23 +119,23 @@ export default Component.extend({
       self.get("activeGoal.variables").addObject(newVar);
     },
 
-    saveVariables() {
-      self.get("activeGoal.variables").forEach(function (item, index, arr) {
-        console.log(item);
-        rdfGraph.setObjectValue(item.uri, SPIN.varName, item.varName);
-        rdfGraph.setObject(item.uri, AGENTS.dataType, rdfFact.toNode(item.dataType));
-      });
-      self.actions.toggle(self.edit);
-      reset();
-      updateRepo();
+    saveVariable(val) {
+      self.get("activeGoal.variables").addObject(addNewVariable(val, self.get("activeGoal.uri")));
+      self.actions.toggle("variables");
+      self.set(self.newVariable, "?");
       setFileContent(self.get("activeGoal.uri"));
+      updateRepo();
+      reset();
     },
 
-    deletegoalvariable(ele, val) {
-      self.set("activeGoal.variables", actions.deleteVariable(ele, val));
-      updateRepo();
+    deleteVariable(ele, val) {
+      console.log(val);
+      rdfManager.removeListItem(val.pointerUri);
+      self.set("activeGoal.variables", ele.filter(item => item !== val));
       setFileContent(self.get("activeGoal.uri"));
-		},
+      updateRepo();
+      reset();
+    },
 
     deletegoal() {
       actions.deleteGoal(self.activeGoal);
@@ -162,7 +155,7 @@ export default Component.extend({
 		toggle(key) {
 			switch(key) {
         case "label": self.toggleProperty('editGoalLabel'); break;
-        case "variables": self.toggleProperty('editGoalVariables'); break;
+        case "variables": self.toggleProperty('addVariable'); break;
         case "consumes": self.toggleProperty('editGoalConsumes'); break;
         case "produces": self.toggleProperty('editGoalProduces'); break;
 				default: break;
@@ -179,15 +172,14 @@ function copyArray(value) {
   return oldValue;
 }
 
-function newVariable() {
-  let variable = {};
-	let resource = rdfFact.blankNode();
+function addNewVariable(val, root) {
+  let variable = {}
+  let resource = rdfFact.blankNode();
+  variable.var = val.replace("?", "");
   variable.uri = resource.value;
-  variable.varName = "";
-  variable.dataType = XSD.string;
-	actions.createVariable(resource, variable);
-	actions.appendVariable(resource, variable, self.activeGoal.variables);
-	return variable;
+  actions.createVariable(resource, variable);
+  actions.appendVariable(root, resource, variable, self.get("activeGoal.variables"));
+  return variable;
 }
 
 function updateRepo() {

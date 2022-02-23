@@ -192,10 +192,10 @@ function removeAt(currentObj, index) {
 }
 
 function removeListItem(pointerURI) {
+  let first = rdfGraph.findQuad(pointerURI, RDF.first).object;
 	bendListItemPointer(pointerURI);
-	rdfGraph.removeAllRelated(pointerURI);
-	//TODO: make sure all child objects are removed
-	//rdfGraph.removeAllRelated(itemURI);
+  rdfGraph.removeAllRelated(pointerURI);
+  rdfGraph.removeAllRelated(first.value);
 }
 
 function bendListItemPointer(pointerURI) {

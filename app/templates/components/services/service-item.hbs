@@ -13,10 +13,22 @@
   </div>
 
   <div id="service-item-show">
-      <div local-class="item-row clearfix">
-        <div local-class="item-row-title">URI:</div>
-        <div local-class="item-row-content">{{activeAction.uri}}</div>
+    <div local-class="item-row clearfix">
+      <div local-class="item-row-title" data-tooltip="Actions's URI" data-position="top left">
+        URI:
       </div>
+
+      <div local-class="item-row-content">
+        <div local-class="item-row-value">
+          {{activeAction.uri}}
+        </div>
+        <div>
+          <button data-tooltip="copy URI" class="ui right icon button" local-class="item-row-copy" {{action "clipboarCopy" activeAction.uri}}>
+            <i class="icon copy no-side-margins"></i>
+          </button>
+        </div>
+      </div>
+    </div>
 	  
 	  <!-- Type -->
 

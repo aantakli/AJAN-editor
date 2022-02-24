@@ -115,6 +115,12 @@
   cursor: pointer;
 }
 
+.item-row-copy {
+  width: 25px;
+  height: 25px;
+  padding: 0px !important;
+}
+
 :global(.service-edit-dropdown.ui.selection) {
   min-height: 25px;
   height: 25px;

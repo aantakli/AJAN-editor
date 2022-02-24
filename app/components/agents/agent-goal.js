@@ -120,7 +120,11 @@ export default Component.extend({
     },
 
     saveVariable(val) {
-      self.get("activeGoal.variables").addObject(addNewVariable(val, self.get("activeGoal.uri")));
+      if (!self.get("activeGoal.variables")) {
+        self.set("activeGoal.variables", new Array());
+      }
+      let newVar = addNewVariable(val, self.get("activeGoal.uri"));
+      self.get("activeGoal.variables").addObject(newVar);
       self.actions.toggle("variables");
       self.set(self.newVariable, "?");
       setFileContent(self.get("activeGoal.uri"));

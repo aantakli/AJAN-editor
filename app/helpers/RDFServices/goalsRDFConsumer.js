@@ -70,11 +70,11 @@ function getGoalsDefinitions(graph, resource) {
       if (quad.predicate.value === RDF.type) {
         goal.type = quad.object.value;
 			}
-      if (quad.predicate.value === AGENTS.variables) {
-				let variables = new Array();
-				setVariables(variables, graph, quad.object)
+      if (quad.predicate.value === ACTN.variables) {
+        let variables = new Array();
+        setVariables(variables, graph, quad.object)
         goal.variables = variables;
-			}
+      }
       if (quad.predicate.value === ACTN.consumes) {
         let consumes = {};
         consumes.uri = quad.object.value;
@@ -93,33 +93,30 @@ function getGoalsDefinitions(graph, resource) {
 }
 
 function setVariables(variables, graph, resource) {
-	graph.forEach(function(quad) {
-		if(quad.subject.equals(resource)) {
-			if(quad.predicate.value === RDF.first) {
-				variables.push(getVariable(graph, quad.subject, quad.object));
-			}
-			if(quad.predicate.value === RDF.rest && quad.object.value != RDF.nil) {
-				setVariables(variables, graph, quad.object);
-			}
-		}
-	});
+  graph.forEach(function (quad) {
+    if (quad.subject.equals(resource)) {
+      if (quad.predicate.value === RDF.first) {
+        variables.push(getVariable(graph, quad.subject, quad.object));
+      }
+      if (quad.predicate.value === RDF.rest && quad.object.value != RDF.nil) {
+        setVariables(variables, graph, quad.object);
+      }
+    }
+  });
 }
 
 function getVariable(graph, pointer, resource) {
-	let variable = {};
-	variable.pointerUri = pointer.value;
-	variable.uri = resource.value;
-	graph.forEach(function(quad) {
-		if(quad.subject.equals(resource)) {
-			if(quad.predicate.value === SPIN.varName) {
-				variable.varName = quad.object.value;
-			}
-			if(quad.predicate.value === AGENTS.dataType) {
-				variable.dataType = quad.object.value;
-			}
-		}
-	});
-	return variable;
+  let variable = {};
+  variable.pointerUri = pointer.value;
+  variable.uri = resource.value;
+  graph.forEach(function (quad) {
+    if (quad.subject.equals(resource)) {
+      if (quad.predicate.value === SPIN.varName) {
+        variable.var = quad.object.value;
+      }
+    }
+  });
+  return variable;
 }
 
 function getSparql(graph, resource) {

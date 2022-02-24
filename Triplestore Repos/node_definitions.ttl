@@ -683,44 +683,6 @@
     ]
 .
 
-:HandleJsonEvent nd:class nd:Leaf;
-	nd:name "Handle Json Event";
-    nd:labelType nd:Dynamic;
-    rdfs:label "HandleJsonEvent";
-    nd:type bt:HandleJsonEvent;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#7db300";
-        nd:shape nd:Roundrectangle;
-        nd:padding "900%";
-        nd:paddingTo "width";
-        nd:icon "handle-json-event.png";
-    ];
-    nd:parameters (
-		[
-			a nd:Parameter;
-			nd:mapsTo ajan:event;
-			nd:input nd:EventGoal;
-			nd:title "Event/Goal";
-		]
-    	[
-            a nd:Parameter;
-            nd:mapsTo bt:mapping;
-            nd:title "Mapping";
-            nd:input xsd:anyURI ;
-            nd:default "http://"^^xsd:anyURI;
-        ][
-	        a nd:Parameter;
-	        nd:mapsTo bt:validate;
-	        nd:title "Construct Query";
-	        nd:input nd:Query;
-	        bt:originBase "false";
-	        bt:targetBase "true";
-	        nd:type bt:ConstructQuery;
-    	]
-    )
-.
-
 :HandleQueueEvent nd:class nd:Leaf;
 	nd:name "Handle Queue Event";
     nd:labelType nd:Dynamic;
@@ -843,11 +805,52 @@
     )
 .
 
-:QueryJsonDomain nd:class nd:Leaf;
-	nd:name "Query Json Domain";
+# --------------- Mapping -------------------
+
+
+:HandleMappingEvent nd:class nd:Leaf;
+	nd:name "Handle Mapping Event";
     nd:labelType nd:Dynamic;
-    rdfs:label "DefaultQueryJsonDomain";
-    nd:type bt:QueryJsonDomain;
+    rdfs:label "DefaultHandleMappingEvent";
+    nd:type bt:HandleMappingEvent;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#7db300";
+        nd:shape nd:Roundrectangle;
+        nd:padding "900%";
+        nd:paddingTo "width";
+        nd:icon "handle-json-event.png";
+    ];
+    nd:parameters (
+		[
+			a nd:Parameter;
+			nd:mapsTo ajan:event;
+			nd:input nd:EventGoal;
+			nd:title "Event/Goal";
+		]
+    	[
+            a nd:Parameter;
+            nd:mapsTo bt:mapping;
+            nd:title "Mapping";
+            nd:input xsd:anyURI ;
+            nd:default "http://"^^xsd:anyURI;
+        ][
+	        a nd:Parameter;
+	        nd:mapsTo bt:validate;
+	        nd:title "Construct Query";
+	        nd:input nd:Query;
+	        bt:originBase "false";
+	        bt:targetBase "true";
+	        nd:type bt:ConstructQuery;
+    	]
+    )
+.
+
+:QueryMappingDomain nd:class nd:Leaf;
+	nd:name "Query Mapping Domain";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultQueryMappingDomain";
+    nd:type bt:QueryMappingDomain;
     nd:style [
         a nd:StyleDef;
         nd:color "#00ff84";
@@ -880,10 +883,10 @@
     ] )
 .
 
-:JsonMessage nd:class nd:Leaf;
+:MappingMessage nd:class nd:Leaf;
 	nd:name "Json Message";
     nd:labelType nd:Dynamic;
-    rdfs:label "DefaultJsonMessage";
+    rdfs:label "DefaultMappingMessage";
     nd:type bt:JsonMessage;
     nd:style [
         a nd:StyleDef;
@@ -1249,430 +1252,5 @@
     ];
 .
 
-# --------------- MOSIMBehavior -------------------
+# --------------- Plugin X -------------------
 
-:GetScene nd:class nd:Leaf;
-    nd:name "GetScene";
-    nd:labelType nd:Dynamic;
-    rdfs:label "DefaultGetScene";
-    nd:type bt-mosim:GetScene;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#ddf2f7";
-        nd:shape nd:Polygon;
-        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "scene-mosim.png";
-    ];
-    nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:host;
-	    nd:title "Host:Port";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt:targetBase;
-	    nd:title "Target Base";
-	    nd:input nd:Repo;
-    ].
-
-:GetAvatarTransform nd:class nd:Leaf;
-    nd:name "GetAvatarTransform";
-    nd:labelType nd:Dynamic;
-    rdfs:label "DefaultGetAvatarTransform";
-    nd:type bt-mosim:GetAvatarTransform;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#ddf2f7";
-        nd:shape nd:Polygon;
-        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "scene-mosim.png";
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:avatarID;
-	    nd:title "Avatar URI&ID";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-    nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:host;
-	    nd:title "SkeletonAccess Host&Port";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt:targetBase;
-	    nd:title "Target Base";
-	    nd:input nd:Repo;
-    ].
-
-:RegisterListener nd:class nd:Leaf;
-	nd:name "RegisterListener";
-    nd:labelType nd:Dynamic;
-    rdfs:label "DefaultRegisterListener";
-    nd:type bt-mosim:RegisterListener;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#ddf2f7";
-        nd:shape nd:Polygon;
-        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "register.png";
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:eventType;
-	    nd:title "EventType";
-	    nd:input xsd:string;
-	    nd:default bt:current;
-    ];
-    nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:host;
-	    nd:title "Host:Port";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:callback;
-	    nd:title "CallbackPort: ?port";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt:targetBase;
-	    nd:title "Target Base";
-	    nd:input nd:Repo;
-    ].
-
-:UnregisterListener nd:class nd:Leaf;
-	nd:name "UnregisterListener";
-    nd:labelType nd:Dynamic;
-    rdfs:label "DefaultUnregisterListener";
-    nd:type bt-mosim:UnregisterListener;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#ddf2f7";
-        nd:shape nd:Polygon;
-        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "unregister.png";
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:eventType;
-	    nd:title "EventType";
-	    nd:input xsd:string;
-	    nd:default bt:current;
-    ];
-    nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:host;
-	    nd:title "Host:Port";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:callback;
-	    nd:title "CallbackPort: ?port";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt:targetBase;
-	    nd:title "Target Base";
-	    nd:input nd:Repo;
-    ].
-
-:CreateCallbackServer nd:class nd:Leaf;
-	nd:name "CreateCallbackServer";
-    nd:labelType nd:Dynamic;
-    rdfs:label "DefaultCreateCallbackServer";
-    nd:type bt-mosim:CreateCallbackServer;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#ddf2f7";
-        nd:shape nd:Polygon;
-        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "createCallbackServer.png";
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:callback;
-	    nd:title "CallbackPort: ?port";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ].
-
-:DeleteCallbackServer nd:class nd:Leaf;
-	nd:name "DeleteCallbackServer";
-    nd:labelType nd:Dynamic;
-    rdfs:label "DefaultDeleteCallbackServer";
-    nd:type bt-mosim:DeleteCallbackServer;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#ddf2f7";
-        nd:shape nd:Polygon;
-        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "deleteCallbackServer.png";
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:callback;
-	    nd:title "CallbackPort: ?port";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ].
-
-:GetMMUs nd:class nd:Leaf;
-	nd:name "GetMMUs";
-    nd:labelType nd:Dynamic;
-    rdfs:label "DefaultGetMMUs";
-    nd:type bt-mosim:GetAvailableMMUs;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#ddf2f7";
-        nd:shape nd:Polygon;
-        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "getMMUs.png";
-    ];
-    nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:host;
-	    nd:title "Host:Port";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:sessionID;
-	    nd:title "SessionID";
-	    nd:input xsd:string;
-	    nd:default bt:current;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt:targetBase;
-	    nd:title "Target Base";
-	    nd:input nd:Repo;
-    ].
-
-:AbortInstruction nd:class nd:Leaf;
-	nd:name "AbortInstruction";
-    nd:labelType nd:Dynamic;
-    rdfs:label "DefaultAbortInstruction";
-    nd:type bt-mosim:AbortInstruction;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#ddf2f7";
-        nd:shape nd:Polygon;
-        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "abortMMU.png";
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt:targetBase;
-	    nd:title "Target Base";
-	    nd:input nd:Repo;
-    ];
-    nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:host;
-	    nd:title "Host:Port";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:instructionID;
-	    nd:title "Instruction ID";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ].
-
-:GetWalkPoints nd:class nd:Leaf;
-	nd:name "GetWalkPoints";
-    nd:labelType nd:Dynamic;
-    rdfs:label "DefaultGetWalkPoints";
-    nd:type bt-mosim:GetWalkPoints;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#ddf2f7";
-        nd:shape nd:Polygon;
-        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "walkPoint.png";
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt:targetBase;
-	    nd:title "Target Base";
-	    nd:input nd:Repo;
-    ];
-    nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:walkTarget;
-	    nd:title "Walk Target";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:sceneObjects;
-	    nd:title "SceneObjects";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:host;
-	    nd:title "Walkpoint Service";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ] .
-
-:PathAvailable nd:class nd:Leaf;
-	nd:name "PathAvailable";
-    nd:labelType nd:Dynamic;
-    rdfs:label "DefaultPathAvailable";
-    nd:type bt-mosim:PathAvailable;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#ddf2f7";
-        nd:shape nd:Polygon;
-        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "walkPoint.png";
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt:targetBase;
-	    nd:title "Target Base";
-	    nd:input nd:Repo;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:avatar;
-	    nd:title "Avatar";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:ConstructQuery;
-    ];
-    nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:walkTarget;
-	    nd:title "Walk Target";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:ConstructQuery;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:sceneObjects;
-	    nd:title "SceneObjects";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:host;
-	    nd:title "PathPlanning Service";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ] .
-
-:SendHTLELogs nd:class nd:Leaf;
-	nd:name "SendHTLELogs";
-    nd:labelType nd:Dynamic;
-    rdfs:label "DefaultSendHTLELogs";
-    nd:type bt-mosim:SendHTLELogs;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#ddf2f7";
-        nd:shape nd:Polygon;
-        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "logHTLE.png";
-    ] ;
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:endpointHTLE;
-	    nd:title "HTLE Endpoint";
-	    nd:input xsd:anyURI;
-    ] ;
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt:originBase;
-	    nd:title "Loging Base";
-	    nd:input nd:Repo;
-    ] ;
-	nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:infoHTLE;
-	    nd:title "HTLE Infos: ?token ?resultSet";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ] .

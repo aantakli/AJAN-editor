@@ -55,7 +55,7 @@ function getEvents(graph, events) {
 		graph.forEach(quad => {
 			if (
 				quad.predicate.value === RDF.type
-        && (quad.object.value === AGENTS.Event || quad.object.value === AGENTS.QueueEvent) 
+        && (quad.object.value === AGENTS.Event || quad.object.value === AGENTS.QueueEvent || quad.object.value === AGENTS.MappingEvent)
 			) {
         events.push(getEventsDefinitions(graph, quad.subject));
 			}

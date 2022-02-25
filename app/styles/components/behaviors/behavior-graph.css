@@ -61,6 +61,16 @@ div.button-group {
   padding: 0 !important;
 }
 
+  .node-container h4 {
+    padding: 0.5em 0.5em;
+    height: 2.5em;
+    margin-top: 20px !important;
+    margin-bottom: 0px !important;
+    background-color: #A3A4DC;
+    font-weight: bold;
+    font-size: larger !important;
+  }
+
 /* ToDo: same class used in different files, combine */
 .intro {
   padding: 1em 0.5em;

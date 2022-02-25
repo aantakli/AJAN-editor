@@ -21,7 +21,8 @@
 let ND = {
 	defaultPrefix: "http://www.ajan.de/behavior/nd-ns#",
 	type: "http://www.ajan.de/behavior/nd-ns#type",
-	class: "http://www.ajan.de/behavior/nd-ns#class",
+  class: "http://www.ajan.de/behavior/nd-ns#class",
+  category: "http://www.ajan.de/behavior/nd-ns#category",
 	Leaf: "http://www.ajan.de/behavior/nd-ns#Leaf",
 	Composite: "http://www.ajan.de/behavior/nd-ns#Composite",
 	Decorator: "http://www.ajan.de/behavior/nd-ns#Decorator",

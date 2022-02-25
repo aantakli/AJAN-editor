@@ -88,18 +88,25 @@ function buildNode(quads, nodeURI, nodeClass) {
 	let structure = buildStructure(quads, nodeURI);
 	let typeQuad = util.findQuad(quads, nodeURI, ND.type);
 	//TODO: What if type is undefined (e.g. for decorators?)
-	let type = typeQuad ? typeQuad.object.value : "";
+  let type = typeQuad ? typeQuad.object.value : "";
+  let categoryStmt = util.findQuad(quads, nodeURI, ND.category);
+  let category;
+  if (categoryStmt) {
+    console.log(categoryStmt);
+    category = categoryStmt.object.value;
+  }
 
 	// Properties fields for the details panel
 	// Properties could be infered from the structure
 	//let properties;
 	//TODO: Also consider class(Composite, Decorator, Leaf) and name for the "Add node" panel
 	//TODO: Rename type to class? (not nodeURI!!!!!)
-	let title = util.findQuad(quads, nodeURI, ND.name).object.value;
+  let title = util.findQuad(quads, nodeURI, ND.name).object.value;
 	let nodeDef = {
 		id: title.replace(/ /g, ""),
 		title,
-		class: nodeClass,
+    class: nodeClass,
+    category: category,
 		type,
 		structure,
 		style,

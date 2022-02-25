@@ -432,6 +432,7 @@
 .
 
 :Message nd:class nd:Leaf;
+	nd:category "Message Nodes";
 	nd:name "Message";
 	nd:labelType nd:Dynamic;
 	rdfs:label "DefaultMessage";
@@ -531,6 +532,7 @@
 .
 
 :GoalProducer nd:class nd:Leaf;
+	nd:category "Event Nodes";
 	nd:name "GoalProducer";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultGoalProducer";
@@ -562,6 +564,7 @@
 .
 
 :EventProducer nd:class nd:Leaf;
+	nd:category "Event Nodes";
 	nd:name "Produce Event";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultEventProducer";
@@ -592,6 +595,7 @@
 .
 
 :QueryDomain nd:class nd:Leaf;
+	nd:category "Message Nodes";
 	nd:name "Query Domain";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultQueryDomain";
@@ -654,6 +658,7 @@
 .
 
 :HandleEvent nd:class nd:Leaf;
+	nd:category "Event Nodes";
 	nd:name "Handle Event";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultHandleEvent";
@@ -684,6 +689,7 @@
 .
 
 :HandleQueueEvent nd:class nd:Leaf;
+	nd:category "Event Nodes";
 	nd:name "Handle Queue Event";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultHandleQueueEvent";
@@ -809,6 +815,7 @@
 
 
 :HandleMappingEvent nd:class nd:Leaf;
+	nd:category "Event Nodes";
 	nd:name "Handle Mapping Event";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultHandleMappingEvent";
@@ -847,6 +854,7 @@
 .
 
 :QueryMappingDomain nd:class nd:Leaf;
+	nd:category "Message Nodes";
 	nd:name "Query Mapping Domain";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultQueryMappingDomain";
@@ -884,6 +892,7 @@
 .
 
 :MappingMessage nd:class nd:Leaf;
+	nd:category "Message Nodes";
 	nd:name "Json Message";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultMappingMessage";
@@ -1255,6 +1264,7 @@
 # --------------- MOSIMBehavior -------------------
  
 :GetScene nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
     nd:name "GetScene";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultGetScene";
@@ -1285,6 +1295,7 @@
     ].
 
 :GetAvatarTransform nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
     nd:name "GetAvatarTransform";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultGetAvatarTransform";
@@ -1324,6 +1335,7 @@
     ].
 
 :RegisterListener nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "RegisterListener";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultRegisterListener";
@@ -1370,6 +1382,7 @@
     ].
 
 :UnregisterListener nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "UnregisterListener";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultUnregisterListener";
@@ -1416,6 +1429,7 @@
     ].
 
 :CreateCallbackServer nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "CreateCallbackServer";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultCreateCallbackServer";
@@ -1440,6 +1454,7 @@
     ].
 
 :DeleteCallbackServer nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "DeleteCallbackServer";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultDeleteCallbackServer";
@@ -1464,6 +1479,7 @@
     ].
 
 :GetMMUs nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "GetMMUs";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultGetMMUs";
@@ -1501,6 +1517,7 @@
     ].
 
 :AbortInstruction nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "AbortInstruction";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultAbortInstruction";
@@ -1540,6 +1557,7 @@
     ].
 
 :GetWalkPoints nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "GetWalkPoints";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultGetWalkPoints";
@@ -1588,6 +1606,7 @@
     ] .
 
 :PathAvailable nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "PathAvailable";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultPathAvailable";
@@ -1645,6 +1664,7 @@
     ] .
 
 :SendHTLELogs nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "SendHTLELogs";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultSendHTLELogs";

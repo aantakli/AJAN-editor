@@ -532,7 +532,7 @@
 .
 
 :GoalProducer nd:class nd:Leaf;
-	nd:category "Event Nodes";
+	nd:category "Event & Goal Nodes";
 	nd:name "GoalProducer";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultGoalProducer";
@@ -564,7 +564,7 @@
 .
 
 :EventProducer nd:class nd:Leaf;
-	nd:category "Event Nodes";
+	nd:category "Event & Goal Nodes";
 	nd:name "Produce Event";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultEventProducer";
@@ -658,7 +658,7 @@
 .
 
 :HandleEvent nd:class nd:Leaf;
-	nd:category "Event Nodes";
+	nd:category "Event & Goal Nodes";
 	nd:name "Handle Event";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultHandleEvent";
@@ -689,7 +689,7 @@
 .
 
 :HandleQueueEvent nd:class nd:Leaf;
-	nd:category "Event Nodes";
+	nd:category "Event & Goal Nodes";
 	nd:name "Handle Queue Event";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultHandleQueueEvent";
@@ -815,7 +815,7 @@
 
 
 :HandleMappingEvent nd:class nd:Leaf;
-	nd:category "Event Nodes";
+	nd:category "Event & Goal Nodes";
 	nd:name "Handle Mapping Event";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultHandleMappingEvent";

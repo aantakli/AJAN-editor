@@ -68,7 +68,7 @@ function insertNodeDefs() {
 function insertNodeDef(node, btData /*Optional param for behavior trees*/) {
 	let $parent = $("#" + node.class);
   if (node.class == "Leaf" && node.category) {
-    let category = node.category.replaceAll(' ', '');
+    let category = node.category.replaceAll(' ', '').replaceAll(/[&\/\\#,+()$~%.'":*?<>{}]/g, "");
     $parent = createCategoryDropdown($parent, node, category);
   }
   let evenChild = $parent.children("div").length % 2;

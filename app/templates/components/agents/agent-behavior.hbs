@@ -1,16 +1,16 @@
 
 
-  <div local-class="agent-item-header clearfix">
-    <div local-class="agent-item-header-text">  {{activeBehavior.label}}</div>
-    <a class="ui icon button"
-       download={{fileName}}
-       href="{{content}}">
-      <i class="download icon no-side-margins"></i>
-    </a>
-    <button {{action "deletebehavior"}} class="ui red icon button rightmost">
-      <i class="minus icon no-side-margins"></i>
-    </button>
-  </div>
+<div local-class="agent-item-header clearfix">
+  <div local-class="agent-item-header-text">  {{activeBehavior.label}}</div>
+  <a class="ui icon button"
+     download={{fileName}}
+     href="{{content}}">
+    <i class="download icon no-side-margins"></i>
+  </a>
+  <button {{action "deletebehavior"}} class="ui red icon button rightmost">
+    <i class="minus icon no-side-margins"></i>
+  </button>
+</div>
 
 <div local-class="item-seperation">
   <hr><i> URI</i>
@@ -100,19 +100,19 @@
   {{/if}}
 
   {{#unless this.editAddtype}}
-<div local-class="item-row-content">
-  {{#if (eq activeBehavior.addtype "")}}
-  <div class="ajan-optional">you can define an additional Type</div>
-  {{/if}}
-  <div local-class="item-row-value">
-    {{activeBehavior.addtype}}
+  <div local-class="item-row-content">
+    {{#if (eq activeBehavior.addtype "")}}
+    <div class="ajan-optional">you can define an additional Type</div>
+    {{/if}}
+    <div local-class="item-row-value">
+      {{activeBehavior.addtype}}
+    </div>
+    <div local-class="item-row-buttons">
+      <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "addtype" activeBehavior.addtype}}>
+        <i class="edit icon no-side-margins"></i>
+      </button>
+    </div>
   </div>
-  <div local-class="item-row-buttons">
-    <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "addtype" activeBehavior.addtype}}>
-      <i class="edit icon no-side-margins"></i>
-    </button>
-  </div>
-</div>
   {{/unless}}
 
 </div>
@@ -145,19 +145,19 @@
   {{/if}}
 
   {{#unless this.editRequires}}
-<div local-class="item-row-content">
-  {{#if (eq activeBehavior.requires "")}}
-  <div class="ajan-optional">you can define Requirements</div>
-  {{/if}}
-  <div local-class="item-row-value">
-    {{activeBehavior.requires}}
+  <div local-class="item-row-content">
+    {{#if (eq activeBehavior.requires "")}}
+    <div class="ajan-optional">you can define Requirements</div>
+    {{/if}}
+    <div local-class="item-row-value">
+      {{activeBehavior.requires}}
+    </div>
+    <div local-class="item-row-buttons">
+      <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "requires" activeBehavior.requires}}>
+        <i class="edit icon no-side-margins"></i>
+      </button>
+    </div>
   </div>
-  <div local-class="item-row-buttons">
-    <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "requires" activeBehavior.requires}}>
-      <i class="edit icon no-side-margins"></i>
-    </button>
-  </div>
-</div>
   {{/unless}}
 
 </div>
@@ -207,29 +207,29 @@
 
   {{/if}}
   {{#unless this.editTrigger}}
-<div local-class="item-row-content">
-  {{#if (is-empty activeBehavior.triggers)}}
-  <div class="ajan-mandatory">select a Trigger!</div>
-  {{/if}}
-  <div local-class="item-row-value">
-    {{#each activeBehavior.triggers as |trigger|}}
-    <div local-class="bullet">
-      <li>
-        <div local-class="bloc3" data-tooltip={{trigger.uri}} data-position="top left">
-          <div>{{trigger.label}}  </div>
-        </div>
+  <div local-class="item-row-content">
+    {{#if (is-empty activeBehavior.triggers)}}
+    <div class="ajan-mandatory">select a Trigger!</div>
+    {{/if}}
+    <div local-class="item-row-value">
+      {{#each activeBehavior.triggers as |trigger|}}
+      <div local-class="bullet">
+        <li>
+          <div local-class="bloc3" data-tooltip={{trigger.uri}} data-position="top left">
+            <div>{{trigger.label}}  </div>
+          </div>
 
-      </li>
+        </li>
+      </div>
+      {{/each}}
+
     </div>
-    {{/each}}
-
+    <div local-class="item-row-buttons">
+      <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "trigger"  activeBehavior.triggers}}>
+        <i class="edit icon no-side-margins"></i>
+      </button>
+    </div>
   </div>
-  <div local-class="item-row-buttons">
-    <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "trigger"  activeBehavior.triggers}}>
-      <i class="edit icon no-side-margins"></i>
-    </button>
-  </div>
-</div>
   {{/unless}}
 </div>
 {{/if}}
@@ -292,7 +292,8 @@
   {{/unless}}
 </div>
 
-  <!-- ClearEKB -->
+<!-- ClearEKB -->
+{{#if this.regularBehavior}}
 <div local-class="item-seperation">
   <hr><i> Clear EKB</i>
 </div>
@@ -300,48 +301,47 @@
 <div local-class="item-row clearfix">
   <div local-class="item-row-title" data-tooltip="Manipulate Behavior's ClearEKB" data-position="top left">Clear EKB:</div>
   {{#if this.editClearEKB}}
-<div local-class="item-row-content-edit">
-  {{#ui-dropdown class="selection service-edit-dropdown" selected=activeBehavior.clearEKB onChange=(action (mut activeBehavior.clearEKB))}}
-  <div class="default text">{{activeBehavior.clearEKB}}</div>
-  <i class="dropdown icon"></i>
-  <div class="menu">
-    {{#each clearOpt as |clear|}}
-    <div data-value="{{clear}}" class="item">
-      {{clear}}
+  <div local-class="item-row-content-edit">
+    {{#ui-dropdown class="selection service-edit-dropdown" selected=activeBehavior.clearEKB onChange=(action (mut activeBehavior.clearEKB))}}
+    <div class="default text">{{activeBehavior.clearEKB}}</div>
+    <i class="dropdown icon"></i>
+    <div class="menu">
+      {{#each clearOpt as |clear|}}
+      <div data-value="{{clear}}" class="item">
+        {{clear}}
+      </div>
+      {{/each}}
     </div>
-    {{/each}}
+    {{/ui-dropdown}}
+
+    <div local-class="item-row-buttons">
+
+      <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
+        <i class="close icon no-side-margins"></i>
+      </button>
+
+      <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeBehavior.uri "http://www.ajan.de/ajan-ns#clearEKB" activeBehavior.clearEKB "http://www.w3.org/2001/XMLSchema#boolean"}}>
+        <i class="pencil icon no-side-margins"></i>
+      </button>
+
+    </div>
   </div>
-  {{/ui-dropdown}}
-
-  <div local-class="item-row-buttons">
-
-    <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
-      <i class="close icon no-side-margins"></i>
-    </button>
-
-    <button local-class="item-row-apply" class="ui positive right icon button" {{action "save" activeBehavior.uri "http://www.ajan.de/ajan-ns#clearEKB" activeBehavior.clearEKB "http://www.w3.org/2001/XMLSchema#boolean"}}>
-      <i class="pencil icon no-side-margins"></i>
-    </button>
-
-  </div>
-</div>
   {{/if}}
 
   {{#unless this.editClearEKB}}
-<div local-class="item-row-content">
-  <div local-class="item-row-value">
-    {{activeBehavior.clearEKB}}
+  <div local-class="item-row-content">
+    <div local-class="item-row-value">
+      {{activeBehavior.clearEKB}}
+    </div>
+    <div local-class="item-row-buttons">
+      <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "clearEKB" activeBehavior.clearEKB}}>
+        <i class="edit icon no-side-margins"></i>
+      </button>
+    </div>
   </div>
-  <div local-class="item-row-buttons">
-    <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "clearEKB" activeBehavior.clearEKB}}>
-      <i class="edit icon no-side-margins"></i>
-    </button>
-  </div>
-</div>
   {{/unless}}
-
 </div>
-
+{{/if}}
 
 
 

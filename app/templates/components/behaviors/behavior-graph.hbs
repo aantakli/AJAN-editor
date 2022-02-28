@@ -23,10 +23,14 @@
         </div>
         <!-- Container for nodes that can be added to the graph -->
         <div class='node-container' local-class='node-container'>
-          <br>{{behaviors/selections/composite-selection}}
-          <br>{{behaviors/selections/decorator-selection}}
-          <br>{{behaviors/selections/leave-selection}}
-          <br>{{behaviors/selections/behavior-tree-selection}}
+
+          <h4 class="nodes-header">Branch Nodes</h4>
+          {{behaviors/selections/composite-selection}}
+          {{behaviors/selections/decorator-selection}}
+
+          <h4 class="nodes-header">Leaf Nodes</h4>
+          {{behaviors/selections/leave-selection}}
+          {{behaviors/selections/behavior-tree-selection}}
           {{!-- {{#ui-accordion class="" local-class="accordion" exclusive=false }} --}}
 
             {{!-- <div class="active title-behaviors">

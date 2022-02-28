@@ -77,6 +77,26 @@ export default Component.extend({
 		}
 	},
   actions: {
+    clipboarCopy(content) {
+      let textArea = document.createElement("textarea");
+      textArea.value = content;
+      textArea.style.top = "0";
+      textArea.style.left = "0";
+      textArea.style.position = "fixed";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand("copy");
+      try {
+        var successful = document.execCommand('copy');
+        var msg = successful ? 'successful' : 'unsuccessful';
+        console.log('Fallback: Copying text command was ' + msg);
+      } catch (err) {
+        console.error('Fallback: Oops, unable to copy', err);
+      }
+      document.body.removeChild(textArea);
+    },
+
 		edit(key, value) {
 			if (!self.edit) {
 				self.activeValue = value;
@@ -162,8 +182,12 @@ export default Component.extend({
       self.actions.updateRepo();
 		},
 
-		saveVariable(val) {
-			self.get("activeAction.variables").addObject(addNewVariable(val));
+    saveVariable(val) {
+      if (!self.get("activeAction.variables")) {
+        self.set("activeAction.variables", new Array());
+      }
+      let newVar = addNewVariable(val, self.get("activeAction.uri"));
+      self.get("activeAction.variables").addObject(newVar);
 			self.actions.toggle("variables");
 			self.set(self.newVariable, "?");
       self.actions.updateRepo();
@@ -251,13 +275,13 @@ function deleteAbortBinding() {
   self.set("abort", false);
 }
 
-function addNewVariable(val) {
+function addNewVariable(val, root) {
 	let variable = {}
 	let resource = rdfFact.blankNode();
 	variable.var = val.replace("?","");
 	variable.uri = resource.value;
 	actions.createVariable(resource, variable);
-	actions.appendVariable(resource, variable, self.activeAction.variables);
+  actions.appendVariable(root, resource, variable, self.activeAction.variables);
 	return variable;
 }
 

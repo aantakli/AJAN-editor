@@ -149,6 +149,12 @@
   color: #96337c;
 }
 
+.item-row-copy {
+  width: 25px;
+  height: 25px;
+  padding: 0px !important;
+}
+
 /* clearfix */
 
 .clearfix::before,

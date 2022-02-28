@@ -25,6 +25,10 @@ export default Ember.Service.extend(Ember.Evented, {
     this.trigger('createBT');
   },
 
+  cloneBT(label) {
+    this.trigger('cloneBT');
+  },
+
   importBT() {
     this.trigger('importBT');
   },

@@ -28,6 +28,8 @@ import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import util from "ajan-editor/helpers/RDFServices/utility";
 
 let $ = Ember.$;
+let $template;
+let categories = new Array();
 
 export {insertNodeDef};
 export default function(cy) {
@@ -41,6 +43,8 @@ export default function(cy) {
 	$("#node-adder").on("mousedown", () => {
 		graphOperations.blur();
 	});
+
+  $template = $("#Leaf-Nodes .Leaf-Nodes-Single-Category").clone();
 
 	// Insert the nodes
 	insertNodeDefs();
@@ -63,8 +67,11 @@ function insertNodeDefs() {
 
 function insertNodeDef(node, btData /*Optional param for behavior trees*/) {
 	let $parent = $("#" + node.class);
+  if (node.class == "Leaf" && node.category) {
+    let category = node.category.replaceAll(' ', '').replaceAll(/[&\/\\#,+()$~%.'":*?<>{}]/g, "");
+    $parent = createCategoryDropdown($parent, node, category);
+  }
   let evenChild = $parent.children("div").length % 2;
-
   let $image;
   if (node.style.icon)
     $image = $('<image src="' + (node.style.icon || "") + '" alt="" class="node-icon">');
@@ -89,6 +96,31 @@ function insertNodeDef(node, btData /*Optional param for behavior trees*/) {
 	$parent.append($div);
 
 	bindDragEvent($div, node, btData);
+}
+
+function createCategoryDropdown($parent, node, category) {
+  let $leafNodes = $("#Leaf-Nodes");
+  if (!categories.includes(category)) {
+    let $dropdown = $template.clone();
+    $dropdown.find(".Leaf-Nodes-Single-Category-Title").text(node.category);
+    $dropdown.find(".active.title").removeClass("active");
+    let $new = $dropdown.find("#Leaf");
+    $new.attr("id", category).removeClass("active");
+    addOnClickEvent($dropdown, category);
+    $leafNodes.append($dropdown);
+    categories.push(category);
+    return $new;
+  } else {
+    return $leafNodes.find("#" + category);
+  }
+  return $parent;
+}
+
+function addOnClickEvent($dropdown, category) {
+  $dropdown.click(function () {
+    $dropdown.find(".title").toggleClass("active");
+    $dropdown.find("#" + category).toggleClass("active");
+  });
 }
 
 function bindDragEvent($div, node, btData) {

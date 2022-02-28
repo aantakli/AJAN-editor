@@ -25,6 +25,7 @@ import endpointajaxActions from "ajan-editor/helpers/agents/actions/endpointajax
 import goalajaxActions from "ajan-editor/helpers/agents/actions/goalajax";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
+import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 import utility from "ajan-editor/helpers/RDFServices/utility";
 import agentProducer from "ajan-editor/helpers/RDFServices/agentsRDFProducer";
 import behaviorProducer from "ajan-editor/helpers/RDFServices/behaviorsRDFProducer";
@@ -111,14 +112,13 @@ function deleteEndpoint(endpoint, noObject) {
 
 function deleteGoal(goal, noObject) {
   console.log(goal);
-  deleteVariables(goal.variables)
-  rdfGraph.removeAllRelated(goal.uri, noObject);
-}
-
-function deleteVariables(variables) {
-  variables.forEach(function (item, index, arr) {
-    deleteVariable(variables, item);
+  goal.variables.forEach(item => {
+    rdfGraph.removeAllRelated(item.uri);
+    rdfGraph.removeAllRelated(item.pointerUri);
   });
+  rdfGraph.removeAllRelated(goal.consumes.uri);
+  rdfGraph.removeAllRelated(goal.produces.uri);
+  rdfGraph.removeAllRelated(goal.uri, noObject);
 }
 
 function deleteVariable(ele, val) {
@@ -179,6 +179,7 @@ function createDefaultBehavior(repo) {
   bt.label = "";
   bt.uri = "";
   behavior.bt = bt;
+  behavior.clearEKB = false;
   return behavior;
 }
 
@@ -208,11 +209,18 @@ function createDefaultGoal(repo) {
   goal.label = "Default Goal";
   goal.type = AGENTS.Goal;
   goal.name = "Goal";
-  goal.variables = new Array();
-  goal.variables.push({ pointerUri: "", uri: "", varName: "s", dataType: RDFS.Resource });
-  goal.variables.push({ pointerUri: "", uri: "", varName: "p", dataType: RDFS.Resource });
-  goal.variables.push({ pointerUri: "", uri: "", varName: "o", dataType: XSD.string });
-  goal.condition = "ASK WHERE { ?s ?p ?o }";
+  goal.variables = [{ uri: rdfFact.blankNode().value, var: "s" }];
+
+  let consumes = {};
+  consumes.uri = "";
+  consumes.sparql = "ASK WHERE { ?s ?p ?o }";
+
+  let produces = {};
+  produces.uri = "";
+  produces.sparql = "ASK WHERE { ?s ?p ?o }";
+
+  goal.consumes = consumes;
+  goal.produces = produces;
   return goal;
 }
 

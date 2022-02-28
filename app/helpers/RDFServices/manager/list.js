@@ -74,7 +74,9 @@ function createNewListHead(parentURI, listPredicate) {
 //TODO: rename to push
 function insertBehind(insertNode, atURI) {
 	let blankNode = rdfFact.blankNode();
-	let nextQuad = rdfGraph.findQuad(atURI, RDF.rest);
+  let nextQuad = rdfGraph.findQuad(atURI, RDF.rest);
+  console.log(atURI);
+  console.log(nextQuad);
 	let nextNode = nextQuad.object;
 	nextQuad.object = blankNode;
 	//rdfGraph.add(rdfFact.quad(blankNode, RDF.type, RDF.List));
@@ -192,10 +194,11 @@ function removeAt(currentObj, index) {
 }
 
 function removeListItem(pointerURI) {
+  console.log(pointerURI)
+  let first = rdfGraph.findQuad(pointerURI, RDF.first).object;
 	bendListItemPointer(pointerURI);
-	rdfGraph.removeAllRelated(pointerURI);
-	//TODO: make sure all child objects are removed
-	//rdfGraph.removeAllRelated(itemURI);
+  rdfGraph.removeAllRelated(pointerURI);
+  rdfGraph.removeAllRelated(first.value);
 }
 
 function bendListItemPointer(pointerURI) {

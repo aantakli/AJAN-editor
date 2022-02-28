@@ -70,9 +70,30 @@ function createVariables(rootUri, definition) {
   });
 }
 
-function appendVariable(root, variable, list) {
-  var last_element = list[list.length-1];
-	variable.pointerUri = rdfManager.listInsert(root,last_element.pointerUri);
+function appendVariable(varRoot, root, variable, list) {
+  if (list.length == 0) {
+    let start = getEmptyList(varRoot, variable.uri);
+    variable.pointerUri = start;
+  } else {
+    var last_element = list[list.length - 1];
+    variable.pointerUri = rdfManager.listInsert(root, last_element.pointerUri);
+  }
+}
+
+function getEmptyList(root, uri) {
+  let start = rdfGraph.getObject(root, ACTN.variables);
+  if (!start) {
+    start = rdfFact.blankNode();
+    rdfGraph.add(rdfFact.quad(root, ACTN.variables, start));
+  } else if (start.value == RDF.nil) {
+    let quad = rdfGraph.findQuad(root, ACTN.variables, start.value);
+    rdfGraph.remove(quad);
+    start = rdfFact.blankNode();
+    rdfGraph.add(rdfFact.quad(root, ACTN.variables, start));
+  }
+  rdfGraph.add(rdfFact.quad(start, RDF.first, uri));
+  rdfGraph.add(rdfFact.quad(start, RDF.rest, RDF.nil));
+  return start.value;
 }
 
 function createVariable(root, definition) {

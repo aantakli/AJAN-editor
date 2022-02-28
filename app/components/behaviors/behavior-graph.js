@@ -51,6 +51,9 @@ export default Ember.Component.extend({
     this.get('dataBus').on('addBT', function (bt) {
       createBT(bt);
     });
+    this.get('dataBus').on('cloneBT', function () {
+      cloneBT();
+    });
     this.get('dataBus').on('exportBT', function () {
       that.get('dataBus').saveExportedBT(exportBT());
     });
@@ -154,6 +157,16 @@ function setAvailableBTs() {
 function createBT(bt) {
   that.get("availableBTs").push(bt);
   that.dataBus.save();
+}
+
+function cloneBT(label) {
+  let selected = localStorage.getItem("bt-selected");
+  let bts = that.get("availableBTs").filter(item => item.uri == selected);
+  if (bts.length > 0) {
+    console.log(bts[0]);
+    let bt = rdfManager.cloneBT(bts[0].uri, that.get("availableBTs").filter(item => item.uri !== selected), bts[0].name + "_clone");
+    that.dataBus.save(bt);
+  }
 }
 
 function importBT(bt) {

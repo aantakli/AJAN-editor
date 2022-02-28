@@ -18,7 +18,7 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import {RDF, RDFS, SPIN, AGENTS} from "ajan-editor/helpers/RDFServices/vocabulary";
+import {RDF, RDFS, SPIN, AGENTS, ACTN, XSD} from "ajan-editor/helpers/RDFServices/vocabulary";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
@@ -33,19 +33,30 @@ export default {
 function createGoal(definition) {
 	rdfGraph.add(rdfFact.quad(definition.uri, RDF.type, AGENTS.Goal));
   rdfGraph.add(rdfFact.quadLiteral(definition.uri, RDFS.label, definition.label));
-  createVariables(definition.uri,definition.variables);
-  rdfGraph.add(rdfFact.quadLiteral(definition.uri, AGENTS.condition, definition.condition));
+  createVariables(definition.uri, definition.variables);
+
+  let consumes = rdfFact.blankNode();
+  definition.consumes.uri = consumes.value;
+  rdfGraph.add(rdfFact.quad(definition.uri, ACTN.consumes, consumes));
+  rdfGraph.add(rdfFact.quad(consumes, RDF.type, ACTN.Consumable));
+  rdfGraph.add(rdfFact.quadLiteral(consumes, ACTN.sparql, definition.consumes.sparql));
+
+  let produces = rdfFact.blankNode();
+  definition.produces.uri = produces.value;
+  rdfGraph.add(rdfFact.quad(definition.uri, ACTN.produces, produces));
+  rdfGraph.add(rdfFact.quad(produces, RDF.type, ACTN.Producible));
+  rdfGraph.add(rdfFact.quadLiteral(produces, ACTN.sparql, definition.produces.sparql));
 }
 
 function createVariables(rootUri, definition) {
   let root = rdfFact.blankNode();
-  rdfGraph.add(rdfFact.quad(rootUri, AGENTS.variables, root));
+  rdfGraph.add(rdfFact.quad(rootUri, ACTN.variables, root));
   definition.forEach(function (item, index, arr) {
     let first = rdfFact.blankNode();
     rdfGraph.add(rdfFact.quad(root, RDF.first, first));
     createVariable(first, item);
-    item.pointerUri = root.value;
     item.uri = first.value;
+    item.pointerUri = root.value;
     if (index < arr.length) {
       let rest = rdfFact.blankNode();
       rdfGraph.add(rdfFact.quad(root, RDF.rest, rest));
@@ -56,16 +67,35 @@ function createVariables(rootUri, definition) {
   });
 }
 
-function createVariable(root, definition) {
-  rdfGraph.add(rdfFact.quad(root, RDF.type, AGENTS.Variable));
-  rdfGraph.add(rdfFact.quadLiteral(root, SPIN.varName, definition.varName));
-  rdfGraph.add(rdfFact.quad(root, AGENTS.dataType, definition.dataType));
+function appendVariable(varRoot, root, variable, list) {
+  if (list.length == 0) {
+    let start = getEmptyList(varRoot, variable.uri);
+    variable.pointerUri = start;
+  } else {
+    var last_element = list[list.length - 1];
+    variable.pointerUri = rdfManager.listInsert(root, last_element.pointerUri);
+  }
 }
 
-function appendVariable(root, variable, list) {
-  console.log(list);
-  var last_element = list[list.length - 1];
-  variable.pointerUri = rdfManager.listInsert(root, last_element.pointerUri);
+function getEmptyList(root, uri) {
+  let start = rdfGraph.getObject(root, ACTN.variables);
+  if (!start) {
+    start = rdfFact.blankNode();
+    rdfGraph.add(rdfFact.quad(root, ACTN.variables, start));
+  } else if (start.value == RDF.nil) {
+    let quad = rdfGraph.findQuad(root, ACTN.variables, start.value);
+    rdfGraph.remove(quad);
+    start = rdfFact.blankNode();
+    rdfGraph.add(rdfFact.quad(root, ACTN.variables, start));
+  }
+  rdfGraph.add(rdfFact.quad(start, RDF.first, uri));
+  rdfGraph.add(rdfFact.quad(start, RDF.rest, RDF.nil));
+  return start.value;
+}
+
+function createVariable(root, definition) {
+  rdfGraph.add(rdfFact.quad(root, RDF.type, ACTN.ActionVariable));
+  rdfGraph.add(rdfFact.quadLiteral(root, SPIN.varName, definition.var, XSD.string));
 }
 
 

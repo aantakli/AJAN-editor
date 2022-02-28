@@ -192,7 +192,7 @@ export default Ember.Component.extend({
       let goal = actions.createDefaultGoal(localStorage.currentStore);
       actions.createGoal(goal);
       self.get("availableGoals").addObject(goal);
-      self.get("availableEventsandGoals").addObject(event);
+      self.get("availableEventsandGoals").addObject(goal);
       self.rerender();
       updateRepo();
     },
@@ -300,7 +300,7 @@ function setAvailableEndpoints() {
 }
 
 function setAvailableGoals() {
-	let goals = actions.getGoals();
+  let goals = actions.getGoals();
 	self.set("availableGoals", goals);
 	let EventsandGoals=self.get("availableEvents").concat(self.get("availableGoals"));
 	self.set("availableEventsandGoals",EventsandGoals);

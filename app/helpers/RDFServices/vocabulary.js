@@ -21,7 +21,8 @@
 let ND = {
 	defaultPrefix: "http://www.ajan.de/behavior/nd-ns#",
 	type: "http://www.ajan.de/behavior/nd-ns#type",
-	class: "http://www.ajan.de/behavior/nd-ns#class",
+  class: "http://www.ajan.de/behavior/nd-ns#class",
+  category: "http://www.ajan.de/behavior/nd-ns#category",
 	Leaf: "http://www.ajan.de/behavior/nd-ns#Leaf",
 	Composite: "http://www.ajan.de/behavior/nd-ns#Composite",
 	Decorator: "http://www.ajan.de/behavior/nd-ns#Decorator",
@@ -201,6 +202,7 @@ let AGENTS = {
   agent: "http://www.ajan.de/ajan-ns#agent",
   Event: "http://www.ajan.de/ajan-ns#ModelEvent",
   QueueEvent: "http://www.ajan.de/ajan-ns#ModelQueueEvent",
+  MappingEvent: "http://www.ajan.de/ajan-ns#MappingEvent",
   Endpoint: "http://www.ajan.de/ajan-ns#Endpoint",
   InitialBehavior: "http://www.ajan.de/ajan-ns#InitialBehavior",
   FinalBehavior: "http://www.ajan.de/ajan-ns#FinalBehavior",
@@ -219,9 +221,9 @@ let AGENTS = {
 	trigger: "http://www.ajan.de/ajan-ns#trigger",
 	bt: "http://www.ajan.de/ajan-ns#bt",
 	variables: "http://www.ajan.de/ajan-ns#variables",
-	condition: "http://www.ajan.de/ajan-ns#condition",
 	dataType:"http://www.ajan.de/ajan-ns#dataType",
-	capability:"http://www.ajan.de/ajan-ns#capability",
+  capability: "http://www.ajan.de/ajan-ns#capability",
+  clearEKB: "http://www.ajan.de/ajan-ns#clearEKB",
 };
 
 export {BT, EDITOR, ACTN, ND, RDF, RDFS, DCT, STRIPS, XSD, HTTP, SPIN, AGENTS};

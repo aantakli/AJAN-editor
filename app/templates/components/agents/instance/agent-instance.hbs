@@ -47,7 +47,7 @@
 
 <div local-class="instance-row clearfix">
   <div local-class="instance-row-title" data-tooltip="Agent's Knowledge" data-position="top left">
-    Knowledge:
+    Agent Knowledge:
   </div>
 
   <div local-class="instance-row-content">
@@ -76,8 +76,11 @@
         {{behavior.name}}
       </div>
       <div>
-        <a data-tooltip="open behaviors state knowledge" class="ui right icon button" local-class="instance-row-download" rel="noopener noreferrer" rel="noopener" target="_blank" href={{concat behavior.uri '?method=info&mode=detail'}}>
-          <i class="icon external alternate no-side-margins"></i>
+        <a data-tooltip="open behaviors state" class="ui right icon button" local-class="instance-row-download" rel="noopener noreferrer" rel="noopener" target="_blank" href={{concat behavior.uri '?method=info&mode=detail'}}>
+          <i class="icon sitemap alternate no-side-margins"></i>
+        </a>
+        <a data-tooltip="open behaviors knowledge" class="ui right icon button" local-class="instance-row-download" rel="noopener noreferrer" rel="noopener" target="_blank" href={{concat behavior.uri '?method=knowledge'}}>
+          <i class="icon database alternate no-side-margins"></i>
         </a>
         <a data-tooltip="resume behavior execution" class="debug hidden ui right icon button green" local-class="instance-row-download" onclick={{action "debug" behavior.uri '?method=debug&mode=resume'}}>
           <i class="icon play alternate no-side-margins"></i>

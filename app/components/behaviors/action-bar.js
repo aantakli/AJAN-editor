@@ -98,7 +98,7 @@ export default Component.extend({
     },
 
     delete() {
-      this.get('dataBus').deleteBT();
+      this.get('dataBus').deleteBTModal();
     },
 
     loadBT() {

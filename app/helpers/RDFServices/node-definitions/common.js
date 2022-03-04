@@ -92,7 +92,6 @@ function buildNode(quads, nodeURI, nodeClass) {
   let categoryStmt = util.findQuad(quads, nodeURI, ND.category);
   let category;
   if (categoryStmt) {
-    console.log(categoryStmt);
     category = categoryStmt.object.value;
   }
 

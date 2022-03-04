@@ -2,7 +2,7 @@
  * Created on Tue Nov 10 2020
  *
  * The MIT License (MIT)
- * Copyright (c) 2020 André Antakli (German Research Center for Artificial Intelligence, DFKI).
+ * Copyright (c) 2020 André Antakli, Alex Grethen (German Research Center for Artificial Intelligence, DFKI).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -20,68 +20,43 @@
  */
 import Ember from "ember";
 
-export default Ember.Service.extend(Ember.Evented, {
-  createBT() {
-    this.trigger('createBT');
-  },
+let $ = Ember.$;
+let that;
 
-  cloneBT(label) {
-    this.trigger('cloneBT');
-  },
+export default Ember.Component.extend({
+  dataBus: Ember.inject.service(),
 
-  importBT() {
-    this.trigger('importBT');
+  init() {
+    this._super(...arguments);
+    that = this;
+    this.get('dataBus').on('deleteBTModal', function () {
+      console.log("delete-BT: deleteBT");
+      deleteModal();
+    });
   },
+}); 
 
-  exportBT() {
-    this.trigger('exportBT');
-  },
+function deleteModal() {
+  console.log("Delete a Behavior Tree");
+  $("#modal-header-title").text("Delete SPARQL Behavior Tree");
+  let $body = $("#modal-body"),
+    $modal = $("#universal-modal");
+  $body.empty();
+  $modal.show();
 
-  saveExportedBT(bt) {
-    this.trigger('saveExportedBT', bt);
-  },
+  let $question = $("<h3 style='color: red'>", {
+    class: "modal-p"
+  }).text("Do your really want to delete this Behavior Tree?");
+  let $input = $("<div>", {
+    class: "modal-body-div"
+  }).append($question);
 
-  deleteBTModal() {
-    this.trigger('deleteBTModal');
-  },
+  // Append to modal body
+  $body.append($input);
 
-  deleteBT() {
-    this.trigger('deleteBT');
-  },
-
-  addBT(bt) {
-      this.trigger('addBT', bt);
-  },
-
-  save(content) {
-    this.trigger('save', content);
-  },
-
-  updatedBT() {
-    this.trigger('updatedBT');
-  },
-
-  updatedSG() {
-    this.trigger('updatedSG');
-  },
-
-  deletedSG() {
-    this.trigger('deletedSG');
-  },
-
-  updatedAG() {
-    this.trigger('updatedAG');
-  },
-
-  createAI(data) {
-    this.trigger('createAI', data);
-  },
-
-  deletedAI() {
-    this.trigger('deletedAI');
-  },
-
-  updateAgentDefs(defs) {
-    this.trigger('updateAgentDefs', defs);
-  }
-});
+  // Listen for the confirm event
+  let elem = document.getElementById("universal-modal");
+  elem.addEventListener("modal:confirm", () => {
+    that.dataBus.deleteBT();
+  });
+}

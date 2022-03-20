@@ -4,7 +4,9 @@ RUN apk update && apk add git
 
 COPY . .
 
-RUN npm install && npm install -g ember-cli && npm install -g bower
+RUN npm install -g ember-cli
+RUN npm install -g bower
+RUN npm install
 
 EXPOSE 4200/tcp
 EXPOSE 4200/udp

@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0d184157-912c-4576-b7f7-f73b4493558b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/dbnavigator.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+    <list default="true" id="0d184157-912c-4576-b7f7-f73b4493558b" name="Default Changelist" comment="Added Dockerfile">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -421,8 +419,18 @@
       <workItem from="1598822679955" duration="35011000" />
       <workItem from="1598893468277" duration="67000" />
       <workItem from="1598893540131" duration="11555000" />
-      <workItem from="1647761186642" duration="1411000" />
+      <workItem from="1647761186642" duration="1846000" />
+      <workItem from="1647765367792" duration="80000" />
+      <workItem from="1647851839839" duration="267000" />
     </task>
+    <task id="LOCAL-00001" summary="Added Dockerfile">
+      <created>1647763371190</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1647763371191</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
@@ -491,6 +499,10 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Added Dockerfile" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added Dockerfile" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/app/templates/components/ui/delimiter-horizontal.hbs">

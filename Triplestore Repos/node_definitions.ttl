@@ -1413,6 +1413,15 @@
         bt:targetBase "false";
         nd:type bt:SelectQuery;
     ];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mosim:eventTypeQuery;
+	    nd:title "EventType: ?eventType";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ];
 	nd:parameter [
 	    a nd:Parameter;
 	    nd:mapsTo bt:targetBase;

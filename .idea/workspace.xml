@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="0d184157-912c-4576-b7f7-f73b4493558b" name="Default Changelist" comment="Added Dockerfile">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -325,7 +326,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="Angular2Html" />
     <property name="editor.config.ad.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/app/styles/components" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -351,7 +352,16 @@
     <configuration name="Build" type="docker-deploy" factoryName="dockerfile" server-name="local">
       <deployment type="dockerfile">
         <settings>
-          <option name="containerName" value="" />
+          <option name="imageTag" value="ajan-editor:latest" />
+          <option name="containerName" value="ajan-editor" />
+          <option name="portBindings">
+            <list>
+              <DockerPortBindingImpl>
+                <option name="containerPort" value="4200" />
+                <option name="hostPort" value="4200" />
+              </DockerPortBindingImpl>
+            </list>
+          </option>
           <option name="sourceFilePath" value="Dockerfile" />
         </settings>
       </deployment>
@@ -422,6 +432,7 @@
       <workItem from="1647761186642" duration="1846000" />
       <workItem from="1647765367792" duration="80000" />
       <workItem from="1647851839839" duration="267000" />
+      <workItem from="1648573764861" duration="3516000" />
     </task>
     <task id="LOCAL-00001" summary="Added Dockerfile">
       <created>1647763371190</created>

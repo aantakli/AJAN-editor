@@ -32,6 +32,6 @@ jobs:
           push: true
           tags: |
             aantakli/ajan-editor:latest
-            aantakli/ajan-editor:${{ steps.vars.outputs.sha_short }}
+            aantakli/ajan-editor:${{ INPUT_TAG_WITH_SHA }}
           secrets: |
             GIT_AUTH_TOKEN=${{ secrets.GIT_TOKEN }}

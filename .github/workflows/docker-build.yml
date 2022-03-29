@@ -29,6 +29,8 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: aantakli/ajan-editor:latest,aantakli/ajan-editor:${SHORT_SHA}
+          tags: |
+            aantakli/ajan-editor:latest
+            `aantakli/ajan-editor:${SHORT_SHA}`
           secrets: |
             GIT_AUTH_TOKEN=${{ secrets.GIT_TOKEN }}

@@ -9,9 +9,6 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-      - 
-        name: Add SHORT_SHA env property with commit short sha
-        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -31,6 +28,6 @@ jobs:
           push: true
           tags: |
             aantakli/ajan-editor:latest
-            `aantakli/ajan-editor:${SHORT_SHA}`
+            aantakli/ajan-editor:${GITHUB_SHA::8}
           secrets: |
             GIT_AUTH_TOKEN=${{ secrets.GIT_TOKEN }}

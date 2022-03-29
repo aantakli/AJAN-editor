@@ -16,7 +16,7 @@ jobs:
         with:
           images: aantakli/ajan-editor
           tags: |
-            type=latest
+            type=raw,latest
             type=sha
       -
         name: Set up QEMU

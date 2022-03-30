@@ -432,6 +432,7 @@
 .
 
 :Message nd:class nd:Leaf;
+	nd:category "Message Nodes";
 	nd:name "Message";
 	nd:labelType nd:Dynamic;
 	rdfs:label "DefaultMessage";
@@ -531,6 +532,7 @@
 .
 
 :GoalProducer nd:class nd:Leaf;
+	nd:category "Event & Goal Nodes";
 	nd:name "GoalProducer";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultGoalProducer";
@@ -549,25 +551,20 @@
         nd:input nd:Goal;
         nd:title "Goal";
     ];
-	nd:parameterSet [
-        a nd:ParameterSet;
-        nd:mapsTo ajan:bindings;
-        nd:type ajan:Bindings;
-        nd:title "Bindings";
-        nd:parameter [
-		        a nd:Parameter;
-		        nd:mapsTo ajan:bindingQuery;
-		        nd:title "Select Query";
-		        nd:input nd:Query;
-		        bt:originBase "true";
-		        bt:targetBase "false";
-		        nd:type bt:SelectQuery;
-				nd:type bt:QueryUri;
-	    	]
-    ]
+	nd:parameter [
+		a nd:Parameter;
+		nd:mapsTo bt:content;
+		nd:title "Construct Query";
+		nd:input nd:Query;
+		bt:originBase "true";
+		bt:targetBase "false";
+		nd:type bt:ConstructQuery;
+		nd:type bt:QueryUri;
+	]
 .
 
 :EventProducer nd:class nd:Leaf;
+	nd:category "Event & Goal Nodes";
 	nd:name "Produce Event";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultEventProducer";
@@ -598,6 +595,7 @@
 .
 
 :QueryDomain nd:class nd:Leaf;
+	nd:category "Message Nodes";
 	nd:name "Query Domain";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultQueryDomain";
@@ -660,6 +658,7 @@
 .
 
 :HandleEvent nd:class nd:Leaf;
+	nd:category "Event & Goal Nodes";
 	nd:name "Handle Event";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultHandleEvent";
@@ -689,45 +688,8 @@
     ]
 .
 
-:HandleJsonEvent nd:class nd:Leaf;
-	nd:name "Handle Json Event";
-    nd:labelType nd:Dynamic;
-    rdfs:label "HandleJsonEvent";
-    nd:type bt:HandleJsonEvent;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#7db300";
-        nd:shape nd:Roundrectangle;
-        nd:padding "900%";
-        nd:paddingTo "width";
-        nd:icon "handle-json-event.png";
-    ];
-    nd:parameters (
-		[
-			a nd:Parameter;
-			nd:mapsTo ajan:event;
-			nd:input nd:EventGoal;
-			nd:title "Event/Goal";
-		]
-    	[
-            a nd:Parameter;
-            nd:mapsTo bt:mapping;
-            nd:title "Mapping";
-            nd:input xsd:anyURI ;
-            nd:default "http://"^^xsd:anyURI;
-        ][
-	        a nd:Parameter;
-	        nd:mapsTo bt:validate;
-	        nd:title "Construct Query";
-	        nd:input nd:Query;
-	        bt:originBase "false";
-	        bt:targetBase "true";
-	        nd:type bt:ConstructQuery;
-    	]
-    )
-.
-
 :HandleQueueEvent nd:class nd:Leaf;
+	nd:category "Event & Goal Nodes";
 	nd:name "Handle Queue Event";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultHandleQueueEvent";
@@ -796,6 +758,13 @@
     ];
 	nd:parameter [
 		a nd:Parameter;
+		nd:mapsTo bt:context;
+		nd:title "Context";
+        nd:input xsd:anyURI ;
+        nd:default "http://"^^xsd:anyURI;
+	];
+	nd:parameter [
+		a nd:Parameter;
 		nd:mapsTo bt:targetBase;
 		nd:title "Target Base";
 		nd:input nd:Repo ;
@@ -842,11 +811,54 @@
     )
 .
 
-:QueryJsonDomain nd:class nd:Leaf;
-	nd:name "Query Json Domain";
+# --------------- Mapping -------------------
+
+
+:HandleMappingEvent nd:class nd:Leaf;
+	nd:category "Event & Goal Nodes";
+	nd:name "Handle Mapping Event";
     nd:labelType nd:Dynamic;
-    rdfs:label "DefaultQueryJsonDomain";
-    nd:type bt:QueryJsonDomain;
+    rdfs:label "DefaultHandleMappingEvent";
+    nd:type bt:HandleMappingEvent;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#7db300";
+        nd:shape nd:Roundrectangle;
+        nd:padding "900%";
+        nd:paddingTo "width";
+        nd:icon "handle-json-event.png";
+    ];
+    nd:parameters (
+		[
+			a nd:Parameter;
+			nd:mapsTo ajan:event;
+			nd:input nd:EventGoal;
+			nd:title "Event/Goal";
+		]
+    	[
+            a nd:Parameter;
+            nd:mapsTo bt:mapping;
+            nd:title "Mapping";
+            nd:input xsd:anyURI ;
+            nd:default "http://"^^xsd:anyURI;
+        ][
+	        a nd:Parameter;
+	        nd:mapsTo bt:validate;
+	        nd:title "Construct Query";
+	        nd:input nd:Query;
+	        bt:originBase "false";
+	        bt:targetBase "true";
+	        nd:type bt:ConstructQuery;
+    	]
+    )
+.
+
+:QueryMappingDomain nd:class nd:Leaf;
+	nd:category "Message Nodes";
+	nd:name "Query Mapping Domain";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultQueryMappingDomain";
+    nd:type bt:QueryMappingDomain;
     nd:style [
         a nd:StyleDef;
         nd:color "#00ff84";
@@ -879,10 +891,11 @@
     ] )
 .
 
-:JsonMessage nd:class nd:Leaf;
+:MappingMessage nd:class nd:Leaf;
+	nd:category "Message Nodes";
 	nd:name "Json Message";
     nd:labelType nd:Dynamic;
-    rdfs:label "DefaultJsonMessage";
+    rdfs:label "DefaultMappingMessage";
     nd:type bt:JsonMessage;
     nd:style [
         a nd:StyleDef;
@@ -1035,6 +1048,7 @@
 # --------------- GraphPlan -------------------
 
 :Plan nd:class nd:Leaf;
+	nd:category "Reasoning Nodes";
     nd:name "Action Planning";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultActionPlan";
@@ -1135,6 +1149,7 @@
 # ----------------- ASP ---------------------
 
 :Problem nd:class nd:Leaf;
+	nd:category "Reasoning Nodes";
     nd:name "ASP Rules";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultProblem";
@@ -1260,6 +1275,7 @@
 .
 
 :ILASPInput nd:class nd:Leaf;
+	nd:category "Reasoning Nodes";
     nd:name "ILASP Rules";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultILASPInput";
@@ -1440,8 +1456,9 @@
 .
 
 # --------------- MOSIMBehavior -------------------
-
+ 
 :GetScene nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
     nd:name "GetScene";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultGetScene";
@@ -1449,7 +1466,7 @@
     nd:style [
         a nd:StyleDef;
         nd:color "#ddf2f7";
-        nd:shape nd:Polygon;
+		nd:shape nd:Polygon;
         nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
         nd:padding "700%";
         nd:paddingTo "width";
@@ -1472,6 +1489,7 @@
     ].
 
 :GetAvatarTransform nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
     nd:name "GetAvatarTransform";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultGetAvatarTransform";
@@ -1511,6 +1529,7 @@
     ].
 
 :RegisterListener nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "RegisterListener";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultRegisterListener";
@@ -1524,12 +1543,14 @@
         nd:paddingTo "width";
         nd:icon "register.png";
     ];
-	nd:parameter [
+    nd:parameter [
 	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:eventType;
-	    nd:title "EventType";
-	    nd:input xsd:string;
-	    nd:default bt:current;
+	    nd:mapsTo bt-mosim:eventTypeQuery;
+	    nd:title "EventType: ?eventType";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
     ];
     nd:parameter [
 	    a nd:Parameter;
@@ -1544,15 +1565,6 @@
 	    a nd:Parameter;
 	    nd:mapsTo bt-mosim:callback;
 	    nd:title "CallbackPort: ?port";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-    nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:eventTypeQuery;
-	    nd:title "EventType: ?eventType";
 	    nd:input nd:Query;
         bt:originBase "true";
         bt:targetBase "false";
@@ -1566,6 +1578,7 @@
     ].
 
 :UnregisterListener nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "UnregisterListener";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultUnregisterListener";
@@ -1579,12 +1592,14 @@
         nd:paddingTo "width";
         nd:icon "unregister.png";
     ];
-	nd:parameter [
+    nd:parameter [
 	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:eventType;
-	    nd:title "EventType";
-	    nd:input xsd:string;
-	    nd:default bt:current;
+	    nd:mapsTo bt-mosim:eventTypeQuery;
+	    nd:title "EventType: ?eventType";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
     ];
     nd:parameter [
 	    a nd:Parameter;
@@ -1604,15 +1619,6 @@
         bt:targetBase "false";
         nd:type bt:SelectQuery;
     ];
-    nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:eventTypeQuery;
-	    nd:title "EventType: ?eventType";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
 	nd:parameter [
 	    a nd:Parameter;
 	    nd:mapsTo bt:targetBase;
@@ -1621,6 +1627,7 @@
     ].
 
 :CreateCallbackServer nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "CreateCallbackServer";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultCreateCallbackServer";
@@ -1645,6 +1652,7 @@
     ].
 
 :DeleteCallbackServer nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "DeleteCallbackServer";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultDeleteCallbackServer";
@@ -1669,6 +1677,7 @@
     ].
 
 :GetMMUs nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "GetMMUs";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultGetMMUs";
@@ -1686,7 +1695,7 @@
 	    a nd:Parameter;
 	    nd:mapsTo bt-mosim:host;
 	    nd:title "Host:Port";
-	    nd:input nd:Query;
+		nd:input nd:Query;
         bt:originBase "true";
         bt:targetBase "false";
         nd:type bt:SelectQuery;
@@ -1706,6 +1715,7 @@
     ].
 
 :AbortInstruction nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "AbortInstruction";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultAbortInstruction";
@@ -1745,6 +1755,7 @@
     ].
 
 :GetWalkPoints nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "GetWalkPoints";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultGetWalkPoints";
@@ -1793,6 +1804,7 @@
     ] .
 
 :PathAvailable nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "PathAvailable";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultPathAvailable";
@@ -1813,7 +1825,7 @@
 	    nd:input nd:Repo;
     ];
 	nd:parameter [
-	    a nd:Parameter;
+		a nd:Parameter;
 	    nd:mapsTo bt-mosim:avatar;
 	    nd:title "Avatar";
 	    nd:input nd:Query;
@@ -1850,6 +1862,7 @@
     ] .
 
 :SendHTLELogs nd:class nd:Leaf;
+	nd:category "MOSIM Nodes";
 	nd:name "SendHTLELogs";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultSendHTLELogs";
@@ -1862,7 +1875,7 @@
         nd:padding "700%";
         nd:paddingTo "width";
         nd:icon "logHTLE.png";
-    ] ;
+     ] ;
 	nd:parameter [
 	    a nd:Parameter;
 	    nd:mapsTo bt-mosim:endpointHTLE;
@@ -1884,3 +1897,6 @@
         bt:targetBase "false";
         nd:type bt:SelectQuery;
     ] .
+
+# --------------- Plugin X -------------------
+

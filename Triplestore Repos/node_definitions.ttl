@@ -1388,6 +1388,16 @@
             ];
         ];
     ];
+	nd:parameter [
+        a nd:Parameter;
+        nd:mapsTo bt:queryUri;
+        nd:type bt:QueryUri;
+        nd:type bt:SelectQuery;
+        nd:title "Select Query: ?requestURI";
+        nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+    ];
 	nd:parameterSet [
         a nd:ParameterSet;
         nd:mapsTo bt:binding;

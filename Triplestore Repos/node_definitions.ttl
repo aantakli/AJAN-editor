@@ -1048,6 +1048,7 @@
 # --------------- GraphPlan -------------------
 
 :Plan nd:class nd:Leaf;
+	nd:category "Reasoning Nodes";
     nd:name "Action Planning";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultActionPlan";
@@ -1148,6 +1149,7 @@
 # ----------------- ASP ---------------------
 
 :Problem nd:class nd:Leaf;
+	nd:category "Reasoning Nodes";
     nd:name "ASP Rules";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultProblem";
@@ -1273,6 +1275,7 @@
 .
 
 :ILASPInput nd:class nd:Leaf;
+	nd:category "Reasoning Nodes";
     nd:name "ILASP Rules";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultILASPInput";
@@ -1540,12 +1543,14 @@
         nd:paddingTo "width";
         nd:icon "register.png";
     ];
-	nd:parameter [
+    nd:parameter [
 	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:eventType;
-	    nd:title "EventType";
-	    nd:input xsd:string;
-	    nd:default bt:current;
+	    nd:mapsTo bt-mosim:eventTypeQuery;
+	    nd:title "EventType: ?eventType";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
     ];
     nd:parameter [
 	    a nd:Parameter;
@@ -1587,12 +1592,14 @@
         nd:paddingTo "width";
         nd:icon "unregister.png";
     ];
-	nd:parameter [
+    nd:parameter [
 	    a nd:Parameter;
-	    nd:mapsTo bt-mosim:eventType;
-	    nd:title "EventType";
-	    nd:input xsd:string;
-	    nd:default bt:current;
+	    nd:mapsTo bt-mosim:eventTypeQuery;
+	    nd:title "EventType: ?eventType";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
     ];
     nd:parameter [
 	    a nd:Parameter;

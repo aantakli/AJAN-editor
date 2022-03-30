@@ -7,7 +7,7 @@ RUN mkdir app
 ADD . app/
 
 RUN cd app && npm install
-RUN npm install -g ember-cli@3.1.4
+RUN npm install -g ember-cli@3.4.4
 RUN npm install -g bower
 
 

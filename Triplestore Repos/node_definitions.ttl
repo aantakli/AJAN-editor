@@ -1806,12 +1806,12 @@
         nd:input xsd:anyURI ;
         nd:default "http://"^^xsd:anyURI;
     ].
-:SubscribeMQTTTopicEventHandled nd:class nd:Leaf;
+:SubscribeMQTTTopicProduceEvent nd:class nd:Leaf;
     nd:category "MQTT Nodes";
-	nd:name "SubscribeMQTTTopicEventHandled";
+	nd:name "SubscribeMQTTTopicProduceEvent";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultSubscribeTopic";
-    nd:type bt-mqtt:SubscribeTopicEventHandled;
+    nd:type bt-mqtt:SubscribeTopicProduceEvent;
     nd:style [
         a nd:StyleDef;
         nd:color "#ddf2f7";

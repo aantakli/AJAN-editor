@@ -1653,6 +1653,7 @@
     ].
 
 :CreateMQTTBroker nd:class nd:Leaf;
+	nd:category "MQTT Nodes";
 	nd:name "CreateMQTTBroker";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultCreateMQTTBroker";
@@ -1668,6 +1669,7 @@
     ].
 
 :DeleteMQTTBroker nd:class nd:Leaf;
+	nd:category "MQTT Nodes";
 	nd:name "DeleteMQTTBroker";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultDeleteMQTTBroker";
@@ -1683,6 +1685,7 @@
     ].
 
 :PublishMQTTMessage nd:class nd:Leaf;
+	nd:category "MQTT Nodes";
 	nd:name "PublishMQTTMessage";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultMQTTMessage";
@@ -1716,10 +1719,139 @@
     ].
 
 :SubscribeMQTTTopic nd:class nd:Leaf;
+    nd:category "MQTT Nodes";
 	nd:name "SubscribeMQTTTopic";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultSubscribeTopic";
     nd:type bt-mqtt:SubscribeTopic;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#ddf2f7";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-new-post.png";
+    ];
+  
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mqtt:serverUrlCallback;
+	    nd:title "Server URL: ?serverUrl";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mqtt:subscribeDetails;
+	    nd:title "Topic: ?topic";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+   ];
+   nd:parameter [
+        a nd:Parameter;
+        nd:mapsTo bt:context;
+        nd:title "Mapping";
+        nd:input xsd:anyURI ;
+        nd:default "http://"^^xsd:anyURI;
+    ].
+
+:SubscribeMQTTTopicAlwaysListen nd:class nd:Leaf;
+    nd:category "MQTT Nodes";
+	nd:name "SubscribeMQTTTopicAlwaysListen";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultSubscribeTopic";
+    nd:type bt-mqtt:SubscribeTopicAlwaysListen;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#ddf2f7";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-new-post.png";
+    ];
+    nd:parameter [
+		a nd:Parameter;
+		nd:mapsTo bt:targetBase;
+		nd:title "Target Base";
+		nd:input nd:Repo ;
+	];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mqtt:serverUrlCallback;
+	    nd:title "Server URL: ?serverUrl";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mqtt:subscribeDetails;
+	    nd:title "Topic: ?topic";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ];
+    nd:parameter [
+        a nd:Parameter;
+        nd:mapsTo bt:context;
+        nd:title "Mapping";
+        nd:input xsd:anyURI ;
+        nd:default "http://"^^xsd:anyURI;
+    ].
+:SubscribeMQTTTopicEventHandled nd:class nd:Leaf;
+    nd:category "MQTT Nodes";
+	nd:name "SubscribeMQTTTopicEventHandled";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultSubscribeTopic";
+    nd:type bt-mqtt:SubscribeTopicEventHandled;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#ddf2f7";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-new-post.png";
+    ];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mqtt:serverUrlCallback;
+	    nd:title "Server URL: ?serverUrl";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ];
+    nd:parameter [
+		a nd:Parameter;
+        nd:mapsTo ajan:goal;
+        nd:input nd:EventGoal;
+        nd:title "Event/Goal";
+    ];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mqtt:subscribeDetails;
+	    nd:title "Topic: ?topic";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ].
+
+:UnsubscribeMQTTTopic nd:class nd:Leaf;
+    nd:category "MQTT Nodes";
+	nd:name "UnsubscribeMQTTTopic";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultSubscribeTopic";
+    nd:type bt-mqtt:UnsubscribeTopic;
     nd:style [
         a nd:StyleDef;
         nd:color "#ddf2f7";
@@ -1746,7 +1878,7 @@
         bt:originBase "true";
         bt:targetBase "false";
         nd:type bt:SelectQuery;
-    ].
+   ].
 
 :DeleteCallbackServer nd:class nd:Leaf;
 	nd:category "MOSIM Nodes";

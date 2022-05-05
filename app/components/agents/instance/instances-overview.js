@@ -156,6 +156,28 @@ function createModal() {
   // Append to modal body
   $body.append($labelDiv);
 
+  // Credentials
+  let $credentialsTitle = $("<p>", {
+    class: "modal-p"
+  }).text("Credentials (Optional, if agent knowledge base is secured): ");
+  let $userInput = $("<input>", {
+    class: "modal-input",
+    id: "user-input",
+    placeholder: "User",
+    width: 300,
+  });
+  let $pswdInput = $("<input>", {
+    class: "modal-input",
+    id: "pswd-input",
+    placeholder: "Password",
+    width: 300,
+  });
+  let $credentialsDiv = $("<div>", {
+    class: "modal-body-div"
+  }).append($credentialsTitle, $userInput, $pswdInput);
+  // Append to modal body
+  $body.append($credentialsDiv);
+
   // Dropdown
   let $dropdownTitle = $("<p>", {
     class: "modal-p"
@@ -196,10 +218,10 @@ function createModal() {
 
 function createAgentInitEvent() {
   $("#select-agent-templates").show().appendTo("#templates-wrapper");
-  createInitMessage($("#label-input").val(), that.get("selectedTemplate"), $("#textarea-input").val());
+  createInitMessage($("#label-input").val(), $("#user-input").val(), $("#pswd-input").val(), that.get("selectedTemplate"), $("#textarea-input").val());
 }
 
-function createInitMessage(label, templateUri, knowledge) {
+function createInitMessage(label, user, pswd, templateUri, knowledge) {
   console.log(templateUri);
   if (label === "") {
     $("#error-message").trigger("showToast", [
@@ -216,10 +238,17 @@ function createInitMessage(label, templateUri, knowledge) {
   let type = "_:init <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ajan.de/ajan-ns#AgentInitialisation> . ";
   let name = "_:init <http://www.ajan.de/ajan-ns#agentId> '" + label + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
   let tmpl = "_:init <http://www.ajan.de/ajan-ns#agentTemplate> <" + templateUri + "> . ";
+  let credentials = "";
+
+  if (user != null && user != "" && pswd != null && pswd != "") {
+    credentials = "_:init <http://www.ajan.de/ajan-ns#agentUser> '" + user + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
+    credentials += "_:init <http://www.ajan.de/ajan-ns#agentPassword> '" + pswd + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
+  }
+
   let know = getAgentInitKnowledge(knowledge);
   Promise.resolve(know).then(x => {
     if (x != undefined) {
-      let content = type + name + tmpl + x + knowledge;
+      let content = type + name + tmpl + credentials + x + knowledge;
       let agents = actions.createAgent(that.get("ajanService"), content);
       Promise.resolve(agents).then(function (data) {
         that.actions.loadAgents();

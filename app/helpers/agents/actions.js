@@ -19,10 +19,6 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import ajaxActions from "ajan-editor/helpers/agents/actions/ajax";
-import behaviorajaxActions from "ajan-editor/helpers/agents/actions/behaviorajax";
-import eventajaxActions from "ajan-editor/helpers/agents/actions/eventajax";
-import endpointajaxActions from "ajan-editor/helpers/agents/actions/endpointajax";
-import goalajaxActions from "ajan-editor/helpers/agents/actions/goalajax";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
@@ -66,24 +62,20 @@ export default {
 
 	// AJAX related Actions
 	getAgents: ajaxActions.getAgents,
-	getAgentFromServer: ajaxActions.getFromServer,
+	getFromServer: ajaxActions.getFromServer,
 	saveAgentGraph: ajaxActions.saveGraph,
   //
-  getBehaviors: behaviorajaxActions.getBehaviors,
-	getBehaviorsFromServer: behaviorajaxActions.getFromServer,
-	saveBehaviorsGraph: behaviorajaxActions.saveGraph,
+  getBehaviors: ajaxActions.getBehaviors,
+  saveBehaviorsGraph: ajaxActions.saveGraph,
   //
-  getEvents: eventajaxActions.getEvents,
-	getEventsFromServer: eventajaxActions.getFromServer,
-	saveEventsGraph: eventajaxActions.saveGraph,
+  getEvents: ajaxActions.getEvents,
+  saveEventsGraph: ajaxActions.saveGraph,
   //
-  getEndpoints: endpointajaxActions.getEndpoints,
-	getEndpointsFromServer: endpointajaxActions.getFromServer,
-	saveEndpointsGraph: endpointajaxActions.saveGraph,
+  getEndpoints: ajaxActions.getEndpoints,
+  saveEndpointsGraph: ajaxActions.saveGraph,
   //
-  getGoals: goalajaxActions.getGoals,
-	getGoalsFromServer: goalajaxActions.getFromServer,
-  saveGoalsGraph: goalajaxActions.saveGraph,
+  getGoals: ajaxActions.getGoals,
+  saveGoalsGraph: ajaxActions.saveGraph,
   //
   readTTLInput: readTTLInput,
   getAgentDefsMatches: getAgentDefsMatches,

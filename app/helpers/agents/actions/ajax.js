@@ -18,57 +18,98 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import agentsHlp from "ajan-editor/helpers/RDFServices/agentsRDFConsumer";//!
+import agentsHlp from "ajan-editor/helpers/RDFServices/agentsRDFConsumer";
+import behaviorsHlp from "ajan-editor/helpers/RDFServices/behaviorsRDFConsumer";
+import endpointsHlp from "ajan-editor/helpers/RDFServices/endpointsRDFConsumer";
+import eventsHlp from "ajan-editor/helpers/RDFServices/eventsRDFConsumer";
+import goalsHlp from "ajan-editor/helpers/RDFServices/goalsRDFConsumer";
 import Ember from "ember";
-import {
-	/*isAjaxError, isNotFoundError, isForbiddenError,*/ isServerError
-} from "ember-ajax/errors";
+import { isUnauthorizedError, isAjaxError, isNotFoundError, isForbiddenError, isServerError} from "ember-ajax/errors";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import SparqlQueries from "ajan-editor/helpers/RDFServices/queries";
 
 let $ = Ember.$;
 let agents = undefined;
+let behaviors = undefined;
+let endpoints = undefined;
+let events = undefined;
+let goals = undefined;
 
 export default {
 	getAgents :function() {
 		return agents;
-	},
+  },
+
+  getBehaviors: function () {
+    return behaviors;
+  },
+
+  getEndpoints: function () {
+    return endpoints;
+  },
+
+  getEvents: function () {
+    return events;
+  },
+
+  getGoals: function () {
+    return goals;
+  },
 
 	// Gets entire graph from server
-	getFromServer: function(ajax, tripleStoreRepository) {
-		let ajaxPromise = ajax.post(tripleStoreRepository,
-      {
-			contentType: "application/sparql-query; charset=utf-8",
-			headers: { Accept: "application/ld+json" },
-			// SPARQL query
-			data: SparqlQueries.constructGraph
-		  }
-		  );
+  getFromServer: function (ajax, tripleStoreRepository) {
 
-		let promisedRdfGraph = ajaxPromise.then(
+    let ajaxPromise = ajax.raw(tripleStoreRepository, {
+      type: "POST",
+      contentType: "application/sparql-query; charset=utf-8",
+      headers: {
+        Authorization: "Bearer _eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJhZG1pbiJdLCJleHAiOjE2NTI0MzE5NTUsImlhdCI6MTY1MjQzMDE1NSwidXNlcklkIjoiYWRtaW4ifQ.iT4ugXDgCLOzYJRYCd3DQPf5hzqLuI2_ug7WzxgznKU",
+        Accept: "application/ld+json"
+      },
+      data: SparqlQueries.constructGraph,
+    });
 
-			function(data) {
-				// On accept
-				//console.log('Entire graph:', data);
-				let agentsGraph = agentsHlp.getAgentsGraph(data);//!!!!
-				let promise = Promise.resolve(agentsGraph);
+    let promisedRdfGraph = ajaxPromise.then(function (data) {
+      console.log(data);
+      // read agents
+      let agentsGraph = agentsHlp.getAgentsGraph(data);
+      let agentsPromise = Promise.resolve(agentsGraph);
+      return agentsPromise.then(function (agentsResolved) {
+        agents = agentsResolved[0];
 
-				let promiseValue = promise.then(function(agentsResolved) {
-					// Parse the behaviors graph
-					//console.log('behaviorsResolved', behaviorsResolved)
-					agents = agentsResolved[0];
-					let rdfGraph = agentsResolved[1];
-					return rdfGraph;
-				});
+        // read behaviors
+        let behaviorsGraph = behaviorsHlp.getBehaviorsGraph(data);
+        let behaviorsPromise = Promise.resolve(behaviorsGraph);
+        return behaviorsPromise.then(function (behaviorsResolved) {
+          behaviors = behaviorsResolved[0];
 
-				return promiseValue;
-			},
-			function(jqXHR) {
-				// On reject
-				console.log("Request failed", jqXHR);
-			}
-		);
-		return promisedRdfGraph;
+          // read endpoints
+          let EndpointsGraph = endpointsHlp.getEndpointsGraph(data);
+          let endpointsPromise = Promise.resolve(EndpointsGraph);
+          return endpointsPromise.then(function (endpointsResolved) {
+            endpoints = endpointsResolved[0];
+
+            // read events
+            let eventsGraph = eventsHlp.getEventsGraph(data);
+            let eventsPromise = Promise.resolve(eventsGraph);
+            return eventsPromise.then(function (eventsResolved) {
+              events = eventsResolved[0];
+
+              // read goals
+              let GoalsGraph = goalsHlp.getGoalsGraph(data);
+              let goalsPromise = Promise.resolve(GoalsGraph);
+              return goalsPromise.then(function (goalsResolved) {
+                goals = goalsResolved[0];
+                let rdfGraph = goalsResolved[1];
+                return rdfGraph;
+              });
+            });
+          });
+        });
+      });
+    });
+
+    return promisedRdfGraph;
 	},
 
 // save to repository

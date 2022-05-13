@@ -51,7 +51,8 @@ export default Component.extend({
         type: "POST",
         contentType: "application/sparql-query; charset=utf-8",
         headers: {
-          Accept: "text/turtle; charset=utf-8"
+          Authorization: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJhZG1pbiJdLCJleHAiOjE2NTI0MzE5NTUsImlhdCI6MTY1MjQzMDE1NSwidXNlcklkIjoiYWRtaW4ifQ.iT4ugXDgCLOzYJRYCd3DQPf5hzqLuI2_ug7WzxgznKU",
+          Accept: "application/ld+json",
         },
         data: queries.constructGraph
       }).then(function (data) {

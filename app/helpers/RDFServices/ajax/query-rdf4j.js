@@ -25,11 +25,12 @@ import stringToStream from "npm:string-to-stream";
 
 function sendQuery(repository, query) {
 	if (!query) throw "Empty query";
-	return Ember.$.ajax({
+  return Ember.$.ajax({
 		url: repository,
 		type: "POST",
 		contentType: "application/sparql-query; charset=utf-8",
-		headers: {
+    headers: {
+      Authorization: "Basic YWRtaW46dG9tY2F0",
 			Accept: "application/ld+json"
 		},
 		data: query.toString()

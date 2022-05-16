@@ -50,6 +50,7 @@ function addTriplestore() {
 }
 
 function bindEnterEvent() {
-	triplestoreHelper.bindEnter($("#uri"), self.actions.addTriplestore);
+  triplestoreHelper.bindEnter($("#uri"), self.actions.addTriplestore);
+  triplestoreHelper.bindEnter($("#secured"), self.actions.addTriplestore);
 	triplestoreHelper.bindEnter($("#label"), self.actions.addTriplestore);
 }

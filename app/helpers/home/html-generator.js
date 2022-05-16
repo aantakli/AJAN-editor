@@ -24,15 +24,24 @@ let $ = Ember.$;
 
 export default {
 	buttons,
-	divLabel,
+  divLabel,
+  divSecured,
 	divURI,
-	inputLabel,
+  inputLabel,
+  inputSecured,
 	inputURI,
 	listingWrapper
 };
 
 function inputLabel(triplestore) {
 	return $(`<input placeholder="Triplestore Name" value=${triplestore.label}>`);
+}
+
+function inputSecured(triplestore) {
+  if (triplestore.secured) {
+    return $(`<i class="key icon"></i><input type="checkbox" checked=${triplestore.secured}>`);
+  }
+  return $(`<i class="key icon"></i><input type="checkbox">`);
 }
 
 function inputURI(triplestore) {
@@ -50,6 +59,17 @@ function divLabel(triplestore) {
 	return $("<div>", {
 		class: "blocks input label"
 	}).text(triplestore.label);
+}
+
+function divSecured(triplestore) {
+  if (triplestore.secured) {
+    return $("<div>", {
+      class: "blocks checkbox secured"
+    }).append("<i class='key icon'>");
+  }
+  return $("<div>", {
+    class: "blocks checkbox secured"
+  });
 }
 
 function divURI(triplestore) {

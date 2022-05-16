@@ -63,7 +63,7 @@ export default {
       type: "POST",
       contentType: "application/sparql-query; charset=utf-8",
       headers: {
-        Authorization: "Bearer _eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJhZG1pbiJdLCJleHAiOjE2NTI0MzE5NTUsImlhdCI6MTY1MjQzMDE1NSwidXNlcklkIjoiYWRtaW4ifQ.iT4ugXDgCLOzYJRYCd3DQPf5hzqLuI2_ug7WzxgznKU",
+        Authorization: "Bearer ",
         Accept: "application/ld+json"
       },
       data: SparqlQueries.constructGraph,

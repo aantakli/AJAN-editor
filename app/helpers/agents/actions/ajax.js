@@ -58,59 +58,34 @@ export default {
 
 	// Gets entire graph from server
   getFromServer: function (ajax, tripleStoreRepository) {
+    let repos = JSON.parse(localStorage.triplestores);
+    let result;
 
-    let ajaxPromise = ajax.raw(tripleStoreRepository, {
-      type: "POST",
-      contentType: "application/sparql-query; charset=utf-8",
-      headers: {
-        Authorization: "Bearer ",
-        Accept: "application/ld+json"
-      },
-      data: SparqlQueries.constructGraph,
-    });
-
-    let promisedRdfGraph = ajaxPromise.then(function (data) {
-      console.log(data);
-      // read agents
-      let agentsGraph = agentsHlp.getAgentsGraph(data);
-      let agentsPromise = Promise.resolve(agentsGraph);
-      return agentsPromise.then(function (agentsResolved) {
-        agents = agentsResolved[0];
-
-        // read behaviors
-        let behaviorsGraph = behaviorsHlp.getBehaviorsGraph(data);
-        let behaviorsPromise = Promise.resolve(behaviorsGraph);
-        return behaviorsPromise.then(function (behaviorsResolved) {
-          behaviors = behaviorsResolved[0];
-
-          // read endpoints
-          let EndpointsGraph = endpointsHlp.getEndpointsGraph(data);
-          let endpointsPromise = Promise.resolve(EndpointsGraph);
-          return endpointsPromise.then(function (endpointsResolved) {
-            endpoints = endpointsResolved[0];
-
-            // read events
-            let eventsGraph = eventsHlp.getEventsGraph(data);
-            let eventsPromise = Promise.resolve(eventsGraph);
-            return eventsPromise.then(function (eventsResolved) {
-              events = eventsResolved[0];
-
-              // read goals
-              let GoalsGraph = goalsHlp.getGoalsGraph(data);
-              let goalsPromise = Promise.resolve(GoalsGraph);
-              return goalsPromise.then(function (goalsResolved) {
-                goals = goalsResolved[0];
-                let rdfGraph = goalsResolved[1];
-                return rdfGraph;
+    repos.forEach(repo => {
+      if (repo.uri + "agents" == tripleStoreRepository) {
+        if (repo.secured) {
+          if (!repo.token || repo.token == "" || repo.expiration < Date.now()) {
+            console.log("update token");
+            return ajax.raw("http://localhost:8090/tokenizer/token?userId=admin&role=admin&pswd=tomcat", { type: "GET" })
+              .then(function (data) {
+                repo.token = data.payload.token;
+                repo.expiration = Date.now() + (data.payload.expirySecs * 1000);
+                localStorage.triplestores = JSON.stringify(repos);
+                result = loadAgentsRepo(ajax, tripleStoreRepository, repo.token);
               });
-            });
-          });
-        });
-      });
+          }
+          else {
+            result = loadAgentsRepo(ajax, tripleStoreRepository, repo.token);
+          }
+        }
+        else {
+          result = loadAgentsRepo(ajax, tripleStoreRepository, undefined);
+        }
+      }
     });
 
-    return promisedRdfGraph;
-	},
+    return Promise.resolve(result);
+  },
 
 // save to repository
 	saveGraph: function(ajax, tripleStoreRepository, event, onEnd) {
@@ -118,7 +93,6 @@ export default {
 
 		let postDestination = tripleStoreRepository + "/statements";
 		let rdfString = rdfGraph.toString();
-		console.log(rdfString);
 		let query = SparqlQueries.update(rdfString);
 		let dataString = $.param({update: query});
 
@@ -181,5 +155,69 @@ export default {
 		rdfGraph.unsavedChanges = false;
 	}
 };
+
+function loadAgentsRepo(ajax, tripleStoreRepository, token) {
+  let ajaxPromise;
+  console.log("token: " + token);
+  if (token) {
+    ajaxPromise = ajax.post(tripleStoreRepository, {
+      contentType: "application/sparql-query; charset=utf-8",
+      headers: {
+        Authorization: "Bearer " + token,
+        Accept: "application/ld+json"
+      },
+      data: SparqlQueries.constructGraph,
+    });
+  } else {
+    ajaxPromise = ajax.post(tripleStoreRepository, {
+      contentType: "application/sparql-query; charset=utf-8",
+      headers: {
+        Accept: "application/ld+json"
+      },
+      data: SparqlQueries.constructGraph,
+    });
+  }
+
+  return ajaxPromise.then(function (data) {
+    console.log(data);
+
+    // read agents
+    let agentsGraph = agentsHlp.getAgentsGraph(data);
+    let agentsPromise = Promise.resolve(agentsGraph);
+    return agentsPromise.then(function (agentsResolved) {
+      agents = agentsResolved[0];
+
+      // read behaviors
+      let behaviorsGraph = behaviorsHlp.getBehaviorsGraph(data);
+      let behaviorsPromise = Promise.resolve(behaviorsGraph);
+      return behaviorsPromise.then(function (behaviorsResolved) {
+        behaviors = behaviorsResolved[0];
+
+        // read endpoints
+        let EndpointsGraph = endpointsHlp.getEndpointsGraph(data);
+        let endpointsPromise = Promise.resolve(EndpointsGraph);
+        return endpointsPromise.then(function (endpointsResolved) {
+          endpoints = endpointsResolved[0];
+
+          // read events
+          let eventsGraph = eventsHlp.getEventsGraph(data);
+          let eventsPromise = Promise.resolve(eventsGraph);
+          return eventsPromise.then(function (eventsResolved) {
+            events = eventsResolved[0];
+
+            // read goals
+            let GoalsGraph = goalsHlp.getGoalsGraph(data);
+            let goalsPromise = Promise.resolve(GoalsGraph);
+            return goalsPromise.then(function (goalsResolved) {
+              goals = goalsResolved[0];
+              let rdfGraph = goalsResolved[1];
+              return rdfGraph;
+            });
+          });
+        });
+      });
+    });
+  });
+}
 
 

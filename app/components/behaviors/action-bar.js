@@ -122,14 +122,12 @@ function saveGraph(content) {
   }
   try {
     actions.saveGraph(globals.ajax, repo, globals.cy);
-    $("#save-confirmation").trigger("showToast");
   } catch (e) {
     $("#error-message").trigger("showToast", [
       "Error while saving Behavior Tree"
     ]);
     throw e;
   }
-  window.location.reload();
 }
 
 function loadBT(event) {

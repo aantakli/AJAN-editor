@@ -58,7 +58,12 @@ function loadServicesRepo(ajax, tripleStoreRepository, token) {
     },
     // SPARQL query
     data: SparqlQueries.constructGraph
+  }).catch(function (error) {
+    $("#error-message").trigger("showToast", [
+      "Error while accessing services repository! Check if repository is accessible or secured!"
+    ]);
   });
+
   let promisedRdfGraph = ajaxPromise.then(
     function (data) {
       // On accept

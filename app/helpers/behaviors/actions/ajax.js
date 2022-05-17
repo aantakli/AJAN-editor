@@ -55,26 +55,18 @@ export default {
 };
 
 function loadBehaviorsRepo(ajax, tripleStoreRepository, token) {
-  let ajaxPromise;
-  console.log("token: " + token);
-  if (token) {
-    ajaxPromise = ajax.post(tripleStoreRepository, {
-      contentType: "application/sparql-query; charset=utf-8",
-      headers: {
-        Authorization: "Bearer " + token,
-        Accept: "application/ld+json"
-      },
-      data: SparqlQueries.constructGraph,
-    });
-  } else {
-    ajaxPromise = ajax.post(tripleStoreRepository, {
-      contentType: "application/sparql-query; charset=utf-8",
-      headers: {
-        Accept: "application/ld+json"
-      },
-      data: SparqlQueries.constructGraph,
-    });
-  }
+  let ajaxPromise = ajax.post(tripleStoreRepository, {
+    contentType: "application/sparql-query; charset=utf-8",
+    headers: {
+      Authorization: "Bearer " + token,
+      Accept: "application/ld+json"
+    },
+    data: SparqlQueries.constructGraph,
+  }).catch(function (error) {
+    $("#error-message").trigger("showToast", [
+      "Error while accessing behaviors repository! Check if repository is accessible or secured!"
+    ]);
+  });
 
   return ajaxPromise.then(
     function (data) {
@@ -127,6 +119,10 @@ function updateBehaviorsRepo(ajax, tripleStoreRepository, token) {
       },
       // SPARQL query
       data: dataString
+    })
+    .then(response => {
+      $("#save-confirmation").trigger("showToast");
+      location.reload();
     })
     .catch(function (error) {
       if (isServerError(error)) {

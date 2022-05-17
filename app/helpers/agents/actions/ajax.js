@@ -72,26 +72,18 @@ export default {
 };
 
 function loadAgentsRepo(ajax, tripleStoreRepository, token) {
-  let ajaxPromise;
-  console.log("token: " + token);
-  if (token) {
-    ajaxPromise = ajax.post(tripleStoreRepository, {
-      contentType: "application/sparql-query; charset=utf-8",
-      headers: {
-        Authorization: "Bearer " + token,
-        Accept: "application/ld+json"
-      },
-      data: SparqlQueries.constructGraph,
-    });
-  } else {
-    ajaxPromise = ajax.post(tripleStoreRepository, {
-      contentType: "application/sparql-query; charset=utf-8",
-      headers: {
-        Accept: "application/ld+json"
-      },
-      data: SparqlQueries.constructGraph,
-    });
-  }
+  let ajaxPromise = ajax.post(tripleStoreRepository, {
+    contentType: "application/sparql-query; charset=utf-8",
+    headers: {
+      Authorization: "Bearer " + token,
+      Accept: "application/ld+json"
+    },
+    data: SparqlQueries.constructGraph,
+  }).catch(function (error) {
+    $("#error-message").trigger("showToast", [
+      "Error while accessing agent repository! Check if repository is accessible or secured!"
+    ]);
+  });
 
   return ajaxPromise.then(function (data) {
     console.log(data);

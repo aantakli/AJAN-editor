@@ -276,10 +276,6 @@ function createInitMessage(label, user, role, pswd, templateUri, knowledge) {
   let tmpl = "_:init <http://www.ajan.de/ajan-ns#agentTemplate> <" + templateUri + "> . ";
   let credentials = "";
 
-  console.log(user);
-  console.log(role);
-  console.log(pswd);
-
   if (user != null && user != "" && role != null && role != "" && pswd != null && pswd != "") {
     let repo = "http://localhost:8090/dummy-service/token";
     credentials = "_:init <http://www.ajan.de/ajan-ns#agentTokenController> '" + repo + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";

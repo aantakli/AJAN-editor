@@ -23,6 +23,7 @@ import globals from "ajan-editor/helpers/global-parameters";
 import { sendFile } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import actions from "ajan-editor/helpers/services/actions";
 import queries from "ajan-editor/helpers/RDFServices/queries";
+import token from "ajan-editor/helpers/token";
 
 let $ = Ember.$;
 let repo = undefined;
@@ -44,18 +45,20 @@ export default Component.extend({
       globals.servicesRepository;
 
     this.get('dataBus').on('updatedSG', function () {
-      console.log("updated");
-      $.ajax({
-        url: repo,
-        type: "POST",
-        contentType: "application/sparql-query; charset=utf-8",
-        headers: {
-          Accept: "text/turtle; charset=utf-8"
-        },
-        data: queries.getAllServiceActions
-      }).then(function (data) {
-        that.set("fileContent", URL.createObjectURL(new Blob([data])));
-      });
+      Promise.resolve(token.resolveToken(that.ajax, localStorage.currentStore))
+        .then((token) => {
+          $.ajax({
+            url: repo,
+            type: "POST",
+            contentType: "application/sparql-query; charset=utf-8",
+            headers: {
+              Accept: "text/turtle; charset=utf-8"
+            },
+            data: queries.getAllServiceActions
+          }).then(function (data) {
+            that.set("fileContent", URL.createObjectURL(new Blob([data])));
+          });
+        });
     });
 
     this.get('dataBus').on('deletedSG', function () {

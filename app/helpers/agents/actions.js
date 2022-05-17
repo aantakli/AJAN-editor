@@ -19,6 +19,7 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import ajaxActions from "ajan-editor/helpers/agents/actions/ajax";
+import token from "ajan-editor/helpers/token";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
@@ -61,7 +62,7 @@ export default {
   appendVariable: goalProducer.appendVariable,
 
 	// AJAX related Actions
-  getToken: ajaxActions.resolveToken,
+  resolveToken: token.resolveToken,
 
 	getAgents: ajaxActions.getAgents,
 	getFromServer: ajaxActions.getFromServer,

@@ -24,9 +24,10 @@ import endpointsHlp from "ajan-editor/helpers/RDFServices/endpointsRDFConsumer";
 import eventsHlp from "ajan-editor/helpers/RDFServices/eventsRDFConsumer";
 import goalsHlp from "ajan-editor/helpers/RDFServices/goalsRDFConsumer";
 import Ember from "ember";
-import { isUnauthorizedError, isAjaxError, isNotFoundError, isForbiddenError, isServerError} from "ember-ajax/errors";
+import { isServerError } from "ember-ajax/errors";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import SparqlQueries from "ajan-editor/helpers/RDFServices/queries";
+import token from "ajan-editor/helpers/token";
 
 let $ = Ember.$;
 let agents = undefined;
@@ -58,94 +59,17 @@ export default {
 
 	// Gets entire graph from server
   getFromServer: function (ajax, tripleStoreRepository) {
-    let result = Promise.resolve(getToken(ajax, tripleStoreRepository))
+    let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
       .then((token) => loadAgentsRepo(ajax, tripleStoreRepository, token));
     return Promise.resolve(result);
   },
 
 // save to repository
   saveGraph: function (ajax, tripleStoreRepository, event, onEnd) {
-    Promise.resolve(getToken(ajax, tripleStoreRepository))
+    Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
       .then((token) => updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd));
   },
-
-  resolveToken: function (ajax, tripleStoreRepository) {
-    return getToken(ajax, tripleStoreRepository);
-  }
 };
-
-function getToken(ajax, tripleStoreRepository) {
-  let token;
-  let repos = JSON.parse(localStorage.triplestores);
-  repos.forEach(repo => {
-    if (repo.uri + "agents" == tripleStoreRepository) {
-      if (repo.secured) {
-        if (!repo.token || repo.token == "" || !repo.expiration || repo.expiration < Date.now()) {
-          token = createLoginModal(ajax, repos, repo, tripleStoreRepository);
-        }
-        else {
-          token = repo.token;
-        }
-      }
-      else {
-        token = undefined;
-      }
-    }
-  });
-  return token;
-}
-
-function createLoginModal(ajax, repos, repo, tripleStoreRepository) {
-  $("#modal-header-title").text("Repository Login" );
-  let $body = $("#modal-body"),
-    $modal = $("#universal-modal");
-  $body.empty();
-  $modal.show();
-
-  // Credentials
-  let $credentialsTitle = $("<p>", {
-    class: "modal-p"
-  }).text("User Credentials for: " + tripleStoreRepository);
-  let $userInput = $("<input>", {
-    class: "modal-input",
-    id: "user-input",
-    placeholder: "User",
-  });
-
-  let $roleInput = $("<input>", {
-    class: "modal-input",
-    id: "role-input",
-    placeholder: "Role",
-  });
-  let $pswdInput = $("<input type='password' id='pswd-input'>", {});
-  let $credentialsDiv = $("<div>", {
-    class: "modal-body-div"
-  }).append($credentialsTitle, $userInput, $roleInput, $pswdInput);
-  // Append to modal body
-  $body.append($credentialsDiv);
-
-  // Listen for the confirm event
-  let elem = document.getElementById("universal-modal");
-  return new Promise((resolve, reject) => {
-    elem.addEventListener("modal:confirm", function () {
-      resolve(requestToken(ajax, repos, repo, tripleStoreRepository,
-        $("#user-input").val(),
-        $("#role-input").val(),
-        $("#pswd-input").val())
-      );
-    });
-  });
-}
-
-function requestToken(ajax, repos, repo, tripleStoreRepository, user, role, pswd) {
-  return ajax.raw("http://localhost:8090/tokenizer/token?userId=" + user + "&role=" + role + "&pswd=" +  pswd + "", { type: "GET" })
-    .then(function (data) {
-      repo.token = data.payload.token;
-      repo.expiration = Date.now() + (data.payload.expirySecs * 1000);
-      localStorage.triplestores = JSON.stringify(repos);
-      return repo.token;
-    });
-}
 
 function loadAgentsRepo(ajax, tripleStoreRepository, token) {
   let ajaxPromise;

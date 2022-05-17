@@ -26,6 +26,7 @@ import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import queries from "ajan-editor/helpers/RDFServices/queries";
 import modal from "ajan-editor/helpers/ui/import-modal";
 import actions from "ajan-editor/helpers/agents/actions";
+import token from "ajan-editor/helpers/token";
 
 let $ = Ember.$;
 let repo = undefined;
@@ -47,7 +48,7 @@ export default Component.extend({
       globals.agentsRepository;
 
     this.get('dataBus').on('updatedAG', function () {
-      Promise.resolve(actions.getToken(that.ajax, repo))
+      Promise.resolve(token.resolveToken(that.ajax, localStorage.currentStore))
         .then((token) => {
           $.ajax({
             url: repo,

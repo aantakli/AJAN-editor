@@ -26,6 +26,7 @@ import { sendFile, deleteRepo } from "ajan-editor/helpers/RDFServices/ajax/query
 import queries from "ajan-editor/helpers/RDFServices/queries";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import modal from "ajan-editor/helpers/ui/import-modal";
+import token from "ajan-editor/helpers/token";
 
 let $ = Ember.$;
 let repo = undefined;
@@ -56,16 +57,20 @@ export default Component.extend({
     });
 
     this.get('dataBus').on('updatedBT', function () {
-      $.ajax({
-        url: repo,
-        type: "POST",
-        contentType: "application/sparql-query; charset=utf-8",
-        headers: {
-          Accept: "text/turtle; charset=utf-8"
-        },
-        data: queries.constructGraph
-      }).then(function (data) {
-        that.set("repoContent", URL.createObjectURL(new Blob([data])));
+      Promise.resolve(token.resolveToken(that.ajax, localStorage.currentStore))
+        .then((token) => {
+          $.ajax({
+          url: repo,
+          type: "POST",
+          contentType: "application/sparql-query; charset=utf-8",
+            headers: {
+              Authorization: "Bearer " + token,
+              Accept: "text/turtle; charset=utf-8"
+          },
+          data: queries.constructGraph
+        }).then(function (data) {
+          that.set("repoContent", URL.createObjectURL(new Blob([data])));
+        });
       });
     });
   },

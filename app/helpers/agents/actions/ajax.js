@@ -34,6 +34,7 @@ let behaviors = undefined;
 let endpoints = undefined;
 let events = undefined;
 let goals = undefined;
+let loginResult = undefined;
 
 export default {
 	getAgents :function() {
@@ -64,15 +65,8 @@ export default {
     repos.forEach(repo => {
       if (repo.uri + "agents" == tripleStoreRepository) {
         if (repo.secured) {
-          if (!repo.token || repo.token == "" || repo.expiration < Date.now()) {
-            console.log("update token");
-            return ajax.raw("http://localhost:8090/tokenizer/token?userId=admin&role=admin&pswd=tomcat", { type: "GET" })
-              .then(function (data) {
-                repo.token = data.payload.token;
-                repo.expiration = Date.now() + (data.payload.expirySecs * 1000);
-                localStorage.triplestores = JSON.stringify(repos);
-                result = loadAgentsRepo(ajax, tripleStoreRepository, repo.token);
-              });
+          if (!repo.token || repo.token == "" || !repo.expiration || repo.expiration < Date.now()) {
+            result = createLoginModal(ajax, repos, repo, tripleStoreRepository);
           }
           else {
             result = loadAgentsRepo(ajax, tripleStoreRepository, repo.token);
@@ -155,6 +149,58 @@ export default {
 		rdfGraph.unsavedChanges = false;
 	}
 };
+
+function createLoginModal(ajax, repos, repo, tripleStoreRepository) {
+  $("#modal-header-title").text("Repository Login" );
+  let $body = $("#modal-body"),
+    $modal = $("#universal-modal");
+  $body.empty();
+  $modal.show();
+
+  // Credentials
+  let $credentialsTitle = $("<p>", {
+    class: "modal-p"
+  }).text("User Credentials for: " + tripleStoreRepository);
+  let $userInput = $("<input>", {
+    class: "modal-input",
+    id: "user-input",
+    placeholder: "User",
+  });
+
+  let $roleInput = $("<input>", {
+    class: "modal-input",
+    id: "role-input",
+    placeholder: "Role",
+  });
+  let $pswdInput = $("<input type='password' id='pswd-input'>", {});
+  let $credentialsDiv = $("<div>", {
+    class: "modal-body-div"
+  }).append($credentialsTitle, $userInput, $roleInput, $pswdInput);
+  // Append to modal body
+  $body.append($credentialsDiv);
+
+  // Listen for the confirm event
+  let elem = document.getElementById("universal-modal");
+  return new Promise((resolve, reject) => {
+    elem.addEventListener("modal:confirm", function () {
+      resolve(requestToken(ajax, repos, repo, tripleStoreRepository,
+        $("#user-input").val(),
+        $("#role-input").val(),
+        $("#pswd-input").val())
+      );
+    });
+  });
+}
+
+function requestToken(ajax, repos, repo, tripleStoreRepository, user, role, pswd) {
+  return ajax.raw("http://localhost:8090/tokenizer/token?userId=" + user + "&role=" + role + "&pswd=" +  pswd + "", { type: "GET" })
+    .then(function (data) {
+      repo.token = data.payload.token;
+      repo.expiration = Date.now() + (data.payload.expirySecs * 1000);
+      localStorage.triplestores = JSON.stringify(repos);
+      return loadAgentsRepo(ajax, tripleStoreRepository, repo.token);
+    });
+}
 
 function loadAgentsRepo(ajax, tripleStoreRepository, token) {
   let ajaxPromise;

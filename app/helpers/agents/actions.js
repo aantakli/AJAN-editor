@@ -61,6 +61,8 @@ export default {
   appendVariable: goalProducer.appendVariable,
 
 	// AJAX related Actions
+  getToken: ajaxActions.resolveToken,
+
 	getAgents: ajaxActions.getAgents,
 	getFromServer: ajaxActions.getFromServer,
 	saveAgentGraph: ajaxActions.saveGraph,

@@ -33,6 +33,7 @@ let that = undefined;
 
 export default Component.extend({
   dataBus: Ember.inject.service('data-bus'),
+  ajax: Ember.inject.service(),
   fileName: "agents.ttl",
   fileContent: "",
   agentDefs: [],
@@ -46,18 +47,21 @@ export default Component.extend({
       globals.agentsRepository;
 
     this.get('dataBus').on('updatedAG', function () {
-      $.ajax({
-        url: repo,
-        type: "POST",
-        contentType: "application/sparql-query; charset=utf-8",
-        headers: {
-          Authorization: "Bearer ",
-          Accept: "application/ld+json",
-        },
-        data: queries.constructGraph
-      }).then(function (data) {
-        that.set("fileContent", URL.createObjectURL(new Blob([data])));
-      });
+      Promise.resolve(actions.getToken(that.ajax, repo))
+        .then((token) => {
+          $.ajax({
+            url: repo,
+            type: "POST",
+            contentType: "application/sparql-query; charset=utf-8",
+            headers: {
+              Authorization: "Bearer " + token,
+              Accept: "application/ld+json",
+            },
+            data: queries.constructGraph
+          }).then(function (data) {
+            that.set("fileContent", URL.createObjectURL(new Blob([data])));
+          });
+        });
     });
 
     this.get('dataBus').on('updateAgentDefs', function (defs) {

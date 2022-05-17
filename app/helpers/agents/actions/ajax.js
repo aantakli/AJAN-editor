@@ -34,7 +34,6 @@ let behaviors = undefined;
 let endpoints = undefined;
 let events = undefined;
 let goals = undefined;
-let loginResult = undefined;
 
 export default {
 	getAgents :function() {
@@ -59,96 +58,42 @@ export default {
 
 	// Gets entire graph from server
   getFromServer: function (ajax, tripleStoreRepository) {
-    let repos = JSON.parse(localStorage.triplestores);
-    let result;
-
-    repos.forEach(repo => {
-      if (repo.uri + "agents" == tripleStoreRepository) {
-        if (repo.secured) {
-          if (!repo.token || repo.token == "" || !repo.expiration || repo.expiration < Date.now()) {
-            result = createLoginModal(ajax, repos, repo, tripleStoreRepository);
-          }
-          else {
-            result = loadAgentsRepo(ajax, tripleStoreRepository, repo.token);
-          }
-        }
-        else {
-          result = loadAgentsRepo(ajax, tripleStoreRepository, undefined);
-        }
-      }
-    });
-
+    let result = Promise.resolve(getToken(ajax, tripleStoreRepository))
+      .then((token) => loadAgentsRepo(ajax, tripleStoreRepository, token));
     return Promise.resolve(result);
   },
 
 // save to repository
-	saveGraph: function(ajax, tripleStoreRepository, event, onEnd) {
-		console.log("Saving to triple store: ", tripleStoreRepository);
+  saveGraph: function (ajax, tripleStoreRepository, event, onEnd) {
+    Promise.resolve(getToken(ajax, tripleStoreRepository))
+      .then((token) => updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd));
+  },
 
-		let postDestination = tripleStoreRepository + "/statements";
-		let rdfString = rdfGraph.toString();
-		let query = SparqlQueries.update(rdfString);
-		let dataString = $.param({update: query});
-
-		// Keep local copy of saved stuff
-		localStorage.setItem(
-			"rdf_graph_saved_T-2",
-			localStorage.getItem("rdf_graph_saved_T-1")
-		);
-		localStorage.setItem("rdf_graph_saved_T-1", dataString);
-
-		ajax
-			.post(postDestination, {
-				contentType: "application/x-www-form-urlencoded; charset=utf-8",
-				headers: {
-					Accept: "application/ld+json"
-				},
-				// SPARQL query
-				data: dataString
-      }).then(function () {
-        if (event) {
-          event.updatedAG();
-        }
-        if (onEnd) {
-          onEnd();
-        }
-      })
-			.catch(function(error) {
-				if (isServerError(error)) {
-					// handle 5XX errors
-
-					let restoreID = "rdf_graph_saved_T-2";
-					let restoredItem = localStorage.getItem(restoreID);
-					ajax
-						.post(postDestination, {
-							contentType: "application/x-www-form-urlencoded; charset=utf-8",
-							headers: {
-								Accept: "application/ld+json"
-							},
-							// SPARQL query
-							data: restoredItem
-						})
-						.then(
-							function(data) {
-								// On accept
-								console.log("Request success", data);
-							},
-							function(jqXHR) {
-								// On reject
-								console.log("Request failed", jqXHR);
-							}
-						);
-					alert("Reloading previous save");
-					location.reload();
-
-					return;
-				}
-				throw error;
-			});
-
-		rdfGraph.unsavedChanges = false;
-	}
+  resolveToken: function (ajax, tripleStoreRepository) {
+    return getToken(ajax, tripleStoreRepository);
+  }
 };
+
+function getToken(ajax, tripleStoreRepository) {
+  let token;
+  let repos = JSON.parse(localStorage.triplestores);
+  repos.forEach(repo => {
+    if (repo.uri + "agents" == tripleStoreRepository) {
+      if (repo.secured) {
+        if (!repo.token || repo.token == "" || !repo.expiration || repo.expiration < Date.now()) {
+          token = createLoginModal(ajax, repos, repo, tripleStoreRepository);
+        }
+        else {
+          token = repo.token;
+        }
+      }
+      else {
+        token = undefined;
+      }
+    }
+  });
+  return token;
+}
 
 function createLoginModal(ajax, repos, repo, tripleStoreRepository) {
   $("#modal-header-title").text("Repository Login" );
@@ -198,7 +143,7 @@ function requestToken(ajax, repos, repo, tripleStoreRepository, user, role, pswd
       repo.token = data.payload.token;
       repo.expiration = Date.now() + (data.payload.expirySecs * 1000);
       localStorage.triplestores = JSON.stringify(repos);
-      return loadAgentsRepo(ajax, tripleStoreRepository, repo.token);
+      return repo.token;
     });
 }
 
@@ -264,6 +209,75 @@ function loadAgentsRepo(ajax, tripleStoreRepository, token) {
       });
     });
   });
+}
+
+function updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd) {
+  console.log("Saving to triple store: ", tripleStoreRepository);
+
+  let postDestination = tripleStoreRepository + "/statements";
+  let rdfString = rdfGraph.toString();
+  let query = SparqlQueries.update(rdfString);
+  let dataString = $.param({ update: query });
+
+  // Keep local copy of saved stuff
+  localStorage.setItem(
+    "rdf_graph_saved_T-2",
+    localStorage.getItem("rdf_graph_saved_T-1")
+  );
+  localStorage.setItem("rdf_graph_saved_T-1", dataString);
+
+  ajax
+    .post(postDestination, {
+      contentType: "application/x-www-form-urlencoded; charset=utf-8",
+      headers: {
+        Authorization: "Bearer " + token,
+        Accept: "application/ld+json"
+      },
+      // SPARQL query
+      data: dataString
+    }).then(function () {
+      if (event) {
+        event.updatedAG();
+      }
+      if (onEnd) {
+        onEnd();
+      }
+    })
+    .catch(function (error) {
+      if (isServerError(error)) {
+        // handle 5XX errors
+
+        let restoreID = "rdf_graph_saved_T-2";
+        let restoredItem = localStorage.getItem(restoreID);
+        ajax
+          .post(postDestination, {
+            contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            headers: {
+              Authorization: "Bearer " + token,
+              Accept: "application/ld+json"
+            },
+            // SPARQL query
+            data: restoredItem
+          })
+          .then(
+            function (data) {
+              // On accept
+              console.log("Request success", data);
+            },
+            function (jqXHR) {
+              // On reject
+              console.log("Request failed", jqXHR);
+            }
+          );
+        alert("Reloading previous save");
+        location.reload();
+
+        return;
+      }
+      throw error;
+    });
+
+  rdfGraph.unsavedChanges = false;
 }
 
 

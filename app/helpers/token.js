@@ -26,6 +26,20 @@ let $ = Ember.$;
 export default {
   resolveToken: function (ajax, tripleStoreRepository) {
     return getToken(ajax, tripleStoreRepository);
+  },
+
+  removeToken: function (tripleStoreRepository) {
+    console.log("remove Token!");
+    let repos = JSON.parse(localStorage.triplestores);
+    repos.forEach(repo => {
+      if (repo.uri == tripleStoreRepository) {
+        if (repo.secured && repo.token) {
+          repo.token = "";
+          localStorage.triplestores = JSON.stringify(repos);
+          console.log("token:" + repo.token);
+        }
+      }
+    });
   }
 };
 

@@ -27,7 +27,7 @@ import Ember from "ember";
 import { isServerError } from "ember-ajax/errors";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import SparqlQueries from "ajan-editor/helpers/RDFServices/queries";
-import token from "ajan-editor/helpers/token";
+import tokenizer from "ajan-editor/helpers/token";
 
 let $ = Ember.$;
 let agents = undefined;
@@ -59,14 +59,14 @@ export default {
 
 	// Gets entire graph from server
   getFromServer: function (ajax, tripleStoreRepository) {
-    let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    let result = Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
       .then((token) => loadAgentsRepo(ajax, tripleStoreRepository, token));
     return Promise.resolve(result);
   },
 
 // save to repository
   saveGraph: function (ajax, tripleStoreRepository, event, onEnd) {
-    Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
       .then((token) => updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd));
   },
 };
@@ -80,8 +80,9 @@ function loadAgentsRepo(ajax, tripleStoreRepository, token) {
     },
     data: SparqlQueries.constructGraph,
   }).catch(function (error) {
+    tokenizer.removeToken(localStorage.currentStore);
     $("#error-message").trigger("showToast", [
-      "Error while accessing agent repository! Check if repository is accessible or secured!"
+      "Error while accessing agent repository! Check if repository is accessible, secured or credentials are right!", true
     ]);
   });
 

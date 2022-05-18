@@ -25,9 +25,9 @@ import {Filter} from "ajan-editor/objects/tables/rdf-filter";
 export default Component.extend({
 	classNames: ["full-height"],
 
-	showTripleView: computed("viewMode", function() {
-		return this.get("viewMode") === "tripleTable";
-	}),
+  showTableView: computed("viewMode", function () {
+    return this.get("viewMode") === "multiTable";
+  }),
 	showGroupedSubjectView: computed("viewMode", function() {
 		return this.get("viewMode") === "groupedSubject";
 	}),

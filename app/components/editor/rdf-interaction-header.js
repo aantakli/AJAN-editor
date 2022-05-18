@@ -20,7 +20,8 @@
  */
 import {computed, observer} from "@ember/object";
 import {
-	sendAskQuery,
+  sendAskQuery,
+  sendSelectQuery,
 	sendQuery
 } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import Component from "@ember/component";
@@ -29,11 +30,13 @@ import Sparql from "npm:sparqljs";
 
 let defaultRepositoryString = "defaultRepository";
 let currentRepositoryString = "defaultRepository";
+let ajax = null; // ajax
 
 export default Component.extend({
+  ajax: Ember.inject.service(),
 	vocabularyManager: Ember.inject.service("data-manager/vocabulary-manager"),
-	defaultRepository: "http://localhost:8090/rdf4j/repositories/test_knowledge",
-	showQueryResults: true,
+	defaultRepository: "http://localhost:8090/rdf4j/repositories/agents",
+  showQueryResults: true,
 	prefixes: [],
 	currentRepository: computed("defaultRepository", function() {
 		return this.get(defaultRepositoryString);
@@ -44,7 +47,10 @@ export default Component.extend({
 
 	didInsertElement() {
 		let dataPromise = this.vocabularyManager.getAllDataPromise();
-		let that = this;
+    let that = this;
+
+    ajax = that.get("ajax");
+
 		dataPromise.then(data => {
 			data = data.map(ele => {
 				return {
@@ -53,7 +59,7 @@ export default Component.extend({
 				};
 			});
 			that.set("prefixes", data);
-
+      
 			this.send("repoSelected", this.get(defaultRepositoryString));
 			let editor = ace.edit("ace-editor");
 			editor.getSession().on("change", function(changes, session) {
@@ -63,7 +69,7 @@ export default Component.extend({
 	},
 
 	actions: {
-		repoSelected(repo) {
+    repoSelected(repo) {
 			this.set(currentRepositoryString, repo);
 			let query = getWhereGraphQuery(
 				ace
@@ -93,11 +99,11 @@ function handleQuery(query, that) {
 		switch (that.get("mode")) {
 			case "all":
 				query = getAllQuery();
-				setTableDataRDF(query, that);
+        setGraphDataRDF(query, that);
 				break;
 			case "where":
 				query = getWhereGraphQuery(query);
-				setTableDataRDF(query, that);
+        setGraphDataRDF(query, that);
 				break;
 			case "query":
 				resolveQuery(query, that);
@@ -120,7 +126,7 @@ function handleQuery(query, that) {
 }
 
 function getAllQuery() {
-	return "CONSTRUCT {?s ?p ?o} WHERE {?s ?p ?o}";
+	return "CONSTRUCT WHERE {?s ?p ?o}";
 }
 
 function getWhereGraphQuery(query) {
@@ -163,31 +169,39 @@ function resolveQuery(query, that) {
 	switch (parsedQuery.queryType) {
 		case "DESCRIBE":
 		case "CONSTRUCT":
-			setTableDataRDF(query, that);
+      setGraphDataRDF(query, that);
 			break;
 		case "ASK":
 			setDataBool(query, that);
 			break;
-		case "SELECT":
+    case "SELECT":
+      setTableData(query, that);
 			break;
 		default:
 			console.warn("Could not read query type ", parsedQuery.queryType);
 	}
 }
 
-function setTableDataRDF(query, that) {
+function setGraphDataRDF(query, that) {
 	that.set("dataFormat", "RDF");
-	let promise = sendQuery(that.get(currentRepositoryString), query);
-	promise.then(data => {
-		let dataset = datasetBeautify(data, that.prefixes);
+	let promise = sendQuery(ajax, that.get(currentRepositoryString), query);
+  promise.then(data => {
+    let dataset = datasetBeautify(data, that.prefixes);
 		that.set("tableData", dataset);
 	});
 }
 
+function setTableData(query, that) {
+  that.set("dataFormat", "TABLE");
+  let promise = sendSelectQuery(ajax, that.get(currentRepositoryString), query);
+  promise.then(data => {
+    that.set("tableData", data);
+  });
+}
+
 function setDataBool(query, that) {
-	console.log("setDataBool")
 	that.set("dataFormat", "BOOL");
-	let promise = sendAskQuery(that.get(currentRepositoryString), query);
+	let promise = sendAskQuery(ajax, that.get(currentRepositoryString), query);
 	promise.then(data => {
 		that.set("tableData", undefined);
 		data = !(!data || data == "false");

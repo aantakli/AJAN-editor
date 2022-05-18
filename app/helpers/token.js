@@ -72,10 +72,11 @@ function createLoginModal(ajax, repos, repo, tripleStoreRepository) {
     id: "role-input",
     placeholder: "Role",
   });
+  let $pswdLabel = $("<span>", {}).text("Password: ");
   let $pswdInput = $("<input type='password' id='pswd-input'>", {});
   let $credentialsDiv = $("<div>", {
     class: "modal-body-div"
-  }).append($credentialsTitle, $userInput, $roleInput, $pswdInput);
+  }).append($credentialsTitle, $userInput, $roleInput, $pswdLabel, $pswdInput);
   // Append to modal body
   $body.append($credentialsDiv);
 

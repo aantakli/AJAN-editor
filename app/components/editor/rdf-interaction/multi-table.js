@@ -86,7 +86,11 @@ export default Component.extend({
 			case "query":
         this.set("columns", queryDependant);
         if (this.get("dataFormat") === "RDF") this.set("columns", triples);
-        else if (this.get("dataFormat") === "TABLE") this.set("columns", calculateColumns(this.get("tableData")));
+        else if (this.get("dataFormat") === "TABLE") {
+          if (this.get("tableData")) {
+            this.set("columns", calculateColumns(this.get("tableData")));
+          }
+        }
 				else if (this.get("dataFormat") === "BOOL") {
 					this.set("showTable", false);
 					return;

@@ -25,7 +25,7 @@ import {
 	sendQuery
 } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import Component from "@ember/component";
-import {datasetBeautify} from "ajan-editor/helpers/RDFServices/RDF-utility/dataset-format";
+import { graphDatasetBeautify, csvDatasetBeautify } from "ajan-editor/helpers/RDFServices/RDF-utility/dataset-format";
 import Sparql from "npm:sparqljs";
 
 let defaultRepositoryString = "defaultRepository";
@@ -186,7 +186,7 @@ function setGraphDataRDF(query, that) {
 	that.set("dataFormat", "RDF");
 	let promise = sendQuery(ajax, that.get(currentRepositoryString), query);
   promise.then(data => {
-    let dataset = datasetBeautify(data, that.prefixes);
+    let dataset = graphDatasetBeautify(data, that.prefixes);
 		that.set("tableData", dataset);
 	});
 }
@@ -195,7 +195,8 @@ function setTableData(query, that) {
   that.set("dataFormat", "TABLE");
   let promise = sendSelectQuery(ajax, that.get(currentRepositoryString), query);
   promise.then(data => {
-    that.set("tableData", data);
+    let dataset = csvDatasetBeautify(data, that.prefixes);
+    that.set("tableData", dataset);
   });
 }
 

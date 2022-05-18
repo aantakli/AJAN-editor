@@ -192,7 +192,7 @@ function calculateColumns(data) {
       label: key,
       valuePath: key,
       resizable: true,
-      minResizeWidth: 10,
+      minResizeWidth: 100,
       width: (100/size)+"%"
       }
     );

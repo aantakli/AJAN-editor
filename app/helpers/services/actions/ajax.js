@@ -18,7 +18,7 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import token from "ajan-editor/helpers/token";
+import tokenizer from "ajan-editor/helpers/token";
 import servicesHlp from "ajan-editor/helpers/RDFServices/servicesRDFConsumer";
 import Ember from "ember";
 import {
@@ -37,14 +37,14 @@ export default {
 
   // Gets entire graph from server
   getFromServer: function (ajax, tripleStoreRepository) {
-    let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    let result = Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
       .then((token) => loadServicesRepo(ajax, tripleStoreRepository, token));
     return Promise.resolve(result);
   },
 
   // save to repository
   saveGraph: function (ajax, tripleStoreRepository, databus, type) {
-    Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
       .then((token) => updateServicesRepo(ajax, tripleStoreRepository, databus, type, token));
   }
 };
@@ -59,8 +59,9 @@ function loadServicesRepo(ajax, tripleStoreRepository, token) {
     // SPARQL query
     data: SparqlQueries.constructGraph
   }).catch(function (error) {
+    tokenizer.removeToken(localStorage.currentStore);
     $("#error-message").trigger("showToast", [
-      "Error while accessing services repository! Check if repository is accessible or secured!"
+      "Error while accessing services repository! Check if repository is accessible or secured!", true
     ]);
   });
 
@@ -150,6 +151,10 @@ function updateServicesRepo(ajax, tripleStoreRepository, databus, type, token) {
         location.reload();
 
         return;
+      } else {
+        tokenizer.removeToken(localStorage.currentStore);
+        Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
+          .then((token) => updateServicesRepo(ajax, tripleStoreRepository, databus, type, token));
       }
       throw error;
     });

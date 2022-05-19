@@ -52,6 +52,7 @@ export default Component.extend({
             type: "POST",
             contentType: "application/sparql-query; charset=utf-8",
             headers: {
+              Authorization: "Bearer " + token,
               Accept: "text/turtle; charset=utf-8"
             },
             data: queries.getAllServiceActions

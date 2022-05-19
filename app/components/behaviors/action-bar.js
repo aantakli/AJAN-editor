@@ -34,6 +34,7 @@ let that = undefined;
 
 export default Component.extend({
   dataBus: Ember.inject.service('data-bus'),
+  ajax: Ember.inject.service(),
   repoFileName: "behaviors.ttl",
   availableBTs: undefined,
   repoContent: "",
@@ -60,17 +61,17 @@ export default Component.extend({
       Promise.resolve(token.resolveToken(that.ajax, localStorage.currentStore))
         .then((token) => {
           $.ajax({
-          url: repo,
-          type: "POST",
-          contentType: "application/sparql-query; charset=utf-8",
+            url: repo,
+            type: "POST",
+            contentType: "application/sparql-query; charset=utf-8",
             headers: {
               Authorization: "Bearer " + token,
               Accept: "text/turtle; charset=utf-8"
-          },
-          data: queries.constructGraph
-        }).then(function (data) {
-          that.set("repoContent", URL.createObjectURL(new Blob([data])));
-        });
+            },
+            data: queries.constructGraph
+          }).then(function (data) {
+            that.set("repoContent", URL.createObjectURL(new Blob([data])));
+          });
       });
     });
   },
@@ -147,8 +148,8 @@ function loadRepo(event) {
   var reader = new FileReader();
   reader.onload = function () {
     let content = reader.result;
-    deleteRepo(repo, queries.deleteAll())
-      .then(sendFile(repo, content))
+    deleteRepo(that.ajax, repo, queries.deleteAll())
+      .then(sendFile(that.ajax, repo, content))
       .then(window.location.reload());
   };
   reader.readAsText(file);

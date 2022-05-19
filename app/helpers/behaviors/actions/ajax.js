@@ -26,7 +26,7 @@ import {
 } from "ember-ajax/errors";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import SparqlQueries from "ajan-editor/helpers/RDFServices/queries";
-import token from "ajan-editor/helpers/token";
+import tokenizer from "ajan-editor/helpers/token";
 
 let $ = Ember.$;
 let behaviorTrees = undefined;
@@ -38,18 +38,18 @@ export default {
 
   getFromServer: function (cy, ajax, tripleStoreRepository) {
     console.log(tripleStoreRepository);
-    let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    let result = Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
       .then((token) => loadBehaviorsRepo(ajax, tripleStoreRepository, token));
     return Promise.resolve(result);
   },
 
   saveGraph: function (ajax, tripleStoreRepository) {
-    Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
       .then((token) => updateBehaviorsRepo(ajax, tripleStoreRepository, token));
   },
 
   restoreSaved: function (ajax, tripleStoreRepository) {
-    Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
       .then((token) => restoreSavedRepo(ajax, tripleStoreRepository, token));
 	}
 };
@@ -63,8 +63,9 @@ function loadBehaviorsRepo(ajax, tripleStoreRepository, token) {
     },
     data: SparqlQueries.constructGraph,
   }).catch(function (error) {
+    tokenizer.removeToken(localStorage.currentStore);
     $("#error-message").trigger("showToast", [
-      "Error while accessing behaviors repository! Check if repository is accessible or secured!"
+      "Error while accessing behaviors repository! Check if repository is accessible or secured!", true
     ]);
   });
 
@@ -154,6 +155,10 @@ function updateBehaviorsRepo(ajax, tripleStoreRepository, token) {
         location.reload();
 
         return;
+      } else {
+        tokenizer.removeToken(localStorage.currentStore);
+        Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
+          .then((token) => updateBehaviorsRepo(ajax, tripleStoreRepository, token));
       }
       throw error;
     });

@@ -47,31 +47,45 @@ function sendQuery(ajax, repository, query) {
   return Promise.resolve(result);
 }
 
-function sendFile(repository, content) {
+function sendFile(ajax, repository, content) {
   if (!content) throw "No content";
-  return Ember.$.ajax({
-    url: repository + "/statements",
-    type: "POST",
-    contentType: "text/turtle",
-    data: content
-  })
-    .then(handleAjaxFileReturn)
-    .catch(function (error) {
-      console.warn("Error while loading intermediate query results", error);
+  let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    .then((token) => {
+      return Ember.$.ajax({
+        url: repository + "/statements",
+        type: "POST",
+        headers: {
+          Authorization: "Bearer " + token
+        },
+        contentType: "text/turtle",
+        data: content
+      })
+        .then(handleAjaxFileReturn)
+        .catch(function (error) {
+          console.warn("Error while loading intermediate query results", error);
+      });
     });
+  return Promise.resolve(result);
 }
 
-function deleteRepo(repository, query) {
-  return Ember.$.ajax({
-    url: repository + "/statements",
-    type: "POST",
-    contentType: "application/x-www-form-urlencoded",
-    data: "update=" + query.toString()
-  })
-    .then(handleAjaxFileReturn)
-    .catch(function (error) {
-      console.warn("Error while loading intermediate query results", error);
+function deleteRepo(ajax, repository, query) {
+  let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    .then((token) => {
+      return Ember.$.ajax({
+        url: repository + "/statements",
+        type: "POST",
+        headers: {
+          Authorization: "Bearer " + token
+        },
+        contentType: "application/x-www-form-urlencoded",
+        data: "update=" + query.toString()
+      })
+        .then(handleAjaxFileReturn)
+        .catch(function (error) {
+          console.warn("Error while loading intermediate query results", error);
+        });
     });
+  return Promise.resolve(result);
 }
 
 function sendSelectQuery(ajax, repository, query) {

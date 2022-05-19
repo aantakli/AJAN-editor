@@ -56,7 +56,7 @@ export default Component.extend({
             contentType: "application/sparql-query; charset=utf-8",
             headers: {
               Authorization: "Bearer " + token,
-              Accept: "application/ld+json",
+              Accept: "text/turtle; charset=utf-8",
             },
             data: queries.constructGraph
           }).then(function (data) {
@@ -88,8 +88,9 @@ function loadRepo(event) {
   var reader = new FileReader();
   reader.onload = function () {
     let content = reader.result;
-    deleteRepo(repo, queries.deleteAll())
-      .then(sendFile(repo, content))
+    console.log(content);
+    deleteRepo(that.ajax, repo, queries.deleteAll())
+      .then(sendFile(that.ajax, repo, content))
       .then(window.location.reload());
   };
   reader.readAsText(file);

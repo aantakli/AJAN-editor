@@ -191,6 +191,11 @@ function updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd) {
 
         return;
       }
+      else {
+        tokenizer.removeToken(localStorage.currentStore);
+        Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
+          .then((token) => updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd));
+      }
       throw error;
     });
 

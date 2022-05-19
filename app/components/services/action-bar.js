@@ -51,10 +51,7 @@ export default Component.extend({
             url: repo,
             type: "POST",
             contentType: "application/sparql-query; charset=utf-8",
-            headers: {
-              Authorization: "Bearer " + token,
-              Accept: "text/turtle; charset=utf-8"
-            },
+            headers: getHeaders(token),
             data: queries.getAllServiceActions
           }).then(function (data) {
             that.set("fileContent", URL.createObjectURL(new Blob([data])));
@@ -80,6 +77,19 @@ export default Component.extend({
     }
 	}
 });
+
+function getHeaders(token) {
+  if (token) {
+    return {
+      Authorization: "Bearer " + token,
+      Accept: "text/turtle; charset=utf-8",
+    }
+  } else {
+    return {
+      Accept: "text/turtle; charset=utf-8",
+    }
+  }
+}
 
 function loadFile(event) {
   let file = event.target.files[0];

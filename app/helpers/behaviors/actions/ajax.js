@@ -57,10 +57,7 @@ export default {
 function loadBehaviorsRepo(ajax, tripleStoreRepository, token) {
   let ajaxPromise = ajax.post(tripleStoreRepository, {
     contentType: "application/sparql-query; charset=utf-8",
-    headers: {
-      Authorization: "Bearer " + token,
-      Accept: "application/ld+json"
-    },
+    headers: getHeaders(token),
     data: SparqlQueries.constructGraph,
   }).catch(function (error) {
     tokenizer.removeToken(localStorage.currentStore);
@@ -95,6 +92,20 @@ function loadBehaviorsRepo(ajax, tripleStoreRepository, token) {
   );
 }
 
+function getHeaders(token) {
+  console.log(token);
+  if (token) {
+    return {
+      Authorization: "Bearer " + token,
+      Accept: "application/ld+json",
+    }
+  } else {
+    return {
+      Accept: "application/ld+json",
+    }
+  }
+}
+
 function updateBehaviorsRepo(ajax, tripleStoreRepository, token) {
   console.log("Saving to triple store: ", tripleStoreRepository);
 
@@ -114,10 +125,7 @@ function updateBehaviorsRepo(ajax, tripleStoreRepository, token) {
   ajax
     .post(postDestination, {
       contentType: "application/x-www-form-urlencoded; charset=utf-8",
-      headers: {
-        Authorization: "Bearer " + token,
-        Accept: "application/ld+json"
-      },
+      headers: getHeaders(token),
       // SPARQL query
       data: dataString
     })
@@ -134,10 +142,7 @@ function updateBehaviorsRepo(ajax, tripleStoreRepository, token) {
         ajax
           .post(postDestination, {
             contentType: "application/x-www-form-urlencoded; charset=utf-8",
-            headers: {
-              Authorization: "Bearer " + token,
-              Accept: "application/ld+json"
-            },
+            headers: getHeaders(token),
             // SPARQL query
             data: restoredItem
           })
@@ -173,10 +178,7 @@ function restoreSavedRepo(ajax, tripleStoreRepository, token) {
   ajax
     .post(postDestination, {
       contentType: "application/x-www-form-urlencoded; charset=utf-8",
-      headers: {
-        Authorization: "Bearer " + token,
-        Accept: "application/ld+json"
-      },
+      headers: getHeaders(token),
       // SPARQL query
       data: restoredItem
     })

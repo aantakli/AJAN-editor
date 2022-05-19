@@ -71,18 +71,29 @@ export default {
   },
 };
 
+function getHeaders(token) {
+  if (token) {
+    return {
+      Authorization: "Bearer " + token,
+      Accept: "application/ld+json",
+    }
+  } else {
+    return {
+      Accept: "application/ld+json",
+    }
+  }
+}
+
 function loadAgentsRepo(ajax, tripleStoreRepository, token) {
+  console.log("test");
   let ajaxPromise = ajax.post(tripleStoreRepository, {
     contentType: "application/sparql-query; charset=utf-8",
-    headers: {
-      Authorization: "Bearer " + token,
-      Accept: "application/ld+json"
-    },
+    headers: getHeaders(token),
     data: SparqlQueries.constructGraph,
   }).catch(function (error) {
     tokenizer.removeToken(localStorage.currentStore);
     $("#error-message").trigger("showToast", [
-      "Error while accessing agent repository! Check if repository is accessible, secured or credentials are right!", true
+      "Error while accessing agent repository! Check if repository is accessible, secured or credentials are right!"
     ]);
   });
 
@@ -146,10 +157,7 @@ function updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd) {
   ajax
     .post(postDestination, {
       contentType: "application/x-www-form-urlencoded; charset=utf-8",
-      headers: {
-        Authorization: "Bearer " + token,
-        Accept: "application/ld+json"
-      },
+      headers: getHeaders(token),
       // SPARQL query
       data: dataString
     }).then(function () {
@@ -169,10 +177,7 @@ function updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd) {
         ajax
           .post(postDestination, {
             contentType: "application/x-www-form-urlencoded; charset=utf-8",
-            headers: {
-              Authorization: "Bearer " + token,
-              Accept: "application/ld+json"
-            },
+            headers: getHeaders(token),
             // SPARQL query
             data: restoredItem
           })

@@ -64,10 +64,7 @@ export default Component.extend({
             url: repo,
             type: "POST",
             contentType: "application/sparql-query; charset=utf-8",
-            headers: {
-              Authorization: "Bearer " + token,
-              Accept: "text/turtle; charset=utf-8"
-            },
+            headers: getHeaders(token),
             data: queries.constructGraph
           }).then(function (data) {
             that.set("repoContent", URL.createObjectURL(new Blob([data])));
@@ -116,6 +113,19 @@ export default Component.extend({
     }
   }
 });
+
+function getHeaders(token) {
+  if (token) {
+    return {
+      Authorization: "Bearer " + token,
+      Accept: "text/turtle; charset=utf-8",
+    }
+  } else {
+    return {
+      Accept: "text/turtle; charset=utf-8",
+    }
+  }
+}
 
 function saveGraph(content) {
   if (content != undefined && content.length > 0) {

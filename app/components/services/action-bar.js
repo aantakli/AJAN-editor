@@ -60,8 +60,7 @@ export default Component.extend({
     });
 
     this.get('dataBus').on('deletedSG', function () {
-      console.log("deleted");
-      sendFile(repo, that.get("importContent"))
+      sendFile(that.ajax, repo, that.get("importContent"))
         .then(window.location.reload());
     });
   },

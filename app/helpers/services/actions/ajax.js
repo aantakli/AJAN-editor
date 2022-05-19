@@ -49,13 +49,23 @@ export default {
   }
 };
 
+function getHeaders(token) {
+  if (token) {
+    return {
+      Authorization: "Bearer " + token,
+      Accept: "application/ld+json",
+    }
+  } else {
+    return {
+      Accept: "application/ld+json",
+    }
+  }
+}
+
 function loadServicesRepo(ajax, tripleStoreRepository, token) {
   let ajaxPromise = ajax.post(tripleStoreRepository, {
     contentType: "application/sparql-query; charset=utf-8",
-    headers: {
-      Authorization: "Bearer " + token,
-      Accept: "application/ld+json"
-    },
+    headers: getHeaders(token),
     // SPARQL query
     data: SparqlQueries.constructGraph
   }).catch(function (error) {
@@ -103,14 +113,12 @@ function updateServicesRepo(ajax, tripleStoreRepository, databus, type, token) {
     localStorage.getItem("rdf_graph_saved_T-1")
   );
   localStorage.setItem("rdf_graph_saved_T-1", dataString);
-
+  console.log(dataString);
+  console.log(postDestination);
   ajax
     .post(postDestination, {
       contentType: "application/x-www-form-urlencoded; charset=utf-8",
-      headers: {
-        Authorization: "Bearer " + token,
-        Accept: "application/ld+json"
-      },
+      headers: getHeaders(token),
       // SPARQL query
       data: dataString
     }).then(x => {
@@ -130,10 +138,7 @@ function updateServicesRepo(ajax, tripleStoreRepository, databus, type, token) {
         ajax
           .post(postDestination, {
             contentType: "application/x-www-form-urlencoded; charset=utf-8",
-            headers: {
-              Authorization: "Bearer " + token,
-              Accept: "application/ld+json"
-            },
+            headers: getHeaders(token),
             // SPARQL query
             data: restoredItem
           })
@@ -153,8 +158,8 @@ function updateServicesRepo(ajax, tripleStoreRepository, databus, type, token) {
         return;
       } else {
         tokenizer.removeToken(localStorage.currentStore);
-        Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
-          .then((token) => updateServicesRepo(ajax, tripleStoreRepository, databus, type, token));
+        /*Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
+          .then((token) => updateServicesRepo(ajax, tripleStoreRepository, databus, type, token));*/
       }
       throw error;
     });

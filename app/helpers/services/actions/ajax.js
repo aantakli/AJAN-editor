@@ -103,7 +103,9 @@ function updateServicesRepo(ajax, tripleStoreRepository, databus, type, token) {
 
   let postDestination = tripleStoreRepository + "/statements";
   let rdfString = rdfGraph.toString();
-  console.log(rdfString);
+  if (rdfString === "@prefix xsd: <http://www.w3.org/2001/XMLSchema#>") {
+    rdfString = "";
+  }
   let query = SparqlQueries.update(rdfString);
   let dataString = $.param({ update: query });
 

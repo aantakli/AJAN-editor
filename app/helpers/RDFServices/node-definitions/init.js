@@ -100,7 +100,7 @@ function insertNodeDef(node, btData /*Optional param for behavior trees*/) {
 
 function createCategoryDropdown($parent, node, category) {
   let $leafNodes = $("#Leaf-Nodes");
-  if (!categories.includes(category)) {
+  if (!categories.includes(category) || $leafNodes.find("#" + category).length == 0) {
     let $dropdown = $template.clone();
     $dropdown.find(".Leaf-Nodes-Single-Category-Title").text(node.category);
     $dropdown.find(".active.title").removeClass("active");

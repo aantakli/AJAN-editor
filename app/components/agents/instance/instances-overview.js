@@ -94,7 +94,7 @@ export default Ember.Component.extend({
         that.actions.setActiveInstance(data[0]);
       }).catch(function (error) {
         alert("The specified AJAN service is not available!");
-      });;
+      });
     }
   },
 

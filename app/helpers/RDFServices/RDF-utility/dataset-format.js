@@ -18,7 +18,7 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-function datasetBeautify(dataset, prefixes) {
+function graphDatasetBeautify(dataset, prefixes) {
 	if (!dataset) return;
 	return dataset._quads.map(quad => {
 		return {
@@ -28,6 +28,25 @@ function datasetBeautify(dataset, prefixes) {
 			graph: getValue(quad.graph, prefixes)
 		};
 	});
+}
+
+function csvDatasetBeautify(dataset, prefixes) {
+  if (!dataset) return;
+  let beauty = [];
+  dataset.forEach(item => {
+    let object = {}
+    let empty = false;
+    for (const [key, value] of Object.entries(item)) {
+      if (!value) {
+        empty = true;
+        break;
+      }
+      object[key] = replaceWithPrefix(value, prefixes);
+    }
+    if (!empty)
+      beauty.push(object);
+  })
+  return beauty;
 }
 
 function getValue(term, prefixes) {
@@ -54,4 +73,4 @@ function replaceWithPrefix(str, prefixes) {
 	return str;
 }
 
-export {datasetBeautify};
+export {graphDatasetBeautify, csvDatasetBeautify};

@@ -59,6 +59,7 @@
   height: 4em;
 }
 
+
 .buttons {
   float: right;
   display: inline-flex;
@@ -73,4 +74,10 @@ h2 {
 
 :global(.modal-input) {
   width: 40%;
+}
+
+:global(.modal-body-div input) {
+  width: 10%;
+  height: 100%;
+  line-height: normal;
 }

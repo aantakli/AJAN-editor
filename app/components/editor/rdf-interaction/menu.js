@@ -20,9 +20,9 @@
  */
 import Component from "@ember/component";
 
-let defaultRdfView = "groupedSubject";
+let defaultRdfView = "multiTable";
 // let defaultResultMode = "all";
-let defaultResultMode = "where";
+let defaultResultMode = "query";
 
 export default Component.extend({
 	classNames: ["component-mini", "menu", "background"],
@@ -34,8 +34,8 @@ export default Component.extend({
 
 	dropdownRdfView: [
 		{
-			label: "Triple Table",
-			value: "tripleTable"
+			label: "Table View",
+      value: "multiTable"
 		},
 		{
 			label: "Grouped - Subject",

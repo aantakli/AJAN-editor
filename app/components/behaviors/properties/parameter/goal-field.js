@@ -70,7 +70,7 @@ function initializeAjax() {
 function loadActionsRdfGraphData() {
   let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
     + globals.agentsRepository;
-  actionsAgnt.getGoalsFromServer(ajax, repo).then(setAvailableGoals);
+  actionsAgnt.getFromServer(ajax, repo).then(setAvailableGoals);
 }
 
 function setAvailableGoals() {

@@ -34,8 +34,8 @@ export default Service.extend({
 		// return this.get("baseUrl") + this.get("repository") + "/statements"
 	}),
 
-	queryTS: function(query, callback) {
-		let ajaxPromise = this.get("ajax").post(this.url, {
+  queryTS: function (query, callback) {
+    let ajaxPromise = this.get("ajax").post(this.url, {
 			contentType: "application/sparql-query; charset=utf-8",
 			headers: {
 				Accept: "application/ld+json"
@@ -59,11 +59,11 @@ export default Service.extend({
 	updateTS: function(query, callback) {
 		let dataString = $.param({update: query});
 		console.log("dataString", dataString);
-		let ajaxPromise = this.get("ajax").post(this.url + "/statements", {
+    let ajaxPromise = this.get("ajax").post(this.url + "/statements", {
 			contentType: "application/x-www-form-urlencoded; charset=utf-8",
 			// contentType: "application/sparql-update; charset=utf-8",
 			// contentType: "application/sparql-query; charset=utf-8",
-			headers: {
+      headers: {
 				Accept: "application/ld+json"
 			},
 			data: dataString

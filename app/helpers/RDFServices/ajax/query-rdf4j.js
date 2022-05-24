@@ -18,86 +18,117 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import token from "ajan-editor/helpers/token";
 import Ember from "ember";
 import JsonLdParser from "npm:rdf-parser-jsonld";
 import rdf from "npm:rdf-ext";
 import stringToStream from "npm:string-to-stream";
 
-function sendQuery(repository, query) {
-	if (!query) throw "Empty query";
-	return Ember.$.ajax({
-		url: repository,
-		type: "POST",
-		contentType: "application/sparql-query; charset=utf-8",
-		headers: {
-			Accept: "application/ld+json"
-		},
-		data: query.toString()
-	})
-		.then(handleAjaxReturn)
-		.catch(function(error) {
-			console.warn("Error while loading intermediate query results", error);
-		});
-}
-
-function sendFile(repository, content) {
-  if (!content) throw "No content";
-  return Ember.$.ajax({
-    url: repository + "/statements",
-    type: "POST",
-    contentType: "text/turtle",
-    data: content
-  })
-    .then(handleAjaxFileReturn)
-    .catch(function (error) {
-      console.warn("Error while loading intermediate query results", error);
-    });
-}
-
-function deleteRepo(repository, query) {
-  return Ember.$.ajax({
-    url: repository + "/statements",
-    type: "POST",
-    contentType: "application/x-www-form-urlencoded",
-    data: "update=" + query.toString()
-  })
-    .then(handleAjaxFileReturn)
-    .catch(function (error) {
-      console.warn("Error while loading intermediate query results", error);
-    });
-}
-
-function sendSelectQuery(repository, query) {
+function sendQuery(ajax, repository, query) {
   if (!query) throw "Empty query";
-  return Ember.$.ajax({
-    url: repository,
-    type: "POST",
-    contentType: "application/sparql-query; charset=utf-8",
-    headers: {
-      Accept: "text/csv; charset=utf-8"
-    },
-    data: query.toString()
-  }).then(handleAjaxSelectReturn)
-    .catch(function (error) {
-      console.warn("Error while loading intermediate query results", error);
+
+  let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    .then((token) => {
+      return Ember.$.ajax({
+        url: repository,
+        type: "POST",
+        contentType: "application/sparql-query; charset=utf-8",
+        headers: getHeaders(token, "application/ld+json"),
+        data: query.toString()
+      })
+        .then(handleAjaxReturn)
+        .catch(function (error) {
+          console.warn("Error while loading intermediate query results", error);
+        });
     });
+  return Promise.resolve(result);
 }
 
-function sendAskQuery(repository, query) {
+function sendFile(ajax, repository, content) {
+  if (!content) throw "No content";
+  let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    .then((token) => {
+      return Ember.$.ajax({
+        url: repository + "/statements",
+        type: "POST",
+        headers: getHeaders(token, "text/turtle; charset=utf-8"),
+        contentType: "text/turtle",
+        data: content
+      })
+        .then(handleAjaxFileReturn)
+        .catch(function (error) {
+          console.warn("Error while loading intermediate query results", error);
+      });
+    });
+  return Promise.resolve(result);
+}
+
+function deleteRepo(ajax, repository, query) {
+  let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    .then((token) => {
+      return Ember.$.ajax({
+        url: repository + "/statements",
+        type: "POST",
+        headers: getHeaders(token, "application/x-www-form-urlencoded; charset=utf-8"),
+        contentType: "application/x-www-form-urlencoded",
+        data: "update=" + query.toString()
+      })
+        .then(handleAjaxFileReturn)
+        .catch(function (error) {
+          console.warn("Error while loading intermediate query results", error);
+        });
+    });
+  return Promise.resolve(result);
+}
+
+function sendSelectQuery(ajax, repository, query) {
+  if (!query) throw "Empty query";
+  let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    .then((token) => {
+      return Ember.$.ajax({
+        url: repository,
+        type: "POST",
+        contentType: "application/sparql-query; charset=utf-8",
+        headers: getHeaders(token, "text/csv; charset=utf-8"),
+        data: query.toString()
+      }).then(handleAjaxSelectReturn)
+        .catch(function (error) {
+          console.warn("Error while loading intermediate query results", error);
+        });
+    });
+  return Promise.resolve(result);
+}
+
+function sendAskQuery(ajax, repository, query) {
 	if (!query) throw "Empty query";
-	return Ember.$.ajax({
-		url: repository,
-		type: "POST",
-		contentType: "application/sparql-query; charset=utf-8",
-		headers: {
-			Accept: "text/boolean"
-		},
-		data: query.toString()
-	})
-		.then(handleAjaxAskReturn)
-		.catch(function(error) {
-			console.warn("Error while loading intermediate query results", error);
-		});
+  let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    .then((token) => {
+      return Ember.$.ajax({
+		    url: repository,
+		    type: "POST",
+		    contentType: "application/sparql-query; charset=utf-8",
+        headers: getHeaders(token, "text/boolean"),
+		    data: query.toString()
+	    })
+		    .then(handleAjaxAskReturn)
+		    .catch(function(error) {
+			    console.warn("Error while loading intermediate query results", error);
+        });
+    });
+  return Promise.resolve(result);
+}
+
+function getHeaders(token, accept) {
+  if (token) {
+    return {
+      Authorization: "Bearer " + token,
+      Accept: accept,
+    }
+  } else {
+    return {
+      Accept: accept,
+    }
+  }
 }
 
 function handleAjaxReturn(result) {

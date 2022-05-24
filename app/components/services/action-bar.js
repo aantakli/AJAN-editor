@@ -23,6 +23,7 @@ import globals from "ajan-editor/helpers/global-parameters";
 import { sendFile } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import actions from "ajan-editor/helpers/services/actions";
 import queries from "ajan-editor/helpers/RDFServices/queries";
+import token from "ajan-editor/helpers/token";
 
 let $ = Ember.$;
 let repo = undefined;
@@ -44,23 +45,22 @@ export default Component.extend({
       globals.servicesRepository;
 
     this.get('dataBus').on('updatedSG', function () {
-      console.log("updated");
-      $.ajax({
-        url: repo,
-        type: "POST",
-        contentType: "application/sparql-query; charset=utf-8",
-        headers: {
-          Accept: "text/turtle; charset=utf-8"
-        },
-        data: queries.getAllServiceActions
-      }).then(function (data) {
-        that.set("fileContent", URL.createObjectURL(new Blob([data])));
-      });
+      Promise.resolve(token.resolveToken(that.ajax, localStorage.currentStore))
+        .then((token) => {
+          $.ajax({
+            url: repo,
+            type: "POST",
+            contentType: "application/sparql-query; charset=utf-8",
+            headers: getHeaders(token),
+            data: queries.getAllServiceActions
+          }).then(function (data) {
+            that.set("fileContent", URL.createObjectURL(new Blob([data])));
+          });
+        });
     });
 
     this.get('dataBus').on('deletedSG', function () {
-      console.log("deleted");
-      sendFile(repo, that.get("importContent"))
+      sendFile(that.ajax, repo, that.get("importContent"))
         .then(window.location.reload());
     });
   },
@@ -76,6 +76,19 @@ export default Component.extend({
     }
 	}
 });
+
+function getHeaders(token) {
+  if (token) {
+    return {
+      Authorization: "Bearer " + token,
+      Accept: "text/turtle; charset=utf-8",
+    }
+  } else {
+    return {
+      Accept: "text/turtle; charset=utf-8",
+    }
+  }
+}
 
 function loadFile(event) {
   let file = event.target.files[0];

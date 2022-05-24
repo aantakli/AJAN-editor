@@ -73,8 +73,9 @@ export default Component.extend({
 	isLoading: computed
 		.or("filterAndSortModel.isRunning", "setRows.isRunning")
 		.readOnly(),
-	showTable: true,
-	modeChanged: observer("mode", "dataFormat", "data", function() {
+  showTable: true,
+
+  modeChanged: observer("mode", "dataFormat", "data", function () {
 		switch (this.get("mode")) {
 			case "all":
 				this.set("columns", triples);
@@ -83,8 +84,13 @@ export default Component.extend({
 				this.set("columns", triples);
 				break;
 			case "query":
-				this.set("columns", queryDependant);
-				if (this.get("dataFormat") === "RDF") this.set("columns", triples);
+        this.set("columns", queryDependant);
+        if (this.get("dataFormat") === "RDF") this.set("columns", triples);
+        else if (this.get("dataFormat") === "TABLE") {
+          if (this.get("tableData")) {
+            this.set("columns", calculateColumns(this.get("tableData")));
+          }
+        }
 				else if (this.get("dataFormat") === "BOOL") {
 					this.set("showTable", false);
 					return;
@@ -101,39 +107,51 @@ export default Component.extend({
 		this.get("filterAndSortModel").perform();
 	}),
 
-	columns: computed(function() {
-		return [
-			{
-				label: "Subject",
-				valuePath: "subject",
-				resizable: true,
-				minResizeWidth: 100,
-				width: "33%"
-			},
-			{
-				label: "Predicate",
-				valuePath: "predicate",
-				resizable: true,
-				minResizeWidth: 100,
-				width: "34%"
-			},
-			{
-				label: "Object",
-				valuePath: "object",
-				resizable: true,
-				minResizeWidth: 100,
-				width: "33%"
-			}
-		];
-	}),
-	defaultRows: undefined,
-	rows: computed("tableData", function() {
-		let tableData = this.get("tableData");
+  columns: computed(function () {
+    if (this.get("dataFormat") === "RDF") {
+      return [
+        {
+          label: "Subject",
+          valuePath: "subject",
+          resizable: true,
+          minResizeWidth: 100,
+          width: "33%"
+        },
+        {
+          label: "Predicate",
+          valuePath: "predicate",
+          resizable: true,
+          minResizeWidth: 100,
+          width: "34%"
+        },
+        {
+          label: "Object",
+          valuePath: "object",
+          resizable: true,
+          minResizeWidth: 100,
+          width: "33%"
+        }
+      ];
+    } else if (this.get("dataFormat") === "TABLE") {
+      return calculateColumns(this.get("tableData"));
+    }
+  }),
+
+  defaultRows: undefined,
+
+  rows: computed("tableData", function () {
+    let tableData = this.get("tableData");
+    if(this.get("tableData")) {
+      this.set("columns", calculateColumns(this.get("tableData")));
+    }
 		this.set("defaultRows", tableData ? tableData.slice() : undefined);
 		return filterRows(tableData, this.get("filter"));
 	}),
 
-	table: computed("model", "rows", "columns", function() {
+  table: computed("model", "rows", "columns", function () {
+    if (this.get("tableData")) {
+      this.set("columns", calculateColumns(this.get("tableData")));
+    }
 		return new Table(this.get("columns"), this.get("rows"), {enableSync: true});
 	}),
 
@@ -163,3 +181,21 @@ export default Component.extend({
 		}
 	}
 });
+
+function calculateColumns(data) {
+  let array = [];
+  let object = data[0];
+  let size = Object.keys(object).length;
+
+  for (const [key, value] of Object.entries(object)) {
+    array.push({
+      label: key,
+      valuePath: key,
+      resizable: true,
+      minResizeWidth: 100,
+      width: (100/size)+"%"
+      }
+    );
+  }
+  return array;
+}

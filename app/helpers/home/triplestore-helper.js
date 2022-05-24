@@ -35,6 +35,7 @@ function bindEnter($input, callback) {
 }
 
 function clearNewTriplestoreInput() {
-	$("#label").val("");
+  $("#label").val("");
+  $("#secured").checked;
 	$("#uri").val("");
 }

@@ -31,7 +31,7 @@ function getOptions(that) {
 		showPrintMargin: false,
 		//theme: "ace/theme/chaos",
 		mode: "ace/mode/sparql",
-		value: "SELECT DISTINCT *\nWHERE{\n\t?s ?p ?o  \n}",
+		value: "CONSTRUCT \nWHERE{\n\t?s ?p ?o  \n}",
 
 		scrollPastEnd: 1,
 

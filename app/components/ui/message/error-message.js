@@ -24,12 +24,14 @@ export default Component.extend({
 	defaultMessage: "Unhelpful error message!",
 	didInsertElement() {
 		let toast = $("#error-message");
-		toast.on("showToast", function(event, message) {
+    toast.on("showToast", function (event, message, reload) {
 			if (message) toast.text(message);
 			else toast.text(this.defaultMessage);
 			toast.addClass("show");
 			setTimeout(function() {
-				toast.removeClass("show");
+        toast.removeClass("show");
+        if (reload)
+          window.location.reload();
 			}, 5000);
 		});
 	}

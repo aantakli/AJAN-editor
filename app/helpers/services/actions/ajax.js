@@ -18,7 +18,7 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import actions from "ajan-editor/helpers/services/actions";
+import tokenizer from "ajan-editor/helpers/token";
 import servicesHlp from "ajan-editor/helpers/RDFServices/servicesRDFConsumer";
 import Ember from "ember";
 import {
@@ -33,106 +33,138 @@ let actionList = undefined;
 export default {
 	getActions: function() {
 		return actionList;
-	},
+  },
 
-	// Gets entire graph from server
-	getFromServer: function(ajax, tripleStoreRepository) {
-		let ajaxPromise = ajax.post(tripleStoreRepository, {
-			contentType: "application/sparql-query; charset=utf-8",
-			headers: {
-				Accept: "application/ld+json"
-			},
-			// SPARQL query
-			data: SparqlQueries.constructGraph
-		});
-		let promisedRdfGraph = ajaxPromise.then(
-			function(data) {
-				// On accept
-				//console.log('Entire graph:', data);
-				let actionsGraph = servicesHlp.getActionsGraph(data);
-				let promise = Promise.resolve(actionsGraph);
-				let promiseValue = promise.then(function(servicesResolved) {
-					// Parse the behaviors graph
-					//console.log('behaviorsResolved', behaviorsResolved)
-					actionList = servicesResolved[0];
-					let rdfGraph = servicesResolved[1];
-					return rdfGraph;
-				});
-				return promiseValue;
-			},
-			function(jqXHR) {
-				// On reject
-				console.log("Request failed", jqXHR);
-			}
-		);
-		return promisedRdfGraph;
-	},
+  // Gets entire graph from server
+  getFromServer: function (ajax, tripleStoreRepository) {
+    let result = Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
+      .then((token) => loadServicesRepo(ajax, tripleStoreRepository, token));
+    return Promise.resolve(result);
+  },
 
-	saveGraph: function(ajax, tripleStoreRepository, databus, type) {
-		console.log("Saving to triple store: ", tripleStoreRepository);
-
-		let postDestination = tripleStoreRepository + "/statements";
-		let rdfString = rdfGraph.toString();
-		console.log(rdfString);
-		let query = SparqlQueries.update(rdfString);
-		let dataString = $.param({update: query});
-
-		// Keep local copy of saved stuff
-		localStorage.setItem(
-			"rdf_graph_saved_T-2",
-			localStorage.getItem("rdf_graph_saved_T-1")
-		);
-		localStorage.setItem("rdf_graph_saved_T-1", dataString);
-
-		ajax
-			.post(postDestination, {
-				contentType: "application/x-www-form-urlencoded; charset=utf-8",
-				headers: {
-					Accept: "application/ld+json"
-				},
-				// SPARQL query
-				data: dataString
-      }).then(x => {
-        if (databus != undefined) {
-          console.log(databus);
-          if (type === "updated")
-            databus.updatedSG();
-          if (type === "deleted")
-            databus.deletedSG();
-        }
-      }).catch(function(error) {
-				if (isServerError(error)) {
-					// handle 5XX errors
-
-					let restoreID = "rdf_graph_saved_T-2";
-					let restoredItem = localStorage.getItem(restoreID);
-					ajax
-						.post(postDestination, {
-							contentType: "application/x-www-form-urlencoded; charset=utf-8",
-							headers: {
-								Accept: "application/ld+json"
-							},
-							// SPARQL query
-							data: restoredItem
-						})
-						.then(
-							function(data) {
-								// On accept
-								console.log("Request success", data);
-							},
-							function(jqXHR) {
-								// On reject
-								console.log("Request failed", jqXHR);
-							}
-						);
-					alert("Reloading previous save");
-					location.reload();
-
-					return;
-				}
-				throw error;
-			});
-
-		rdfGraph.unsavedChanges = false;
-	}
+  // save to repository
+  saveGraph: function (ajax, tripleStoreRepository, databus, type) {
+    Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
+      .then((token) => updateServicesRepo(ajax, tripleStoreRepository, databus, type, token));
+  }
 };
+
+function getHeaders(token) {
+  if (token) {
+    return {
+      Authorization: "Bearer " + token,
+      Accept: "application/ld+json",
+    }
+  } else {
+    return {
+      Accept: "application/ld+json",
+    }
+  }
+}
+
+function loadServicesRepo(ajax, tripleStoreRepository, token) {
+  let ajaxPromise = ajax.post(tripleStoreRepository, {
+    contentType: "application/sparql-query; charset=utf-8",
+    headers: getHeaders(token),
+    // SPARQL query
+    data: SparqlQueries.constructGraph
+  }).catch(function (error) {
+    tokenizer.removeToken(localStorage.currentStore);
+    $("#error-message").trigger("showToast", [
+      "Error while accessing services repository! Check if repository is accessible or secured!", true
+    ]);
+  });
+
+  let promisedRdfGraph = ajaxPromise.then(
+    function (data) {
+      // On accept
+      //console.log('Entire graph:', data);
+      let actionsGraph = servicesHlp.getActionsGraph(data);
+      let promise = Promise.resolve(actionsGraph);
+      let promiseValue = promise.then(function (servicesResolved) {
+        // Parse the behaviors graph
+        //console.log('behaviorsResolved', behaviorsResolved)
+        actionList = servicesResolved[0];
+        let rdfGraph = servicesResolved[1];
+        return rdfGraph;
+      });
+      return promiseValue;
+    },
+    function (jqXHR) {
+      // On reject
+      console.log("Request failed", jqXHR);
+    }
+  );
+  return promisedRdfGraph;
+}
+
+function updateServicesRepo(ajax, tripleStoreRepository, databus, type, token) {
+  console.log("Saving to triple store: ", tripleStoreRepository);
+
+  let postDestination = tripleStoreRepository + "/statements";
+  let rdfString = rdfGraph.toString();
+  if (rdfString === "@prefix xsd: <http://www.w3.org/2001/XMLSchema#>") {
+    rdfString = "";
+  }
+  let query = SparqlQueries.update(rdfString);
+  let dataString = $.param({ update: query });
+
+  // Keep local copy of saved stuff
+  localStorage.setItem(
+    "rdf_graph_saved_T-2",
+    localStorage.getItem("rdf_graph_saved_T-1")
+  );
+  localStorage.setItem("rdf_graph_saved_T-1", dataString);
+  console.log(dataString);
+  console.log(postDestination);
+  ajax
+    .post(postDestination, {
+      contentType: "application/x-www-form-urlencoded; charset=utf-8",
+      headers: getHeaders(token),
+      // SPARQL query
+      data: dataString
+    }).then(x => {
+      if (databus != undefined) {
+        console.log(databus);
+        if (type === "updated")
+          databus.updatedSG();
+        if (type === "deleted")
+          databus.deletedSG();
+      }
+    }).catch(function (error) {
+      if (isServerError(error)) {
+        // handle 5XX errors
+
+        let restoreID = "rdf_graph_saved_T-2";
+        let restoredItem = localStorage.getItem(restoreID);
+        ajax
+          .post(postDestination, {
+            contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            headers: getHeaders(token),
+            // SPARQL query
+            data: restoredItem
+          })
+          .then(
+            function (data) {
+              // On accept
+              console.log("Request success", data);
+            },
+            function (jqXHR) {
+              // On reject
+              console.log("Request failed", jqXHR);
+            }
+          );
+        alert("Reloading previous save");
+        location.reload();
+
+        return;
+      } else {
+        tokenizer.removeToken(localStorage.currentStore);
+        /*Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
+          .then((token) => updateServicesRepo(ajax, tripleStoreRepository, databus, type, token));*/
+      }
+      throw error;
+    });
+
+  rdfGraph.unsavedChanges = false;
+}

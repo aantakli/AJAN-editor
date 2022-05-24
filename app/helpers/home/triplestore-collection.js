@@ -56,13 +56,20 @@ class TriplestoreCollection {
 
 function getNewTriplestore() {
 	return {
-		label: getLabel(),
+    label: getLabel(),
+    secured: getSecured(),
+    token: "",
+    expiration: 0,
 		uri: getURI()
 	};
 }
 
 function getLabel() {
 	return $("#label").val();
+}
+
+function getSecured() {
+  return $("#secured")[0].checked;
 }
 
 function getURI() {

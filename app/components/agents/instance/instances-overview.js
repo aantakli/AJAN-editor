@@ -44,6 +44,7 @@ export default Ember.Component.extend({
   init() {
     this._super(...arguments);
     that = this;
+    setTriplestoreField();
 
     this.get('dataBus').on('deletedAI', function () {
       that.actions.loadAgents();
@@ -93,7 +94,7 @@ export default Ember.Component.extend({
         that.actions.setActiveInstance(data[0]);
       }).catch(function (error) {
         alert("The specified AJAN service is not available!");
-      });;
+      });
     }
   },
 
@@ -117,10 +118,14 @@ function initializeAjax() {
   globals.ajax = ajax;
 }
 
+function setTriplestoreField() {
+  $(".store-url").text(localStorage.currentStore);
+}
+
 function loadAgentRdfGraphData() {
   let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
     + globals.agentsRepository;
-  templateActns.getAgentFromServer(ajax, repo).then(agentRDFDataHasLoaded);
+  templateActns.getFromServer(ajax, repo).then(agentRDFDataHasLoaded);
 }
 
 function agentRDFDataHasLoaded(rdfData) {
@@ -131,10 +136,21 @@ function agentRDFDataHasLoaded(rdfData) {
 
 function setAvailableTemaplates() {
   let templates = templateActns.getAgents();
+  console.log(templates);
   that.set("availableTemplates", templates);
 }
 
 function createModal() {
+
+  if (!localStorage.getItem("initAgents")) {
+    console.log("empty");
+    let initAgents = {};
+    localStorage.setItem("initAgents", JSON.stringify(initAgents));
+    console.log(localStorage.initAgents);
+  }
+
+  let $textAreaInput;
+
   $("#modal-header-title").text("New Agent Instance");
   let $body = $("#modal-body"),
     $modal = $("#universal-modal");
@@ -150,11 +166,42 @@ function createModal() {
     id: "label-input",
     placeholder: "ID"
   });
+
+  $labelInput.change(function () {
+    let agentId = $labelInput.val();
+    let storage = JSON.parse(localStorage.initAgents);
+    if (storage[agentId]) {
+      $textAreaInput.val(storage[agentId]);
+    }
+  });
+
   let $labelDiv = $("<div>", {
     class: "modal-body-div"
   }).append($labelTitle, $labelInput);
   // Append to modal body
   $body.append($labelDiv);
+
+  // Credentials
+  let $credentialsTitle = $("<p>", {
+    class: "modal-p"
+  }).text("Credentials (Optional, if agent knowledge base is secured): ");
+  let $userInput = $("<input>", {
+    class: "modal-input",
+    id: "user-input",
+    placeholder: "User",
+  });
+
+  let $roleInput = $("<input>", {
+    class: "modal-input",
+    id: "role-input",
+    placeholder: "Role",
+  });
+  let $pswdInput = $("<input type='password' id='pswd-input'>", {});
+  let $credentialsDiv = $("<div>", {
+    class: "modal-body-div"
+  }).append($credentialsTitle, $userInput, $roleInput, $pswdInput);
+  // Append to modal body
+  $body.append($credentialsDiv);
 
   // Dropdown
   let $dropdownTitle = $("<p>", {
@@ -171,13 +218,14 @@ function createModal() {
   let $textAreaTitle = $("<p>", {
     class: "modal-p"
   }).text("Initial Knowledge: ");
-  let $textAreaInput = $("<textarea>", {
+  $textAreaInput = $("<textarea>", {
     class: "modal-textarea",
     id: "textarea-input",
-    rows: 6,
-    cols: 50,
+    rows: 10,
+    cols: 62,
     placeholder: "Insert RDF/Turtle Graph!",
   });
+
   let $textAreaDiv = $("<div>", {
     class: "modal-body-div"
   }).append($textAreaTitle, $textAreaInput);
@@ -196,10 +244,20 @@ function createModal() {
 
 function createAgentInitEvent() {
   $("#select-agent-templates").show().appendTo("#templates-wrapper");
-  createInitMessage($("#label-input").val(), that.get("selectedTemplate"), $("#textarea-input").val());
+  createInitMessage(
+    $("#label-input").val(),
+    $("#user-input").val(),
+    $("#role-input").val(),
+    $("#pswd-input").val(),
+    that.get("selectedTemplate"),
+    $("#textarea-input").val());
 }
 
-function createInitMessage(label, templateUri, knowledge) {
+function createInitMessage(label, user, role, pswd, templateUri, knowledge) {
+  let list = JSON.parse(localStorage.initAgents);
+  list[label] = knowledge;
+  localStorage.setItem("initAgents", JSON.stringify(list));
+
   console.log(templateUri);
   if (label === "") {
     $("#error-message").trigger("showToast", [
@@ -216,10 +274,21 @@ function createInitMessage(label, templateUri, knowledge) {
   let type = "_:init <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ajan.de/ajan-ns#AgentInitialisation> . ";
   let name = "_:init <http://www.ajan.de/ajan-ns#agentId> '" + label + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
   let tmpl = "_:init <http://www.ajan.de/ajan-ns#agentTemplate> <" + templateUri + "> . ";
+  let credentials = "";
+
+  if (user != null && user != "" && role != null && role != "" && pswd != null && pswd != "") {
+    let repo = "http://localhost:8090/dummy-service/token";
+    credentials = "_:init <http://www.ajan.de/ajan-ns#agentTokenController> '" + repo + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
+    credentials += "_:init <http://www.ajan.de/ajan-ns#agentUser> '" + user + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
+    credentials += "_:init <http://www.ajan.de/ajan-ns#agentRole> '" + role + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
+    credentials += "_:init <http://www.ajan.de/ajan-ns#agentPassword> '" + pswd + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
+    console.log(credentials);
+  }
+
   let know = getAgentInitKnowledge(knowledge);
   Promise.resolve(know).then(x => {
     if (x != undefined) {
-      let content = type + name + tmpl + x + knowledge;
+      let content = type + name + tmpl + credentials + x + knowledge;
       let agents = actions.createAgent(that.get("ajanService"), content);
       Promise.resolve(agents).then(function (data) {
         that.actions.loadAgents();

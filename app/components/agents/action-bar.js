@@ -26,6 +26,7 @@ import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import queries from "ajan-editor/helpers/RDFServices/queries";
 import modal from "ajan-editor/helpers/ui/import-modal";
 import actions from "ajan-editor/helpers/agents/actions";
+import token from "ajan-editor/helpers/token";
 
 let $ = Ember.$;
 let repo = undefined;
@@ -33,6 +34,7 @@ let that = undefined;
 
 export default Component.extend({
   dataBus: Ember.inject.service('data-bus'),
+  ajax: Ember.inject.service(),
   fileName: "agents.ttl",
   fileContent: "",
   agentDefs: [],
@@ -46,17 +48,18 @@ export default Component.extend({
       globals.agentsRepository;
 
     this.get('dataBus').on('updatedAG', function () {
-      $.ajax({
-        url: repo,
-        type: "POST",
-        contentType: "application/sparql-query; charset=utf-8",
-        headers: {
-          Accept: "text/turtle; charset=utf-8"
-        },
-        data: queries.constructGraph
-      }).then(function (data) {
-        that.set("fileContent", URL.createObjectURL(new Blob([data])));
-      });
+      Promise.resolve(token.resolveToken(that.ajax, localStorage.currentStore))
+        .then((token) => {
+          $.ajax({
+            url: repo,
+            type: "POST",
+            contentType: "application/sparql-query; charset=utf-8",
+            headers: getHeaders(token),
+            data: queries.constructGraph
+          }).then(function (data) {
+            that.set("fileContent", URL.createObjectURL(new Blob([data])));
+          });
+        });
     });
 
     this.get('dataBus').on('updateAgentDefs', function (defs) {
@@ -76,14 +79,28 @@ export default Component.extend({
   }
 });
 
+function getHeaders(token) {
+  if (token) {
+    return {
+      Authorization: "Bearer " + token,
+      Accept: "text/turtle; charset=utf-8",
+    }
+  } else {
+    return {
+      Accept: "text/turtle; charset=utf-8",
+    }
+  }
+}
+
 function loadRepo(event) {
   let file = event.target.files[0];
   console.log("File: " + file.name);
   var reader = new FileReader();
   reader.onload = function () {
     let content = reader.result;
-    deleteRepo(repo, queries.deleteAll())
-      .then(sendFile(repo, content))
+    console.log(content);
+    deleteRepo(that.ajax, repo, queries.deleteAll())
+      .then(sendFile(that.ajax, repo, content))
       .then(window.location.reload());
   };
   reader.readAsText(file);

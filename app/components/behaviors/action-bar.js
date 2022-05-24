@@ -26,6 +26,7 @@ import { sendFile, deleteRepo } from "ajan-editor/helpers/RDFServices/ajax/query
 import queries from "ajan-editor/helpers/RDFServices/queries";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import modal from "ajan-editor/helpers/ui/import-modal";
+import token from "ajan-editor/helpers/token";
 
 let $ = Ember.$;
 let repo = undefined;
@@ -33,6 +34,7 @@ let that = undefined;
 
 export default Component.extend({
   dataBus: Ember.inject.service('data-bus'),
+  ajax: Ember.inject.service(),
   repoFileName: "behaviors.ttl",
   availableBTs: undefined,
   repoContent: "",
@@ -56,16 +58,17 @@ export default Component.extend({
     });
 
     this.get('dataBus').on('updatedBT', function () {
-      $.ajax({
-        url: repo,
-        type: "POST",
-        contentType: "application/sparql-query; charset=utf-8",
-        headers: {
-          Accept: "text/turtle; charset=utf-8"
-        },
-        data: queries.constructGraph
-      }).then(function (data) {
-        that.set("repoContent", URL.createObjectURL(new Blob([data])));
+      Promise.resolve(token.resolveToken(that.ajax, localStorage.currentStore))
+        .then((token) => {
+          $.ajax({
+            url: repo,
+            type: "POST",
+            contentType: "application/sparql-query; charset=utf-8",
+            headers: getHeaders(token),
+            data: queries.constructGraph
+          }).then(function (data) {
+            that.set("repoContent", URL.createObjectURL(new Blob([data])));
+          });
       });
     });
   },
@@ -111,20 +114,31 @@ export default Component.extend({
   }
 });
 
+function getHeaders(token) {
+  if (token) {
+    return {
+      Authorization: "Bearer " + token,
+      Accept: "text/turtle; charset=utf-8",
+    }
+  } else {
+    return {
+      Accept: "text/turtle; charset=utf-8",
+    }
+  }
+}
+
 function saveGraph(content) {
   if (content != undefined && content.length > 0) {
     rdfGraph.addAll(content);
   }
   try {
     actions.saveGraph(globals.ajax, repo, globals.cy);
-    $("#save-confirmation").trigger("showToast");
   } catch (e) {
     $("#error-message").trigger("showToast", [
       "Error while saving Behavior Tree"
     ]);
     throw e;
   }
-  window.location.reload();
 }
 
 function loadBT(event) {
@@ -144,8 +158,8 @@ function loadRepo(event) {
   var reader = new FileReader();
   reader.onload = function () {
     let content = reader.result;
-    deleteRepo(repo, queries.deleteAll())
-      .then(sendFile(repo, content))
+    deleteRepo(that.ajax, repo, queries.deleteAll())
+      .then(sendFile(that.ajax, repo, content))
       .then(window.location.reload());
   };
   reader.readAsText(file);

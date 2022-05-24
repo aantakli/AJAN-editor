@@ -61,7 +61,7 @@ export default Ember.Component.extend({
     this._super(...arguments);
     self = this;
     initializeGlobals(this);
-  
+    
     loadRdfGraphData();
 	
     setTriplestoreField();
@@ -228,11 +228,7 @@ function loadNodeDefinitionsThenGraph() {
 function loadRdfGraphData() {
 	let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
             + globals.agentsRepository;
-  actions.getAgentFromServer(ajax, repo).then(agentrdfDataHasLoaded)
-    .then(actions.getBehaviorsFromServer(ajax, repo).then(behaviorrdfDataHasLoaded)
-      .then(actions.getEventsFromServer(ajax, repo).then(eventrdfDataHasLoaded)
-        .then(actions.getEndpointsFromServer(ajax, repo).then(endpointrdfDataHasLoaded)
-          .then(actions.getGoalsFromServer(ajax, repo).then(goalrdfDataHasLoaded)))));
+  actions.getFromServer(ajax, repo).then(rdfDataHasLoaded);
 }
 
 function loadbtRdfGraphData() {
@@ -241,33 +237,14 @@ function loadbtRdfGraphData() {
 	btActions.getFromServer(cy, ajax, repo).then(btrdfDataHasLoaded);
 }
 
-function agentrdfDataHasLoaded(rdfData) {
+function rdfDataHasLoaded(rdfData) {
+  console.log(rdfData);
 	rdfGraph.reset();
 	rdfGraph.set(rdfData);
-	setAvailableAgents();
-}
-
-function behaviorrdfDataHasLoaded(rdfData) {
-	rdfGraph.reset();
-	rdfGraph.set(rdfData);
+  setAvailableAgents();
   setAvailableBehaviors();
-}
-
-function eventrdfDataHasLoaded(rdfData) {
-	rdfGraph.reset();
-	rdfGraph.set(rdfData);
-	setAvailableEvents();
-}
-
-function endpointrdfDataHasLoaded(rdfData) {
-	rdfGraph.reset();
-	rdfGraph.set(rdfData);
-	setAvailableEndpoints();
-}
-
-function goalrdfDataHasLoaded(rdfData) {
-	rdfGraph.reset();
-	rdfGraph.set(rdfData);
+  setAvailableEndpoints();
+  setAvailableEvents();
   setAvailableGoals();
   updateActionBar();
 }
@@ -279,36 +256,46 @@ function btrdfDataHasLoaded(rdfData) {
 function setAvailableAgents() {
 	let agents = actions.getAgents();
 	self.set("availableAgents", agents);
-	if (agents.length > 0) {
+  if (agents && agents.length > 0) {
 		self.actions.setActiveAgent(agents[0]);
 	}
 }
 
 function setAvailableBehaviors() {
-	let behaviors = actions.getBehaviors();
-  self.set("availableBehaviors", behaviors);
+  let behaviors = actions.getBehaviors();
+  if (behaviors) {
+    self.set("availableBehaviors", behaviors);
+  }
 }
 
 function setAvailableEvents() {
-	let events = actions.getEvents();
-  self.set("availableEvents", events);
+  let events = actions.getEvents();
+  if (events) {
+    self.set("availableEvents", events);
+  }
 }
 
 function setAvailableEndpoints() {
-	let endpoints = actions.getEndpoints();
-  self.set("availableEndpoints", endpoints);
+  let endpoints = actions.getEndpoints();
+  if (endpoints) {
+    self.set("availableEndpoints", endpoints);
+  }
 }
 
 function setAvailableGoals() {
   let goals = actions.getGoals();
-	self.set("availableGoals", goals);
-	let EventsandGoals=self.get("availableEvents").concat(self.get("availableGoals"));
-	self.set("availableEventsandGoals",EventsandGoals);
+  if (goals) {
+    self.set("availableGoals", goals);
+    let EventsandGoals = self.get("availableEvents").concat(self.get("availableGoals"));
+    self.set("availableEventsandGoals", EventsandGoals);
+  }
 }
 
 function setAvailableBTs() {
-	let bts = btActions.getBehaviorTrees();
-	self.set("availableBTs", bts);
+  let bts = btActions.getBehaviorTrees();
+  if (bts) {
+    self.set("availableBTs", bts);
+  }
 }
 
 function updateRepo() {

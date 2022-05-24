@@ -54,7 +54,8 @@ class TriplestoreListing {
 
 	createFields() {
 		this.$wrapper = htmlGen.listingWrapper(this.triplestore);
-		this.$label = htmlGen.divLabel(this.triplestore);
+    this.$label = htmlGen.divLabel(this.triplestore);
+    this.$secured = htmlGen.divSecured(this.triplestore);
 		this.$uri = htmlGen.divURI(this.triplestore);
 		this.$buttons = htmlGen.buttons();
 	}
@@ -69,7 +70,7 @@ class TriplestoreListing {
 	}
 
 	attachFields() {
-		this.$wrapper.append(this.$label, this.$uri, this.$buttons);
+		this.$wrapper.append(this.$label, this.$uri, this.$secured, this.$buttons);
 		this.$parent.append(this.$wrapper);
 	}
 
@@ -124,7 +125,8 @@ class TriplestoreListing {
 	}
 
 	setInputFields() {
-		this.$inputLabel = htmlGen.inputLabel(this.triplestore);
+    this.$inputLabel = htmlGen.inputLabel(this.triplestore);
+    this.$inputSecured = htmlGen.inputSecured(this.triplestore);
 		this.$inputURI = htmlGen.inputURI(this.triplestore);
 	}
 
@@ -149,9 +151,11 @@ class TriplestoreListing {
 
 	enableEditMode() {
 		this.setInputFields();
-		this.$label.empty().append(this.$inputLabel);
+    this.$label.empty().append(this.$inputLabel);
+    this.$secured.empty().append(this.$inputSecured);
 		this.$uri.empty().append(this.$inputURI);
-		this.bindInputEnter(this.$inputLabel);
+    this.bindInputEnter(this.$inputLabel);
+    this.bindInputEnter(this.$inputSecured);
 		this.bindInputEnter(this.$inputURI);
 	}
 
@@ -164,31 +168,39 @@ class TriplestoreListing {
 
 	disableEditMode() {
 		this.updateTriplestore();
-		this.$label.empty().text(this.triplestore.label);
+    this.$label.empty().text(this.triplestore.label);
+
+    if (this.triplestore.secured) {
+      this.$secured.empty().append("<i class='key icon'>");
+    } else {
+      this.$secured.empty();
+    }
 		this.$uri.empty().text(this.triplestore.uri);
 	}
 
 	updateTriplestore() {
-		let newLabel = this.$inputLabel.val();
+    let newLabel = this.$inputLabel.val();
+    let newSecured = this.$inputSecured[1].checked;
 		let newUri = fixUri(this.$inputURI.val());
-		if (this.triplestoreValuesChanged(newLabel, newUri)) {
+    if (this.triplestoreValuesChanged(newLabel, newSecured, newUri)) {
 			let {
 				triplestores,
 				triplestoreIndex
 			} = this.findMatchingTriplestoreInStorage();
-			this.updateThisTriplestore(newLabel, newUri);
+      this.updateThisTriplestore(newLabel, newSecured, newUri);
 			this.updateStorageTriplestore(triplestores, triplestoreIndex);
 		}
 	}
 
-	triplestoreValuesChanged(newLabel, newUri) {
+	triplestoreValuesChanged(newLabel, newSecured, newUri) {
 		return (
-			newUri !== this.triplestore.uri || newLabel !== this.triplestore.label
+      newUri !== this.triplestore.uri || newSecured !== this.triplestore.secured || newLabel !== this.triplestore.label
 		);
 	}
 
-	updateThisTriplestore(newLabel, newUri) {
-		this.triplestore.uri = newUri;
+  updateThisTriplestore(newLabel, newSecured, newUri) {
+    this.triplestore.uri = newUri;
+    this.triplestore.secured = newSecured;
 		this.triplestore.label = newLabel;
 	}
 

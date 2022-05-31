@@ -1968,6 +1968,56 @@
         nd:type bt:SelectQuery;
     ].
 
+:PublishMessageRDF nd:class nd:Leaf;
+	nd:category "MQTT Nodes";
+	nd:name "PublishMQTTMessageRDF";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultPublishMQTTMessageRDF";
+    nd:type bt-mqtt:PublishMessageRDF;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#ddf2f7";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "icons8-tree-loadbt.png";
+    ];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mqtt:serverUrlCallback;
+	    nd:title "Server URL: ?serverUrl";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mqtt:publishDetails;
+	    nd:title "Topic and Message: ?topic";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ];
+	nd:parameter [
+		a nd:Parameter;
+		nd:mapsTo bt-mqtt:contentType;
+		nd:title "Content-Type";
+		nd:input xsd:string ;
+		nd:default "text/turtle"^^xsd:string;
+	];
+	nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mqtt:rdfMessage;
+	    nd:title "RDF Message: (Construct Query)";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:ConstructQuery;
+    ].
+
 :UnsubscribeMQTTTopic nd:class nd:Leaf;
     nd:category "MQTT Nodes";
 	nd:name "UnsubscribeMQTTTopic";
@@ -1994,8 +2044,8 @@
     ];
     nd:parameter [
 	    a nd:Parameter;
-	    nd:mapsTo bt-mqtt:subscribeDetails;
-	    nd:title "Topic: ?topic";
+	    nd:mapsTo bt-mqtt:unsubscribeDetails;
+	    nd:title "Id & Topic: ?id ?topic";
 	    nd:input nd:Query;
         bt:originBase "true";
         bt:targetBase "false";
@@ -2004,7 +2054,7 @@
 
 :SubscribeMQTTTopic nd:class nd:Leaf;
 	nd:category "MQTT Nodes";
-	nd:name "SubscribeMQTTTopic";
+	nd:name "Subscribe2MQTTTopic";
     nd:labelType nd:Dynamic;
     rdfs:label "DefaultSubscribeTopic";
     nd:type bt-mqtt:SubscribeTopic;
@@ -2051,9 +2101,9 @@
 
 :SubscribeTopicAlwaysListen nd:class nd:Leaf;
 	nd:category "MQTT Nodes";
-	nd:name "Subscribe2MQTTTopic&AlwaysListen";
+	nd:name "Subscribe2MQTTTopic_AlwaysListen";
     nd:labelType nd:Dynamic;
-    rdfs:label "DefaultSubscribeTopicAlwaysListen";
+    rdfs:label "DefaultSubscribeTopic_AlwaysListen";
     nd:type bt-mqtt:SubscribeTopicAlwaysListen;
     nd:style [
         a nd:StyleDef;
@@ -2098,9 +2148,9 @@
 
 :SubscribeTopicProduceEvent nd:class nd:Leaf;
 	nd:category "MQTT Nodes";
-	nd:name "Subscribe2MQTTTopic&ProduceEvent";
+	nd:name "Subscribe2MQTTTopic_ProduceEvent";
     nd:labelType nd:Dynamic;
-    rdfs:label "DefaultSubscribeTopicProduceEvent";
+    rdfs:label "DefaultSubscribeTopic_ProduceEvent";
     nd:type bt-mqtt:SubscribeTopicProduceEvent;
     nd:style [
         a nd:StyleDef;

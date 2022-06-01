@@ -1910,12 +1910,12 @@
     nd:type bt-mqtt:CreateMQTTBroker;
     nd:style [
         a nd:StyleDef;
-        nd:color "#ddf2f7";
+        nd:color "#ebe8ed";
         nd:shape nd:Polygon;
         nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
         nd:padding "700%";
         nd:paddingTo "width";
-        nd:icon "createCallbackServer.png";
+        nd:icon "mqtt_broker.png";
     ].
 
 :DeleteMQTTBroker nd:class nd:Leaf;
@@ -1926,12 +1926,12 @@
     nd:type bt-mqtt:DeleteMQTTBroker;
     nd:style [
         a nd:StyleDef;
-        nd:color "#ddf2f7";
+        nd:color "#ebe8ed";
         nd:shape nd:Polygon;
         nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
         nd:padding "700%";
         nd:paddingTo "width";
-        nd:icon "deleteCallbackServer.png";
+        nd:icon "mqtt_broker_close.png";
     ].
 
 :PublishMQTTMessage nd:class nd:Leaf;
@@ -1942,12 +1942,12 @@
     nd:type bt-mqtt:PublishMessage;
     nd:style [
         a nd:StyleDef;
-        nd:color "#ddf2f7";
+        nd:color "#ebe8ed";
         nd:shape nd:Polygon;
         nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
         nd:padding "700%";
         nd:paddingTo "width";
-        nd:icon "icons8-tree-loadbt.png";
+        nd:icon "mqtt_pub.png";
     ];
     nd:parameter [
 	    a nd:Parameter;
@@ -1976,12 +1976,12 @@
     nd:type bt-mqtt:PublishMessageRDF;
     nd:style [
         a nd:StyleDef;
-        nd:color "#ddf2f7";
+        nd:color "#ebe8ed";
         nd:shape nd:Polygon;
         nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
         nd:padding "700%";
         nd:paddingTo "width";
-        nd:icon "icons8-tree-loadbt.png";
+        nd:icon "mqtt_pub_rdf.png";
     ];
     nd:parameter [
 	    a nd:Parameter;
@@ -2018,40 +2018,6 @@
         nd:type bt:ConstructQuery;
     ].
 
-:UnsubscribeMQTTTopic nd:class nd:Leaf;
-    nd:category "MQTT Nodes";
-	nd:name "UnsubscribeMQTTTopic";
-    nd:labelType nd:Dynamic;
-    rdfs:label "DefaultSubscribeTopic";
-    nd:type bt-mqtt:UnsubscribeTopic;
-    nd:style [
-        a nd:StyleDef;
-        nd:color "#ddf2f7";
-        nd:shape nd:Polygon;
-        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
-        nd:padding "700%";
-        nd:paddingTo "width";
-        nd:icon "icons8-new-post.png";
-    ];
-    nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mqtt:serverUrlCallback;
-	    nd:title "Server URL: ?serverUrl";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-    ];
-    nd:parameter [
-	    a nd:Parameter;
-	    nd:mapsTo bt-mqtt:unsubscribeDetails;
-	    nd:title "Id & Topic: ?id ?topic";
-	    nd:input nd:Query;
-        bt:originBase "true";
-        bt:targetBase "false";
-        nd:type bt:SelectQuery;
-   ].
-
 :SubscribeMQTTTopic nd:class nd:Leaf;
 	nd:category "MQTT Nodes";
 	nd:name "Subscribe2MQTTTopic";
@@ -2060,12 +2026,12 @@
     nd:type bt-mqtt:SubscribeTopic;
     nd:style [
         a nd:StyleDef;
-        nd:color "#ddf2f7";
+        nd:color "#ebe8ed";
         nd:shape nd:Polygon;
         nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
         nd:padding "700%";
         nd:paddingTo "width";
-        nd:icon "icons8-new-post.png";
+        nd:icon "mqtt_sub.png";
     ];
 	nd:parameter [
 		a nd:Parameter;
@@ -2107,12 +2073,12 @@
     nd:type bt-mqtt:SubscribeTopicAlwaysListen;
     nd:style [
         a nd:StyleDef;
-        nd:color "#ddf2f7";
+        nd:color "#ebe8ed";
         nd:shape nd:Polygon;
         nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
         nd:padding "700%";
         nd:paddingTo "width";
-        nd:icon "icons8-new-post.png";
+        nd:icon "mqtt_sub_all.png";
     ];
 	nd:parameter [
 		a nd:Parameter;
@@ -2154,12 +2120,12 @@
     nd:type bt-mqtt:SubscribeTopicProduceEvent;
     nd:style [
         a nd:StyleDef;
-        nd:color "#ddf2f7";
+        nd:color "#ebe8ed";
         nd:shape nd:Polygon;
         nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
         nd:padding "700%";
         nd:paddingTo "width";
-        nd:icon "icons8-new-post.png";
+        nd:icon "mqtt_sub_event.png";
     ];
 	nd:parameter [
         a nd:Parameter;
@@ -2185,6 +2151,40 @@
         bt:targetBase "false";
         nd:type bt:SelectQuery;
     ].
+
+:UnsubscribeMQTTTopic nd:class nd:Leaf;
+    nd:category "MQTT Nodes";
+	nd:name "UnsubscribeMQTTTopic_ProduceEvent";
+    nd:labelType nd:Dynamic;
+    rdfs:label "DefaultUnsubscribeMQTTTopic_ProduceEvent";
+    nd:type bt-mqtt:UnsubscribeTopic;
+    nd:style [
+        a nd:StyleDef;
+        nd:color "#ebe8ed";
+        nd:shape nd:Polygon;
+        nd:polygon "[-0.9, 0, -1, 1, 0.9, 1, 1, 0, 0.9, -1, -1, -1]";
+        nd:padding "700%";
+        nd:paddingTo "width";
+        nd:icon "mqtt_sub_event_close.png";
+    ];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mqtt:serverUrlCallback;
+	    nd:title "Server URL: ?serverUrl";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+    ];
+    nd:parameter [
+	    a nd:Parameter;
+	    nd:mapsTo bt-mqtt:unsubscribeDetails;
+	    nd:title "Id & Topic: ?id ?topic";
+	    nd:input nd:Query;
+        bt:originBase "true";
+        bt:targetBase "false";
+        nd:type bt:SelectQuery;
+   ].
 
 # --------------- Plugin X -------------------
 

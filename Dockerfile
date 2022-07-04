@@ -7,8 +7,8 @@ RUN mkdir app
 ADD . app/
 
 RUN cd app && npm install
-RUN npm install ember-cli
-RUN npm install bower
+RUN npm install -g ember-cli
+RUN npm install -g bower
 
 
 EXPOSE 4200/tcp

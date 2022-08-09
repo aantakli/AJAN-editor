@@ -75,16 +75,11 @@ function createLoginModal(ajax, repos, repo, tripleStoreRepository) {
   let $credentialsTitle = $("<p>", {
     class: "modal-p"
   }).text("User Credentials for: " + tripleStoreRepository);
-  let $userInput = $("<input>", {
-    class: "modal-input",
-    id: "user-input",
-    placeholder: "User",
-  });
 
   let $roleInput = $("<input>", {
     class: "modal-input",
     id: "role-input",
-    placeholder: "Role",
+    placeholder: "User",
   });
   let $pswdLabel = $("<span>", {}).text("Password: ");
   let $pswdInput = $("<input type='password' id='pswd-input'>", {});
@@ -99,7 +94,6 @@ function createLoginModal(ajax, repos, repo, tripleStoreRepository) {
   return new Promise((resolve, reject) => {
     elem.addEventListener("modal:confirm", function () {
       resolve(requestToken(ajax, repos, repo, tripleStoreRepository,
-        $("#user-input").val(),
         $("#role-input").val(),
         $("#pswd-input").val())
       );
@@ -107,8 +101,8 @@ function createLoginModal(ajax, repos, repo, tripleStoreRepository) {
   });
 }
 
-function requestToken(ajax, repos, repo, tripleStoreRepository, user, role, pswd) {
-  return ajax.raw("http://localhost:8090/tokenizer/token?userId=" + user + "&role=" + role + "&pswd=" + pswd + "", { type: "GET" })
+function requestToken(ajax, repos, repo, tripleStoreRepository, role, pswd) {
+  return ajax.raw("http://localhost:8090/tokenizer/token?role=" + role + "&pswd=" + pswd + "", { type: "GET" })
     .then(function (data) {
       repo.token = data.payload.token;
       repo.expiration = Date.now() + (data.payload.expirySecs * 1000);

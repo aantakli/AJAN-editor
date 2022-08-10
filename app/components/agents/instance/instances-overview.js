@@ -186,15 +186,15 @@ function createModal() {
     class: "modal-p"
   }).text("Credentials (Optional, if agent knowledge shall be secured): ");
 
-  let $roleInput = $("<input>", {
+  let $userInput = $("<input>", {
     class: "modal-input",
-    id: "role-input",
+    id: "user-input",
     placeholder: "User",
   });
   let $pswdInput = $("<input type='password' id='pswd-input'>", {});
   let $credentialsDiv = $("<div>", {
     class: "modal-body-div"
-  }).append($credentialsTitle, $roleInput, $pswdInput);
+  }).append($credentialsTitle, $userInput, $pswdInput);
   // Append to modal body
   $body.append($credentialsDiv);
 
@@ -241,13 +241,13 @@ function createAgentInitEvent() {
   $("#select-agent-templates").show().appendTo("#templates-wrapper");
   createInitMessage(
     $("#label-input").val(),
-    $("#role-input").val(),
+	$("#user-input").val(),
     $("#pswd-input").val(),
     that.get("selectedTemplate"),
     $("#textarea-input").val());
 }
 
-function createInitMessage(label, role, pswd, templateUri, knowledge) {
+function createInitMessage(label, user, pswd, templateUri, knowledge) {
   let list = JSON.parse(localStorage.initAgents);
   list[label] = knowledge;
   localStorage.setItem("initAgents", JSON.stringify(list));
@@ -270,11 +270,11 @@ function createInitMessage(label, role, pswd, templateUri, knowledge) {
   let tmpl = "_:init <http://www.ajan.de/ajan-ns#agentTemplate> <" + templateUri + "> . ";
   let credentials = "";
 
-  if (role != null && role != "" && pswd != null && pswd != "") {
+  if (user != null && user != "" && pswd != null && pswd != "") {
     let repo = (localStorage.currentStore.replace("/rdf4j/repositories","") || "http://localhost:8090/")
     + "tokenizer/token";
     credentials = "_:init <http://www.ajan.de/ajan-ns#agentTokenController> '" + repo + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
-    credentials += "_:init <http://www.ajan.de/ajan-ns#agentRole> '" + role + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
+	credentials += "_:init <http://www.ajan.de/ajan-ns#agentUser> '" + user + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
     credentials += "_:init <http://www.ajan.de/ajan-ns#agentPassword> '" + pswd + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
     console.log(credentials);
   }

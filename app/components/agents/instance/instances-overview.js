@@ -191,7 +191,15 @@ function createModal() {
     class: "modal-body-div"
   }).append($credentialsTitle, $pswdInput);
   // Append to modal body
-  $body.append($credentialsDiv);
+  
+  let repos = JSON.parse(localStorage.triplestores);
+    repos.forEach(repo => {
+      if (repo.uri == localStorage.currentStore) {
+        if (repo.secured) {
+          $body.append($credentialsDiv);
+        }
+      }
+    });
 
   // Dropdown
   let $dropdownTitle = $("<p>", {
@@ -235,19 +243,21 @@ function createModal() {
 function createAgentInitEvent() {
   $("#select-agent-templates").show().appendTo("#templates-wrapper");
   createInitMessage(
-    $("#label-input").val(),
-    $("#pswd-input").val(),
+    $("#label-input"),
+    $("#pswd-input"),
     that.get("selectedTemplate"),
     $("#textarea-input").val());
 }
 
 function createInitMessage(label, pswd, templateUri, knowledge) {
+  let agentId = label.val();
+	
   let list = JSON.parse(localStorage.initAgents);
-  list[label] = knowledge;
+  list[agentId] = knowledge;
   localStorage.setItem("initAgents", JSON.stringify(list));
 
   console.log(templateUri);
-  if (label === "") {
+  if (agentId === "") {
     $("#error-message").trigger("showToast", [
       "No Agent ID was defined!"
     ]);
@@ -260,7 +270,7 @@ function createInitMessage(label, pswd, templateUri, knowledge) {
     return;
   }
   let type = "_:init <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ajan.de/ajan-ns#AgentInitialisation> . ";
-  let name = "_:init <http://www.ajan.de/ajan-ns#agentId> '" + label + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
+  let name = "_:init <http://www.ajan.de/ajan-ns#agentId> '" + agentId + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
   let tmpl = "_:init <http://www.ajan.de/ajan-ns#agentTemplate> <" + templateUri + "> . ";
   let credentials = "";
 

@@ -1207,6 +1207,12 @@
             nd:title "Execution Limit";
         ][
             a nd:Parameter;
+            nd:mapsTo clingo:envVariable;
+            nd:input xsd:string;
+            nd:default "clingo"^^xsd:string;
+            nd:title "Solver EnvVariable";
+        ][
+            a nd:Parameter;
             nd:mapsTo clingo:models;
             nd:input xsd:int;
             nd:default "5"^^xsd:int;
@@ -1254,6 +1260,12 @@
         nd:title "ASP Write";
         nd:type asp:Write;
         nd:parameters ([
+            a nd:Parameter;
+            nd:mapsTo asp:saveString;
+            nd:input xsd:boolean;
+            nd:default "false"^^xsd:boolean;
+            nd:title "Save String";
+        ][
             a nd:Parameter;
             nd:mapsTo asp:random;
             nd:input xsd:boolean;

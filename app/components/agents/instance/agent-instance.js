@@ -32,6 +32,7 @@ export default Ember.Component.extend({
   databus: Ember.inject.service('data-bus'),
   overview: null,
   activeInstance: {},
+  agentLogs: [],
   agentMessage: "<http://test/Test1> <http://test/test> <http://test/Test> .",
   messageError: "",
   wssConnection: false,
@@ -53,6 +54,10 @@ export default Ember.Component.extend({
     this._super(...arguments);
     that = this;
     this.get("activeInstance").actions = new Array();
+  },
+
+  didUpdate() {
+    createLogs();
   },
 
   actions: {
@@ -94,7 +99,8 @@ export default Ember.Component.extend({
     },
 
     deleteAgent(uri) {
-      that.actions.disconnect();
+      let agents = that.get("agentLogs");
+      that.set("agentLogs", agents.filter(item => item.uri !== uri));
       Promise.resolve(actions.deleteAgent(uri)).then(function () {
         that.databus.deletedAI();
       });
@@ -135,13 +141,12 @@ export default Ember.Component.extend({
     },
 
     clean() {
-      let $textarea = $("#report-service-message-content");
-      $textarea.empty();
+      emptyLogs();
     }
   },
 
 	willDestroyElement() {
-		this._super(...arguments);
+    this._super(...arguments);
 	}
 });
 
@@ -166,63 +171,109 @@ function myMessageHandler(event) {
     if (result[0].length == 0) {
       return;
     }
-
     let report = result[0][0];
-    if (report.agent != that.get("activeInstance.uri")) {
-      return;
-    }
-
-    that.set("wssMessage", report);
-    let status = "agent-report ";
-    if (report.label.includes('SUCCEEDED')) {
-      status = status + "succeeded-report";
-    } else if (report.label.includes('FAILED')) {
-      status = status + "failed-report";
-    } else if (report.label.includes('CANCELLED')) {
-      status = status + "cancelled-report";
-    } else if (report.label.includes('FINISHED') || report.label.includes('STARTING')) {
-      status = status + "bt-report";
-    } else {
-      status = status + "normal-report";
-    }
-
-    let $messageTime = $("<p>", {
-      class: "report-time"
-    }).text(new Date().toUTCString() + ": ");
-    let $message = null;
-
-    if (report.debugging) {
-
-      if (!report.label.includes('BTRoot')) {
-        that.set("debugReport", result);
-      }
-
-      let $debug = $("<i>", {
-        class: "failed-report"
-      }).text("DEBUGGING");
-
-      let $report = $("<i>", {
-        class: status
-      }).text(report.label);
-
-      let behavior = report.bt;
-      let $behavior = $(".agent-behavior[behavior='" + behavior + "']");
-      $behavior.find("a.debug").removeClass("hidden");
-
-      $messageTime.append($debug);
-      $message = $("<p>", {}).append($report);
-    } else {
-      that.set("debugReport", null);
-      let $report = $("<i>", {
-        class: status
-      }).text(report.label);
-      $message = $("<p>", {}).append($report);
-    }
-
-    let $textarea = $("#report-service-message-content");
-    $textarea.append($messageTime).append($message);
-    $("#report-service-message").scrollTop($("#report-service-message")[0].scrollHeight);
+    storeAgentLogs(report);
+    createLogs();
   });
+}
+
+function createLogs() {
+  let agents = that.get("agentLogs");
+  const i = agents.findIndex(e => e.uri === that.get("activeInstance.uri"));
+  let $textarea = $("#report-service-message-content");
+  $textarea.empty();
+  if (i > -1) {
+    let logs = agents[i].logs;
+    logs.forEach(item => {
+      createEditorMessage($textarea, item);
+    })
+    $("#report-service-message").scrollTop($("#report-service-message")[0].scrollHeight);
+  } else {
+    $textarea.append("<p>To receive report messages from the agent LeafNodes, please run the ReportService (reportService.js) and instantiate the agent with the Initial Knowledge RDF statement:</p><p>&lt;http://test> &lt;http://www.ajan.de/ajan-ns#agentReportURI&gt; 'http://localhost:4202/report'^^&lt;http://www.w3.org/2001/XMLSchema#anyURI&gt; .</p>");
+  }
+}
+
+function emptyLogs() {
+  let agents = that.get("agentLogs");
+  const i = agents.findIndex(e => e.uri === that.get("activeInstance.uri"));
+  if (i > -1) {
+    let $textarea = $("#report-service-message-content");
+    $textarea.empty();
+    agents[i].logs = [];
+  }
+}
+
+function storeAgentLogs(report) {
+  let agents = that.get("agentLogs");
+  if (!agents || agents.length == 0) {
+    createAgentEntry(agents, report);
+  } else {
+    const i = agents.findIndex(e => e.uri === report.agent);
+    if (i > -1) {
+      agents[i].logs.push(createLog(report));
+    } else {
+      createAgentEntry(agents, report);
+    }
+  }
+}
+
+function createAgentEntry(agents, report) {
+  let logs = [];
+  logs.push(createLog(report));
+  agents.push({ uri: report.agent, logs: logs });
+}
+
+function createLog(report) {
+  return { time: new Date().toUTCString(), bt: report.bt, debugging: report.debugging, label: report.label };
+}
+
+function createEditorMessage($textarea, report) {
+  that.set("wssMessage", report);
+  let status = "agent-report ";
+  if (report.label.includes('SUCCEEDED')) {
+    status = status + "succeeded-report";
+  } else if (report.label.includes('FAILED')) {
+    status = status + "failed-report";
+  } else if (report.label.includes('CANCELLED')) {
+    status = status + "cancelled-report";
+  } else if (report.label.includes('FINISHED') || report.label.includes('STARTING')) {
+    status = status + "bt-report";
+  } else {
+    status = status + "normal-report";
+  }
+
+  let $messageTime = $("<p>", {
+    class: "report-time"
+  }).text(report.time + ": ");
+  let $message = null;
+
+  if (report.debugging) {
+    if (!report.label.includes('BTRoot')) {
+      that.set("debugReport", result);
+    }
+
+    let $debug = $("<i>", {
+      class: "failed-report"
+    }).text("DEBUGGING");
+
+    let $report = $("<i>", {
+      class: status
+    }).text(report.label);
+
+    let behavior = report.bt;
+    let $behavior = $(".agent-behavior[behavior='" + behavior + "']");
+    $behavior.find("a.debug").removeClass("hidden");
+
+    $messageTime.append($debug);
+    $message = $("<p>", {}).append($report);
+  } else {
+    that.set("debugReport", null);
+    let $report = $("<i>", {
+      class: status
+    }).text(report.label);
+    $message = $("<p>", {}).append($report);
+  }
+  $textarea.append($messageTime).append($message);
 }
 
 function myCloseHandler(event) {

@@ -171,8 +171,7 @@ function myMessageHandler(event) {
     if (result[0].length == 0) {
       return;
     }
-    let report = result[0][0];
-    storeAgentLogs(report);
+    storeAgentLogs(result);
     createLogs();
   });
 }
@@ -185,7 +184,7 @@ function createLogs() {
   if (i > -1) {
     let logs = agents[i].logs;
     logs.forEach(item => {
-      createEditorMessage($textarea, item);
+      createEditorMessage($textarea, agents[i].result, item);
     })
     $("#report-service-message").scrollTop($("#report-service-message")[0].scrollHeight);
   } else {
@@ -203,31 +202,44 @@ function emptyLogs() {
   }
 }
 
-function storeAgentLogs(report) {
+function storeAgentLogs(result) {
+  let report = result[0][0];
   let agents = that.get("agentLogs");
   if (!agents || agents.length == 0) {
-    createAgentEntry(agents, report);
+    createAgentEntry(agents, getLastLog(report, result, null), report);
   } else {
     const i = agents.findIndex(e => e.uri === report.agent);
     if (i > -1) {
+      agents[i].result = getLastLog(report, result, agents[i].result);
       agents[i].logs.push(createLog(report));
     } else {
-      createAgentEntry(agents, report);
+      createAgentEntry(agents, getLastLog(report, result, null), report);
     }
   }
 }
 
-function createAgentEntry(agents, report) {
+function createAgentEntry(agents, lastLog, report) {
   let logs = [];
   logs.push(createLog(report));
-  agents.push({ uri: report.agent, logs: logs });
+  agents.push({ uri: report.agent, lastLog: lastLog, logs: logs });
+}
+
+function getLastLog(report, result, lastLog) {
+  if (!report.label.includes('BTRoot')) {
+    return result;
+  } else if (lastLog) {
+    return lastLog;
+  } else {
+    return null;
+  }
 }
 
 function createLog(report) {
+  console.log(report.debugging);
   return { time: new Date().toUTCString(), bt: report.bt, debugging: report.debugging, label: report.label };
 }
 
-function createEditorMessage($textarea, report) {
+function createEditorMessage($textarea, result, report) {
   that.set("wssMessage", report);
   let status = "agent-report ";
   if (report.label.includes('SUCCEEDED')) {
@@ -246,6 +258,8 @@ function createEditorMessage($textarea, report) {
     class: "report-time"
   }).text(report.time + ": ");
   let $message = null;
+  let behavior = report.bt;
+  let $behavior = $(".agent-behavior[behavior='" + behavior + "']");
 
   if (report.debugging) {
     if (!report.label.includes('BTRoot')) {
@@ -260,13 +274,11 @@ function createEditorMessage($textarea, report) {
       class: status
     }).text(report.label);
 
-    let behavior = report.bt;
-    let $behavior = $(".agent-behavior[behavior='" + behavior + "']");
     $behavior.find("a.debug").removeClass("hidden");
-
     $messageTime.append($debug);
     $message = $("<p>", {}).append($report);
   } else {
+    $behavior.find("a.debug").addClass("hidden");
     that.set("debugReport", null);
     let $report = $("<i>", {
       class: status

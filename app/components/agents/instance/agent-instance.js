@@ -138,11 +138,12 @@ export default Ember.Component.extend({
         that.set("wssConnection", false);
         that.get('websockets').closeSocketFor('ws://localhost:4202');
         that.set('socketRef', null);
+        emptyLogs();
       }
     },
 
     clean() {
-      emptyLogs();
+      emptyLogs(that.get("activeInstance.uri"));
     }
   },
 
@@ -193,13 +194,18 @@ function createLogs() {
   }
 }
 
-function emptyLogs() {
+function emptyLogs(agent) {
   let agents = that.get("agentLogs");
-  const i = agents.findIndex(e => e.uri === that.get("activeInstance.uri"));
-  if (i > -1) {
-    let $textarea = $("#report-service-message-content");
+  if (agent) {
+    const i = agents.findIndex(e => e.uri === agent);
+    if (i > -1) {
+      let $textarea = $("#report-service-message-content");
+      $textarea.empty();
+      agents[i].logs = [];
+    }
+  } else {
+    that.set("agentLogs", []);
     $textarea.empty();
-    agents[i].logs = [];
   }
 }
 

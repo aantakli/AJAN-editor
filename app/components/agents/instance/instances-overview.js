@@ -35,12 +35,13 @@ export default Ember.Component.extend({
   dataBus: Ember.inject.service('data-bus'),
   availableTemplates: null,
   selectedTemplate: null,
+  socketAvailble: false,
   agentInitMessage: "",
   activeInstance: {},
   allInstances: new Array(),
   ajanServiceHost: "",
   ajanService: "",
-
+  websockets: Ember.inject.service(),
   init() {
     this._super(...arguments);
     that = this;
@@ -181,18 +182,6 @@ function createModal() {
   // Append to modal body
   $body.append($labelDiv);
 
-  // Label
-  let $logsTitle = $("<p>", {
-    class: "modal-p"
-  }).text("Show Logs: ");
-  let $logsInput = $("<input id='show-agent-logs' type='checkbox'>");
-
-  let $logsDiv = $("<div>", {
-    class: "modal-body-div"
-  }).append($logsTitle, $logsInput);
-  // Append to modal body
-  $body.append($logsDiv);
-
   // Credentials
   let $credentialsTitle = $("<p>", {
     class: "modal-p"
@@ -242,6 +231,21 @@ function createModal() {
   // Append to modal body
   $body.append($textAreaDiv);
 
+
+  // Logs
+  var socket = that.get('websockets').socketFor('ws://localhost:4202');
+  console.log(socket.readyState());
+  socket.on('open', function () {
+    console.log("socket connected");
+    $body.append(createLogsField());
+    that.get('websockets').closeSocketFor('ws://localhost:4202');
+  }, that);
+  if (socket.readyState() == 1) {
+    console.log("socket open");
+    $body.append(createLogsField());
+  }
+
+
   // Listen for the confirm event
   let elem = document.getElementById("universal-modal");
   elem.addEventListener("modal:confirm", createAgentInitEvent);
@@ -250,6 +254,19 @@ function createModal() {
     that.set("initAgentMessage", "");
   });
   elem.addEventListener("modal:confirm", createAgentInitEvent);
+}
+
+function createLogsField() {
+  let $logsTitle = $("<p>", {
+    class: "modal-p"
+  }).text("Show Logs: ");
+  let $logsInput = $("<input id='show-agent-logs' type='checkbox'>");
+
+  let $logsDiv = $("<div>", {
+    class: "modal-body-div"
+  }).append($logsTitle, $logsInput);
+  // Append to modal body
+  return $logsDiv;
 }
 
 function createAgentInitEvent() {
@@ -277,7 +294,7 @@ function createInitMessage(label, logs, pswd, templateUri, knowledge) {
     return;
   }
   let logsRDF = "";
-  if (logs.is(':checked')) {
+  if (logs && logs.is(':checked')) {
     logsRDF = "_:init <http://www.ajan.de/ajan-ns#agentInitKnowledge> [ <http://www.ajan.de/ajan-ns#agentReportURI> 'http://localhost:4202/report'^^<http://www.w3.org/2001/XMLSchema#anyURI> ] .";
   }
   if (templateUri === null) {

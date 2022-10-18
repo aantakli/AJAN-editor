@@ -164,9 +164,22 @@
 {{#unless activeInstance.id}}
 <div local-class="agent-instance-reminder clearfix">
   <div local-class="agent-instance-reminder-text">
-    <i class="icon angle double right no-side-margins"></i>
-    Reload Instance Overview or Create Agent Instance
-    <i class="icon angle double left no-side-margins"></i>
+    <h1>
+      <i class="icon angle double right no-side-margins"></i>
+      Reload Instance Overview or Create Agent Instance
+      <i class="icon angle double left no-side-margins"></i>
+    </h1>
+    <br />
+    <br />
+    <i class="icon hand point right no-side-margins"></i><small margin-bottom="20px">
+      Make sure, that the correct URL to the wanted AJAN-Service (e.g. http://localhost:8080/ajan/agents/) is selected.
+    </small>
+    <br />
+    <br />
+    <i class="icon hand point right no-side-margins"></i><small>
+      To receive report messages from the agent LeafNodes, please run the ReportService (reportService.js)
+      <br />on Port 4202 and instantiate the agent with 'Show Logs' selected.
+    </small>
   </div>
 </div>
 {{/unless}}

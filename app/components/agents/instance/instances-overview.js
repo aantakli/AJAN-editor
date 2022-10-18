@@ -181,6 +181,18 @@ function createModal() {
   // Append to modal body
   $body.append($labelDiv);
 
+  // Label
+  let $logsTitle = $("<p>", {
+    class: "modal-p"
+  }).text("Show Logs: ");
+  let $logsInput = $("<input id='show-agent-logs' type='checkbox'>");
+
+  let $logsDiv = $("<div>", {
+    class: "modal-body-div"
+  }).append($logsTitle, $logsInput);
+  // Append to modal body
+  $body.append($logsDiv);
+
   // Credentials
   let $credentialsTitle = $("<p>", {
     class: "modal-p"
@@ -244,14 +256,15 @@ function createAgentInitEvent() {
   $("#select-agent-templates").show().appendTo("#templates-wrapper");
   createInitMessage(
     $("#label-input"),
+    $("#show-agent-logs"),
     $("#pswd-input"),
     that.get("selectedTemplate"),
     $("#textarea-input").val());
 }
 
-function createInitMessage(label, pswd, templateUri, knowledge) {
+function createInitMessage(label, logs, pswd, templateUri, knowledge) {
   let agentId = label.val();
-	
+
   let list = JSON.parse(localStorage.initAgents);
   list[agentId] = knowledge;
   localStorage.setItem("initAgents", JSON.stringify(list));
@@ -262,6 +275,10 @@ function createInitMessage(label, pswd, templateUri, knowledge) {
       "No Agent ID was defined!"
     ]);
     return;
+  }
+  let logsRDF = "";
+  if (logs.is(':checked')) {
+    logsRDF = "_:init <http://www.ajan.de/ajan-ns#agentInitKnowledge> [ <http://www.ajan.de/ajan-ns#agentReportURI> 'http://localhost:4202/report'^^<http://www.w3.org/2001/XMLSchema#anyURI> ] .";
   }
   if (templateUri === null) {
     $("#error-message").trigger("showToast", [
@@ -285,7 +302,7 @@ function createInitMessage(label, pswd, templateUri, knowledge) {
   let know = getAgentInitKnowledge(knowledge);
   Promise.resolve(know).then(x => {
     if (x != undefined) {
-      let content = type + name + tmpl + credentials + x + knowledge;
+      let content = type + name + tmpl + credentials + x + knowledge + logsRDF;
       let agents = actions.createAgent(that.get("ajanService"), content);
       Promise.resolve(agents).then(function (data) {
         that.actions.loadAgents();

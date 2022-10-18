@@ -122,6 +122,7 @@ export default Ember.Component.extend({
     connect() {
       console.log("connect");
       var socket = that.get('websockets').socketFor('ws://localhost:4202');
+      console.log(socket);
       socket.on('open', myOpenHandler, that);
       socket.on('message', myMessageHandler, that);
       socket.on('close', myCloseHandler, that);
@@ -188,7 +189,7 @@ function createLogs() {
     })
     $("#report-service-message").scrollTop($("#report-service-message")[0].scrollHeight);
   } else {
-    $textarea.append("<p>To receive report messages from the agent LeafNodes, please run the ReportService (reportService.js) and instantiate the agent with the Initial Knowledge RDF statement:</p><p>&lt;http://test> &lt;http://www.ajan.de/ajan-ns#agentReportURI&gt; 'http://localhost:4202/report'^^&lt;http://www.w3.org/2001/XMLSchema#anyURI&gt; .</p>");
+    $textarea.append("<p>To receive report messages from the agent LeafNodes, please run the ReportService (reportService.js) on Port 4202 and instantiate the agent with 'Show Logs' selected.</p>");
   }
 }
 

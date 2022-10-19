@@ -1203,19 +1203,19 @@
             a nd:Parameter;
             nd:mapsTo clingo:execution-limit;
             nd:input xsd:int;
-            nd:default "5"^^xsd:int;
+            nd:default "1"^^xsd:int;
             nd:title "Execution Limit";
         ][
             a nd:Parameter;
-            nd:mapsTo clingo:envVariable;
+            nd:mapsTo clingo:solver;
             nd:input xsd:string;
             nd:default "clingo"^^xsd:string;
-            nd:title "Solver EnvVariable";
+            nd:title "Solver Name (e.g. clingo)";
         ][
             a nd:Parameter;
             nd:mapsTo clingo:models;
             nd:input xsd:int;
-            nd:default "5"^^xsd:int;
+            nd:default "1"^^xsd:int;
             nd:title "Models";
         ][
             a nd:Parameter;

@@ -182,7 +182,7 @@ function updateType(content, importFile) {
       saveGraph(importFile.quads);
     });
   } else {
-    sendFile(repo, content)
+    sendFile(that.ajax, repo, content)
       .then(window.location.reload());
   }
 }

@@ -32,6 +32,7 @@ export default Ember.Component.extend({
   databus: Ember.inject.service('data-bus'),
   overview: null,
   activeInstance: {},
+  agentLogs: [],
   agentMessage: "<http://test/Test1> <http://test/test> <http://test/Test> .",
   messageError: "",
   wssConnection: false,
@@ -53,6 +54,10 @@ export default Ember.Component.extend({
     this._super(...arguments);
     that = this;
     this.get("activeInstance").actions = new Array();
+  },
+
+  didUpdate() {
+    createLogs();
   },
 
   actions: {
@@ -94,7 +99,8 @@ export default Ember.Component.extend({
     },
 
     deleteAgent(uri) {
-      that.actions.disconnect();
+      let agents = that.get("agentLogs");
+      that.set("agentLogs", agents.filter(item => item.uri !== uri));
       Promise.resolve(actions.deleteAgent(uri)).then(function () {
         that.databus.deletedAI();
       });
@@ -116,6 +122,7 @@ export default Ember.Component.extend({
     connect() {
       console.log("connect");
       var socket = that.get('websockets').socketFor('ws://localhost:4202');
+      console.log(socket);
       socket.on('open', myOpenHandler, that);
       socket.on('message', myMessageHandler, that);
       socket.on('close', myCloseHandler, that);
@@ -131,17 +138,17 @@ export default Ember.Component.extend({
         that.set("wssConnection", false);
         that.get('websockets').closeSocketFor('ws://localhost:4202');
         that.set('socketRef', null);
+        emptyLogs();
       }
     },
 
     clean() {
-      let $textarea = $("#report-service-message-content");
-      $textarea.empty();
+      emptyLogs(that.get("activeInstance.uri"));
     }
   },
 
 	willDestroyElement() {
-		this._super(...arguments);
+    this._super(...arguments);
 	}
 });
 
@@ -166,63 +173,126 @@ function myMessageHandler(event) {
     if (result[0].length == 0) {
       return;
     }
-
-    let report = result[0][0];
-    if (report.agent != that.get("activeInstance.uri")) {
-      return;
-    }
-
-    that.set("wssMessage", report);
-    let status = "agent-report ";
-    if (report.label.includes('SUCCEEDED')) {
-      status = status + "succeeded-report";
-    } else if (report.label.includes('FAILED')) {
-      status = status + "failed-report";
-    } else if (report.label.includes('CANCELLED')) {
-      status = status + "cancelled-report";
-    } else if (report.label.includes('FINISHED') || report.label.includes('STARTING')) {
-      status = status + "bt-report";
-    } else {
-      status = status + "normal-report";
-    }
-
-    let $messageTime = $("<p>", {
-      class: "report-time"
-    }).text(new Date().toUTCString() + ": ");
-    let $message = null;
-
-    if (report.debugging) {
-
-      if (!report.label.includes('BTRoot')) {
-        that.set("debugReport", result);
-      }
-
-      let $debug = $("<i>", {
-        class: "failed-report"
-      }).text("DEBUGGING");
-
-      let $report = $("<i>", {
-        class: status
-      }).text(report.label);
-
-      let behavior = report.bt;
-      let $behavior = $(".agent-behavior[behavior='" + behavior + "']");
-      $behavior.find("a.debug").removeClass("hidden");
-
-      $messageTime.append($debug);
-      $message = $("<p>", {}).append($report);
-    } else {
-      that.set("debugReport", null);
-      let $report = $("<i>", {
-        class: status
-      }).text(report.label);
-      $message = $("<p>", {}).append($report);
-    }
-
-    let $textarea = $("#report-service-message-content");
-    $textarea.append($messageTime).append($message);
-    $("#report-service-message").scrollTop($("#report-service-message")[0].scrollHeight);
+    storeAgentLogs(result);
+    createLogs();
   });
+}
+
+function createLogs() {
+  let agents = that.get("agentLogs");
+  const i = agents.findIndex(e => e.uri === that.get("activeInstance.uri"));
+  let $textarea = $("#report-service-message-content");
+  $textarea.empty();
+  if (i > -1) {
+    let logs = agents[i].logs;
+    logs.forEach(item => {
+      createEditorMessage($textarea, agents[i].result, item);
+    })
+    $("#report-service-message").scrollTop($("#report-service-message")[0].scrollHeight);
+  } else {
+    $textarea.append("<p>To receive report messages from the agent LeafNodes, please run the ReportService (reportService.js) on Port 4202 and instantiate the agent with 'Show Logs' selected.</p>");
+  }
+}
+
+function emptyLogs(agent) {
+  let agents = that.get("agentLogs");
+  if (agent) {
+    const i = agents.findIndex(e => e.uri === agent);
+    if (i > -1) {
+      let $textarea = $("#report-service-message-content");
+      $textarea.empty();
+      agents[i].logs = [];
+    }
+  } else {
+    that.set("agentLogs", []);
+    $textarea.empty();
+  }
+}
+
+function storeAgentLogs(result) {
+  let report = result[0][0];
+  let agents = that.get("agentLogs");
+  if (!agents || agents.length == 0) {
+    createAgentEntry(agents, getLastLog(report, result, null), report);
+  } else {
+    const i = agents.findIndex(e => e.uri === report.agent);
+    if (i > -1) {
+      agents[i].result = getLastLog(report, result, agents[i].result);
+      agents[i].logs.push(createLog(report));
+    } else {
+      createAgentEntry(agents, getLastLog(report, result, null), report);
+    }
+  }
+}
+
+function createAgentEntry(agents, lastLog, report) {
+  let logs = [];
+  logs.push(createLog(report));
+  agents.push({ uri: report.agent, lastLog: lastLog, logs: logs });
+}
+
+function getLastLog(report, result, lastLog) {
+  if (!report.label.includes('BTRoot')) {
+    return result;
+  } else if (lastLog) {
+    return lastLog;
+  } else {
+    return null;
+  }
+}
+
+function createLog(report) {
+  console.log(report.debugging);
+  return { time: new Date().toUTCString(), bt: report.bt, debugging: report.debugging, label: report.label };
+}
+
+function createEditorMessage($textarea, result, report) {
+  that.set("wssMessage", report);
+  let status = "agent-report ";
+  if (report.label.includes('SUCCEEDED')) {
+    status = status + "succeeded-report";
+  } else if (report.label.includes('FAILED')) {
+    status = status + "failed-report";
+  } else if (report.label.includes('CANCELLED')) {
+    status = status + "cancelled-report";
+  } else if (report.label.includes('FINISHED') || report.label.includes('STARTING')) {
+    status = status + "bt-report";
+  } else {
+    status = status + "normal-report";
+  }
+
+  let $messageTime = $("<p>", {
+    class: "report-time"
+  }).text(report.time + ": ");
+  let $message = null;
+  let behavior = report.bt;
+  let $behavior = $(".agent-behavior[behavior='" + behavior + "']");
+
+  if (report.debugging) {
+    if (!report.label.includes('BTRoot')) {
+      that.set("debugReport", result);
+    }
+
+    let $debug = $("<i>", {
+      class: "failed-report"
+    }).text("DEBUGGING");
+
+    let $report = $("<i>", {
+      class: status
+    }).text(report.label);
+
+    $behavior.find("a.debug").removeClass("hidden");
+    $messageTime.append($debug);
+    $message = $("<p>", {}).append($report);
+  } else {
+    $behavior.find("a.debug").addClass("hidden");
+    that.set("debugReport", null);
+    let $report = $("<i>", {
+      class: status
+    }).text(report.label);
+    $message = $("<p>", {}).append($report);
+  }
+  $textarea.append($messageTime).append($message);
 }
 
 function myCloseHandler(event) {

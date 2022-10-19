@@ -35,12 +35,13 @@ export default Ember.Component.extend({
   dataBus: Ember.inject.service('data-bus'),
   availableTemplates: null,
   selectedTemplate: null,
+  socketAvailble: false,
   agentInitMessage: "",
   activeInstance: {},
   allInstances: new Array(),
   ajanServiceHost: "",
   ajanService: "",
-
+  websockets: Ember.inject.service(),
   init() {
     this._super(...arguments);
     that = this;
@@ -230,6 +231,21 @@ function createModal() {
   // Append to modal body
   $body.append($textAreaDiv);
 
+
+  // Logs
+  var socket = that.get('websockets').socketFor('ws://localhost:4202');
+  console.log(socket.readyState());
+  socket.on('open', function () {
+    console.log("socket connected");
+    $body.append(createLogsField());
+    that.get('websockets').closeSocketFor('ws://localhost:4202');
+  }, that);
+  if (socket.readyState() == 1) {
+    console.log("socket open");
+    $body.append(createLogsField());
+  }
+
+
   // Listen for the confirm event
   let elem = document.getElementById("universal-modal");
   elem.addEventListener("modal:confirm", createAgentInitEvent);
@@ -240,18 +256,32 @@ function createModal() {
   elem.addEventListener("modal:confirm", createAgentInitEvent);
 }
 
+function createLogsField() {
+  let $logsTitle = $("<p>", {
+    class: "modal-p"
+  }).text("Show Logs: ");
+  let $logsInput = $("<input id='show-agent-logs' type='checkbox'>");
+
+  let $logsDiv = $("<div>", {
+    class: "modal-body-div"
+  }).append($logsTitle, $logsInput);
+  // Append to modal body
+  return $logsDiv;
+}
+
 function createAgentInitEvent() {
   $("#select-agent-templates").show().appendTo("#templates-wrapper");
   createInitMessage(
     $("#label-input"),
+    $("#show-agent-logs"),
     $("#pswd-input"),
     that.get("selectedTemplate"),
     $("#textarea-input").val());
 }
 
-function createInitMessage(label, pswd, templateUri, knowledge) {
+function createInitMessage(label, logs, pswd, templateUri, knowledge) {
   let agentId = label.val();
-	
+
   let list = JSON.parse(localStorage.initAgents);
   list[agentId] = knowledge;
   localStorage.setItem("initAgents", JSON.stringify(list));
@@ -262,6 +292,10 @@ function createInitMessage(label, pswd, templateUri, knowledge) {
       "No Agent ID was defined!"
     ]);
     return;
+  }
+  let logsRDF = "";
+  if (logs && logs.is(':checked')) {
+    logsRDF = "_:init <http://www.ajan.de/ajan-ns#agentInitKnowledge> [ <http://www.ajan.de/ajan-ns#agentReportURI> 'http://localhost:4202/report'^^<http://www.w3.org/2001/XMLSchema#anyURI> ] .";
   }
   if (templateUri === null) {
     $("#error-message").trigger("showToast", [
@@ -285,7 +319,7 @@ function createInitMessage(label, pswd, templateUri, knowledge) {
   let know = getAgentInitKnowledge(knowledge);
   Promise.resolve(know).then(x => {
     if (x != undefined) {
-      let content = type + name + tmpl + credentials + x + knowledge;
+      let content = type + name + tmpl + credentials + x + knowledge + logsRDF;
       let agents = actions.createAgent(that.get("ajanService"), content);
       Promise.resolve(agents).then(function (data) {
         that.actions.loadAgents();

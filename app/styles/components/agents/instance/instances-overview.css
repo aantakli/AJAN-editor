@@ -159,6 +159,11 @@ footer {
   border-radius: 0em !important;
 }
 
+:global(#show-agent-logs) {
+    height: 20px;
+    width: 20px;
+}
+
 :global(.instances-show) {
   display: block;
 }

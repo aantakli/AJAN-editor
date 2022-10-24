@@ -1,1 +1,1 @@
-ember clean-tmp & ember serve 
+node npm\node_modules\ember-cli\bin\ember clean-tmp & node npm\node_modules\ember-cli\bin\ember serve 

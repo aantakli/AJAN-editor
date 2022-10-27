@@ -8,8 +8,6 @@ You will need the following things properly installed on your computer.
 
 * [Git](https://git-scm.com/)
 * [Node.js (Version 8.6!)](https://nodejs.org/download/release/v8.6.0/) then cmd: >> `npm install`
-* [Ember CLI](https://ember-cli.com/) then cmd: >> `npm install -g ember-cli`
-* [Bower](https://bower.io/) then cmd: >> `npm install -g bower`
 * [Google Chrome](https://google.com/chrome/)
 
 ## Installation

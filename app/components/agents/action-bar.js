@@ -134,7 +134,7 @@ function updateType(content, importFile) {
       window.location.reload();
     });
   } else {
-    sendFile(repo, content)
+    sendFile(that.ajax, repo, content)
       .then(window.location.reload());
   }
 }

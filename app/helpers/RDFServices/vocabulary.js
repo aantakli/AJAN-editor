@@ -63,7 +63,8 @@ let ND = {
   EventGoal: "http://www.ajan.de/behavior/nd-ns#EventGoal",
 	StyleDef: "http://www.ajan.de/behavior/nd-ns#StyleDef",
 	default: "http://www.ajan.de/behavior/nd-ns#default",
-	icon: "http://www.ajan.de/behavior/nd-ns#icon"
+  icon: "http://www.ajan.de/behavior/nd-ns#icon",
+  textarea: "http://www.ajan.de/behavior/nd-ns#textarea"
 };
 let RDFS = {
 	defaultPrefix: "http://www.w3.org/2000/01/rdf-schema#",

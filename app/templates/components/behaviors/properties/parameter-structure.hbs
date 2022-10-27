@@ -25,6 +25,11 @@
       class="flexed-input"
       value=value
     }}
+{{else if type.textarea}}
+    {{component 'behaviors/properties/parameter/textarea-field'
+      class="flexed-input"
+      value=value
+    }}
   {{else if type.float}}
     {{component 'behaviors/properties/parameter/float-field'
       class="flexed-input"

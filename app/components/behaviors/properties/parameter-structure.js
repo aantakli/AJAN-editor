@@ -37,7 +37,9 @@ export default Component.extend({
 			case XSD.anyURI:
 				return {uri: true};
 			case XSD.string:
-				return {string: true};
+        return { string: true };
+      case ND.textarea:
+        return { textarea: true };
 			case XSD.float:
 			case XSD.double:
 				return {float: true};

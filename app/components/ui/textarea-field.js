@@ -20,12 +20,35 @@
  */
 import Component from "@ember/component";
 
+let that;
+
 export default Component.extend({
+  init() {
+    this._super(...arguments);
+    that = this;
+  },
+
 	actions: {
 		adjustHeight: function(event) {
 			let target = event.target;
 			target.style.height = "auto";
 			target.style.height = 22 + target.scrollHeight + "px";
-		}
+    },
+
+    loadFile() {
+      console.log("upload file");
+      loadFile(event)
+    }
 	}
 });
+
+function loadFile(event) {
+  let file = event.target.files[0];
+  console.log("File: " + file.name);
+  var reader = new FileReader();
+  reader.onload = function () {
+    let content = reader.result;
+    that.set("value", content);
+  };
+  reader.readAsText(file);
+}

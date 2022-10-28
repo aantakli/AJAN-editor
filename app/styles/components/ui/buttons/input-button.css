@@ -15,11 +15,39 @@
   color: #000;
 }
 
+:global(.loadPropertyFile) {
+  background: #E9E9E9;
+  border-radius: 5px;
+  heigt: 50px;
+  margin: 5px 1px 5px 0;
+  position: relative;
+}
+
+:global(.loadPropertyFile input) {
+  width: 90% !important;
+  margin-left: 5px;
+  padding-left: 40px;
+}
+
+:global(.loadPropertyFile i) {
+  position: absolute;
+  margin-left: 15px;
+  padding-top: 10px;
+  height: 100%;
+  vertical-align: middle;
+  text-align: center;
+  display: block;
+}
+
 :global(.loadBT .file-upload)::before {
   content: "Import BT";
 }
 
 :global(.loadFile .file-upload)::before {
+  content: "Import File";
+}
+
+:global(.loadPropertyFile .file-upload)::before {
   content: "Import File";
 }
 

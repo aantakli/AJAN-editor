@@ -18,7 +18,7 @@ You will need the following things properly installed on your computer.
 
 ## Running / Development
 
-* cmd: `node npm\node_modules\ember-cli\bin\ember serve` or run `startEditor.bat`
+* cmd: `node npm/node_modules/ember-cli/bin/ember serve` or run `startEditor.bat`
 * Visit your app at [http://localhost:4200](http://localhost:4200).
 
 ## Setup RDF4J Triplestore for AJAN-editor

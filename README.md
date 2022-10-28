@@ -8,8 +8,6 @@ You will need the following things properly installed on your computer.
 
 * [Git](https://git-scm.com/)
 * [Node.js (Version 8.6!)](https://nodejs.org/download/release/v8.6.0/) then cmd: >> `npm install`
-* [Ember CLI](https://ember-cli.com/) then cmd: >> `npm install -g ember-cli`
-* [Bower](https://bower.io/) then cmd: >> `npm install -g bower`
 * [Google Chrome](https://google.com/chrome/)
 
 ## Installation
@@ -20,7 +18,7 @@ You will need the following things properly installed on your computer.
 
 ## Running / Development
 
-* cmd: `ember serve` or run `startEditor.bat`
+* cmd: `node npm/node_modules/ember-cli/bin/ember serve` or run `startEditor.bat`
 * Visit your app at [http://localhost:4200](http://localhost:4200).
 
 ## Setup RDF4J Triplestore for AJAN-editor

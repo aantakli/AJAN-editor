@@ -12,4 +12,4 @@ EXPOSE 4200/tcp
 
 WORKDIR app/
 
-ENTRYPOINT ["ember", "serve"]
+ENTRYPOINT ["node", "npm/node_modules/ember-cli/bin/ember", "serve"]

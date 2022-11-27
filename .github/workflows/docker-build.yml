@@ -47,8 +47,9 @@ jobs:
         name: Get commit Hash
         id: commit
         uses: pr-mpt/actions-commit-hash@v1
-      - 
-        uses: actions/checkout@v3
+      -
+        name: Checkout
+        uses: actions/checkout@v2
       - 
         name: Use Node.js
         uses: actions/setup-node@v3
@@ -62,7 +63,7 @@ jobs:
         uses: vimtor/action-zip@v1
         with:
           recursive: true
-          files: app/ ember-cli-build.js package.json SetupEditor.py testActionService.js vendor/ bower.json install_npm.bat startAll.bat testem.js config/ public/ startEditor.js test_rdf.txt mirage/ startReportService.bat tests/ npm/ reportService.js startTestActionService.bat node_modules/
+          files: .
           dest: ajaneditor-${{ steps.commit.outputs.short }}.zip
       -
         name: Temporally save release.zip

@@ -62,7 +62,7 @@ jobs:
         uses: vimtor/action-zip@v1
         with:
           recursive: true
-          files: /
+          files: process.env.GITHUB_WORKSPACE
           dest: ajaneditor-${{ steps.commit.outputs.short }}.zip
       -
         name: Temporally save release.zip

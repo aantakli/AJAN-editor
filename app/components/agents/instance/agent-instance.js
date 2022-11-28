@@ -121,7 +121,7 @@ export default Ember.Component.extend({
 
     connect() {
       console.log("connect");
-      var socket = that.get('websockets').socketFor('ws://localhost:4202');
+      var socket = that.get('websockets').socketFor('ws://127.0.0.1:4202');
       console.log(socket);
       socket.on('open', myOpenHandler, that);
       socket.on('message', myMessageHandler, that);
@@ -136,7 +136,7 @@ export default Ember.Component.extend({
         socket.off('message', myMessageHandler);
         socket.off('close', myCloseHandler);
         that.set("wssConnection", false);
-        that.get('websockets').closeSocketFor('ws://localhost:4202');
+        that.get('websockets').closeSocketFor('ws://127.0.0.1:4202');
         that.set('socketRef', null);
         emptyLogs();
       }
@@ -297,6 +297,6 @@ function createEditorMessage($textarea, result, report) {
 
 function myCloseHandler(event) {
   console.log(`On close event has been called: ${event}`);
-  that.get('websockets').closeSocketFor('ws://localhost:4202');
+  that.get('websockets').closeSocketFor('ws://127.0.0.1:4202');
   that.set("wssConnection", false);
 }

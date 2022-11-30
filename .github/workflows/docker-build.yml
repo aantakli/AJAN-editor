@@ -21,22 +21,64 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '8.6'
+          cache: 'npm'
       - 
         name: Install dependencies
         run: npm install
+      -
+        name: Temporally save dependencies
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependencies
+          path: ./dependencies-${{ steps.commit.outputs.short }}.zip
+  release:
+    runs-on: ubuntu-latest
+    needs: [build]
+    name: Create Release
+    steps:
+      - 
+        name: Get commit Hash
+        id: commit
+        uses: pr-mpt/actions-commit-hash@v1
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Load dependencies
+        uses: actions/download-artifact@v3
+        with:
+          name: dependencies
+          path: .
       - 
         uses: vimtor/action-zip@v1
         name: Zip release
         with:
           recursive: true
           files: app/ ember-cli-build.js package.json SetupEditor.py testActionService.js vendor/ bower.json install_npm.bat startAll.bat testem.js config/ public/ startEditor.bat test_rdf.txt mirage/ startReportService.bat tests/ npm/ reportService.js startTestActionService.bat node_modules/
-          dest: ajaneditor-${{ steps.commit.outputs.short }}.zip
-      -
-        name: Temporally save release.zip
-        uses: actions/upload-artifact@v3
+          dest: ajaneditor-${{ steps.commit.outputs.short }}.zip      
+      - 
+        name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: release
-          path: ./ajaneditor-${{ steps.commit.outputs.short }}.zip
+          tag_name: ${{ steps.commit.outputs.short }}
+          release_name: Release ${{ steps.commit.outputs.short }}
+          body: |
+            Current version of the AJAN-editor
+          draft: false
+          prerelease: false
+      -
+        name: upload release zip
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./ajaneditor-${{ steps.commit.outputs.short }}.zip
+          asset_name: ajaneditor-${{ steps.commit.outputs.short }}.zip
+          asset_content_type: application/zip  
   docker:
     name: Create Dockerimage
     runs-on: ubuntu-latest
@@ -70,41 +112,3 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           secrets: |
             GIT_AUTH_TOKEN=${{ secrets.GIT_TOKEN }}
-  release:
-    runs-on: ubuntu-latest
-    needs: [build]
-    name: Create Release
-    steps:
-      - 
-        name: Get commit Hash
-        id: commit
-        uses: pr-mpt/actions-commit-hash@v1
-      - 
-        name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.commit.outputs.short }}
-          release_name: Release ${{ steps.commit.outputs.short }}
-          body: |
-            Current version of the AJAN-editor
-          draft: false
-          prerelease: false
-      -
-        name: Load release zip
-        uses: actions/download-artifact@v3
-        with:
-          name: release
-          path: .
-      -
-        name: upload release zip
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./ajaneditor-${{ steps.commit.outputs.short }}.zip
-          asset_name: ajaneditor-${{ steps.commit.outputs.short }}.zip
-          asset_content_type: application/zip

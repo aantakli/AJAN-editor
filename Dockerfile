@@ -5,7 +5,7 @@ RUN mkdir app
 
 ADD . app/
 
-RUN cd app
+RUN cd app && npm install
 
 EXPOSE 4200/tcp
 EXPOSE 4201/tcp

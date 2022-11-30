@@ -40,7 +40,6 @@ jobs:
           secrets: |
             GIT_AUTH_TOKEN=${{ secrets.GIT_TOKEN }}
   build:
-    name: Build
     runs-on: ubuntu-latest
     steps:
       - 
@@ -51,19 +50,10 @@ jobs:
         name: Checkout
         uses: actions/checkout@v2
       - 
-        name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '8.6'
-      - 
-        name: Install dependencies
-        run: npm install
-      - 
-        name: Zip build Release
         uses: vimtor/action-zip@v1
         with:
           recursive: true
-          files:  app/ ember-cli-build.js package.json SetupEditor.py testActionService.js vendor/ bower.json install_npm.bat startAll.bat testem.js config/ public/ startEditor.js test_rdf.txt mirage/ startReportService.bat tests/ npm/ reportService.js startTestActionService.bat node_modules/
+          files: app/ ember-cli-build.js package.json SetupEditor.py testActionService.js vendor/ bower.json install_npm.bat startAll.bat testem.js config/ public/ startEditor.js test_rdf.txt mirage/ startReportService.bat tests/ npm/ reportService.js startTestActionService.bat node_modules/
           dest: ajaneditor-${{ steps.commit.outputs.short }}.zip
       -
         name: Temporally save release.zip

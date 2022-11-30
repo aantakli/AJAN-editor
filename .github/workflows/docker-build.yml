@@ -40,7 +40,6 @@ jobs:
   docker:
     name: Create Dockerimage
     runs-on: ubuntu-latest
-    needs: [build]
     steps:
       -
         name: Setup docker metadata

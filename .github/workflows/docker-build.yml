@@ -21,16 +21,40 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '8.6'
-          cache: 'npm'
+      - 
+        name: Cache node modules
+        id: cache-npm
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
+        name: List the state of node modules
+        continue-on-error: true
+        run: npm list
       - 
         name: Install dependencies
         run: npm install
+      - 
+        name: Use zip
+        uses: montudor/action-zip@v1
+      - 
+        name: Zip output
+        run: zip -qq -r modules.zip node_modules
       -
         name: Temporally save dependencies
         uses: actions/upload-artifact@v3
         with:
           name: dependencies
-          path: ./node_modules/
+          path: modules.zip
   release:
     runs-on: ubuntu-latest
     needs: [build]

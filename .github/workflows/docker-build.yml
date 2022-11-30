@@ -56,6 +56,11 @@ jobs:
           name: dependencies
           path: .
       - 
+        uses: montudor/action-zip@v1
+        name: Unzip node_modules
+        with:
+          args: unzip -qq modules.zip -d node_modules
+      - 
         name: Zip Release
         run: zip -qq -r ajaneditor-${{ steps.commit.outputs.short }}.zip .     
       - 

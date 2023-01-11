@@ -295,7 +295,7 @@ function createInitMessage(label, logs, pswd, templateUri, knowledge) {
   }
   let logsRDF = "";
   if (logs && logs.is(':checked')) {
-    logsRDF = "_:init <http://www.ajan.de/ajan-ns#agentInitKnowledge> [ <http://www.ajan.de/ajan-ns#agentReportURI> 'http://127.0.0.1:4202/report'^^<http://www.w3.org/2001/XMLSchema#anyURI> ] .";
+    logsRDF = "_:init <http://www.ajan.de/ajan-ns#agentInitKnowledge> [ <http://www.ajan.de/ajan-ns#agentReportURI> 'http://" + document.location.hostname + ":4202/report'^^<http://www.w3.org/2001/XMLSchema#anyURI> ] .";
   }
   if (templateUri === null) {
     $("#error-message").trigger("showToast", [

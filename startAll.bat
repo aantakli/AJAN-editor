@@ -1,4 +1,4 @@
-
+@echo off
 set "NODE_VERSION=node"
 for /f "delims=" %%x in ('%NODE_VERSION% -v') do set "NODE_VERSION=%%x"
 

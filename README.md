@@ -12,9 +12,18 @@ You will need the following things properly installed on your computer.
 
 ## Installation
 
+### Prebuild Installation
+* [Download latest release ZIP](https://github.com/aantakli/AJAN-editor/releases)
+* Run `startALL.bat` if you are on Windows and `startALL.sh` if you are on Mac/Linux
+
+### Clean Installation
 * `git clone <repository-url>` this repository
 * `cd AJAN-editor`
 * `npm install`
+
+### Docker
+* [Download latest Docker-Image](https://hub.docker.com/r/aantakli/ajan-editor)
+* Read Docker [Wiki](https://github.com/aantakli/AJAN-editor/wiki/Docker)
 
 ## Running / Development
 

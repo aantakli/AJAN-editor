@@ -21,6 +21,7 @@
 import Ember from "ember";
 import rdf from "npm:rdf-ext";
 import N3Parser from "npm:rdf-parser-n3";
+import * as Papa from 'papaparse';
 import stringToStream from "npm:string-to-stream";
 import modal from "ajan-editor/helpers/ui/debug-modal";
 import actions from "ajan-editor/helpers/agents/instance/actions";
@@ -34,7 +35,7 @@ export default Ember.Component.extend({
   activeInstance: {},
   agentLogs: [],
   agentMessage: "<http://test/Test1> <http://test/test> <http://test/Test> .",
-  messageError: "",
+  messageError: {},
   wssConnection: false,
   wssMessage: "",
   debugReport: null,
@@ -82,20 +83,29 @@ export default Ember.Component.extend({
       document.body.removeChild(textArea);
     },
 
-    sendMsgToAgent(uri, content) {
-      let dataset = checkRDFContent(content);
-      Promise.resolve(dataset)
-        .then(x => {
-          Promise.resolve(actions.sendMsgToAgent(uri, content))
-            .then(function () {
-              $("#send-message").trigger("showToast");
-              that.set("messageError", "");
-              $("#test textarea").val("");
+    sendMsgToAgent(uri, content, type) {
+      try {
+        let dataset = checkContent(content, type);
+        Promise.resolve(dataset)
+          .then(x => {
+            Promise.resolve(actions.sendMsgToAgent(uri, content, type))
+              .then(function () {
+                $("#send-message").trigger("showToast");
+                that.set("messageError", {});
+                $("#test textarea").val("");
+            });
+          })
+          .catch(function (error) {
+            that.set("messageError.uri", uri);
+            that.set("messageError.error", error);
+          }).catch(function (error) {
+            that.set("messageError.uri", uri);
+            that.set("messageError.error", error);
           });
-        })
-        .catch(function (error) {
-          that.set("messageError", uri);
-        });
+      } catch (error) {
+          that.set("messageError.uri", uri);
+          that.set("messageError.error", error);
+      }
     },
 
     deleteAgent(uri) {
@@ -152,10 +162,50 @@ export default Ember.Component.extend({
 	}
 });
 
+function checkContent(content, type) {
+  if (type === "application/trig") {
+    return checkRDFContent(content);
+  } else if (type === "application/json") {
+    return checkJSONContent(content);
+  } else if (type === "text/xml") {
+    return checkXMLContent(content);
+  } else if (type === "text/csv") {
+    return checkCSVContent(content);
+  } else if (type === "text/plain") {
+    return content;
+  }
+}
+
 function checkRDFContent(content) {
   const parser = new N3Parser();
   const quadStream = parser.import(stringToStream(content));
   return rdf.dataset().import(quadStream);
+}
+
+function checkJSONContent(content) {
+  return JSON.parse(content);
+}
+
+function checkXMLContent(content) {
+  const parser = new DOMParser();
+  const dom = parser.parseFromString(content,"text/xml");
+  for (const element of Array.from(dom.querySelectorAll("parsererror"))) {
+    if (element instanceof HTMLElement) {
+      const error = element;
+      throw new Error(error);
+    }
+  }
+  return dom;
+}
+
+function checkCSVContent(content) {
+  let data = Papa.parse(content);
+  console.log(data);
+  if (data.errors.length > 0) {
+    console.log(data.errors);
+    throw new Error(data.errors[0].message);
+  }
+  return content;
 }
 
 function myOpenHandler(event) {
@@ -180,7 +230,15 @@ function myMessageHandler(event) {
 
 function createLogs() {
   let agents = that.get("agentLogs");
-  const i = agents.findIndex(e => e.uri === that.get("activeInstance.uri"));
+  let activeAgentURI = that.get("activeInstance.uri");
+  let i = agents.findIndex(e => e.uri === that.get("activeInstance.uri"));
+  if (i == -1 && activeAgentURI.includes("http://localhost")) {
+    activeAgentURI = activeAgentURI.replace("http://localhost", "http://127.0.0.1");
+    i = agents.findIndex(e => e.uri === activeAgentURI);
+  } else if (i == -1 && activeAgentURI.includes("http://127.0.0.1")) {
+    activeAgentURI = activeAgentURI.replace("http://127.0.0.1", "http://localhost");
+    i = agents.findIndex(e => e.uri === activeAgentURI);
+  }
   let $textarea = $("#report-service-message-content");
   $textarea.empty();
   if (i > -1) {

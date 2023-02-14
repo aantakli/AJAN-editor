@@ -29,9 +29,9 @@ export default Component.extend({
     checkContent(that.get("value"));
   },
 
-  didUpdateAttrs() {
-    checkContent(that.get("value"));
-  },
+  //didUpdateAttrs() {
+  //  checkContent(that.get("value"));
+  //},
 
 	actions: {
 		adjustHeight: function(event) {

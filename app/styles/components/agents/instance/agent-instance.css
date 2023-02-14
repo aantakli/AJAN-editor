@@ -128,6 +128,19 @@ ul.instance-row-content {
     color: red;
 }
 
+
+:global(.agentInstance-action) {
+  margin-bottom: 20px;
+}
+
+:global(.contentType-wrapper) {
+  margin-bottom: 5px;
+}
+
+:global(.contentType-wrapper i.dropdown) {
+
+}
+
 :global(#report-service-wrapper) {
   position: relative;
 }

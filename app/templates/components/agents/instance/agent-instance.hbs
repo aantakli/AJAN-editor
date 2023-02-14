@@ -141,23 +141,38 @@
 <h3>Messages to Agent Endpoints</h3>
 <br />
 {{#each this.activeInstance.actions as |value|}}
-<div local-class="instance-row clearfix">
+<div class="agentInstance-action" local-class="instance-row clearfix">
   <h4>
     <span data-tooltip={{value.uri}}>{{value.label}}</span>
   </h4>
+  {{value.contentType}}
+  <div class="contentType-wrapper">
+    HTTP Method: POST; Content-Type: {{#ui-dropdown class="contentType-selection selection" selected=alue.selectedType onChange=(action (mut value.selectedType))}}
+    <div class="default text">{{value.selectedType}}</div>
+    <i class="dropdown icon"></i>
+    <div class="menu">
+      {{#each value.contentTypes as |types|}}
+      <div data-value="{{types}}" class="item">
+        {{types}}
+      </div>
+      {{/each}}
+    </div>
+    {{/ui-dropdown}}
+  </div>
+
   <div local-class="instance-row-content">
     <div id="test" local-class="instance-row-value">
       {{textarea value=value.agentMessage cols="80" rows="6"}}
     </div>
-    {{#if (eq messageError value.uri)}}
-    <p local-class="error-message">Invalide "text/turtle" RDF Graph!</p>
+    {{#if (eq messageError.uri value.uri)}}
+  <p local-class="error-message">{{messageError.error}}</p>
     {{/if}}
     <div>
-      <button data-tooltip="send Message" class="ui right icon yellow button" local-class="instance-row-copy" {{action "sendMsgToAgent" value.uri value.agentMessage}}>
+      <button data-tooltip="send Message" class="ui right icon yellow button" local-class="instance-row-copy" {{action "sendMsgToAgent" value.uri value.agentMessage value.selectedType}}>
         <i class="icon send no-side-margins"></i>
       </button>
     </div>
-  </div>
+</div>
 </div>
 {{/each}}
 {{/if}}

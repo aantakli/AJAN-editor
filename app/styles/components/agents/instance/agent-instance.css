@@ -137,6 +137,10 @@ ul.instance-row-content {
   margin-bottom: 5px;
 }
 
+:global(.contentType-wrapper i.dropdown) {
+
+}
+
 :global(#report-service-wrapper) {
   position: relative;
 }

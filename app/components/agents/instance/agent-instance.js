@@ -21,6 +21,7 @@
 import Ember from "ember";
 import rdf from "npm:rdf-ext";
 import N3Parser from "npm:rdf-parser-n3";
+import * as Papa from 'papaparse';
 import stringToStream from "npm:string-to-stream";
 import modal from "ajan-editor/helpers/ui/debug-modal";
 import actions from "ajan-editor/helpers/agents/instance/actions";
@@ -198,6 +199,12 @@ function checkXMLContent(content) {
 }
 
 function checkCSVContent(content) {
+  let data = Papa.parse(content);
+  console.log(data);
+  if (data.errors.length > 0) {
+    console.log(data.errors);
+    throw new Error(data.errors[0].message);
+  }
   return content;
 }
 

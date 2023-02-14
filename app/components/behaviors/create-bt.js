@@ -52,7 +52,7 @@ function createModal() {
   // Label
   let $labelTitle = $("<p>", {
     class: "modal-p"
-  }).text("Label: ");
+  }).text("Label:");
   let $labelInput = $("<input>", {
     class: "modal-input",
     id: "label-input",
@@ -64,6 +64,22 @@ function createModal() {
 
   // Append to modal body
   $body.append($labelDiv);
+
+  // URI
+  let $uriTitle = $("<p>", {
+    class: "modal-p"
+  }).text("URI (optional):");
+  let $uriInput = $("<input>", {
+    class: "modal-input",
+    id: "uri-input",
+    placeholder: "http://"
+  });
+  let $uriDiv = $("<div>", {
+    class: "modal-body-div"
+  }).append($uriTitle, $uriInput);
+
+  // Append to modal body
+  $body.append($uriDiv);
 
   // Listen for the confirm event
   let elem = document.getElementById("universal-modal");

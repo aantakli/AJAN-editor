@@ -71,7 +71,7 @@ let RDFS = {
 	label: "http://www.w3.org/2000/01/rdf-schema#label",
 	comment: "http://www.w3.org/2000/01/rdf-schema#comment",
   Resource: "http://www.w3.org/2000/01/rdf-schema#Resource",
-  isDefinedBy: "http://www.w3.org/2000/01/rdf-schema#isDefinedBy",
+  isDefinedBy: "http://www.w3.org/2000/01/rdf-schema#isDefinedBy"
 };
 let RDF = {
 	defaultPrefix: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
@@ -164,7 +164,7 @@ let ACTN = {
 	consumes: "http://www.ajan.de/actn#consumes",
   produces: "http://www.ajan.de/actn#produces",
   action: "http://www.ajan.de/actn#action",
-  headers: "http://www.ajan.de/actn#headers",
+  headers: "http://www.ajan.de/actn#headers"
 };
 let HTTP = {
 	Request: "http://www.w3.org/2006/http#Request",
@@ -193,10 +193,10 @@ let HTTP = {
 	Unlock: "http://www.w3.org/2008/http-methods#UNLOCK",
 	Propfind: "http://www.w3.org/2008/http-methods#PROPFIND",
 	View: "http://www.w3.org/2008/http-methods#VIEW",
-	paramValue: "http://www.w3.org/2011/http#paramValue",
+	paramValue: "http://www.w3.org/2011/http#paramValue"
 };
 let SPIN = {
-	varName: "http://spinrdf.org/sp#varName",
+	varName: "http://spinrdf.org/sp#varName"
 };
 let AGENTS = {
   Agent: "http://www.ajan.de/ajan-ns#Agent",
@@ -224,7 +224,7 @@ let AGENTS = {
 	variables: "http://www.ajan.de/ajan-ns#variables",
 	dataType:"http://www.ajan.de/ajan-ns#dataType",
   capability: "http://www.ajan.de/ajan-ns#capability",
-  clearEKB: "http://www.ajan.de/ajan-ns#clearEKB",
+  clearEKB: "http://www.ajan.de/ajan-ns#clearEKB"
 };
 
 export {BT, EDITOR, ACTN, ND, RDF, RDFS, DCT, STRIPS, XSD, HTTP, SPIN, AGENTS};

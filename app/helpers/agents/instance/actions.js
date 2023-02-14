@@ -53,11 +53,11 @@ export default {
     });
   },
 
-  sendMsgToAgent: function (endpoint, content) {
+  sendMsgToAgent: function (endpoint, content, type) {
     return $.ajax({
       url: endpoint,
       type: "POST",
-      contentType: "application/trig",
+      contentType: type,
       data: content,
       headers: { Accept: "application/ld+json" }
     }).catch(function (error) {
@@ -137,6 +137,8 @@ function getAgentInstance(graph, uri, templates) {
         action.agentMessage = "";
         action.label = "";
         action.capability = quad.object.value.split("capability=")[1];
+        action.contentTypes = ["application/trig", "application/json", "text/xml", "text/csv", "text/plain"];
+        action.selectedType = "application/trig";
         actions.push(action);
       }
     }

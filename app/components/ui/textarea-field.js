@@ -26,12 +26,7 @@ export default Component.extend({
   init() {
     this._super(...arguments);
     that = this;
-    checkContent(that.get("value"));
   },
-
-  //didUpdateAttrs() {
-  //  checkContent(that.get("value"));
-  //},
 
 	actions: {
 		adjustHeight: function(event) {
@@ -47,21 +42,12 @@ export default Component.extend({
 	}
 });
 
-function checkContent(content) {
-  try {
-    if (!content.endsWith('\n')) {
-      content = content + '\n';
-    }
-    that.set("value", content);
-  } catch (error) { }
-}
-
 function loadFile(event) {
   let file = event.target.files[0];
   console.log("File: " + file.name);
   var reader = new FileReader();
   reader.onload = function () {
-    checkContent(reader.result);
+    that.set("value", content);
   };
   reader.readAsText(file);
 }

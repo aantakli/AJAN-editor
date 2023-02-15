@@ -65,15 +65,23 @@ export default Component.extend({
     this.set("value", getValue(this));
   }),
 
-	value: computed("uri", "parameter", function() {
+  value: computed("uri", "parameter", function () {
 		return getValue(this);
 	}),
 
   valueChanged: observer("value", function () {
+    let type = this.get("type");
+    let value = this.get("value");
+    if (type.textarea) {
+      if (!value.endsWith('\n')) {
+        console.log("Add EOF in textarea");
+        value = value + '\n';
+      }
+    }
 		rdfGraph.setObjectValue(
 			this.get("uri"),
 			this.get("parameter").mapping,
-			this.get("value")
+      value
 		);
 	})
 });

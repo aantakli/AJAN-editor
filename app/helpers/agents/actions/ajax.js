@@ -85,7 +85,6 @@ function getHeaders(token) {
 }
 
 function loadAgentsRepo(ajax, tripleStoreRepository, token) {
-  console.log("test");
   let ajaxPromise = ajax.post(tripleStoreRepository, {
     contentType: "application/sparql-query; charset=utf-8",
     headers: getHeaders(token),

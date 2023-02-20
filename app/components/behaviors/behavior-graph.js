@@ -193,7 +193,9 @@ function generateAgent() {
   let selected = localStorage.getItem("bt-selected");
   let selectedBt = that.get("availableBTs").filter(item => item.uri == selected);
   console.log(selectedBt);
-  let includedEvents = new Array();
+  let includedEvents = {};
+  includedEvents.all = new Array();
+  includedEvents.handle = new Array();
   selectedBt[0].nodes.forEach(function (item) {
     addEventURI(item, includedEvents);
   });
@@ -222,13 +224,19 @@ function saveGeneratedAgent(repo, stringRDF) {
 
 function addEventURI(item, events) {
   let addableUri = "";
+  console.log(item);
   if (item.category == "GoalProducer") {
     addableUri = getGoalURI(item.uri);
-  } else if (item.category == "EventProducer" || item.category == "HandleMappingEvent" || item.category == "HandleEvent" || item.category == "HandleQueueEvent") {
+  } else if (item.category == "ProduceEvent") {
     addableUri = getEventURI(item.uri);
+  } else if (item.category == "HandleMappingEvent" || item.category == "HandleEvent" || item.category == "HandleQueueEvent") {
+    addableUri = getEventURI(item.uri);
+    if (addableUri != "" && !events.handle.includes(addableUri)) {
+      events.handle.push(addableUri);
+    }
   }
-  if (addableUri != "" && !events.includes(addableUri)) {
-    events.push(addableUri);
+  if (addableUri != "" && !events.all.includes(addableUri)) {
+    events.all.push(addableUri);
   }
 }
 
@@ -244,7 +252,7 @@ function getBehaviors(bt, includedEvents) {
   let addableBehaviors = {};
   addableBehaviors = new Array();
   let behaviors = that.get("availableBehaviors");
-  includedEvents.forEach(function (event) {
+  includedEvents.all.forEach(function (event) {
     behaviors.forEach(function (bhvs) {
       bhvs.triggers.forEach(function (item) {
         if (item.uri == event && !addableBehaviors.includes(event) && bhvs.bt.uri != bt.uri) {
@@ -259,7 +267,7 @@ function getBehaviors(bt, includedEvents) {
 function getEndpoints(includedEvents) {
   let addableEndpoints = new Array();
   let endpoints = that.get("availableEndpoints");
-  includedEvents.forEach(function (event) {
+  includedEvents.all.forEach(function (event) {
     endpoints.forEach(function (endpt) {
       endpt.events.forEach(function (item) {
         if (item.uri == event && !addableEndpoints.includes(event)) {

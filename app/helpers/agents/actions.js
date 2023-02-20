@@ -147,7 +147,7 @@ function createDefinedAgent(repo, btDef, includedEvents, includedBehaviors, incl
   agent.label = btDef.name + " AgentTemplate";
   agent.name = "AgentTemplate";
   agent.behaviors = includedBehaviors;
-  agent.events = includedEvents;
+  agent.events = includedEvents.all;
   agent.endpoints = includedEndpoints;
   return agent;
 }
@@ -202,7 +202,7 @@ function createDefinedBehavior(repo, btDef, events, includedBehaviors) {
   behavior.type = AGENTS.Behavior;
   behavior.label = btDef.name + " Behavior";
   behavior.behavior = "Behavior";
-  behavior.triggers = events;
+  behavior.triggers = events.handle;
   let bt = {};
   bt.label = btDef.name;
   bt.uri = btDef.uri;
@@ -227,7 +227,8 @@ function createDefinedEvent(repo, btDef, includedEvents) {
   event.uri = repo + "#EV_" + utility.generateUUID();
   event.label = btDef.name + " Event";
   event.name = "Event";
-  includedEvents.push(event.uri);
+  includedEvents.handle.push(event.uri);
+  includedEvents.all.push(event.uri);
   return event;
 }
 

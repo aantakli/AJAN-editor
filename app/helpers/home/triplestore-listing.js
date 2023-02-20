@@ -368,12 +368,7 @@ function loadRdfGraphZipData(zipFile, triplestore, ajax) {
 function loadAgentRdfGraphData(ajax, triplestore, onend) {
   let repo = (triplestore || "http://localhost:8090/rdf4j/repositories")
     + globals.agentsRepository;
-  agtActions.getAgentFromServer(ajax, repo).then(addRDFDataToGraph)
-    .then(agtActions.getBehaviorsFromServer(ajax, repo).then(addRDFDataToGraph)
-      .then(agtActions.getEventsFromServer(ajax, repo).then(addRDFDataToGraph)
-        .then(agtActions.getEndpointsFromServer(ajax, repo).then(addRDFDataToGraph)
-          .then(agtActions.getGoalsFromServer(ajax, repo).then(addRDFDataToGraph)
-          .then(onend)))));
+  agtActions.getFromServer(ajax, repo).then(addRDFDataToGraph).then(onend);
 }
 
 function addRDFDataToGraph(rdfData) {
@@ -415,7 +410,7 @@ function showImportDialog(ajax, triplestore, zipFile, matches) {
       rdfGraph.addAll(zipFile.agents.import.quads);
       agtActions.saveAgentGraph(ajax, triplestore + globals.agentsRepository, null);
     } else if (zipFile.agents.import) {
-      sendFile(triplestore + globals.agentsRepository, zipFile.agents.import.raw);
+      sendFile(ajax, triplestore + globals.agentsRepository, zipFile.agents.import.raw);
     }
     console.log(matches.behaviors);
     if (matches.behaviors.length > 0) {
@@ -425,7 +420,7 @@ function showImportDialog(ajax, triplestore, zipFile, matches) {
       rdfGraph.addAll(zipFile.behaviors.import.quads);
       btActions.saveGraph(ajax, triplestore + globals.behaviorsRepository, null);
     } else if (zipFile.behaviors.import) {
-      sendFile(triplestore + globals.behaviorsRepository, zipFile.behaviors.import.raw);
+      sendFile(ajax, triplestore + globals.behaviorsRepository, zipFile.behaviors.import.raw);
     }
     $("#save-confirmation").trigger("showToast");
   }, zipFile.info.input);

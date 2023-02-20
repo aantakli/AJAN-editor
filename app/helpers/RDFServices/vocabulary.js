@@ -212,6 +212,7 @@ let AGENTS = {
   Goal: "http://www.ajan.de/ajan-ns#Goal",
   Variable: "http://www.ajan.de/ajan-ns#Variable",
   event: "http://www.ajan.de/ajan-ns#event",
+  goal: "http://www.ajan.de/ajan-ns#goal",
   agentKnowledge: "http://www.ajan.de/ajan-ns#agentKnowledge",
   endpoint: "http://www.ajan.de/ajan-ns#endpoint",
   initialBehavior: "http://www.ajan.de/ajan-ns#initialBehavior",

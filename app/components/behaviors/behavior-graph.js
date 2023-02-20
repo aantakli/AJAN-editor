@@ -197,13 +197,13 @@ function generateAgent() {
   selectedBt[0].nodes.forEach(function (item) {
     addEventURI(item, includedEvents);
   });
-  let includedBehaviors = getBehaviors(includedEvents);
+  let includedBehaviors = getBehaviors(selectedBt[0], includedEvents);
   let includedEndpoints = getEndpoints(includedEvents);
   let agentDef = {};
-  agentDef.event = getNewEventDefinition(agentRepo, selectedBt[0], includedEvents);
-  agentDef.behavior = getNewBehaviorDefinition(agentRepo, selectedBt[0], agentDef.event, includedBehaviors);
-  agentDef.endpoint = getNewEndpointDefinition(agentRepo, selectedBt[0], agentDef.event, includedEndpoints);
-  agentDef.template = getNewAgentDefinition(agentRepo, selectedBt[0], includedEvents, includedBehaviors, includedEndpoints);
+  agentDef.event = actionsAgnt.createDefinedEvent(agentRepo, selectedBt[0], includedEvents);
+  agentDef.behavior = actionsAgnt.createDefinedBehavior(agentRepo, selectedBt[0], includedEvents, includedBehaviors);
+  agentDef.endpoint = actionsAgnt.createDefinedEndpoint(agentRepo, selectedBt[0], agentDef.event, includedEndpoints);
+  agentDef.template = actionsAgnt.createDefinedAgent(agentRepo, selectedBt[0], includedEvents, includedBehaviors, includedEndpoints);
   console.log(agentDef);
   let stringRDF = actionsAgnt.createAgentRDFString(agentDef);
   saveGeneratedAgent(agentRepo, stringRDF);
@@ -240,14 +240,14 @@ function getEventURI(uri) {
   return rdfGraph.getObject(uri, AGENTS.event).value;
 }
 
-function getBehaviors(includedEvents) {
+function getBehaviors(bt, includedEvents) {
   let addableBehaviors = {};
   addableBehaviors = new Array();
   let behaviors = that.get("availableBehaviors");
   includedEvents.forEach(function (event) {
     behaviors.forEach(function (bhvs) {
       bhvs.triggers.forEach(function (item) {
-        if (item.uri == event && !addableBehaviors.includes(event)) {
+        if (item.uri == event && !addableBehaviors.includes(event) && bhvs.bt.uri != bt.uri) {
           addableBehaviors.push(bhvs.uri);
         }
       })
@@ -269,56 +269,6 @@ function getEndpoints(includedEvents) {
     });
   });
   return addableEndpoints;
-}
-
-function getNewEventDefinition(repo, btDef, includedEvents) {
-  let event = {};
-  event.type = AGENTS.Event;
-  event.uri = repo + "#EV_" + utility.generateUUID();
-  event.label = btDef.name + " Event";
-  event.name = "Event";
-  includedEvents.push(event.uri);
-  return event;
-}
-
-function getNewEndpointDefinition(repo, btDef, event, includedEndpoints) {
-  let endpoint = {};
-  endpoint.uri = repo + "#EP_" + utility.generateUUID();
-  endpoint.type = AGENTS.Endpoint;
-  endpoint.name = "Endpoint";
-  endpoint.label = btDef.name + " Endpoint";
-  endpoint.capability = "execute";
-  endpoint.events = [event];
-  includedEndpoints.push(endpoint.uri);
-  return endpoint;
-}
-
-function getNewBehaviorDefinition(repo, btDef, event, includedBehaviors) {
-  let behavior = {};
-  behavior.uri = repo + "#BE_" + utility.generateUUID();
-  behavior.type = AGENTS.Behavior;
-  behavior.label = btDef.name + " Behavior";
-  behavior.behavior = "Behavior";
-  behavior.triggers = [event];
-  let bt = {};
-  bt.label = btDef.name;
-  bt.uri = btDef.uri;
-  behavior.bt = bt;
-  behavior.clearEKB = false;
-  includedBehaviors.push(behavior.uri);
-  return behavior;
-}
-
-function getNewAgentDefinition(repo, btDef, includedEvents, includedBehaviors, includedEndpoints) {
-  let agent = {};
-  agent.uri = repo + "#AG_" + btDef.name + "_" + utility.generateUUID();
-  agent.type = AGENTS.AgentTemplate;
-  agent.label = btDef.name + " AgentTemplate";
-  agent.name = "AgentTemplate";
-  agent.behaviors = includedBehaviors;
-  agent.events = includedEvents;
-  agent.endpoints = includedEndpoints;
-  return agent;
 }
 
 function createBT(bt) {

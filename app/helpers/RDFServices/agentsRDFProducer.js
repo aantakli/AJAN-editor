@@ -18,7 +18,7 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import {RDF, RDFS, AGENTS} from "ajan-editor/helpers/RDFServices/vocabulary";
+import { RDF, RDFS, AGENTS, XSD} from "ajan-editor/helpers/RDFServices/vocabulary";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 import rdf from "npm:rdf-ext";
@@ -66,8 +66,12 @@ function createBehaviorQuads(quads, behavior) {
   quads.add(rdfFact.quad(behavior.uri, RDF.type, AGENTS.Behavior));
   quads.add(rdfFact.quadLiteral(behavior.uri, RDFS.label, behavior.label));
   quads.add(rdfFact.quad(behavior.uri, AGENTS.bt, behavior.bt.uri));
-  quads.add(rdfFact.quad(behavior.uri, AGENTS.trigger, behavior.triggers[0].uri));
-  quads.add(rdfFact.quadLiteral(behavior.uri, AGENTS.clearEKB, behavior.clearEKB));
+  console.log(behavior.triggers);
+  behavior.triggers.forEach(function (event) {
+    quads.add(rdfFact.quad(behavior.uri, AGENTS.trigger, event));
+  })
+  console.log(behavior.clearEKB);
+  quads.add(rdfFact.quadLiteral(behavior.uri, AGENTS.clearEKB, behavior.clearEKB, XSD.boolean));
 }
 
 function createEndpointQuads(quads, endpoint) {

@@ -57,6 +57,9 @@ export default Ember.Component.extend({
     this.get('dataBus').on('addBT', function (bt) {
       createBT(bt);
     });
+    this.get('dataBus').on('generateAgent', function (bt) {
+      generateAgent();
+    });
     this.get('dataBus').on('cloneBT', function () {
       cloneBT();
     });
@@ -173,20 +176,16 @@ function loadAgentsRdfGraphData() {
 function setAvailableBehaviors() {
   let behaviorsLists = actionsAgnt.getBehaviors();
   that.set("availableBehaviors", behaviorsLists.regular);
-  console.log(that.get("availableBehaviors"));
 }
 
 function setAvailableEvents() {
   let eventLists = actionsAgnt.getEvents();
   that.set("availableEvents", eventLists);
-  console.log(that.get("availableEvents"));
 }
 
 function setAvailableEndpoints() {
   let endpointList = actionsAgnt.getEndpoints();
   that.set("availableEndpoints", endpointList);
-  console.log(that.get("availableEndpoints"));
-  generateAgent();
 }
 
 function generateAgent() {
@@ -200,9 +199,25 @@ function generateAgent() {
   });
   let includedBehaviors = getBehaviors(includedEvents);
   let includedEndpoints = getEndpoints(includedEvents);
-  let agentDef = getNewAgentDefinition(agentRepo, selectedBt[0], includedEvents, includedBehaviors, includedEndpoints);
+  let agentDef = {};
+  agentDef.event = getNewEventDefinition(agentRepo, selectedBt[0], includedEvents);
+  agentDef.behavior = getNewBehaviorDefinition(agentRepo, selectedBt[0], agentDef.event, includedBehaviors);
+  agentDef.endpoint = getNewEndpointDefinition(agentRepo, selectedBt[0], agentDef.event, includedEndpoints);
+  agentDef.template = getNewAgentDefinition(agentRepo, selectedBt[0], includedEvents, includedBehaviors, includedEndpoints);
   console.log(agentDef);
-  actionsAgnt.createAgent(agentDef);
+  let stringRDF = actionsAgnt.createAgentRDFString(agentDef);
+  saveGeneratedAgent(agentRepo, stringRDF);
+}
+
+function saveGeneratedAgent(repo, stringRDF) {
+  try {
+    actions.saveAgentGraph(globals.ajax, repo, stringRDF);
+  } catch (e) {
+    $("#error-message").trigger("showToast", [
+      "Error while saving generated Agent"
+    ]);
+    throw e;
+  }
 }
 
 function addEventURI(item, events) {
@@ -256,12 +271,49 @@ function getEndpoints(includedEvents) {
   return addableEndpoints;
 }
 
-function getNewAgentDefinition(repo, bt, includedEvents, includedBehaviors, includedEndpoints) {
+function getNewEventDefinition(repo, btDef, includedEvents) {
+  let event = {};
+  event.type = AGENTS.Event;
+  event.uri = repo + "#EV_" + utility.generateUUID();
+  event.label = btDef.name + " Event";
+  event.name = "Event";
+  includedEvents.push(event.uri);
+  return event;
+}
+
+function getNewEndpointDefinition(repo, btDef, event, includedEndpoints) {
+  let endpoint = {};
+  endpoint.uri = repo + "#EP_" + utility.generateUUID();
+  endpoint.type = AGENTS.Endpoint;
+  endpoint.name = "Endpoint";
+  endpoint.label = btDef.name + " Endpoint";
+  endpoint.capability = "execute";
+  endpoint.events = [event];
+  includedEndpoints.push(endpoint.uri);
+  return endpoint;
+}
+
+function getNewBehaviorDefinition(repo, btDef, event, includedBehaviors) {
+  let behavior = {};
+  behavior.uri = repo + "#BE_" + utility.generateUUID();
+  behavior.type = AGENTS.Behavior;
+  behavior.label = btDef.name + " Behavior";
+  behavior.behavior = "Behavior";
+  behavior.triggers = [event];
+  let bt = {};
+  bt.label = btDef.name;
+  bt.uri = btDef.uri;
+  behavior.bt = bt;
+  behavior.clearEKB = false;
+  includedBehaviors.push(behavior.uri);
+  return behavior;
+}
+
+function getNewAgentDefinition(repo, btDef, includedEvents, includedBehaviors, includedEndpoints) {
   let agent = {};
-  console.log(bt);
-  agent.uri = repo + "#AG_" + bt.name + "_" + utility.generateUUID();
+  agent.uri = repo + "#AG_" + btDef.name + "_" + utility.generateUUID();
   agent.type = AGENTS.AgentTemplate;
-  agent.label = bt.name + " AgentTemplate";
+  agent.label = btDef.name + " AgentTemplate";
   agent.name = "AgentTemplate";
   agent.behaviors = includedBehaviors;
   agent.events = includedEvents;

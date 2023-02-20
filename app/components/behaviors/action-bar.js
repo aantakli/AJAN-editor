@@ -85,6 +85,7 @@ export default Component.extend({
 
     generateAgent() {
       console.log("Generate Agent!");
+      this.get('dataBus').generateAgent();
     },
 
     sort() {

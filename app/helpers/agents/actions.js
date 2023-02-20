@@ -52,6 +52,7 @@ export default {
   createDefaultGoal: createDefaultGoal,
 
   createAgent: agentProducer.createAgent,
+  createAgentRDFString: agentProducer.createAgentRDFString,
   createInitialBehavior: behaviorProducer.createInitialBehavior,
   createFinalBehavior: behaviorProducer.createFinalBehavior,
   createBehavior: behaviorProducer.createBehavior,

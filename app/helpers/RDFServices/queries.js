@@ -30,6 +30,14 @@ WHERE {?s ?p ?o}`,
     );
   },
 
+  insert: function (str) {
+    return (
+    `INSERT DATA{` +
+      str +
+      `}`
+    );
+  },
+
 	update: function(str) {
 		return (
 			`DELETE { ?s ?p ?o } WHERE { ?s ?p ?o };

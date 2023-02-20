@@ -47,7 +47,7 @@
   width: 25px;
   height: 25px;
   float: left;
-  margin-right: 10px;
+  padding-right: 25px;
 }
 
 .agent-list-item button {
@@ -79,7 +79,7 @@
   background: #d1d1e0;
 }
 
-:global(#agents-overview .item.active i) {
+:global(#agents-overview .item.active .agent-list-item-marker) {
   width: 0;
   height: 0;
   margin-right: -10px;
@@ -89,7 +89,7 @@
   border-color: transparent transparent transparent #ececff;
 }
 
-:global(#agents-overview .item.active:hover i) {
+:global(#agents-overview .item.active:hover .agent-list-item-marker) {
   border-color: transparent transparent transparent #d1d1e0;
 }
 

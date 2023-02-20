@@ -1,5 +1,8 @@
 <div local-class="agent-item-header clearfix">
-  <div local-class="agent-item-header-text">  {{activeEndpoint.label}}</div>
+  <div local-class="agent-item-header-text">
+    <i class="icon envelope"></i>
+    {{activeEndpoint.label}}
+  </div>
   <a class="ui icon button"
      download={{fileName}}
      href="{{content}}">

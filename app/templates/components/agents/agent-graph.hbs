@@ -18,10 +18,11 @@
     {{#each this.availableAgents as |value|}}
     <li data-value={{value.uri}} data-tooltip={{value.uri}} data-position="top left" class="item" local-class="agent-list-item">
       <button {{action "setActiveAgent" value }}>
-        <img local-class="agent-list-item-icon" src="/icons/template.png" />
+        <!-- <img local-class="agent-list-item-icon" src="/icons/template.png" /> -->
+        <i local-class="agent-list-item-icon" class="user icon"></i>
         <div>{{value.label}}</div>
       </button>
-      <i></i>
+      <i class="agent-list-item-marker"></i>
     </li>
     {{/each}}
   </ul>
@@ -41,8 +42,11 @@
     {{#each this.availableBehaviors.initial as |value|}}
     {{#if value.uri}}
     <li data-value={{value.uri}} class="item" data-tooltip={{value.uri}} data-position="top left" local-class="agent-list-item">
-      <button {{action "setActiveBehavior" value "initial"}}>{{value.label}} </button>
-      <i></i>
+      <button {{action "setActiveBehavior" value "initial"}}>
+        <i local-class="agent-list-item-icon" class="share alternate icon"></i>
+        <div>{{value.label}}</div>
+      </button>
+      <i class="agent-list-item-marker"></i>
     </li>
     {{/if}}
     {{/each}}
@@ -62,8 +66,11 @@
     {{#each this.availableBehaviors.final as |value|}}
     {{#if value.uri}}
     <li data-value={{value.uri}} class="item" data-tooltip={{value.uri}} data-position="top left" local-class="agent-list-item">
-      <button {{action "setActiveBehavior" value "final"}}>{{value.label}} </button>
-      <i></i>
+      <button {{action "setActiveBehavior" value "final"}}>
+        <i local-class="agent-list-item-icon" class="share alternate icon"></i>
+        <div>{{value.label}}</div>
+      </button>
+      <i class="agent-list-item-marker"></i>
     </li>
     {{/if}}
     {{/each}}
@@ -82,8 +89,11 @@
   <ul class="active content" local-class="agent-list-content">
     {{#each this.availableBehaviors.regular as |value|}}
     <li data-value={{value.uri}} class="item" data-tooltip={{value.uri}} data-position="top left" local-class="agent-list-item">
-      <button {{action "setActiveBehavior" value "regular"}}>{{value.label}} </button>
-      <i></i>
+      <button {{action "setActiveBehavior" value "regular"}}>
+        <i local-class="agent-list-item-icon" class="share alternate icon"></i>
+        <div>{{value.label}}</div>
+      </button>
+      <i class="agent-list-item-marker"></i>
     </li>
     {{/each}}
   </ul>
@@ -102,8 +112,11 @@
   <ul class="active content" local-class="agent-list-content">
     {{#each this.availableEndpoints as |value|}}
     <li data-value={{value.uri}} class="item" data-tooltip={{value.uri}} data-position="top left" local-class="agent-list-item">
-      <button {{action "setActiveEndpoint" value}}>{{value.label}} </button>
-      <i></i>
+      <button {{action "setActiveEndpoint" value}}>
+        <i local-class="agent-list-item-icon" class="envelope icon"></i>
+        <div>{{value.label}}</div>
+      </button>
+      <i class="agent-list-item-marker"></i>
     </li>
     {{/each}}
   </ul>
@@ -120,8 +133,11 @@
   <ul class="active content" local-class="agent-list-content">
     {{#each this.availableEvents as |value|}}
     <li data-value={{value.uri}} class="item" data-tooltip={{value.uri}} data-position="top left" local-class="agent-list-item">
-      <button {{action "setActiveEvent" value}}>{{value.label}} </button>
-      <i></i>
+      <button {{action "setActiveEvent" value}}>
+        <i local-class="agent-list-item-icon" class="star icon"></i>
+        <div>{{value.label}}</div>
+      </button>
+      <i class="agent-list-item-marker"></i>
     </li>
     {{/each}}
   </ul>
@@ -139,8 +155,11 @@
     {{#each this.availableGoals as |value|}}
 
     <li data-value={{value.uri}} class="item" data-tooltip={{value.uri}} data-position="top left" local-class="agent-list-item">
-      <button {{action "setActiveGoal" value}}>{{value.label}} </button>
-      <i></i>
+      <button {{action "setActiveGoal" value}}>
+        <i local-class="agent-list-item-icon" class="trophy icon"></i>
+        <div>{{value.label}}</div>
+      </button>
+      <i class="agent-list-item-marker"></i>
     </li>
     {{/each}}
   </ul>

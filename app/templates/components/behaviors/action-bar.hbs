@@ -33,15 +33,30 @@
     fileName=this.btFileName
     icon="download"
   }}
-{{/ui/menu-bar/dropdown}}
-  {{ui/menu-bar/button
+  {{/ui/menu-bar/dropdown}}
+  {{#ui/menu-bar/dropdown
     label="Create"
-    onClick=(action "createBehavior")
+    class="action-bar"
   }}
-{{ui/menu-bar/button
-    label="Clone"
-    onClick=(action "cloneBehavior")
+  {{ui/menu-bar/create-button
+    label="Create BT"
+    class="createBT"
+    compAction=(action "createBehavior")
+    icon="plus square"
   }}
+  {{ui/menu-bar/create-button
+    label="Clone BT"
+    class="cloneBT"
+    compAction=(action "cloneBehavior")
+    icon="clone"
+  }}
+  {{ui/menu-bar/create-button
+    label="Generate Agent"
+    class="generateAgent"
+    compAction=(action "generateAgent")
+    icon="user plus"
+  }}
+  {{/ui/menu-bar/dropdown}}
   {{ui/menu-bar/button
     label="Sort"
     onClick=(action "sort")

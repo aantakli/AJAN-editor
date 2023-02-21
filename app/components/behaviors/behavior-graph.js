@@ -193,12 +193,8 @@ function generateAgent() {
   let selected = localStorage.getItem("bt-selected");
   let selectedBt = that.get("availableBTs").filter(item => item.uri == selected);
   console.log(selectedBt);
-  let includedEvents = {};
-  includedEvents.all = new Array();
-  includedEvents.handle = new Array();
-  selectedBt[0].nodes.forEach(function (item) {
-    addEventURI(item, includedEvents);
-  });
+  let includedEvents = { all: new Array(), handle: new Array(), produce: new Array()};
+  getEvents(includedEvents, selectedBt[0], that.get("availableBehaviors").filter(item => item.bt.uri != selectedBt[0].uri), true);
   let includedBehaviors = getBehaviors(selectedBt[0], includedEvents);
   let includedEndpoints = getEndpoints(includedEvents);
   let agentDef = {};
@@ -222,20 +218,40 @@ function saveGeneratedAgent(repo, stringRDF) {
   }
 }
 
-function addEventURI(item, events) {
+function getEvents(includedEvents, bt, behaviors, root) {
+  bt.nodes.forEach(function (item) {
+    addEventURI(item, includedEvents, root);
+  });
+  behaviors.forEach(function (bhvs) {
+    bhvs.triggers.forEach(function (event) {
+      if (includedEvents.produce.includes(event.uri)) {
+        bhvs.triggers.forEach(function (triggers) {
+          includedEvents.all.push(triggers.uri);
+        });
+        let newBt = that.get("availableBTs").filter(item => item.uri == bhvs.bt.uri);
+        console.log("Visit BT: " + newBt[0].uri);
+        getEvents(includedEvents, newBt[0], behaviors.filter(item => item.uri != bhvs.uri), false);
+      }
+    });
+  });
+  return includedEvents;
+}
+
+function addEventURI(item, events, root) {
   let addableUri = "";
-  console.log(item);
-  if (item.category == "GoalProducer") {
+  if (item.category == "ProduceGoal") {
     addableUri = getGoalURI(item.uri);
+    events.produce.push(addableUri);
   } else if (item.category == "ProduceEvent") {
     addableUri = getEventURI(item.uri);
+    events.produce.push(addableUri);
   } else if (item.category == "HandleMappingEvent" || item.category == "HandleEvent" || item.category == "HandleQueueEvent") {
     addableUri = getEventURI(item.uri);
-    if (addableUri != "" && !events.handle.includes(addableUri)) {
+    if (root && addableUri != "" && !events.handle.includes(addableUri)) {
       events.handle.push(addableUri);
     }
   }
-  if (addableUri != "" && !events.all.includes(addableUri)) {
+  if (that.get("availableEvents").filter(item => item.uri == addableUri).length > 0 && addableUri != "" && !events.all.includes(addableUri)) {
     events.all.push(addableUri);
   }
 }
@@ -249,8 +265,7 @@ function getEventURI(uri) {
 }
 
 function getBehaviors(bt, includedEvents) {
-  let addableBehaviors = {};
-  addableBehaviors = new Array();
+  let addableBehaviors = new Array();
   let behaviors = that.get("availableBehaviors");
   includedEvents.all.forEach(function (event) {
     behaviors.forEach(function (bhvs) {

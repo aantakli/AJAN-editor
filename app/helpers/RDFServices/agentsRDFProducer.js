@@ -66,11 +66,9 @@ function createBehaviorQuads(quads, behavior) {
   quads.add(rdfFact.quad(behavior.uri, RDF.type, AGENTS.Behavior));
   quads.add(rdfFact.quadLiteral(behavior.uri, RDFS.label, behavior.label));
   quads.add(rdfFact.quad(behavior.uri, AGENTS.bt, behavior.bt.uri));
-  console.log(behavior.triggers);
   behavior.triggers.forEach(function (event) {
     quads.add(rdfFact.quad(behavior.uri, AGENTS.trigger, event));
   })
-  console.log(behavior.clearEKB);
   quads.add(rdfFact.quadLiteral(behavior.uri, AGENTS.clearEKB, behavior.clearEKB, XSD.boolean));
 }
 

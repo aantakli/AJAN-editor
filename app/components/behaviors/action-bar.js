@@ -83,6 +83,11 @@ export default Component.extend({
       this.get('dataBus').cloneBT();
     },
 
+    generateAgent() {
+      console.log("Generate Agent!");
+      this.get('dataBus').generateAgent();
+    },
+
     sort() {
       graphOperations.updateGraph(globals.cy);
     },

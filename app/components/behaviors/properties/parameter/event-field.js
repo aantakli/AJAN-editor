@@ -39,7 +39,7 @@ export default Component.extend({
     this._super(...arguments);
     that = this;
     initializeGlobals(this);
-    loadActionsRdfGraphData();
+    loadAgentsRdfGraphData();
   },
 
   selectedChanged: observer("selected", function () {
@@ -66,7 +66,7 @@ function initializeAjax() {
   globals.ajax = ajax;
 }
 
-function loadActionsRdfGraphData() {
+function loadAgentsRdfGraphData() {
   let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
     + globals.agentsRepository;
   actionsAgnt.getFromServer(ajax, repo).then(setAvailableEvents);

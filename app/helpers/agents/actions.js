@@ -43,15 +43,20 @@ export default {
   deleteGoal: deleteGoal,
   deleteVariable: deleteVariable,
 
-	createDefaultAgent: createDefaultAgent,
+  createDefaultAgent: createDefaultAgent,
+  createDefinedAgent: createDefinedAgent,
   createDefaultInitialBehavior: createDefaultInitialBehavior,
   createDefaultFinalBehavior: createDefaultFinalBehavior,
   createDefaultBehavior: createDefaultBehavior,
+  createDefinedBehavior: createDefinedBehavior,
   createDefaultEvent: createDefaultEvent,
+  createDefinedEvent: createDefinedEvent,
   createDefaultEndpoint: createDefaultEndpoint,
+  createDefinedEndpoint: createDefinedEndpoint,
   createDefaultGoal: createDefaultGoal,
 
   createAgent: agentProducer.createAgent,
+  createAgentRDFString: agentProducer.createAgentRDFString,
   createInitialBehavior: behaviorProducer.createInitialBehavior,
   createFinalBehavior: behaviorProducer.createFinalBehavior,
   createBehavior: behaviorProducer.createBehavior,
@@ -135,6 +140,18 @@ function createDefaultAgent(repo) {
   return agent;
 }
 
+function createDefinedAgent(repo, btDef, includedEvents, includedBehaviors, includedEndpoints) {
+  let agent = {};
+  agent.uri = repo + "#AG_" + btDef.name + "_" + utility.generateUUID();
+  agent.type = AGENTS.AgentTemplate;
+  agent.label = btDef.name + " AgentTemplate";
+  agent.name = "AgentTemplate";
+  agent.behaviors = includedBehaviors;
+  agent.events = includedEvents.all;
+  agent.endpoints = includedEndpoints;
+  return agent;
+}
+
 function createDefaultInitialBehavior(repo) {
   let behavior = {};
   behavior.uri = repo + "agents#IB_" + utility.generateUUID();
@@ -178,12 +195,40 @@ function createDefaultBehavior(repo) {
   return behavior;
 }
 
+function createDefinedBehavior(repo, btDef, events, includedBehaviors) {
+  console.log(events);
+  let behavior = {};
+  behavior.uri = repo + "#BE_" + utility.generateUUID();
+  behavior.type = AGENTS.Behavior;
+  behavior.label = btDef.name + " Behavior";
+  behavior.behavior = "Behavior";
+  behavior.triggers = events.handle;
+  let bt = {};
+  bt.label = btDef.name;
+  bt.uri = btDef.uri;
+  behavior.bt = bt;
+  behavior.clearEKB = false;
+  includedBehaviors.push(behavior.uri);
+  return behavior;
+}
+
 function createDefaultEvent(repo) {
   let event = {};
   event.type = AGENTS.Event;
   event.uri = repo + "agents#EV_" + utility.generateUUID();
   event.label = "Default Event";
   event.name = "Event";
+  return event;
+}
+
+function createDefinedEvent(repo, btDef, includedEvents) {
+  let event = {};
+  event.type = AGENTS.Event;
+  event.uri = repo + "#EV_" + utility.generateUUID();
+  event.label = btDef.name + " Event";
+  event.name = "Event";
+  includedEvents.handle.push(event.uri);
+  includedEvents.all.push(event.uri);
   return event;
 }
 
@@ -195,6 +240,18 @@ function createDefaultEndpoint(repo) {
   endpoint.label = "Default Endpoint";
   endpoint.capability = "";
   endpoint.events = new Array();
+  return endpoint;
+}
+
+function createDefinedEndpoint(repo, btDef, event, includedEndpoints) {
+  let endpoint = {};
+  endpoint.uri = repo + "#EP_" + utility.generateUUID();
+  endpoint.type = AGENTS.Endpoint;
+  endpoint.name = "Endpoint";
+  endpoint.label = btDef.name + " Endpoint";
+  endpoint.capability = "execute";
+  endpoint.events = [event];
+  includedEndpoints.push(endpoint.uri);
   return endpoint;
 }
 

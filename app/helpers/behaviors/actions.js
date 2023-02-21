@@ -32,7 +32,8 @@ export default {
 	// AJAX related Actions
 	getFromServer: ajaxActions.getFromServer,
 	getBehaviorTrees: ajaxActions.getBehaviorTrees,
-	saveGraph,
+  saveGraph,
+  saveAgentGraph: ajaxActions.saveAgentGraph,
 	restoreSaved: ajaxActions.restoreSaved,
 
 	// Graph Actions

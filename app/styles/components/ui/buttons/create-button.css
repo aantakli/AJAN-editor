@@ -1,0 +1,27 @@
+:global(.create-bt-agt)::before {
+  font-size: 15px;
+  color: #000;
+}
+
+:global(.createBT .create-bt-agt),
+:global(.cloneBT .create-bt-agt),
+:global(.generateAgent .create-bt-agt) {
+  padding: 10px 16px;
+  width: 120pt !important;
+  color: #000 !important;
+  text-align: left;
+  background-color: #f0f0f0 !important;
+}
+
+:global(.createBT i),
+:global(.cloneBT i),
+:global(.generateAgent i) {
+  padding-left: 10px;
+  color: #000;
+}
+
+:global(.createBT .create-bt-agt):hover,
+:global(.cloneBT .create-bt-agt):hover,
+:global(.generateAgent .create-bt-agt):hover {
+  background-color: rgba(0, 0, 0, 0.0) !important;
+}

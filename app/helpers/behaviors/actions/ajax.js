@@ -48,6 +48,11 @@ export default {
       .then((token) => updateBehaviorsRepo(ajax, tripleStoreRepository, token));
   },
 
+  saveAgentGraph: function (ajax, tripleStoreRepository, agentDefinition) {
+    Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
+      .then((token) => saveAgentDefinition(ajax, tripleStoreRepository, token, agentDefinition));
+  },
+
   restoreSaved: function (ajax, tripleStoreRepository) {
     Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
       .then((token) => restoreSavedRepo(ajax, tripleStoreRepository, token));
@@ -164,6 +169,57 @@ function updateBehaviorsRepo(ajax, tripleStoreRepository, token) {
         tokenizer.removeToken(localStorage.currentStore);
         Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
           .then((token) => updateBehaviorsRepo(ajax, tripleStoreRepository, token));
+      }
+      throw error;
+    });
+
+  rdfGraph.unsavedChanges = false;
+}
+
+function saveAgentDefinition(ajax, tripleStoreRepository, token, agentDefinition) {
+  console.log("Saving to agent definition in store: ", tripleStoreRepository);
+
+  let postDestination = tripleStoreRepository + "/statements";
+  let rdfString = rdfGraph.toString();
+  console.log(rdfString);
+  let query = SparqlQueries.insert(agentDefinition);
+  let dataString = $.param({ update: query });
+
+  ajax
+    .post(postDestination, {
+      contentType: "application/x-www-form-urlencoded; charset=utf-8",
+      headers: getHeaders(token),
+      // SPARQL query
+      data: dataString
+    })
+    .then(response => {
+      $("#save-confirmation").trigger("showToast");
+    })
+    .catch(function (error) {
+      if (isServerError(error)) {
+        ajax
+          .post(postDestination, {
+            contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            headers: getHeaders(token),
+            // SPARQL query
+            data: restoredItem
+          })
+          .then(
+            function (data) {
+              // On accept
+              console.log("Request success", data);
+            },
+            function (jqXHR) {
+              // On reject
+              console.log("Request failed", jqXHR);
+            }
+          );
+
+        return;
+      } else {
+        tokenizer.removeToken(localStorage.currentStore);
+        Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
+          .then((token) => saveAgentDefinition(ajax, tripleStoreRepository, token, agentDefinition));
       }
       throw error;
     });

@@ -8,6 +8,12 @@
   color: #000;
 }
 
+:global(.loadFile input),
+:global(.loadRepo input),
+:global(.loadBT input) {
+  background-color: #f0f0f0 !important;
+}
+
 :global(.loadFile i),
 :global(.loadBT i),
 :global(.loadRepo i) {
@@ -18,7 +24,7 @@
 :global(.loadPropertyFile) {
   background: #E9E9E9;
   border-radius: 5px;
-  heigt: 50px;
+  height: 50px;
   margin: 5px 1px 5px 0;
   position: relative;
 }

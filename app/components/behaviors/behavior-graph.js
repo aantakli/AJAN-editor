@@ -19,6 +19,7 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import actions from "ajan-editor/helpers/behaviors/actions";
+import actionsAgnt from "ajan-editor/helpers/agents/actions";
 import {cleanDOM} from "ajan-editor/helpers/graph/cy-cleanup";
 import Ember from "ember";
 import events from "ajan-editor/helpers/behaviors/event-bindings";
@@ -26,6 +27,8 @@ import globals from "ajan-editor/helpers/global-parameters";
 import nodeDefs from "ajan-editor/helpers/RDFServices/node-definitions/common";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
+import utility from "ajan-editor/helpers/RDFServices/utility";
+import { AGENTS, XSD, RDF, RDFS } from "ajan-editor/helpers/RDFServices/vocabulary";
 import Split from "npm:split.js";
 
 let $ = Ember.$;
@@ -43,6 +46,9 @@ export default Ember.Component.extend({
   cytoscapeService: Ember.inject.service("behaviors/cytoscape"),
   dataBus: Ember.inject.service(),
   availableBTs: undefined,
+  availableEvents: undefined,
+  availableBehaviors: undefined,
+  availableEndpoints: undefined,
   cyRef: undefined,
 
   init() {
@@ -50,6 +56,9 @@ export default Ember.Component.extend({
     that = this;
     this.get('dataBus').on('addBT', function (bt) {
       createBT(bt);
+    });
+    this.get('dataBus').on('generateAgent', function (bt) {
+      generateAgent();
     });
     this.get('dataBus').on('cloneBT', function () {
       cloneBT();
@@ -127,10 +136,11 @@ function initializeSplitPanes() {
 }
 
 function loadNodeDefinitionsThenGraph() {
-	nodeDefs(ajax, cy).then(loadRdfGraphData);
+  nodeDefs(ajax, cy).then(loadBTRdfGraphData);
+  loadAgentsRdfGraphData();
 }
 
-function loadRdfGraphData() {
+function loadBTRdfGraphData() {
 	let repo =
 		(localStorage.currentStore || "http://localhost:8090/rdf4j/repositories") +
 		"/" +
@@ -150,8 +160,138 @@ function rdfDataHasLoaded(rdfData) {
 }
 
 function setAvailableBTs() {
-	let behaviorTrees = actions.getBehaviorTrees();
+  let behaviorTrees = actions.getBehaviorTrees();
   that.set("availableBTs", behaviorTrees);
+}
+
+function loadAgentsRdfGraphData() {
+  let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
+    + globals.agentsRepository;
+  actionsAgnt.getFromServer(ajax, repo)
+    .then(setAvailableBehaviors)
+    .then(setAvailableEvents)
+    .then(setAvailableEndpoints);
+}
+
+function setAvailableBehaviors() {
+  let behaviorsLists = actionsAgnt.getBehaviors();
+  that.set("availableBehaviors", behaviorsLists.regular);
+}
+
+function setAvailableEvents() {
+  let eventLists = actionsAgnt.getEvents();
+  that.set("availableEvents", eventLists);
+}
+
+function setAvailableEndpoints() {
+  let endpointList = actionsAgnt.getEndpoints();
+  that.set("availableEndpoints", endpointList);
+}
+
+function generateAgent() {
+  let agentRepo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories/") + "agents";
+  let selected = localStorage.getItem("bt-selected");
+  let selectedBt = that.get("availableBTs").filter(item => item.uri == selected);
+  console.log(selectedBt);
+  let includedEvents = { all: new Array(), handle: new Array(), produce: new Array()};
+  getEvents(includedEvents, selectedBt[0], that.get("availableBehaviors").filter(item => item.bt.uri != selectedBt[0].uri), true);
+  let includedBehaviors = getBehaviors(selectedBt[0], includedEvents);
+  let includedEndpoints = getEndpoints(includedEvents);
+  let agentDef = {};
+  agentDef.event = actionsAgnt.createDefinedEvent(agentRepo, selectedBt[0], includedEvents);
+  agentDef.behavior = actionsAgnt.createDefinedBehavior(agentRepo, selectedBt[0], includedEvents, includedBehaviors);
+  agentDef.endpoint = actionsAgnt.createDefinedEndpoint(agentRepo, selectedBt[0], agentDef.event, includedEndpoints);
+  agentDef.template = actionsAgnt.createDefinedAgent(agentRepo, selectedBt[0], includedEvents, includedBehaviors, includedEndpoints);
+  console.log(agentDef);
+  let stringRDF = actionsAgnt.createAgentRDFString(agentDef);
+  saveGeneratedAgent(agentRepo, stringRDF);
+}
+
+function saveGeneratedAgent(repo, stringRDF) {
+  try {
+    actions.saveAgentGraph(globals.ajax, repo, stringRDF);
+  } catch (e) {
+    $("#error-message").trigger("showToast", [
+      "Error while saving generated Agent"
+    ]);
+    throw e;
+  }
+}
+
+function getEvents(includedEvents, bt, behaviors, root) {
+  bt.nodes.forEach(function (item) {
+    addEventURI(item, includedEvents, root);
+  });
+  behaviors.forEach(function (bhvs) {
+    bhvs.triggers.forEach(function (event) {
+      if (includedEvents.produce.includes(event.uri)) {
+        bhvs.triggers.forEach(function (triggers) {
+          includedEvents.all.push(triggers.uri);
+        });
+        let newBt = that.get("availableBTs").filter(item => item.uri == bhvs.bt.uri);
+        console.log("Visit BT: " + newBt[0].uri);
+        getEvents(includedEvents, newBt[0], behaviors.filter(item => item.uri != bhvs.uri), false);
+      }
+    });
+  });
+  return includedEvents;
+}
+
+function addEventURI(item, events, root) {
+  let addableUri = "";
+  if (item.category == "ProduceGoal") {
+    addableUri = getGoalURI(item.uri);
+    events.produce.push(addableUri);
+  } else if (item.category == "ProduceEvent") {
+    addableUri = getEventURI(item.uri);
+    events.produce.push(addableUri);
+  } else if (item.category == "HandleMappingEvent" || item.category == "HandleEvent" || item.category == "HandleQueueEvent") {
+    addableUri = getEventURI(item.uri);
+    if (root && addableUri != "" && !events.handle.includes(addableUri)) {
+      events.handle.push(addableUri);
+    }
+  }
+  if (that.get("availableEvents").filter(item => item.uri == addableUri).length > 0 && addableUri != "" && !events.all.includes(addableUri)) {
+    events.all.push(addableUri);
+  }
+}
+
+function getGoalURI(uri) {
+  return rdfGraph.getObject(uri, AGENTS.goal).value;
+}
+
+function getEventURI(uri) {
+  return rdfGraph.getObject(uri, AGENTS.event).value;
+}
+
+function getBehaviors(bt, includedEvents) {
+  let addableBehaviors = new Array();
+  let behaviors = that.get("availableBehaviors");
+  includedEvents.all.forEach(function (event) {
+    behaviors.forEach(function (bhvs) {
+      bhvs.triggers.forEach(function (item) {
+        if (item.uri == event && !addableBehaviors.includes(event) && bhvs.bt.uri != bt.uri) {
+          addableBehaviors.push(bhvs.uri);
+        }
+      })
+    });
+  });
+  return addableBehaviors;
+}
+
+function getEndpoints(includedEvents) {
+  let addableEndpoints = new Array();
+  let endpoints = that.get("availableEndpoints");
+  includedEvents.all.forEach(function (event) {
+    endpoints.forEach(function (endpt) {
+      endpt.events.forEach(function (item) {
+        if (item.uri == event && !addableEndpoints.includes(event)) {
+          addableEndpoints.push(endpt.uri);
+        }
+      })
+    });
+  });
+  return addableEndpoints;
 }
 
 function createBT(bt) {

@@ -31,7 +31,11 @@ export default Service.extend({
 
 	updateDescription(node) {
 		rdfGraph.setObjectValue(node.uri, RDFS.comment, node.description);
-	}
+  },
+
+  updateErrorVisulization(node, error) {
+    graphUtil.errorText(node.node, error);
+  }
 });
 
 function updateGraphNodeLabel(node) {

@@ -62,7 +62,7 @@ export default Component.extend({
 		localStorage.setItem(modeId, this.advancedMode);
 	}),
 
-	labelChange: observer("node.label", function() {
+  labelChange: observer("node.label", function () {
 		this.get("nodeProperties").updateLabel(this.get("node"));
 	}),
 

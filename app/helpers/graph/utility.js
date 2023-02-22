@@ -38,7 +38,8 @@ export default {
 	setEachNodeDimensions,
 	setNodeDimensions,
 	printNodes,
-	printEdges
+  printEdges,
+  errorText
 };
 
 function computeLabelDimensions(ele, text = "o") {
@@ -173,4 +174,12 @@ function printEdges(cy, eles) {
 		}
 	});
 	console.warn(labels);
+}
+
+function errorText(node, error) {
+  if (error) {
+    node.style("color", "#F00");
+  } else {
+    node.style("color", "#000");
+  }
 }

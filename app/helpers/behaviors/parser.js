@@ -44,7 +44,7 @@ export default {
 			graph.edges.push(edge);
 
 		// get all the nodes
-		data.nodes.forEach(nd => {
+    data.nodes.forEach(nd => {
 			if (nd) {
 				// Register as node
 				graph.nodes.push(createNode(nd));

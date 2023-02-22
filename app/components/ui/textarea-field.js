@@ -19,21 +19,26 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Component from "@ember/component";
+import Ember from "ember";
+import { Node } from "ajan-editor/objects/behaviors/node";
 import { BT, AGENTS, XSD, RDF, RDFS } from "ajan-editor/helpers/RDFServices/vocabulary";
 
-let that;
 let SparqlParser = require('sparqljs').Parser;
 let parser = new SparqlParser({ skipValidation: true });
 
 export default Component.extend({
   validation: undefined,
+  node: undefined,
+
+  nodeProperties: Ember.inject.service("behaviors/node-properties"),
 
   init() {
     this._super(...arguments);
-    that = this;
   },
 
   didInsertElement() {
+    getNode(this, this.parentView);
+    console.log(this.get("node"));
     validateTextArea(this);
   },
 
@@ -50,7 +55,7 @@ export default Component.extend({
 
     loadFile() {
       console.log("upload file");
-      loadFile(event)
+      loadFile(this, event)
     }
 	}
 });
@@ -67,6 +72,14 @@ function validateTextArea(comp) {
   }
 }
 
+function getNode(comp, parent) {
+  if (parent && parent.node) {
+    comp.set("node", parent.node);
+  } else {
+    getNode(comp, parent.parentView);
+  }
+}
+
 function validateQuery(comp, types) {
   try {
     let result = parser.parse(comp.get("value"));
@@ -80,24 +93,27 @@ function validateQuery(comp, types) {
       setQueryValidation(comp, result.type.toUpperCase(), "UPDATE");
     }
   } catch (error) {
+    comp.get("nodeProperties").updateErrorVisulization(comp.get("node"), true);
     comp.set("validation", error);
   }
 }
 
 function setQueryValidation(comp, resultType, queryType) {
   if (resultType != queryType) {
+    comp.get("nodeProperties").updateErrorVisulization(comp.get("node"), true);
     comp.set("validation", "Wrong query Type! It has to be an " + queryType + " Query.");
   } else {
+    comp.get("nodeProperties").updateErrorVisulization(comp.get("node"), false);
     comp.set("validation", undefined);
   }
 }
 
-function loadFile(event) {
+function loadFile(comp, event) {
   let file = event.target.files[0];
   console.log("File: " + file.name);
   var reader = new FileReader();
   reader.onload = function () {
-    that.set("value", content);
+    comp.set("value", content);
   };
   reader.readAsText(file);
 }

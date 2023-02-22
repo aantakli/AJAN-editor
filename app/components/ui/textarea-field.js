@@ -19,13 +19,26 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Component from "@ember/component";
+import { BT, AGENTS, XSD, RDF, RDFS } from "ajan-editor/helpers/RDFServices/vocabulary";
 
 let that;
+let SparqlParser = require('sparqljs').Parser;
+let parser = new SparqlParser({ skipValidation: true });
 
 export default Component.extend({
+  validation: undefined,
+
   init() {
     this._super(...arguments);
     that = this;
+  },
+
+  didInsertElement() {
+    validateTextArea(this);
+  },
+
+  didUpdateAttrs() {
+    validateTextArea(this);
   },
 
 	actions: {
@@ -41,6 +54,43 @@ export default Component.extend({
     }
 	}
 });
+
+function validateTextArea(comp) {
+  let types = comp.get("types");
+  if (types && types.length > 0) {
+    if (types.includes(BT.AskQuery)
+      || types.includes(BT.SelectQuery)
+      || types.includes(BT.ConstructQuery)
+      || types.includes(BT.UpdateQuery)) {
+      validateQuery(comp, types);
+    }
+  }
+}
+
+function validateQuery(comp, types) {
+  try {
+    let result = parser.parse(comp.get("value"));
+    if (types.includes(BT.AskQuery)) {
+      setQueryValidation(comp, result.queryType, "ASK");
+    } else if (types.includes(BT.SelectQuery)) {
+      setQueryValidation(comp, result.queryType, "SELECT");
+    } else if (types.includes(BT.ConstructQuery)) {
+      setQueryValidation(comp, result.queryType, "CONSTRUCT");
+    } else if (types.includes(BT.UpdateQuery)) {
+      setQueryValidation(comp, result.type.toUpperCase(), "UPDATE");
+    }
+  } catch (error) {
+    comp.set("validation", error);
+  }
+}
+
+function setQueryValidation(comp, resultType, queryType) {
+  if (resultType != queryType) {
+    comp.set("validation", "Wrong query Type! It has to be an " + queryType + " Query.");
+  } else {
+    comp.set("validation", undefined);
+  }
+}
 
 function loadFile(event) {
   let file = event.target.files[0];

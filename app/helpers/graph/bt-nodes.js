@@ -33,7 +33,7 @@ class btNodes {
 
 	init(nodes) {
 		this.data = nodes || this.data;
-		nodes.forEach(node => {
+    nodes.forEach(node => {
 			node.class = "BehaviorTree";
 			insertNodeDef(nodeDefs.getTypeDef(node.class), node);
 		});
@@ -60,7 +60,7 @@ class btNodes {
 			name: label,
 			uri,
 			class: "BehaviorTree"
-		};
+    };
 		insertNodeDef(nodeDefs.getTypeDef(node.class), node);
 	}
 }

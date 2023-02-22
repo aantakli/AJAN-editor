@@ -40,6 +40,6 @@ export default Component.extend(QueryFieldMixin, {
 			queryInsertion.one("confirmModalChanges", function() {
 				that.set("queryValue", queryInsertion.get("query"));
 			});
-		}
+    }
 	}
 });

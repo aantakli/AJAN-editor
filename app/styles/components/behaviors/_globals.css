@@ -22,3 +22,35 @@
   font-weight: bold;
   margin-top: 3px;
 }
+
+:global(.textarea-validation-error) {
+  /*visibility:hidden;*/
+  position: relative;
+}
+
+:global(.textarea-validation-error i) {
+  position:absolute;
+  z-index: 100;
+  right: 10px;
+  top: 10px;
+  height: 12px;
+  width: 12px;
+  background-color: #f00;
+  border-radius: 50%;
+  display: inline-block;
+  cursor: pointer;
+}
+
+:global(.textarea-validation-error div) {
+  position: absolute;
+  visibility: hidden;
+  width: 100%;
+  color: #f00;
+  font-size: .7em;
+  padding: 10px 25px 10px 10px;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+:global(.textarea-validation-error i:hover + div) {
+  visibility: visible;
+}

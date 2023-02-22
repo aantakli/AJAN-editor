@@ -26,14 +26,16 @@ export default function(quads, URI) {
 	//TODO: parse input into sth that's easier to read than an URI?
 	let input = util.getObjectValue(quads, URI, ND.input);
 	let defaultVal = util.getObjectValue(quads, URI, ND.default);
-	let types = util.getObjectValues(quads, URI, ND.type);
+  let types = util.getObjectValues(quads, URI, ND.type);
+  let mandatory = util.getObjectValues(quads, URI, ND.mandatory);
 	let output = {
 		//TODO: If parameter is inside a list, it maps directly to the blank parent node
 		mapping: util.getObjectValue(quads, URI, ND.mapsTo),
 		title: util.getObjectValue(quads, URI, ND.title),
 		types,
 		input: input,
-		default: defaultVal
+    default: defaultVal,
+    mandatory: mandatory
 	};
 	// Add additional data if the parameter is a query
 	if (input === ND.Query) {

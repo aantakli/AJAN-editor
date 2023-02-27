@@ -65,7 +65,7 @@ let ND = {
 	default: "http://www.ajan.de/behavior/nd-ns#default",
   icon: "http://www.ajan.de/behavior/nd-ns#icon",
   textarea: "http://www.ajan.de/behavior/nd-ns#textarea",
-  mandatory: "http://www.ajan.de/behavior/nd-ns#mandatory"
+  optional: "http://www.ajan.de/behavior/nd-ns#optional"
 };
 let RDFS = {
 	defaultPrefix: "http://www.w3.org/2000/01/rdf-schema#",

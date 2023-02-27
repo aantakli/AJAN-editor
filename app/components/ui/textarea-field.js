@@ -88,6 +88,10 @@ function getNode(parent) {
 
 function validateQuery(comp, types) {
   try {
+    if (comp.get("optional") && comp.get("value") == "") {
+      setDefaultValidation(comp, false, undefined);
+      return;
+    }
     let result = parser.parse(comp.get("value"));
     if (types.includes(BT.AskQuery)) {
       setQueryValidation(comp, result.queryType, "ASK");
@@ -99,10 +103,14 @@ function validateQuery(comp, types) {
       setQueryValidation(comp, result.type.toUpperCase(), "UPDATE");
     }
   } catch (error) {
-    updateErrorsList(comp, true);
-    comp.get("nodeProperties").updateErrorVisulization(getNode(comp.parentView), true);
-    comp.set("validation", error);
+    setDefaultValidation(comp, true, error);
   }
+}
+
+function setDefaultValidation(comp, error, value) {
+  updateErrorsList(comp, error);
+  comp.get("nodeProperties").updateErrorVisulization(getNode(comp.parentView), error);
+  comp.set("validation", value);
 }
 
 function setQueryValidation(comp, resultType, queryType) {

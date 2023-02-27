@@ -231,16 +231,17 @@ function validateNodeQuery(parameter, uri) {
   let queryRoot = rdfGraph.getObjectValue(uri, parameter.mapping);
   let query = rdfGraph.getObjectValue(queryRoot, BT.sparql);
   if (queryRoot && query) {
-    return validateQuery(query, parameter.types);
+    return validateQuery(query, parameter.types, parameter.optional);
   } else if (parameter.default) {
-    return validateQuery(parameter.default, parameter.types);
+    return validateQuery(parameter.default, parameter.types, parameter.optional);
   } else {
-    return true;
+    return !parameter.optional ;
   }
 }
 
-function validateQuery(value, types) {
+function validateQuery(value, types, optional) {
   try {
+    if (optional && value == "") return false;
     let result = parser.parse(value);
     if (types.includes(BT.AskQuery)) {
       return !(result.queryType, "ASK");

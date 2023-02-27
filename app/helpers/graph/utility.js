@@ -21,6 +21,7 @@
 import Ember from "ember";
 import globals from "ajan-editor/helpers/global-parameters";
 import nodeDefs from "ajan-editor/helpers/RDFServices/node-definitions/node-defs";
+import { ND, BT } from "ajan-editor/helpers/RDFServices/vocabulary";
 
 let $ = Ember.$;
 
@@ -39,6 +40,7 @@ export default {
 	setNodeDimensions,
 	printNodes,
   printEdges,
+  validateDroppedNode,
   errorText
 };
 
@@ -174,6 +176,69 @@ function printEdges(cy, eles) {
 		}
 	});
 	console.warn(labels);
+}
+
+function validateDroppedNode(node, cyNode) {
+  let nodeDef = nodeDefs.getTypeDef(node.data.type);
+  let error = checkParameters(nodeDef.structure);
+  errorText(cyNode, error);
+}
+
+function checkParameters(root) {
+  let error = false;
+  if (!error && root.parameters.length > 0) {
+    error = validateParametersShowsError(root.parameters);
+  }
+  if (!error && root.parameterSets.length > 0) {
+    root.parameterSets.forEach(function (parameters) {
+      error = checkParameters(parameters);
+      if (error) {
+        return;
+      }
+    });
+  }
+  if (!error && root.lists && root.lists.length > 0) {
+    root.lists.forEach(function (root) {
+      error = checkParameters(root);
+      if (error) return;
+    });
+  }
+  return error;
+}
+
+function validateParametersShowsError(parameters) {
+  let error = false;
+  parameters.forEach(function (parameter) {
+    if (parameter.input == ND.Query) {
+      if (parameter.default) {
+        let error = validateQuery(parameter.default, parameter.types);
+        if (error) {
+          return;
+        }
+      } else {
+        error = true;
+        return;
+      }
+    }
+  });
+  return error;
+}
+
+function validateQuery(value, types) {
+  try {
+    let result = parser.parse(value);
+    if (types.includes(BT.AskQuery)) {
+      return !(result.queryType, "ASK");
+    } else if (types.includes(BT.SelectQuery)) {
+      return !(result.queryType, "SELECT");
+    } else if (types.includes(BT.ConstructQuery)) {
+      return !(result.queryType, "CONSTRUCT");
+    } else if (types.includes(BT.UpdateQuery)) {
+      return !(result.type.toUpperCase(), "UPDATE");
+    }
+  } catch (error) {
+    return true;
+  }
 }
 
 function errorText(node, error) {

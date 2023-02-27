@@ -41,7 +41,7 @@ export default Component.extend({
 
     $("#node-properties").on("sendNodeData", function (e, nodeData) {
       let node = Node.create(nodeData);
-			that.set("node", node);
+      that.set("node", node);
 			that.set("showProperties", true);
 			that.get("queryInsertion").set("nodeType", node.nodeType);
 			that.get("queryInsertion").set("uri", node.uri);
@@ -49,7 +49,7 @@ export default Component.extend({
 
 		$("#node-properties").on("blurProperties", function() {
 			that.set("showProperties", false);
-		});
+    });
 	},
 
 	advancedMode: computed(function() {

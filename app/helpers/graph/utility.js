@@ -219,6 +219,9 @@ function validateParametersShowsError(parameters, uri) {
   parameters.forEach(function (parameter) {
     if (parameter.input == ND.Query) {
       error = validateNodeQuery(parameter, uri);
+      if (error) {
+        return error;
+      }
     }
   });
   return error;
@@ -227,16 +230,10 @@ function validateParametersShowsError(parameters, uri) {
 function validateNodeQuery(parameter, uri) {
   let queryRoot = rdfGraph.getObjectValue(uri, parameter.mapping);
   let query = rdfGraph.getObjectValue(queryRoot, BT.sparql);
-  if (query) {
-    let error = validateQuery(query, parameter.types);
-    if (error) {
-      return (error = true);
-    }
+  if (queryRoot && query) {
+    return validateQuery(query, parameter.types);
   } else if (parameter.default) {
-    let error = validateQuery(parameter.default, parameter.types);
-    if (error) {
-      return true;
-    }
+    return validateQuery(parameter.default, parameter.types);
   } else {
     return true;
   }

@@ -42,7 +42,7 @@ export default function(quads, URI) {
 		output.originBase =
 			util.getObjectValue(quads, URI, BT.originBase) === "true";
 		output.targetBase =
-			util.getObjectValue(quads, URI, BT.targetBase) === "true";
+      util.getObjectValue(quads, URI, BT.targetBase) === "true";
 	}
 	return output;
 }

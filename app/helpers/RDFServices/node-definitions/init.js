@@ -59,7 +59,6 @@ function insertNodeDefs() {
 	nodeDefs.forEach(node => {
 		// Special case for root
 		if (node.id === "Tree" || node.id === "BehaviorTree") return;
-
 		insertNodeDef(node);
 	});
 }

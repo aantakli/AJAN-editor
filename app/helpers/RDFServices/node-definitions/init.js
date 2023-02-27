@@ -182,7 +182,7 @@ function bindDropEvent(cy) {
 			let newNode = graphGen.node(id, label, uri, dropClass, dropType, pos);
       console.log(newNode, "> with position " + pos.x + ", " + pos.y);
       let newNode_ = cy.add(newNode);
-      graphUtil.validateDroppedNode(newNode, newNode_);
+      graphUtil.validateNode(newNode_);
 			graphUtil.setNodeDimensions(newNode_);
       freeNodes.push(cy.getElementById(newNode.data.id));
 		});

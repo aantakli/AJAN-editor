@@ -37,7 +37,6 @@ export default {
 			nodes: [],
 			edges: []
 		};
-
 		graph.nodes.push(createNode(data));
 		let edge = graphGen.edge(data.id, data.root);
 		if (!(data.nodes.length == 0 || (data.nodes.length == 1 && !data.nodes[0])))
@@ -47,7 +46,7 @@ export default {
     data.nodes.forEach(nd => {
 			if (nd) {
 				// Register as node
-				graph.nodes.push(createNode(nd));
+        graph.nodes.push(createNode(nd));
 				// Register children
 				if (nd.children) {
 					nd.children.forEach(child => {

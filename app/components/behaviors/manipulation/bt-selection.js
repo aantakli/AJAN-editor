@@ -36,7 +36,6 @@ export default Component.extend({
 
 
 	selectedBTChange: observer("selectedValue", function() {
-		
 		localStorage.setItem("bt-selected", this.get("selectedValue"));
 		selectBT(this);
 	}),

@@ -22,6 +22,7 @@ import Ember from "ember";
 import globals from "ajan-editor/helpers/global-parameters";
 import nodeDefs from "ajan-editor/helpers/RDFServices/node-definitions/node-defs";
 import { ND, BT } from "ajan-editor/helpers/RDFServices/vocabulary";
+import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 
 let $ = Ember.$;
 
@@ -36,11 +37,11 @@ export default {
 	computeLabelDimensions,
 	getNodeHeight,
 	// getUnitDimensions,
-	setEachNodeDimensions,
+	setEachNodeParameters,
 	setNodeDimensions,
 	printNodes,
   printEdges,
-  validateDroppedNode,
+  validateNode,
   errorText
 };
 
@@ -127,8 +128,11 @@ function getUnitWidth() {
 	return getUnitDimensions().width;
 }
 
-function setEachNodeDimensions(cy) {
-	cy.nodes().forEach(node => setNodeDimensions(node));
+function setEachNodeParameters(cy) {
+  cy.nodes().forEach(function (node) {
+    setNodeDimensions(node);
+    validateNode(node);
+  });
 }
 
 function setNodeDimensions(node) {
@@ -178,20 +182,20 @@ function printEdges(cy, eles) {
 	console.warn(labels);
 }
 
-function validateDroppedNode(node, cyNode) {
-  let nodeDef = nodeDefs.getTypeDef(node.data.type);
-  let error = checkParameters(nodeDef.structure);
+function validateNode(cyNode) {
+  let nodeDef = nodeDefs.getTypeDef(cyNode[0]._private.data.type);
+  let error = checkParameters(nodeDef.structure, cyNode[0]._private.data.uri);
   errorText(cyNode, error);
 }
 
-function checkParameters(root) {
+function checkParameters(root, uri) {
   let error = false;
   if (!error && root.parameters.length > 0) {
-    error = validateParametersShowsError(root.parameters);
+    error = validateParametersShowsError(root.parameters, uri);
   }
   if (!error && root.parameterSets.length > 0) {
     root.parameterSets.forEach(function (parameters) {
-      error = checkParameters(parameters);
+      error = checkParameters(parameters, uri);
       if (error) {
         return;
       }
@@ -199,18 +203,25 @@ function checkParameters(root) {
   }
   if (!error && root.lists && root.lists.length > 0) {
     root.lists.forEach(function (root) {
-      error = checkParameters(root);
+      error = checkParameters(root, uri);
       if (error) return;
     });
   }
   return error;
 }
 
-function validateParametersShowsError(parameters) {
+function validateParametersShowsError(parameters, uri) {
   let error = false;
   parameters.forEach(function (parameter) {
     if (parameter.input == ND.Query) {
-      if (parameter.default) {
+      let queryRoot = rdfGraph.getObjectValue(uri, parameter.mapping);
+      let query = rdfGraph.getObjectValue(queryRoot, BT.sparql);
+      if (query) {
+        let error = validateQuery(query, parameter.types);
+        if (error) {
+          return;
+        }
+      } else if (parameter.default) {
         let error = validateQuery(parameter.default, parameter.types);
         if (error) {
           return;

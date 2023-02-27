@@ -20,8 +20,7 @@
  */
 import Component from "@ember/component";
 import Ember from "ember";
-import { Node } from "ajan-editor/objects/behaviors/node";
-import { BT, AGENTS, XSD, RDF, RDFS } from "ajan-editor/helpers/RDFServices/vocabulary";
+import { BT } from "ajan-editor/helpers/RDFServices/vocabulary";
 
 let SparqlParser = require('sparqljs').Parser;
 let parser = new SparqlParser({ skipValidation: true });
@@ -37,12 +36,12 @@ export default Component.extend({
   },
 
   didInsertElement() {
-    getNode(this, this.parentView);
-    console.log(this.get("node"));
+    initErrorsList(this);
     validateTextArea(this);
   },
 
   didUpdateAttrs() {
+    initErrorsList(this);
     validateTextArea(this);
   },
 
@@ -72,11 +71,18 @@ function validateTextArea(comp) {
   }
 }
 
-function getNode(comp, parent) {
+function initErrorsList(comp) {
+  if (!getNode(comp.parentView).errors) {
+    console.log("Create errors list!");
+    getNode(comp.parentView).errors = new Array();
+  }
+}
+
+function getNode(parent) {
   if (parent && parent.node) {
-    comp.set("node", parent.node);
+    return parent.node;
   } else {
-    getNode(comp, parent.parentView);
+    return getNode(parent.parentView);
   }
 }
 
@@ -93,18 +99,35 @@ function validateQuery(comp, types) {
       setQueryValidation(comp, result.type.toUpperCase(), "UPDATE");
     }
   } catch (error) {
-    comp.get("nodeProperties").updateErrorVisulization(comp.get("node"), true);
+    updateErrorsList(comp, true);
+    comp.get("nodeProperties").updateErrorVisulization(getNode(comp.parentView), true);
     comp.set("validation", error);
   }
 }
 
 function setQueryValidation(comp, resultType, queryType) {
   if (resultType != queryType) {
-    comp.get("nodeProperties").updateErrorVisulization(comp.get("node"), true);
+    updateErrorsList(comp, true);
     comp.set("validation", "Wrong query Type! It has to be an " + queryType + " Query.");
   } else {
-    comp.get("nodeProperties").updateErrorVisulization(comp.get("node"), false);
+    updateErrorsList(comp, false);
     comp.set("validation", undefined);
+  }
+}
+
+function updateErrorsList(comp, error) {
+  let errors = getNode(comp.parentView).errors;
+  if (!error) {
+    errors = errors.filter(item => item != comp.elementId);
+    if (errors && errors.length == 0) {
+      comp.get("nodeProperties").updateErrorVisulization(getNode(comp.parentView), false);
+    }
+    getNode(comp.parentView).errors = errors;
+  } else {
+    if (errors && !errors.includes(comp.elementId)) {
+      getNode(comp.parentView).errors.push(comp.elementId);
+      comp.get("nodeProperties").updateErrorVisulization(getNode(comp.parentView), true);
+    }
   }
 }
 

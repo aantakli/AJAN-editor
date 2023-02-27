@@ -26,6 +26,9 @@ import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 
 let $ = Ember.$;
 
+let SparqlParser = require('sparqljs').Parser;
+let parser = new SparqlParser({ skipValidation: true });
+
 let labelToNodeHeightFactor = 2;
 let paddingScaleUnitHeight = 1.5;
 let paddingScaleUnitWidth = 2;
@@ -203,7 +206,8 @@ function checkParameters(root, uri) {
   }
   if (!error && root.lists && root.lists.length > 0) {
     root.lists.forEach(function (root) {
-      error = checkParameters(root, uri);
+      let listUri = rdfGraph.getObjectValue(uri, root.mapping);
+      error = checkParameters(root, listUri);
       if (error) return;
     });
   }
@@ -214,25 +218,28 @@ function validateParametersShowsError(parameters, uri) {
   let error = false;
   parameters.forEach(function (parameter) {
     if (parameter.input == ND.Query) {
-      let queryRoot = rdfGraph.getObjectValue(uri, parameter.mapping);
-      let query = rdfGraph.getObjectValue(queryRoot, BT.sparql);
-      if (query) {
-        let error = validateQuery(query, parameter.types);
-        if (error) {
-          return;
-        }
-      } else if (parameter.default) {
-        let error = validateQuery(parameter.default, parameter.types);
-        if (error) {
-          return;
-        }
-      } else {
-        error = true;
-        return;
-      }
+      error = validateNodeQuery(parameter, uri);
     }
   });
   return error;
+}
+
+function validateNodeQuery(parameter, uri) {
+  let queryRoot = rdfGraph.getObjectValue(uri, parameter.mapping);
+  let query = rdfGraph.getObjectValue(queryRoot, BT.sparql);
+  if (query) {
+    let error = validateQuery(query, parameter.types);
+    if (error) {
+      return (error = true);
+    }
+  } else if (parameter.default) {
+    let error = validateQuery(parameter.default, parameter.types);
+    if (error) {
+      return true;
+    }
+  } else {
+    return true;
+  }
 }
 
 function validateQuery(value, types) {
@@ -253,9 +260,28 @@ function validateQuery(value, types) {
 }
 
 function errorText(node, error) {
+  let nodeDef = nodeDefs.getTypeDef(node[0]._private.data.type);
   if (error) {
+    node.style("background-image", "/icons/error.png");
     node.style("color", "#F00");
   } else {
+    node.style("background-image", nodeDef.style.icon);
     node.style("color", "#000");
   }
+}
+
+function nodeDefault(node) {
+  node.style("border-color", "#000");
+}
+
+function nodeSuccsess(node) {
+  node.style("border-color", "#0F0");
+}
+
+function nodeFailure(node) {
+  node.style("border-color", "#F00");
+}
+
+function nodeRunning(node) {
+  node.style("border-color", "#00F");
 }

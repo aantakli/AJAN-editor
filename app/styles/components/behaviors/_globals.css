@@ -31,10 +31,10 @@
 :global(.textarea-validation-error i) {
   position:absolute;
   z-index: 100;
-  right: 10px;
-  top: 10px;
-  height: 12px;
-  width: 12px;
+  right: 15px;
+  top: 15px;
+  height: 20px;
+  width: 20px;
   background-color: #f00;
   border-radius: 50%;
   display: inline-block;
@@ -46,9 +46,9 @@
   visibility: hidden;
   width: 100%;
   color: #f00;
-  font-size: .7em;
+  font-size: .9em;
   padding: 10px 25px 10px 10px;
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.8);
 }
 
 :global(.textarea-validation-error i:hover + div) {

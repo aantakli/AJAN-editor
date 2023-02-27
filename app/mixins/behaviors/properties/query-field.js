@@ -64,9 +64,9 @@ export default Mixin.create({
 		}
 	),
 
-	queryChanged: observer("queryValue", function() {
+  queryChanged: observer("queryValue", function () {
 		rdfGraph.setObjectValue(this.get("uri"), BT.sparql, this.get("queryValue"));
-	}),
+  }),
 
 	targetBaseChanged: observer("queryInsertion.targetBase", function() {
 		let structure = this.get("structure");

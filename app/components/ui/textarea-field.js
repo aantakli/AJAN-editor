@@ -28,7 +28,6 @@ let parser = new SparqlParser({ skipValidation: true });
 export default Component.extend({
   validation: undefined,
   node: undefined,
-
   nodeProperties: Ember.inject.service("behaviors/node-properties"),
 
   init() {

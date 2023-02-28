@@ -71,7 +71,8 @@ function validateTextArea(comp) {
 }
 
 function initErrorsList(comp) {
-  if (!getNode(comp.parentView).errors) {
+  let node = getNode(comp.parentView);
+  if (node && !node.errors) {
     console.log("Create errors list!");
     getNode(comp.parentView).errors = new Array();
   }
@@ -80,6 +81,8 @@ function initErrorsList(comp) {
 function getNode(parent) {
   if (parent && parent.node) {
     return parent.node;
+  } else if (!parent.parentView) {
+    return null;
   } else {
     return getNode(parent.parentView);
   }

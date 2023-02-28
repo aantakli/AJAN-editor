@@ -199,18 +199,16 @@ function checkParameters(errors, root, uri, collection) {
   if (root.parameters.length > 0) {
     validateParametersError(errors, root.parameters, uri, collection);
   }
-  /*if (!error && root.parameterSets.length > 0) {
+  /*if (root.parameterSets.length > 0) {
     root.parameterSets.forEach(function (parameters) {
-      error = checkParameters(parameters, uri);
-      if (error) {
-        return;
-      }
+      let prametersUri = rdfGraph.getObjectValue(uri, parameters.mapping);
+      checkParameters(errors, parameters, prametersUri, ND.ParameterSet);
     });
   }*/
   if (root.lists && root.lists.length > 0) {
-    root.lists.forEach(function (root) {
-      let listUri = rdfGraph.getObjectValue(uri, root.mapping);
-      checkParameters(errors, root, listUri, ND.List);
+    root.lists.forEach(function (list) {
+      let listUri = rdfGraph.getObjectValue(uri, list.mapping);
+      checkParameters(errors, list, listUri, ND.List);
     });
   }
 }
@@ -231,6 +229,7 @@ function validateParametersError(errors, parameters, uri, collection) {
 function validateListParameter(errors, parameter, uri) {
   let parameterUri = uri;
   let newUri = uri;
+  console.log(parameter, uri);
   if (parameter.input == ND.Query) {
     parameterUri = rdfGraph.getObjectValue(newUri, RDF.first);
     validateNodeQuery(errors, parameter, parameterUri);
@@ -250,6 +249,7 @@ function validateNodeQuery(errors, parameter, uri) {
   } else if (parameter.default) {
     validateQuery(result, parameter.default, parameter.types, parameter.optional);
   } else {
+    console.log("Optional!!!");
     result.error = !parameter.optional ;
   }
   errors.push(result);

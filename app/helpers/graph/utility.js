@@ -21,7 +21,7 @@
 import Ember from "ember";
 import globals from "ajan-editor/helpers/global-parameters";
 import nodeDefs from "ajan-editor/helpers/RDFServices/node-definitions/node-defs";
-import { ND, BT } from "ajan-editor/helpers/RDFServices/vocabulary";
+import { ND, RDF, BT } from "ajan-editor/helpers/RDFServices/vocabulary";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 
 let $ = Ember.$;
@@ -187,73 +187,89 @@ function printEdges(cy, eles) {
 
 function validateNode(cyNode) {
   let nodeDef = nodeDefs.getTypeDef(cyNode[0]._private.data.type);
-  let error = checkParameters(nodeDef.structure, cyNode[0]._private.data.uri);
-  errorText(cyNode, error);
+  let errors = new Array();
+  checkParameters(errors, nodeDef.structure, cyNode[0]._private.data.uri);
+  let results = errors.filter(item => item.error == true);
+  console.log(cyNode[0]._private.data.uri);
+  console.log(errors, results);
+  errorText(cyNode, results.length > 0);
 }
 
-function checkParameters(root, uri) {
-  let error = false;
-  if (!error && root.parameters.length > 0) {
-    error = validateParametersShowsError(root.parameters, uri);
+function checkParameters(errors, root, uri, collection) {
+  if (root.parameters.length > 0) {
+    validateParametersError(errors, root.parameters, uri, collection);
   }
-  if (!error && root.parameterSets.length > 0) {
+  /*if (!error && root.parameterSets.length > 0) {
     root.parameterSets.forEach(function (parameters) {
       error = checkParameters(parameters, uri);
       if (error) {
         return;
       }
     });
-  }
-  if (!error && root.lists && root.lists.length > 0) {
+  }*/
+  if (root.lists && root.lists.length > 0) {
     root.lists.forEach(function (root) {
       let listUri = rdfGraph.getObjectValue(uri, root.mapping);
-      error = checkParameters(root, listUri);
-      if (error) return;
+      checkParameters(errors, root, listUri, ND.List);
     });
   }
-  return error;
 }
 
-function validateParametersShowsError(parameters, uri) {
-  let error = false;
+function validateParametersError(errors, parameters, uri, collection) {
   parameters.forEach(function (parameter) {
-    if (parameter.input == ND.Query) {
-      error = validateNodeQuery(parameter, uri);
-      if (error) {
-        return error;
+    if (collection == ND.List) {
+      validateListParameter(errors, parameter, uri);
+    } else {
+      if (parameter.input == ND.Query) {
+        uri = rdfGraph.getObjectValue(uri, parameter.mapping);
+        validateNodeQuery(errors, parameter, uri);
       }
     }
   });
-  return error;
 }
 
-function validateNodeQuery(parameter, uri) {
-  let queryRoot = rdfGraph.getObjectValue(uri, parameter.mapping);
-  let query = rdfGraph.getObjectValue(queryRoot, BT.sparql);
-  if (queryRoot && query) {
-    return validateQuery(query, parameter.types, parameter.optional);
-  } else if (parameter.default) {
-    return validateQuery(parameter.default, parameter.types, parameter.optional);
-  } else {
-    return !parameter.optional ;
+function validateListParameter(errors, parameter, uri) {
+  let parameterUri = uri;
+  let newUri = uri;
+  if (parameter.input == ND.Query) {
+    parameterUri = rdfGraph.getObjectValue(newUri, RDF.first);
+    validateNodeQuery(errors, parameter, parameterUri);
+    newUri = rdfGraph.getObjectValue(newUri, RDF.rest);
+    if (newUri && newUri != RDF.nil) {
+      validateListParameter(errors, parameter, newUri)
+    }
   }
 }
 
-function validateQuery(value, types, optional) {
+function validateNodeQuery(errors, parameter, uri) {
+  let result = { uri: uri, error: false, query: "" };
+  let query = rdfGraph.getObjectValue(uri, BT.sparql);
+  if (uri && query) {
+    result.query = query;
+    validateQuery(result, query, parameter.types, parameter.optional);
+  } else if (parameter.default) {
+    validateQuery(result, parameter.default, parameter.types, parameter.optional);
+  } else {
+    result.error = !parameter.optional ;
+  }
+  errors.push(result);
+}
+
+function validateQuery(result, value, types, optional) {
   try {
     if (optional && value == "") return false;
     let result = parser.parse(value);
     if (types.includes(BT.AskQuery)) {
-      return !(result.queryType, "ASK");
+      result.error = !(result.queryType, "ASK");
     } else if (types.includes(BT.SelectQuery)) {
-      return !(result.queryType, "SELECT");
+      result.error = !(result.queryType, "SELECT");
     } else if (types.includes(BT.ConstructQuery)) {
-      return !(result.queryType, "CONSTRUCT");
+      result.error = !(result.queryType, "CONSTRUCT");
     } else if (types.includes(BT.UpdateQuery)) {
-      return !(result.type.toUpperCase(), "UPDATE");
+      result.error = !(result.type.toUpperCase(), "UPDATE");
     }
   } catch (error) {
-    return true;
+    result.error = true;
   }
 }
 

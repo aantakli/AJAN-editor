@@ -95,6 +95,10 @@ function validateQuery(comp, types) {
       return;
     }
     let result = parser.parse(comp.get("value"));
+    if (comp.get("nodeProperties").checkDouplePrefixes(comp.get("value"))) {
+      setDefaultValidation(comp, true, "Error due to duplicated PREFIXs!");
+      return;
+    }
     if (types.includes(BT.AskQuery)) {
       setQueryValidation(comp, result.queryType, "ASK");
     } else if (types.includes(BT.SelectQuery)) {

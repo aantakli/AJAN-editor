@@ -45,6 +45,7 @@ export default {
 	printNodes,
   printEdges,
   validateNode,
+  checkDouplePrefixes,
   errorText
 };
 
@@ -190,8 +191,6 @@ function validateNode(cyNode) {
   let errors = new Array();
   checkParameters(errors, nodeDef.structure, cyNode[0]._private.data.uri);
   let results = errors.filter(item => item.error == true);
-  console.log(cyNode[0]._private.data.uri);
-  console.log(errors, results);
   errorText(cyNode, results.length > 0);
 }
 
@@ -256,7 +255,8 @@ function validateNodeQuery(errors, parameter, uri) {
 
 function validateQuery(result, value, types, optional) {
   try {
-    if (optional && value == "") return false;
+    if (optional && value == "") result.error = false;
+    if (checkDouplePrefixes(value)) result.error = true;
     let result = parser.parse(value);
     if (types.includes(BT.AskQuery)) {
       result.error = !(result.queryType, "ASK");
@@ -270,6 +270,27 @@ function validateQuery(result, value, types, optional) {
   } catch (error) {
     result.error = true;
   }
+}
+
+function checkDouplePrefixes(value) {
+  let double = false;
+  let prefixes = new Array();
+  let rows = value.toLowerCase().split("prefix");
+  if (rows.length > 0) {
+    rows.forEach(function (row) {
+      row = "PREFIX " + row;
+      let prefix = row.match(new RegExp("PREFIX (.*?):"));
+      if (prefix) {
+        prefix = prefix[0].replace(" ", "");
+        if (!double && prefixes.includes(prefix)) {
+          double = true;
+        } else {
+          prefixes.push(prefix);
+        }
+      }
+    });
+  }
+  return double;
 }
 
 function errorText(node, error) {

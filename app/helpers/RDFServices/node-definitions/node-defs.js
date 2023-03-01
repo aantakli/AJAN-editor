@@ -35,7 +35,7 @@ class nodeDefs {
 		return this.nodeDefs;
 	}
 
-	push(nodeDef) {
+  push(nodeDef) {
 		this.nodeDefs.push(nodeDef);
 	}
 

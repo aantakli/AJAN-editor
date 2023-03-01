@@ -31,7 +31,23 @@ export default Service.extend({
 
 	updateDescription(node) {
 		rdfGraph.setObjectValue(node.uri, RDFS.comment, node.description);
-	}
+  },
+
+  getNode(comp) {
+    return graphUtil.getNode(comp);
+  },
+
+  checkDouplePrefixes(query) {
+    return graphUtil.checkDouplePrefixes(query);
+  },
+
+  updateErrorVisulization(comp, error) {
+    graphUtil.updateErrorsList(comp, error);
+  },
+
+  validateEventGoalActionField(comp, error) {
+    graphUtil.validateEventGoalActionField(comp, error);
+  }
 });
 
 function updateGraphNodeLabel(node) {

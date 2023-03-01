@@ -30,25 +30,36 @@ let that;
 
 export default Component.extend({
   ajax: Ember.inject.service(),
-
+  nodeProperties: Ember.inject.service("behaviors/node-properties"),
   availableGoals: null,
   selected: undefined,
+  validation: undefined,
   uri: null,
 
   didInsertElement() {
-    console.log("didInsertElement");
     this._super(...arguments);
     that = this;
     initializeGlobals(this);
-    loadActionsRdfGraphData();
+    loadAvailableEventsRdfGraphData();
   },
+
+  didUpdateAttrs() {
+    initErrorsList(this);
+    validateEventGoalField(this);
+  },
+
 
   selectedChanged: observer("selected", function () {
     this.set("selected", this.selected);
     setBase(this.get("uri"), this.get("structure.mapping"), this.selected);
+    let base = getSelected(that.get("availableGoals"), this.selected);
+    this.set("selectedBaseValue", base);
+    initErrorsList(this);
+    validateEventGoalField(this);
   }),
 
   uriChange: observer("uri", function () {
+    that = this;
     setAvailableGoals();
   })
 });
@@ -67,7 +78,7 @@ function initializeAjax() {
   globals.ajax = ajax;
 }
 
-function loadActionsRdfGraphData() {
+function loadAvailableEventsRdfGraphData() {
   let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
     + globals.agentsRepository;
   actionsAgnt.getFromServer(ajax, repo).then(setAvailableGoals);
@@ -78,6 +89,7 @@ function setAvailableGoals() {
   that.set("availableGoals", goalsLists);
   var base = getSelected(that.get("availableGoals"), that.get("value"));
   that.set("selectedBaseValue", base);
+  validateEventGoalField(that);
 }
 
 function getSelected(ele, uri) {
@@ -86,4 +98,19 @@ function getSelected(ele, uri) {
 
 function setBase(uri, basePredicate, value) {
   rdfGraph.setObject(uri, basePredicate, rdfFact.toNode(value));
+}
+
+function initErrorsList(comp) {
+  let node = getNode(comp);
+  if (node && !node.errors) {
+    getNode(comp).errors = new Array();
+  }
+}
+
+function validateEventGoalField(comp) {
+  comp.get("nodeProperties").validateEventGoalActionField(comp, "No Goal is selected!");
+}
+
+function getNode(comp) {
+  return comp.get("nodeProperties").getNode(comp);
 }

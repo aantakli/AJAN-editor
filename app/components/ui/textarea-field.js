@@ -19,13 +19,29 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Component from "@ember/component";
+import Ember from "ember";
+import { BT } from "ajan-editor/helpers/RDFServices/vocabulary";
 
-let that;
+let SparqlParser = require('sparqljs').Parser;
+let parser = new SparqlParser({ skipValidation: true });
 
 export default Component.extend({
+  validation: undefined,
+  node: undefined,
+  nodeProperties: Ember.inject.service("behaviors/node-properties"),
+
   init() {
     this._super(...arguments);
-    that = this;
+  },
+
+  didInsertElement() {
+    initErrorsList(this);
+    validateTextArea(this);
+  },
+
+  didUpdateAttrs() {
+    initErrorsList(this);
+    validateTextArea(this);
   },
 
 	actions: {
@@ -37,17 +53,85 @@ export default Component.extend({
 
     loadFile() {
       console.log("upload file");
-      loadFile(event)
+      loadFile(this, event)
     }
 	}
 });
 
-function loadFile(event) {
+function validateTextArea(comp) {
+  let types = comp.get("types");
+  if (types && types.length > 0) {
+    if (types.includes(BT.AskQuery)
+      || types.includes(BT.SelectQuery)
+      || types.includes(BT.ConstructQuery)
+      || types.includes(BT.UpdateQuery)) {
+      validateQuery(comp, types);
+    }
+  }
+}
+
+function initErrorsList(comp) {
+  let node = getNode(comp);
+  if (node && !node.errors) {
+    getNode(comp).errors = new Array();
+  }
+}
+
+function getNode(comp) {
+  return comp.get("nodeProperties").getNode(comp);
+}
+
+function validateQuery(comp, types) {
+  try {
+    if (comp.get("optional") && comp.get("value") == "") {
+      setDefaultValidation(comp, false, undefined);
+      return;
+    }
+    let result = parser.parse(comp.get("value"));
+    if (comp.get("nodeProperties").checkDouplePrefixes(comp.get("value"))) {
+      setDefaultValidation(comp, true, "Error due to duplicated PREFIXs!");
+      return;
+    }
+    if (types.includes(BT.AskQuery)) {
+      setQueryValidation(comp, result.queryType, "ASK");
+    } else if (types.includes(BT.SelectQuery)) {
+      setQueryValidation(comp, result.queryType, "SELECT");
+    } else if (types.includes(BT.ConstructQuery)) {
+      setQueryValidation(comp, result.queryType, "CONSTRUCT");
+    } else if (types.includes(BT.UpdateQuery)) {
+      setQueryValidation(comp, result.type.toUpperCase(), "UPDATE");
+    }
+  } catch (error) {
+    setDefaultValidation(comp, true, error);
+  }
+}
+
+function setDefaultValidation(comp, error, value) {
+  updateErrorsList(comp, error);
+  //comp.get("nodeProperties").updateErrorVisulization(getNode(comp), error);
+  comp.set("validation", value);
+}
+
+function setQueryValidation(comp, resultType, queryType) {
+  if (resultType != queryType) {
+    updateErrorsList(comp, true);
+    comp.set("validation", "Wrong query Type! It has to be an " + queryType + " Query.");
+  } else {
+    updateErrorsList(comp, false);
+    comp.set("validation", undefined);
+  }
+}
+
+function updateErrorsList(comp, error) {
+  comp.get("nodeProperties").updateErrorVisulization(comp, error);
+}
+
+function loadFile(comp, event) {
   let file = event.target.files[0];
   console.log("File: " + file.name);
   var reader = new FileReader();
   reader.onload = function () {
-    that.set("value", content);
+    comp.set("value", content);
   };
   reader.readAsText(file);
 }

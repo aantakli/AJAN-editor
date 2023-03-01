@@ -21,8 +21,13 @@
 import Ember from "ember";
 import globals from "ajan-editor/helpers/global-parameters";
 import nodeDefs from "ajan-editor/helpers/RDFServices/node-definitions/node-defs";
+import { ND, RDF, BT, AGENTS } from "ajan-editor/helpers/RDFServices/vocabulary";
+import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 
 let $ = Ember.$;
+
+let SparqlParser = require('sparqljs').Parser;
+let parser = new SparqlParser({ skipValidation: true });
 
 let labelToNodeHeightFactor = 2;
 let paddingScaleUnitHeight = 1.5;
@@ -35,10 +40,16 @@ export default {
 	computeLabelDimensions,
 	getNodeHeight,
 	// getUnitDimensions,
-	setEachNodeDimensions,
+	setEachNodeParameters,
 	setNodeDimensions,
 	printNodes,
-	printEdges
+  printEdges,
+  getNode,
+  validateNode,
+  checkDouplePrefixes,
+  updateErrorsList,
+  validateEventGoalActionField,
+  errorText
 };
 
 function computeLabelDimensions(ele, text = "o") {
@@ -124,8 +135,11 @@ function getUnitWidth() {
 	return getUnitDimensions().width;
 }
 
-function setEachNodeDimensions(cy) {
-	cy.nodes().forEach(node => setNodeDimensions(node));
+function setEachNodeParameters(cy) {
+  cy.nodes().forEach(function (node) {
+    setNodeDimensions(node);
+    validateNode(node);
+  });
 }
 
 function setNodeDimensions(node) {
@@ -173,4 +187,203 @@ function printEdges(cy, eles) {
 		}
 	});
 	console.warn(labels);
+}
+
+function getNode(comp) {
+  let parent = comp.parentView;
+  if (parent && parent.node) {
+    return parent.node;
+  } else if (!parent.parentView) {
+    return null;
+  } else {
+    return getNode(parent);
+  }
+}
+
+function validateNode(cyNode) {
+  let nodeDef = nodeDefs.getTypeDef(cyNode[0]._private.data.type);
+  let errors = new Array();
+  checkParameters(errors, nodeDef.structure, cyNode[0]._private.data.uri);
+  let results = errors.filter(item => item.error == true);
+  errorText(cyNode, results.length > 0);
+}
+
+function checkParameters(errors, root, uri, collection) {
+  if (root.parameters.length > 0) {
+    validateParametersError(errors, root.parameters, uri, collection);
+  }
+  if (root.parameterSets.length > 0) {
+    root.parameterSets.forEach(function (parameters) {
+      let prametersUri = rdfGraph.getObjectValue(uri, parameters.mapping);
+      checkParameters(errors, parameters, prametersUri, ND.ParameterSet);
+    });
+  }
+  if (root.lists && root.lists.length > 0) {
+    root.lists.forEach(function (list) {
+      let listUri = rdfGraph.getObjectValue(uri, list.mapping);
+      checkParameters(errors, list, listUri, ND.List);
+    });
+  }
+}
+
+function validateParametersError(errors, parameters, uri, collection) {
+  parameters.forEach(function (parameter) {
+    if (collection == ND.List) {
+      validateListParameter(errors, parameter, uri);
+    } else {
+      if (parameter.input == ND.Query) {
+        let newUri = rdfGraph.getObjectValue(uri, parameter.mapping);
+        validateNodeQuery(errors, parameter, newUri);
+      } else if (parameter.input == ND.EventGoal) {
+        validateNodeEventGoalAction(errors, parameter, uri, AGENTS.event);
+      } else if (parameter.input == ND.Event) {
+        validateNodeEventGoalAction(errors, parameter, uri, AGENTS.event);
+      } else if (parameter.input == ND.Goal) {
+        validateNodeEventGoalAction(errors, parameter, uri, AGENTS.goal);
+      } else if (parameter.input == ND.ACTNDef) {
+        validateNodeEventGoalAction(errors, parameter, uri, BT.definition);
+      }
+    }
+  });
+}
+
+function validateListParameter(errors, parameter, uri) {
+  let parameterUri = uri;
+  let newUri = uri;
+  if (parameter.input == ND.Query) {
+    parameterUri = rdfGraph.getObjectValue(newUri, RDF.first);
+    validateNodeQuery(errors, parameter, parameterUri);
+    newUri = rdfGraph.getObjectValue(newUri, RDF.rest);
+    if (newUri && newUri != RDF.nil) {
+      validateListParameter(errors, parameter, newUri)
+    }
+  }
+}
+
+function validateNodeQuery(errors, parameter, uri) {
+  let result = { uri: uri, error: false, query: "" };
+  let query = rdfGraph.getObjectValue(uri, BT.sparql);
+  if (uri && query) {
+    result.query = query;
+    validateQuery(result, query, parameter.types, parameter.optional);
+  } else if (parameter.default) {
+    validateQuery(result, parameter.default, parameter.types, parameter.optional);
+  } else {
+    result.error = !parameter.optional ;
+  }
+  errors.push(result);
+}
+
+function validateQuery(result, value, types, optional) {
+  try {
+    if (optional && value == "") result.error = false;
+    if (checkDouplePrefixes(value)) result.error = true;
+    let result = parser.parse(value);
+    if (types.includes(BT.AskQuery)) {
+      result.error = !(result.queryType, "ASK");
+    } else if (types.includes(BT.SelectQuery)) {
+      result.error = !(result.queryType, "SELECT");
+    } else if (types.includes(BT.ConstructQuery)) {
+      result.error = !(result.queryType, "CONSTRUCT");
+    } else if (types.includes(BT.UpdateQuery)) {
+      result.error = !(result.type.toUpperCase(), "UPDATE");
+    }
+  } catch (error) {
+    result.error = true;
+  }
+}
+
+function checkDouplePrefixes(value) {
+  let double = false;
+  let prefixes = new Array();
+  let rows = value.toLowerCase().split("prefix");
+  if (rows.length > 0) {
+    rows.forEach(function (row) {
+      row = "PREFIX " + row;
+      let prefix = row.match(new RegExp("PREFIX (.*?):"));
+      if (prefix) {
+        prefix = prefix[0].replace(" ", "");
+        if (!double && prefixes.includes(prefix)) {
+          double = true;
+        } else {
+          prefixes.push(prefix);
+        }
+      }
+    });
+  }
+  return double;
+}
+
+function validateNodeEventGoalAction(errors, parameter, uri, predicate) {
+  let result = { uri: uri, error: false, event: "" };
+  let event = rdfGraph.getObjectValue(uri, predicate);
+  if (uri && event && event != "undefined") {
+    result.event = event;
+    result.error = false;
+  } else if (parameter.default) {
+    result.error = false;
+  } else {
+    result.error = !parameter.optional;
+  }
+  errors.push(result);
+}
+
+function validateEventGoalActionField(comp, error) {
+  if (!comp.get("optional")
+    && !comp.get("selected")
+    && (!comp.get("value")
+      || comp.get("value") == 'undefined')) {
+    comp.set("validation", error);
+    updateErrorsList(comp, true);
+  } else {
+    updateErrorsList(comp, false);
+    comp.set("validation", undefined);
+  }
+}
+
+function updateErrorsList(comp, error) {
+  let errors = getNode(comp).errors;
+  if (!error && errors) {
+    errors = errors.filter(item => item != comp.elementId);
+    if (errors && errors.length == 0) {
+      errorText(getNode(comp).node, false);
+    }
+    getNode(comp).errors = errors;
+  } else {
+    if (errors && !errors.includes(comp.elementId)) {
+      getNode(comp).errors.push(comp.elementId);
+      errorText(getNode(comp).node, true);
+    }
+  }
+}
+
+function errorText(node, error) {
+  let nodeDef = nodeDefs.getTypeDef(node[0]._private.data.type);
+  if (error) {
+    node.style("background-image", "/icons/error.png");
+    node.style("color", "#F00");
+  } else {
+    if (nodeDef.style.icon) {
+      node.style("background-image", nodeDef.style.icon);
+    } else {
+      node.style("background-image", "");
+    }
+    node.style("color", "#000");
+  }
+}
+
+function nodeDefault(node) {
+  node.style("border-color", "#000");
+}
+
+function nodeSuccsess(node) {
+  node.style("border-color", "#0F0");
+}
+
+function nodeFailure(node) {
+  node.style("border-color", "#F00");
+}
+
+function nodeRunning(node) {
+  node.style("border-color", "#00F");
 }

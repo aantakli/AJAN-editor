@@ -48,8 +48,11 @@ export default Mixin.create({
 		setTemplate(this.uri, this.template);
 	}),
 
-	queryValue: computed("uri", function() {
-		return rdfGraph.getObjectValue(this.get("uri"), BT.sparql) || "";
+  queryValue: computed("uri", function () {
+    let structure = this.get("structure");
+    let defQuery = "";
+    if (structure.default) defQuery = structure.default;
+		return rdfGraph.getObjectValue(this.get("uri"), BT.sparql) || defQuery;
 	}),
 
 	queryChangedViaTemplate: observer(
@@ -61,9 +64,9 @@ export default Mixin.create({
 		}
 	),
 
-	queryChanged: observer("queryValue", function() {
+  queryChanged: observer("queryValue", function () {
 		rdfGraph.setObjectValue(this.get("uri"), BT.sparql, this.get("queryValue"));
-	}),
+  }),
 
 	targetBaseChanged: observer("queryInsertion.targetBase", function() {
 		let structure = this.get("structure");

@@ -18,15 +18,21 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import {computed, observer} from "@ember/object";
-import {
-	targetDefault,
-	targets
-} from "ajan-editor/helpers/constants/query-targets";
+import { observer } from "@ember/object";
 import Component from "@ember/component";
+import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
+import { BT } from "ajan-editor/helpers/RDFServices/vocabulary";
 import QueryFieldMixin from "ajan-editor/mixins/behaviors/properties/query-field";
 
 export default Component.extend(QueryFieldMixin, {
+  uriChange: observer("uri", function () {
+    let structure = this.get("structure");
+    let defQuery = "";
+    if (structure.default) defQuery = structure.default;
+    let value = rdfGraph.getObjectValue(this.get("uri"), BT.sparql) || defQuery;
+    this.set("queryValue", value);
+  }),
+
 	actions: {
 		editQuery: function() {
 			// $("#modal-query-insertion").trigger("customShow");
@@ -40,6 +46,6 @@ export default Component.extend(QueryFieldMixin, {
 			queryInsertion.one("confirmModalChanges", function() {
 				that.set("queryValue", queryInsertion.get("query"));
 			});
-		}
+    }
 	}
 });

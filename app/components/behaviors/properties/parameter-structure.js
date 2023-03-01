@@ -19,7 +19,7 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import {computed, observer} from "@ember/object";
-import {ND, XSD} from "ajan-editor/helpers/RDFServices/vocabulary";
+import {ND, BT, XSD} from "ajan-editor/helpers/RDFServices/vocabulary";
 import Component from "@ember/component";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 
@@ -87,13 +87,14 @@ export default Component.extend({
 });
 
 function getValue(that) {
-  let structure = that.get("parameter");
-	let value = rdfGraph.getObjectValue(that.get("uri"), structure.mapping);
+  let parameter = that.get("parameter");
+
+  let value = rdfGraph.getObjectValue(that.get("uri"), parameter.mapping);
 	if (!value && typeof value !== "boolean")
 		console.warn(
 			"Value not defined, using default",
 			that.get("uri"),
-			structure
+      parameter
     );
-  return value || structure.default;
+  return value || parameter.default;
 }

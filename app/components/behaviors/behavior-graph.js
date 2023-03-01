@@ -27,8 +27,7 @@ import globals from "ajan-editor/helpers/global-parameters";
 import nodeDefs from "ajan-editor/helpers/RDFServices/node-definitions/common";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
-import utility from "ajan-editor/helpers/RDFServices/utility";
-import { AGENTS, XSD, RDF, RDFS } from "ajan-editor/helpers/RDFServices/vocabulary";
+import { AGENTS } from "ajan-editor/helpers/RDFServices/vocabulary";
 import Split from "npm:split.js";
 
 let $ = Ember.$;

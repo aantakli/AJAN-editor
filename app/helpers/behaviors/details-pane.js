@@ -35,14 +35,14 @@ class NodeData {
 		this.uri = node.data("uri") || "";
 		this.nodeClass = node.data("class") || "";
 		this.nodeType = node.data("type") || "";
-		this.structure = this.getNodeStructure();
+    this.structure = this.getNodeStructure();
 	}
 
 	getNodeStructure() {
 		let type = this.node.data("type");
 		let typeDef = nodeDefs.getTypeDef(type);
 		return typeDef ? typeDef.structure : undefined;
-	}
+  }
 }
 
 function set(evt) {

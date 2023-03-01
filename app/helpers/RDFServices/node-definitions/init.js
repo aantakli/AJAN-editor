@@ -45,7 +45,6 @@ export default function(cy) {
 	});
 
   $template = $("#Leaf-Nodes .Leaf-Nodes-Single-Category").clone();
-
 	// Insert the nodes
 	insertNodeDefs();
 
@@ -60,7 +59,6 @@ function insertNodeDefs() {
 	nodeDefs.forEach(node => {
 		// Special case for root
 		if (node.id === "Tree" || node.id === "BehaviorTree") return;
-
 		insertNodeDef(node);
 	});
 }
@@ -143,6 +141,7 @@ function bindDragEvent($div, node, btData) {
 }
 
 function bindDropEvent(cy) {
+
 	$("#cy")
 		.off("dragover")
 		.on("dragover", function(e) {
@@ -169,7 +168,7 @@ function bindDropEvent(cy) {
 			} else {
 				let nodeData = rdfManager.generateNodeData(dropType);
 				label = nodeData.label;
-				uri = nodeData.uri;
+        uri = nodeData.uri;
 			}
 
 			//TODO: select node and show properties
@@ -180,9 +179,10 @@ function bindDropEvent(cy) {
 				y: event.offsetY
 			};
 			let newNode = graphGen.node(id, label, uri, dropClass, dropType, pos);
-			console.log(newNode, ">with position " + pos.x + ", " + pos.y);
-			let newNode_ = cy.add(newNode);
+      console.log(newNode, "> with position " + pos.x + ", " + pos.y);
+      let newNode_ = cy.add(newNode);
+      graphUtil.validateNode(newNode_);
 			graphUtil.setNodeDimensions(newNode_);
-			freeNodes.push(cy.getElementById(newNode.data.id));
+      freeNodes.push(cy.getElementById(newNode.data.id));
 		});
 }

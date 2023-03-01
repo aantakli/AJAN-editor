@@ -64,7 +64,8 @@ let ND = {
 	StyleDef: "http://www.ajan.de/behavior/nd-ns#StyleDef",
 	default: "http://www.ajan.de/behavior/nd-ns#default",
   icon: "http://www.ajan.de/behavior/nd-ns#icon",
-  textarea: "http://www.ajan.de/behavior/nd-ns#textarea"
+  textarea: "http://www.ajan.de/behavior/nd-ns#textarea",
+  optional: "http://www.ajan.de/behavior/nd-ns#optional"
 };
 let RDFS = {
 	defaultPrefix: "http://www.w3.org/2000/01/rdf-schema#",
@@ -117,13 +118,18 @@ let BT = {
 	originBase: "http://www.ajan.de/behavior/bt-ns#originBase",
 	targetBase: "http://www.ajan.de/behavior/bt-ns#targetBase",
 	sparql: "http://www.ajan.de/behavior/bt-ns#sparql",
-	Query: "http://www.ajan.de/behavior/bt-ns#Query",
+  Query: "http://www.ajan.de/behavior/bt-ns#Query",
+  AskQuery: "http://www.ajan.de/behavior/bt-ns#AskQuery",
+  ConstructQuery: "http://www.ajan.de/behavior/bt-ns#ConstructQuery",
+  SelectQuery: "http://www.ajan.de/behavior/bt-ns#SelectQuery",
+  UpdateQuery: "http://www.ajan.de/behavior/bt-ns#UpdateQuery",
 	queryTemplate: "http://www.ajan.de/behavior/bt-ns#queryTemplate",
 	queryTemplateDefaultQuery: "http://www.ajan.de/behavior/bt-ns#queryTemplateDefaultQuery",
   BehaviorTree: "http://www.ajan.de/behavior/bt-ns#BehaviorTree",
   Report: "http://www.ajan.de/behavior/bt-ns#Report",
   debugging: "http://www.ajan.de/behavior/bt-ns#debugging",
-  btNode: "http://www.ajan.de/behavior/bt-ns#btNode"
+  btNode: "http://www.ajan.de/behavior/bt-ns#btNode",
+  definition: "http://www.ajan.de/behavior/bt-ns#definition"
 };
 let EDITOR = {
 	defaultPrefix: "http://www.ajan.de/behavior/editor-ns#",

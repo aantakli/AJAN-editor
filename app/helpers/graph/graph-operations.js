@@ -36,7 +36,7 @@ export default {
 	updateGraphInit: function(cy) {
 		this.updateLayoutInit(cy);
 		this.updateEdges(cy);
-		graphUtil.setEachNodeDimensions(cy);
+    graphUtil.setEachNodeParameters(cy);
 	},
 
 	updateLayoutInit: function(cy) {

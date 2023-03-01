@@ -9,6 +9,14 @@
 {{/if}}
 {{#ui/tool-tip tooltip=tooltip}}
   <div class="ui form full-width">
+    {{#if this.validation}}
+    <div class="textarea-validation-error">
+      <i class="textarea-validation-error-hint"></i>
+      <div class="textarea-validation-error-message">
+        {{this.validation}}
+      </div>
+    </div>
+    {{/if}}
     {{textarea
       type='text'
       class=fieldClass

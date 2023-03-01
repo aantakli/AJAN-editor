@@ -23,6 +23,9 @@ import rdf from "npm:rdf-ext";
 import JsonLdParser from "npm:rdf-parser-jsonld";
 import stringToStream from "npm:string-to-stream";
 import { RDF, RDFS, ACTN, AGENTS } from "ajan-editor/helpers/RDFServices/vocabulary";
+import {
+	/*isAjaxError, isForbiddenError,*/ isNotFoundError, isServerError
+} from "ember-ajax/errors";
 
 let $ = Ember.$;
 let parser = new JsonLdParser();
@@ -49,7 +52,13 @@ export default {
       contentType: "text/turtle",
       data: content
     }).catch(function (error) {
-      console.log(error);
+      let message = "Agent could not be created! Please check the used Agent Template.";
+      if (isServerError(error)) {
+        message = message + " Internal Server ERROR: 5XX"
+      } else if (isNotFoundError(error)) {
+        message = message + " Not Found ERROR: 4XX"
+      }
+      $("#error-message").trigger("showToast", [message]);
     });
   },
 

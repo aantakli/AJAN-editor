@@ -6,8 +6,20 @@
   /* margin-left: 10pt; */
 }
 
-:global(.behavior.side-pane.container) {
+:global(.event-goal-selection.error-dropdown .dropdown),
+:global(.action-selection.error-dropdown .dropdown) {
+  border-color: #f00 !important;
+  border-width: 2px !important;
+}
 
+:global(.event-goal-selection.error-dropdown i.icon.dropdown),
+:global(.action-selection.error-dropdown i.icon.dropdown) {
+  color: #f00 !important;
+}
+
+:global(.event-goal-selection .default.text),
+:global(.action-selection .default.text) {
+  color: #000 !important;
 }
 
 :global(.behavior.side-pane.description.textarea) {
@@ -21,4 +33,40 @@
   display: block;
   font-weight: bold;
   margin-top: 3px;
+}
+
+:global(.textarea-validation-error ) {
+  position: relative;
+}
+
+:global(.textarea-validation-error + textarea.ember-text-area) {
+  border-color: #f00 !important;
+  border-width: 2px !important;
+}
+
+:global(.textarea-validation-error i) {
+  position:absolute;
+  z-index: 100;
+  right: 15px;
+  top: 15px;
+  height: 20px;
+  width: 20px;
+  background-color: #f00;
+  border-radius: 50%;
+  display: inline-block;
+  cursor: pointer;
+}
+
+:global(.textarea-validation-error div) {
+  position: absolute;
+  visibility: hidden;
+  width: 100%;
+  color: #f00;
+  font-size: .9em;
+  padding: 10px 25px 10px 10px;
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+:global(.textarea-validation-error i:hover + div) {
+  visibility: visible;
 }

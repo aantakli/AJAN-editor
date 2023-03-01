@@ -23,7 +23,7 @@ import nodeDefs from "ajan-editor/helpers/RDFServices/node-definitions/node-defs
 // pos is an optional parameter
 export default function(id, label, uri, ndClass, ndType, pos) {
 	//let cl = ndClass.replace(/\b\w/g, l => l.toUpperCase())
-	let typeDef = nodeDefs.getTypeDef(ndType);
+  let typeDef = nodeDefs.getTypeDef(ndType);
 	return {
 		group: "nodes",
 		data: {

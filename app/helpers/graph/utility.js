@@ -44,8 +44,10 @@ export default {
 	setNodeDimensions,
 	printNodes,
   printEdges,
+  getNode,
   validateNode,
   checkDouplePrefixes,
+  updateErrorsList,
   errorText
 };
 
@@ -186,6 +188,17 @@ function printEdges(cy, eles) {
 	console.warn(labels);
 }
 
+function getNode(comp) {
+  let parent = comp.parentView;
+  if (parent && parent.node) {
+    return parent.node;
+  } else if (!parent.parentView) {
+    return null;
+  } else {
+    return getNode(parent);
+  }
+}
+
 function validateNode(cyNode) {
   let nodeDef = nodeDefs.getTypeDef(cyNode[0]._private.data.type);
   let errors = new Array();
@@ -291,6 +304,22 @@ function checkDouplePrefixes(value) {
     });
   }
   return double;
+}
+
+function updateErrorsList(comp, error) {
+  let errors = getNode(comp).errors;
+  if (!error && errors) {
+    errors = errors.filter(item => item != comp.elementId);
+    if (errors && errors.length == 0) {
+      errorText(getNode(comp).node, false);
+    }
+    getNode(comp).errors = errors;
+  } else {
+    if (errors && !errors.includes(comp.elementId)) {
+      getNode(comp).errors.push(comp.elementId);
+      errorText(getNode(comp).node, true);
+    }
+  }
 }
 
 function errorText(node, error) {

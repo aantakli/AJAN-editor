@@ -71,21 +71,14 @@ function validateTextArea(comp) {
 }
 
 function initErrorsList(comp) {
-  let node = getNode(comp.parentView);
+  let node = getNode(comp);
   if (node && !node.errors) {
-    console.log("Create errors list!");
-    getNode(comp.parentView).errors = new Array();
+    getNode(comp).errors = new Array();
   }
 }
 
-function getNode(parent) {
-  if (parent && parent.node) {
-    return parent.node;
-  } else if (!parent.parentView) {
-    return null;
-  } else {
-    return getNode(parent.parentView);
-  }
+function getNode(comp) {
+  return comp.get("nodeProperties").getNode(comp);
 }
 
 function validateQuery(comp, types) {
@@ -115,7 +108,7 @@ function validateQuery(comp, types) {
 
 function setDefaultValidation(comp, error, value) {
   updateErrorsList(comp, error);
-  comp.get("nodeProperties").updateErrorVisulization(getNode(comp.parentView), error);
+  //comp.get("nodeProperties").updateErrorVisulization(getNode(comp), error);
   comp.set("validation", value);
 }
 
@@ -130,19 +123,7 @@ function setQueryValidation(comp, resultType, queryType) {
 }
 
 function updateErrorsList(comp, error) {
-  let errors = getNode(comp.parentView).errors;
-  if (!error) {
-    errors = errors.filter(item => item != comp.elementId);
-    if (errors && errors.length == 0) {
-      comp.get("nodeProperties").updateErrorVisulization(getNode(comp.parentView), false);
-    }
-    getNode(comp.parentView).errors = errors;
-  } else {
-    if (errors && !errors.includes(comp.elementId)) {
-      getNode(comp.parentView).errors.push(comp.elementId);
-      comp.get("nodeProperties").updateErrorVisulization(getNode(comp.parentView), true);
-    }
-  }
+  comp.get("nodeProperties").updateErrorVisulization(comp, error);
 }
 
 function loadFile(comp, event) {

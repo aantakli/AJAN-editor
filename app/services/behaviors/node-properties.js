@@ -33,12 +33,16 @@ export default Service.extend({
 		rdfGraph.setObjectValue(node.uri, RDFS.comment, node.description);
   },
 
+  getNode(comp) {
+    return graphUtil.getNode(comp);
+  },
+
   checkDouplePrefixes(query) {
     return graphUtil.checkDouplePrefixes(query);
   },
 
-  updateErrorVisulization(node, error) {
-    graphUtil.errorText(node.node, error);
+  updateErrorVisulization(comp, error) {
+    graphUtil.updateErrorsList(comp, error);
   }
 });
 

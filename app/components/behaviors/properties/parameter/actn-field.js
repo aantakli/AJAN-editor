@@ -30,9 +30,10 @@ let that;
 
 export default Component.extend({
   ajax: Ember.inject.service(),
-
+  nodeProperties: Ember.inject.service("behaviors/node-properties"),
   availableACTNs: null,
   selected: undefined,
+  validation: undefined,
   uri: null,
 
   init() {
@@ -42,12 +43,22 @@ export default Component.extend({
     loadActionsRdfGraphData();
   },
 
+  didUpdateAttrs() {
+    initErrorsList(this);
+    validateActionField(this);
+  },
+
   selectedChanged: observer("selected", function () {
     this.set("selected", this.selected);
     setBase(this.get("uri"), this.get("structure.mapping"), this.selected);
+    let base = getSelected(that.get("availableACTNs"), this.selected);
+    this.set("selectedBaseValue", base);
+    initErrorsList(this);
+    validateActionField(this);
   }),
 
   uriChange: observer("uri", function () {
+    that = this;
     setAvailableActions();
   })
 });
@@ -78,6 +89,7 @@ function setAvailableActions() {
   that.set("availableACTNs", allActions);
   var base = getSelected(that.get("availableACTNs"), that.get("value"));
   that.set("selectedBaseValue", base);
+  validateActionField(that);
 }
 
 function getSelected(ele, uri) {
@@ -86,4 +98,19 @@ function getSelected(ele, uri) {
 
 function setBase(uri, basePredicate, value) {
   rdfGraph.setObject(uri, basePredicate, rdfFact.toNode(value));
+}
+
+function initErrorsList(comp) {
+  let node = getNode(comp);
+  if (node && !node.errors) {
+    getNode(comp).errors = new Array();
+  }
+}
+
+function validateActionField(comp) {
+  comp.get("nodeProperties").validateEventGoalActionField(comp, "No Action Definition is selected!");
+}
+
+function getNode(comp) {
+  return comp.get("nodeProperties").getNode(comp);
 }

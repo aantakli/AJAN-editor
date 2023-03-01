@@ -48,6 +48,7 @@ export default {
   validateNode,
   checkDouplePrefixes,
   updateErrorsList,
+  validateEventGoalActionField,
   errorText
 };
 
@@ -234,13 +235,13 @@ function validateParametersError(errors, parameters, uri, collection) {
         let newUri = rdfGraph.getObjectValue(uri, parameter.mapping);
         validateNodeQuery(errors, parameter, newUri);
       } else if (parameter.input == ND.EventGoal) {
-        validateNodeEventGoal(errors, parameter, uri, AGENTS.event);
+        validateNodeEventGoalAction(errors, parameter, uri, AGENTS.event);
       } else if (parameter.input == ND.Event) {
-        validateNodeEventGoal(errors, parameter, uri, AGENTS.event);
+        validateNodeEventGoalAction(errors, parameter, uri, AGENTS.event);
       } else if (parameter.input == ND.Goal) {
-        validateNodeEventGoal(errors, parameter, uri, AGENTS.goal);
+        validateNodeEventGoalAction(errors, parameter, uri, AGENTS.goal);
       } else if (parameter.input == ND.ACTNDef) {
-        validateNodeEventGoal(errors, parameter, uri, BT.definition);
+        validateNodeEventGoalAction(errors, parameter, uri, BT.definition);
       }
     }
   });
@@ -313,7 +314,7 @@ function checkDouplePrefixes(value) {
   return double;
 }
 
-function validateNodeEventGoal(errors, parameter, uri, predicate) {
+function validateNodeEventGoalAction(errors, parameter, uri, predicate) {
   let result = { uri: uri, error: false, event: "" };
   let event = rdfGraph.getObjectValue(uri, predicate);
   if (uri && event && event != "undefined") {
@@ -325,6 +326,19 @@ function validateNodeEventGoal(errors, parameter, uri, predicate) {
     result.error = !parameter.optional;
   }
   errors.push(result);
+}
+
+function validateEventGoalActionField(comp, error) {
+  if (!comp.get("optional")
+    && !comp.get("selected")
+    && (!comp.get("value")
+      || comp.get("value") == 'undefined')) {
+    comp.set("validation", error);
+    updateErrorsList(comp, true);
+  } else {
+    updateErrorsList(comp, false);
+    comp.set("validation", undefined);
+  }
 }
 
 function updateErrorsList(comp, error) {

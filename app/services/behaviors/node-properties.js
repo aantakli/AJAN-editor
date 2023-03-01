@@ -43,6 +43,10 @@ export default Service.extend({
 
   updateErrorVisulization(comp, error) {
     graphUtil.updateErrorsList(comp, error);
+  },
+
+  validateEventGoalActionField(comp, error) {
+    graphUtil.validateEventGoalActionField(comp, error);
   }
 });
 

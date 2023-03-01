@@ -6,16 +6,19 @@
   /* margin-left: 10pt; */
 }
 
-:global(.event-goal-selection.error-dropdown .dropdown) {
+:global(.event-goal-selection.error-dropdown .dropdown),
+:global(.action-selection.error-dropdown .dropdown) {
   border-color: #f00 !important;
   border-width: 2px !important;
 }
 
-:global(.event-goal-selection.error-dropdown i.icon.dropdown) {
+:global(.event-goal-selection.error-dropdown i.icon.dropdown),
+:global(.action-selection.error-dropdown i.icon.dropdown) {
   color: #f00 !important;
 }
 
-:global(.event-goal-selection .default.text) {
+:global(.event-goal-selection .default.text),
+:global(.action-selection .default.text) {
   color: #000 !important;
 }
 

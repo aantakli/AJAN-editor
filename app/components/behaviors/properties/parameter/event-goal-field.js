@@ -34,6 +34,7 @@ export default Component.extend({
   availableEventsGoals: null,
   selected: undefined,
   validation: undefined,
+  value: null,
   uri: null,
 
   init() {
@@ -115,14 +116,7 @@ function initErrorsList(comp) {
 }
 
 function validateEventGoalField(comp) {
-  if (!that.get("selected") && comp.get("value") == 'undefined') {
-    let error = "No Event/Goal is selected!";
-    comp.set("validation", error);
-    comp.get("nodeProperties").updateErrorVisulization(comp, true);
-  } else {
-    comp.get("nodeProperties").updateErrorVisulization(comp, false);
-    comp.set("validation", undefined);
-  }
+  comp.get("nodeProperties").validateEventGoalActionField(comp, "No Event/Goal is selected!");
 }
 
 function getNode(comp) {

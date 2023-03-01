@@ -21,7 +21,7 @@
 import Ember from "ember";
 import globals from "ajan-editor/helpers/global-parameters";
 import nodeDefs from "ajan-editor/helpers/RDFServices/node-definitions/node-defs";
-import { ND, RDF, BT } from "ajan-editor/helpers/RDFServices/vocabulary";
+import { ND, RDF, BT, AGENTS } from "ajan-editor/helpers/RDFServices/vocabulary";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 
 let $ = Ember.$;
@@ -233,6 +233,14 @@ function validateParametersError(errors, parameters, uri, collection) {
       if (parameter.input == ND.Query) {
         let newUri = rdfGraph.getObjectValue(uri, parameter.mapping);
         validateNodeQuery(errors, parameter, newUri);
+      } else if (parameter.input == ND.EventGoal) {
+        validateNodeEventGoal(errors, parameter, uri, AGENTS.event);
+      } else if (parameter.input == ND.Event) {
+        validateNodeEventGoal(errors, parameter, uri, AGENTS.event);
+      } else if (parameter.input == ND.Goal) {
+        validateNodeEventGoal(errors, parameter, uri, AGENTS.goal);
+      } else if (parameter.input == ND.ACTNDef) {
+        validateNodeEventGoal(errors, parameter, uri, BT.definition);
       }
     }
   });
@@ -260,7 +268,6 @@ function validateNodeQuery(errors, parameter, uri) {
   } else if (parameter.default) {
     validateQuery(result, parameter.default, parameter.types, parameter.optional);
   } else {
-    console.log("Optional!!!");
     result.error = !parameter.optional ;
   }
   errors.push(result);
@@ -304,6 +311,20 @@ function checkDouplePrefixes(value) {
     });
   }
   return double;
+}
+
+function validateNodeEventGoal(errors, parameter, uri, predicate) {
+  let result = { uri: uri, error: false, event: "" };
+  let event = rdfGraph.getObjectValue(uri, predicate);
+  if (uri && event && event != "undefined") {
+    result.event = event;
+    result.error = false;
+  } else if (parameter.default) {
+    result.error = false;
+  } else {
+    result.error = !parameter.optional;
+  }
+  errors.push(result);
 }
 
 function updateErrorsList(comp, error) {

@@ -128,7 +128,8 @@ let BT = {
   BehaviorTree: "http://www.ajan.de/behavior/bt-ns#BehaviorTree",
   Report: "http://www.ajan.de/behavior/bt-ns#Report",
   debugging: "http://www.ajan.de/behavior/bt-ns#debugging",
-  btNode: "http://www.ajan.de/behavior/bt-ns#btNode"
+  btNode: "http://www.ajan.de/behavior/bt-ns#btNode",
+  definition: "http://www.ajan.de/behavior/bt-ns#definition"
 };
 let EDITOR = {
 	defaultPrefix: "http://www.ajan.de/behavior/editor-ns#",

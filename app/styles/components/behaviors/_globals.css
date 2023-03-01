@@ -6,8 +6,17 @@
   /* margin-left: 10pt; */
 }
 
-:global(.behavior.side-pane.container) {
+:global(.event-goal-selection.error-dropdown .dropdown) {
+  border-color: #f00 !important;
+  border-width: 2px !important;
+}
 
+:global(.event-goal-selection.error-dropdown i.icon.dropdown) {
+  color: #f00 !important;
+}
+
+:global(.event-goal-selection .default.text) {
+  color: #000 !important;
 }
 
 :global(.behavior.side-pane.description.textarea) {
@@ -23,9 +32,13 @@
   margin-top: 3px;
 }
 
-:global(.textarea-validation-error) {
-  /*visibility:hidden;*/
+:global(.textarea-validation-error ) {
   position: relative;
+}
+
+:global(.textarea-validation-error + textarea.ember-text-area) {
+  border-color: #f00 !important;
+  border-width: 2px !important;
 }
 
 :global(.textarea-validation-error i) {

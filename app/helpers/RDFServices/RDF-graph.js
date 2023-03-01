@@ -23,19 +23,40 @@ import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 
 class RDFGraph {
 	constructor() {
-		this.data = undefined;
+    this.data = undefined;
+    this.unsavedMethod = undefined;
+    this.publishedChanges = false;
 		this.unsavedChanges = false;
 	}
 
 	// Only used for initiating
 	reset() {
 		this.data = undefined;
-		this.unsavedChanges = false;
+    this.unsavedChanges = false;
+    this.unsavedMethod = undefined;
+    this.publishedChanges = false;
   }
 
-	set(newData) {
-		this.data = newData;
-	}
+  set(newData) {
+    this.data = newData;
+    this.unsavedChanges = false;
+    this.unsavedMethod = undefined;
+    this.publishedChanges = false;
+  }
+
+  setUnsavedMethod(unsavedMethod) {
+    if (!this.unsavedMethod) {
+      this.unsavedMethod = unsavedMethod;
+    }
+  }
+
+  setUnsavedChanges(value) {
+    this.unsavedChanges = value;
+      if (this.unsavedMethod && this.unsavedChanges && !this.publishedChanges) {
+      this.publishedChanges = true;
+      this.unsavedMethod();
+    }
+  }
 
 	get() {
 		return this.data;
@@ -43,12 +64,12 @@ class RDFGraph {
 
 	add(quad) {
 		this.data.add(quad);
-		this.unsavedChanges = true;
+    this.setUnsavedChanges(true);
 	}
 
 	addAll(quads) {
 		this.data.addAll(quads);
-		this.unsavedChanges = true;
+    this.setUnsavedChanges(true);
 	}
 
 	existsSome(value) {
@@ -82,13 +103,13 @@ class RDFGraph {
 
 	remove(quad) {
 		this.data.remove(quad);
-		this.unsavedChanges = true;
+    this.setUnsavedChanges(true);
 		console.warn("Delete", quad);
 	}
 
 	removeMatches(ele) {
 		this.data.removeMatches(ele);
-		this.unsavedChanges = true;
+    this.setUnsavedChanges(true);
 		console.warn("Delete matches", ele);
 	}
 
@@ -151,7 +172,7 @@ class RDFGraph {
 			// Update quad
 			if (o !== quad.object.value) {
 				quad.object.value = o;
-				this.unsavedChanges = true;
+        this.setUnsavedChanges(true);
 			}
 		} else {
 			// Create and add quad
@@ -168,7 +189,7 @@ class RDFGraph {
       console.log(quad.object);
       if (o !== quad.object) {
 				quad.object = o;
-				this.unsavedChanges = true;
+        this.setUnsavedChanges(true);
 			}
 		} else {
 			// Create and add quad
@@ -179,7 +200,7 @@ class RDFGraph {
 
 	// Removes all quads which have an element related to val
   removeAllRelated(val, noObject) {
-		this.unsavedChanges = true;
+    this.setUnsavedChanges(true);
     console.warn("Delete related to", val);
     if (noObject) {
       this.data._quads = this.data._quads.filter(quad => {
@@ -200,7 +221,7 @@ class RDFGraph {
 	}
 
   removeRelatedQuads(subject, predicate) {
-    this.unsavedChanges = true;
+    this.setUnsavedChanges(true);
     let remove = [];
     console.warn("Delete related to", subject, predicate);
     this.data.forEach(quad => {
@@ -218,7 +239,7 @@ class RDFGraph {
   }
 
 	removeQuad(removeQuad) {
-		this.unsavedChanges = true;
+    this.setUnsavedChanges(true);
 		console.warn("Delete", removeQuad);
 		this.data._quads = this.data._quads.filter(quad => {
 			return !removeQuad.equals(quad);

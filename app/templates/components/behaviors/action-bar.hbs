@@ -61,10 +61,21 @@
     label="Sort"
     onClick=(action "sort")
   }}
-  {{ui/menu-bar/button
-    label="Save"
-    onClick=(action "save")
-  }}
+  {{#if this.unsaved}}
+    {{ui/menu-bar/button
+      label="Save"
+      class="behaviors-save-button unsavedChanges"
+      icon="save icon"
+      onClick=(action "save")
+    }}
+  {{/if}}
+  {{#unless this.unsaved}}
+    {{ui/menu-bar/button
+      label="Save"
+      class="behaviors-save-button"
+      onClick=(action "save")
+    }}
+  {{/unless}}
   {{ui/menu-bar/button
     label="Delete"
     onClick=(action "delete")

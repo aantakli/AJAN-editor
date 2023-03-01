@@ -53,6 +53,7 @@ export default Ember.Component.extend({
   init() {
     this._super(...arguments);
     that = this;
+
     this.get('dataBus').on('addBT', function (bt) {
       createBT(bt);
     });
@@ -151,11 +152,17 @@ function loadBTRdfGraphData() {
 }
 
 function rdfDataHasLoaded(rdfData) {
-	rdfGraph.set(rdfData);
+  console.log("has Loaded");
+  rdfGraph.set(rdfData);
+  rdfGraph.setUnsavedMethod(unsavedChanges);
   setAvailableBTs();
 	bindEvents();
   cy.resize();
   that.dataBus.updatedBT();
+}
+
+function unsavedChanges() {
+  that.dataBus.unsavedChanges();
 }
 
 function setAvailableBTs() {

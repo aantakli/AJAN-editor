@@ -37,6 +37,7 @@ export default Component.extend({
   ajax: Ember.inject.service(),
   repoFileName: "behaviors.ttl",
   availableBTs: undefined,
+  unsaved: false,
   repoContent: "",
   btFileName: "",
   btContent: "",
@@ -50,6 +51,11 @@ export default Component.extend({
 
     this.get('dataBus').on('save', function (content) {
       saveGraph(content);
+    });
+
+    this.get('dataBus').on('unsavedChanges', function () {
+      console.log("Unsaved changes!");
+      if (!that.get("unsaved")) that.set("unsaved", true);
     });
 
     this.get('dataBus').on('saveExportedBT', function (bt) {

@@ -37,7 +37,6 @@ export default Component.extend({
   uri: null,
 
   didInsertElement() {
-    console.log("didInsertElement");
     this._super(...arguments);
     that = this;
     initializeGlobals(this);

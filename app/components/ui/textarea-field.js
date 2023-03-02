@@ -99,7 +99,11 @@ function validateQuery(comp, types) {
     } else if (types.includes(BT.ConstructQuery)) {
       setQueryValidation(comp, result.queryType, "CONSTRUCT");
     } else if (types.includes(BT.UpdateQuery)) {
-      setQueryValidation(comp, result.type.toUpperCase(), "UPDATE");
+      if (!result.type) {
+        setQueryValidation(comp, undefined, "UPDATE");
+      } else {
+        setQueryValidation(comp, result.type.toUpperCase(), "UPDATE");
+      }
     }
   } catch (error) {
     setDefaultValidation(comp, true, error);
@@ -113,7 +117,10 @@ function setDefaultValidation(comp, error, value) {
 }
 
 function setQueryValidation(comp, resultType, queryType) {
-  if (resultType != queryType) {
+  if (!resultType) {
+    updateErrorsList(comp, true);
+    comp.set("validation", "No SPARQL Query included. Please enter a SPARQL " + queryType + " Query.");
+  } else if (resultType != queryType) {
     updateErrorsList(comp, true);
     comp.set("validation", "Wrong query Type! It has to be an " + queryType + " Query.");
   } else {

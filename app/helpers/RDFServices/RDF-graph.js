@@ -170,7 +170,7 @@ class RDFGraph {
 		let quad = this.findQuad(s, p);
 		if (quad) {
 			// Update quad
-			if (o !== quad.object.value) {
+      if (o !== quad.object.value) {
 				quad.object.value = o;
         this.setUnsavedChanges(true);
 			}
@@ -186,8 +186,7 @@ class RDFGraph {
 		let quad = this.findQuad(s, p);
 		if (quad) {
 			// Update quad
-      console.log(quad.object);
-      if (o !== quad.object) {
+      if (o.value !== quad.object.value) {
 				quad.object = o;
         this.setUnsavedChanges(true);
 			}

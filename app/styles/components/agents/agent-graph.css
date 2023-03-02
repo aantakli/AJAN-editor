@@ -6,13 +6,39 @@
   font-style: normal;
 }
 
+:global(#ajan-agent-overview) {
+  overflow: hidden;
+  height: 100%;
+}
+
+:global(#ajan-agent-view > .ember-view) {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: auto;
+}
+
 :global(#agents-overview) {
   width: 20%;
-  min-height: 100%;
-  height: 100% !important;
-  position: relative;
+  height: 100%;
+  min-height: fit-content !important;
+  max-height: calc(100vh - 150px);
   float: left;
   box-shadow: 0px 10px 10px #d1d1e0;
+  overflow-y: hidden;
+  position: relative;
+}
+
+:global(#agents-overview::-webkit-scrollbar) {
+  display: none;
+}
+
+:global(#agents-overview:hover) {
+  overflow-y: auto;
+}
+
+:global(.agents-overview-footer) {
+    height: 20px !important;
 }
 
 .agent-list-header {

@@ -2,10 +2,18 @@
 
 :global(#agent-item) {
   width: 80%;
-  height: 100%;
+  height: calc(100vh - 130px);
   padding: 0 0 40px 40px;
-  float: left;
+  float: right;
+  right: 0px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: absolute;
+}
+
+:global(.agentshow) {
   position: relative;
+  height: 100%;
 }
 
 :global(.ajan-mandatory) {
@@ -292,7 +300,6 @@ tr {
      display:flex;
 }
 
-
 .occupied{
  width:60%;
   margin-top: 10px;
@@ -303,9 +310,9 @@ tr {
 /***********/
 .item-row{
   display: flex;
+  height: 100%;
 }
 .item-rowuri{
-
    display:none;
 }
 .item-row:hover .item-rowuri{
@@ -313,31 +320,27 @@ tr {
     margin-left:42px;
 }
 
-
 /***********/
 [data-tooltip]:hover:after{
-
-
 	background: #fffea1;
 	position: left;
-
 }
 
 .bullet li {
   display:flex;
 }
+
 .bullet li:before{
   content: "•";
   vertical-align: top;
   margin-right: 10px;
 }
 
-
 .border-line{
-
   border-color:#FBBD08;
 	border-style:solid;
 	border-width:thin;
   padding:10px;
-
+  height: 100%;
+  min-height: 100%;
 }

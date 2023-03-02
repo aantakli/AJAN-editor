@@ -2,10 +2,14 @@
 
 :global(#agent-instance) {
   width: 80%;
-  height: 100%;
   padding: 0 0 40px 40px;
-  float: left;
-  position: relative;
+  height: calc(100vh - 130px);
+  float: right;
+  position: absolute;
+  overflow-x: hidden;
+  overflow-y: auto;
+  right: 0px;
+  padding-bottom: 100px !important;
 }
 
 .agent-instance-header {
@@ -48,7 +52,7 @@
 
 :global(#agent-instance-show) {
   width: 100%;
-  position: relative;
+  padding-bottom: 100px;
 }
 
 .instance-row {

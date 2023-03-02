@@ -9,10 +9,20 @@
 :global(#instances-overview) {
   width: 20%;
   min-height: 100%;
+  max-height: calc(100vh - 150px);
   height: 100% !important;
   position: relative;
   float: left;
+  overflow-y: hidden;
   box-shadow: 0px 10px 10px #d1d1e0;
+}
+
+:global(#instances-overview:hover) {
+  overflow-y: auto;
+}
+
+:global(#instances-overview::-webkit-scrollbar) {
+  display: none;
 }
 
 .instances-list-header {

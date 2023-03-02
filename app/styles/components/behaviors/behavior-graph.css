@@ -53,9 +53,17 @@ div.button-group {
 
 .node-container {
   height: auto;
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
 }
+
+  .node-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .node-container:hover {
+    overflow-y: auto;
+  }
 
 .node-container :global(div.content) {
   padding: 0 !important;

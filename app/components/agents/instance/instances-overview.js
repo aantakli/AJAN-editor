@@ -58,7 +58,7 @@ export default Ember.Component.extend({
     if (localStorage.ajanService == null
       || localStorage.ajanService === "undefined"
       || localStorage.ajanService === "") {
-      localStorage.ajanService = "http://127.0.0.1:8080/ajan/agents/";
+      localStorage.ajanService = "http://" + document.location.hostname + ":8080/ajan/agents/";
     }
 
     this.set("ajanService", localStorage.ajanService);
@@ -124,7 +124,7 @@ function setTriplestoreField() {
 }
 
 function loadAgentRdfGraphData() {
-  let repo = (localStorage.currentStore || "http://127.0.0.1:8090/rdf4j/repositories")
+  let repo = (localStorage.currentStore || "http://" + document.location.hostname + ":8090/rdf4j/repositories")
     + globals.agentsRepository;
   templateActns.getFromServer(ajax, repo).then(agentRDFDataHasLoaded);
 }
@@ -233,12 +233,12 @@ function createModal() {
 
 
   // Logs
-  var socket = that.get('websockets').socketFor('ws://127.0.0.1:4202');
+  var socket = that.get('websockets').socketFor("ws://" + document.location.hostname + ":4202");
   console.log(socket.readyState());
   socket.on('open', function () {
     console.log("socket connected");
     $body.append(createLogsField());
-    that.get('websockets').closeSocketFor('ws://127.0.0.1:4202');
+    that.get('websockets').closeSocketFor("ws://" + document.location.hostname + ":4202");
   }, that);
   if (socket.readyState() == 1) {
     console.log("socket open");
@@ -309,7 +309,7 @@ function createInitMessage(label, logs, pswd, templateUri, knowledge) {
   let credentials = "";
 
   if (pswd != null && pswd != "") {
-    let repo = (localStorage.currentStore.replace("/rdf4j/repositories","") || "http://127.0.0.1:8090/")
+    let repo = (localStorage.currentStore.replace("/rdf4j/repositories", "") || "http://" + document.location.hostname + ":8090/")
     + "tokenizer/token";
     credentials = "_:init <http://www.ajan.de/ajan-ns#agentTokenController> '" + repo + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";
     credentials += "_:init <http://www.ajan.de/ajan-ns#agentPassword> '" + pswd + "'^^<http://www.w3.org/2001/XMLSchema#string> . ";

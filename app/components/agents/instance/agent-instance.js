@@ -131,7 +131,7 @@ export default Ember.Component.extend({
 
     connect() {
       console.log("connect");
-      var socket = that.get('websockets').socketFor('ws://127.0.0.1:4202');
+      var socket = that.get('websockets').socketFor("ws://" + document.location.hostname + ":4202");
       console.log(socket);
       socket.on('open', myOpenHandler, that);
       socket.on('message', myMessageHandler, that);
@@ -146,7 +146,7 @@ export default Ember.Component.extend({
         socket.off('message', myMessageHandler);
         socket.off('close', myCloseHandler);
         that.set("wssConnection", false);
-        that.get('websockets').closeSocketFor('ws://127.0.0.1:4202');
+        that.get('websockets').closeSocketFor("ws://" + document.location.hostname + ":4202");
         that.set('socketRef', null);
         emptyLogs();
       }
@@ -232,12 +232,15 @@ function createLogs() {
   let agents = that.get("agentLogs");
   let activeAgentURI = that.get("activeInstance.uri");
   let i = agents.findIndex(e => e.uri === that.get("activeInstance.uri"));
-  if (i == -1 && activeAgentURI.includes("http://localhost")) {
-    activeAgentURI = activeAgentURI.replace("http://localhost", "http://127.0.0.1");
+  if (i == -1 && activeAgentURI.includes(document.location.hostname)) {
+    activeAgentURI = activeAgentURI.replace(document.location.hostname, "localhost");
     i = agents.findIndex(e => e.uri === activeAgentURI);
-  } else if (i == -1 && activeAgentURI.includes("http://127.0.0.1")) {
-    activeAgentURI = activeAgentURI.replace("http://127.0.0.1", "http://localhost");
+  } else if (i == -1) {
+    let host = activeAgentURI.split(":4202");
+    activeAgentURI = activeAgentURI.replace(host[0], "http://localhost");
     i = agents.findIndex(e => e.uri === activeAgentURI);
+  } else {
+    return;
   }
   let $textarea = $("#report-service-message-content");
   $textarea.empty();
@@ -355,6 +358,6 @@ function createEditorMessage($textarea, result, report) {
 
 function myCloseHandler(event) {
   console.log(`On close event has been called: ${event}`);
-  that.get('websockets').closeSocketFor('ws://127.0.0.1:4202');
+  that.get('websockets').closeSocketFor("ws://" + document.location.hostname + ":4202");
   that.set("wssConnection", false);
 }

@@ -131,6 +131,7 @@ export default Ember.Component.extend({
 
     connect() {
       console.log("connect");
+      console.log("ws://" + document.location.hostname + ":4202");
       var socket = that.get('websockets').socketFor("ws://" + document.location.hostname + ":4202");
       console.log(socket);
       socket.on('open', myOpenHandler, that);
@@ -239,8 +240,6 @@ function createLogs() {
     let host = activeAgentURI.split(":4202");
     activeAgentURI = activeAgentURI.replace(host[0], "http://localhost");
     i = agents.findIndex(e => e.uri === activeAgentURI);
-  } else {
-    return;
   }
   let $textarea = $("#report-service-message-content");
   $textarea.empty();
@@ -250,6 +249,8 @@ function createLogs() {
       createEditorMessage($textarea, agents[i].result, item);
     })
     $("#report-service-message").scrollTop($("#report-service-message")[0].scrollHeight);
+  } else if (i == -1 && agents.length > 0) {
+    $textarea.append("<p>Agent logs are available, but not for the selected agent.</p>");
   } else {
     $textarea.append("<p>To receive report messages from the agent LeafNodes, please run the ReportService (reportService.js) on Port 4202 and instantiate the agent with 'Show Logs' selected.</p>");
   }

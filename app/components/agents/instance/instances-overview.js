@@ -41,6 +41,7 @@ export default Ember.Component.extend({
   allInstances: new Array(),
   ajanServiceHost: "",
   ajanService: "",
+  ajanAgentsRoot: "/ajan/agents/",
   websockets: Ember.inject.service(),
   init() {
     this._super(...arguments);
@@ -58,7 +59,7 @@ export default Ember.Component.extend({
     if (localStorage.ajanService == null
       || localStorage.ajanService === "undefined"
       || localStorage.ajanService === "") {
-      localStorage.ajanService = "http://" + document.location.hostname + ":8080/ajan/agents/";
+      localStorage.ajanService = "http://" + document.location.hostname + ":8080";
     }
 
     this.set("ajanService", localStorage.ajanService);
@@ -74,6 +75,7 @@ export default Ember.Component.extend({
       that.set("activeInstance", value);
       $("li.active").removeClass("active");
       $(function () {
+        if (!value) return;
         $("li[data-value='" + value.uri + "']").addClass("active");
       });
     },
@@ -89,7 +91,7 @@ export default Ember.Component.extend({
         return;
       }
       localStorage.ajanService = service;
-      let agents = actions.getAllAgents(service, templates);
+      let agents = actions.getAllAgents(getAgentServiceURL(service), templates);
       Promise.resolve(agents).then(function (data) {
         that.set("allInstances", data);
         that.actions.setActiveInstance(data[0]);
@@ -104,6 +106,11 @@ export default Ember.Component.extend({
 	}
 
 });
+
+function getAgentServiceURL(url) {
+  let serviceURL = new URL(url);
+  return serviceURL.protocol + "//" + serviceURL.hostname + ":" + serviceURL.port + that.ajanAgentsRoot;
+}
 
 function initializeGlobals(currentComponent) {
   setCurrentComponent(currentComponent);
@@ -137,8 +144,8 @@ function agentRDFDataHasLoaded(rdfData) {
 
 function setAvailableTemaplates() {
   let templates = templateActns.getAgents();
-  console.log(templates);
   that.set("availableTemplates", templates);
+  that.actions.loadAgents();
 }
 
 function createModal() {
@@ -320,7 +327,7 @@ function createInitMessage(label, logs, pswd, templateUri, knowledge) {
   Promise.resolve(know).then(x => {
     if (x != undefined) {
       let content = type + name + tmpl + credentials + x + knowledge + logsRDF;
-      let agents = actions.createAgent(that.get("ajanService"), content);
+      let agents = actions.createAgent(that.get("ajanService") + that.ajanAgentsRoot, content);
       Promise.resolve(agents).then(function (data) {
         that.actions.loadAgents();
       });

@@ -232,6 +232,7 @@ function myMessageHandler(event) {
 function createLogs() {
   let agents = that.get("agentLogs");
   let activeAgentURI = that.get("activeInstance.uri");
+  if (!activeAgentURI) return;
   let i = agents.findIndex(e => e.uri === that.get("activeInstance.uri"));
   if (i == -1 && activeAgentURI.includes(document.location.hostname)) {
     activeAgentURI = activeAgentURI.replace(document.location.hostname, "localhost");

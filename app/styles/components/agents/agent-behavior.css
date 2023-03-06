@@ -261,6 +261,10 @@ tr {
     display:none;
 }
 
+.item-row-value [data-tooltip]:before {
+  background-color: #fffea1;
+}
+
 .item-row-content:hover .hover-content {
      display:flex;
 }

@@ -53,6 +53,17 @@
   height: 50px;
 }
 
+  .instances-list-item[data-tooltip]:after {
+    width: 100% !important;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .instances-list-item[data-tooltip]:before {
+    background-color: #fffea1;
+  }
+
+
 .instances-list-item-icon {
   width: 25px;
   height: 25px;

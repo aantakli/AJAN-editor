@@ -69,6 +69,17 @@
   height: 50px;
 }
 
+  .agent-list-item[data-tooltip]:after {
+    width: 100% !important;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .agent-list-item[data-tooltip]:before {
+    background-color: #fffea1;
+  }
+
+
 .agent-list-item-icon {
   width: 25px;
   height: 25px;

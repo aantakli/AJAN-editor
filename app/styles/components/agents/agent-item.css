@@ -161,6 +161,10 @@
   padding-right: 10px;
 }
 
+  .item-row-value [data-tooltip]:before {
+    background-color: #fffea1;
+  }
+
 .item-row-variable {
   height: 25px;
   border-radius: 5px;

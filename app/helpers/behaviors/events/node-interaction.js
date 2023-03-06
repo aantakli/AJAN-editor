@@ -22,6 +22,7 @@ import details from "ajan-editor/helpers/behaviors/details-pane";
 import Ember from "ember";
 import graphOperations from "ajan-editor/helpers/graph/graph-operations";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
+import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 
 let $ = Ember.$;
 
@@ -47,7 +48,8 @@ function dragNode(cy) {
 	cy.off("drag").on("drag", "node", function(event) {
 		// Properly update edges while draging the corresponding node
 		let edges = event.target.connectedEdges();
-		edges.forEach(graphOperations.updateEdge);
+    edges.forEach(graphOperations.updateEdge);
+    rdfGraph.setUnsavedChanges(true);
 	});
 }
 

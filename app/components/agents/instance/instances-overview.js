@@ -59,7 +59,8 @@ export default Ember.Component.extend({
     if (localStorage.ajanService == null
       || localStorage.ajanService === "undefined"
       || localStorage.ajanService === "") {
-      localStorage.ajanService = "http://" + document.location.hostname + ":8080";
+      let ajanService = new URL(localStorage.currentStore);
+      localStorage.ajanService = "http://" + ajanService.hostname + ":8080";
     }
 
     this.set("ajanService", localStorage.ajanService);
@@ -96,6 +97,7 @@ export default Ember.Component.extend({
         that.set("allInstances", data);
         that.actions.setActiveInstance(data[0]);
       }).catch(function (error) {
+        that.actions.setActiveInstance(null);
         alert("The specified AJAN service is not available!");
       });
     }

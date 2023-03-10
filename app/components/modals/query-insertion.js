@@ -40,23 +40,23 @@ export default Ember.Component.extend({
 	// After the element has been inserted into the DOM
 	didInsertElement() {
 		this._super(...arguments);
-		let that = this;
-
-		$modal = $("#modal-query-insertion");
+    let that = this;
+    
+    $modal = $("#modal-query-insertion");
 		this.get("queryInsertion").on("showModal", function() {
 			try {
 				if (that) {
 					that.set("template", that.get("queryInsertion.template"));
-					that.set("query", that.get("queryInsertion.query"));
+          that.set("query", that.get("queryInsertion.query"));
 				}
 			} catch (e) {
 				console.warn(e)
-			} finally {
+      } finally {
 				$modal.show();
 			}
 		});
 
-		$modal.on("customShow", function() {
+    $modal.on("customShow", function () {
 			$modal.show();
 			loadTemplate(that);
 		});

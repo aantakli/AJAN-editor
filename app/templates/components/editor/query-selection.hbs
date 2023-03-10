@@ -35,7 +35,10 @@
         overrideRowClick=(action "onQueryLoad")
       }}
     {{else if tabs.newSparql}}
-      {{component 'editor/query-selection/from-sparql' query=query}}
+      {{component 'editor/query-selection/from-sparql'
+        query=query
+        repositories=repositories
+      }}
     {{else}}
       <!-- Default -->
       {{component 'editor/query-selection/from-template'

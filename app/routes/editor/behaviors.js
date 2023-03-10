@@ -25,12 +25,8 @@ let $ = Ember.$;
 
 export default Ember.Route.extend({
 	model() {
-		// Return a promise to both data sets
-		/*return Ember.RSVP.hash({
-      nodes: this.store.findAll('behaviors/node'),
-      edges: this.store.findAll('behaviors/edge')
-    });*/
-	},
+    return this.store.findAll("repository");
+  },
 
 	actions: {
 		/******** Actions related to the modal pop up *****/

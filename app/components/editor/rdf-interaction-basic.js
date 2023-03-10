@@ -35,5 +35,9 @@ export default Component.extend({
 	dataFormat: null,
 	filter: Filter.create(),
 	malformedQuery: false,
-	model: null,
+  model: null,
+
+  didInsertElement() {
+    this._super(...arguments);
+  },
 });

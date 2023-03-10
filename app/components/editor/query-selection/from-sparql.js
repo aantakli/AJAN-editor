@@ -22,7 +22,7 @@ import Component from "@ember/component";
 
 export default Component.extend({
 	classNames: ["auto-size"],
-	didInsertElement() {
+  didInsertElement() {
 		let editor = ace.edit("ace-editor");
 		let that = this;
 		editor.setValue(this.get("query"), -1);

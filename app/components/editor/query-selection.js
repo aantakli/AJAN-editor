@@ -31,7 +31,11 @@ export default Component.extend({
 
 	nodeType: computed("queryInsertion.nodeType", function() {
 		return this.get("queryInsertion.nodeType");
-	}),
+  }),
+
+  didInsertElement() {
+    this._super(...arguments);
+  },
 
 	actions: {
 		clickedTab(tab) {

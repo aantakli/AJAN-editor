@@ -37,7 +37,7 @@ export default Component.extend({
 	vocabularyManager: Ember.inject.service("data-manager/vocabulary-manager"),
 	defaultRepository: "http://localhost:8090/rdf4j/repositories/agents",
   showQueryResults: true,
-	prefixes: [],
+  prefixes: [],
 	currentRepository: computed("defaultRepository", function() {
 		return this.get(defaultRepositoryString);
 	}),
@@ -58,7 +58,7 @@ export default Component.extend({
 					iri: ele.uri
 				};
 			});
-			that.set("prefixes", data);
+      that.set("prefixes", data);
       
 			this.send("repoSelected", this.get(defaultRepositoryString));
 			let editor = ace.edit("ace-editor");

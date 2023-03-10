@@ -21,7 +21,7 @@
 import Route from "@ember/routing/route";
 
 export default Route.extend({
-	model: function() {
+  model: function () {
 		return this.store.findAll("repository").catch(e => {
 			console.error("Error loading repositories", e);
 			return [];

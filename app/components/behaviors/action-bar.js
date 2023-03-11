@@ -22,6 +22,7 @@ import actions from "ajan-editor/helpers/behaviors/actions";
 import Component from "@ember/component";
 import globals from "ajan-editor/helpers/global-parameters";
 import graphOperations from "ajan-editor/helpers/graph/graph-operations";
+import {deleteSelection} from "ajan-editor/helpers/behaviors/events/key-events";
 import { sendFile, deleteRepo } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import queries from "ajan-editor/helpers/RDFServices/queries";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
@@ -110,6 +111,11 @@ export default Component.extend({
         globals.behaviorsRepository;
       actions.restoreSaved(globals.ajax, repo, 2);
     },
+
+    removeNode() {
+      deleteSelection(false);
+    },
+
 
     delete() {
       this.get('dataBus').deleteBTModal();

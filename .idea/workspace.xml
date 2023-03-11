@@ -3,7 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="0d184157-912c-4576-b7f7-f73b4493558b" name="Default Changelist" comment="Added Dockerfile">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/components/behaviors/action-bar.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/components/behaviors/action-bar.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/helpers/behaviors/events/key-events.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/helpers/behaviors/events/key-events.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/components/behaviors/action-bar.hbs" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/components/behaviors/action-bar.hbs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -320,25 +324,16 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="DefaultHtmlFileTemplate" value="HTML File" />
-    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="Angular2Html" />
-    <property name="editor.config.ad.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="node.js.detected.package.eslint" value="true" />
-    <property name="node.js.detected.package.tslint" value="true" />
-    <property name="node.js.path.for.package.eslint" value="project" />
-    <property name="node.js.path.for.package.tslint" value="project" />
-    <property name="node.js.selected.package.eslint" value="(autodetect)" />
-    <property name="node.js.selected.package.tslint" value="(autodetect)" />
-    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
-    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="nodejs_package_manager_path" value="npm" />
-    <property name="settings.editor.selected.configurable" value="preferences.editor" />
-    <property name="vue.rearranger.settings.migration" value="true" />
-  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "/home/arch/projects/work/ajan/AJAN-editor/app",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/app/styles/components" />
@@ -433,6 +428,7 @@
       <workItem from="1647765367792" duration="80000" />
       <workItem from="1647851839839" duration="267000" />
       <workItem from="1648573764861" duration="3516000" />
+      <workItem from="1678548669618" duration="2535000" />
     </task>
     <task id="LOCAL-00001" summary="Added Dockerfile">
       <created>1647763371190</created>
@@ -514,6 +510,18 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Added Dockerfile" />
     <option name="LAST_COMMIT_MESSAGE" value="Added Dockerfile" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/app/helpers/behaviors/events/key-events.js</url>
+          <line>61</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/app/templates/components/ui/delimiter-horizontal.hbs">

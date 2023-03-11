@@ -31,7 +31,7 @@ function keyup(cy, ur) {
 	document.addEventListener("keyup", keyUpHandler);
 }
 
-function keyUpHandler(event) {
+ function keyUpHandler(event) {
 	let cy = globals.cy;
 	let ur = globals.ur;
 	let selection = cy.$(":selected");
@@ -59,13 +59,16 @@ function keyUpHandler(event) {
 		}
 	} else if (event.which == 46 || event.which == 8) {
 		// Delete || Backspace
-		deleteSelection(cy, ur, selection);
+		deleteSelection(true);
 	}
 }
 
-function deleteSelection(cy, ur, selection) {
+function deleteSelection(fromKeypress) {
+  let cy = globals.cy;
+  let ur = globals.ur;
+  let selection = cy.$(":selected");
 	// Delete only if nothing is in focus (e.g. a text input)
-	if ($(":focus").length > 0) return;
+	if ($(":focus").length > 0 && fromKeypress) return;
 	detailsPane.blur();
 	// Sort so node are deleted first, to avoid errors
 	selection = sortSelection(selection);
@@ -152,4 +155,4 @@ function sortSelection(selection) {
 	});
 }
 
-export {keyup};
+export {keyup, deleteSelection};

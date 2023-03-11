@@ -112,7 +112,7 @@ export default Component.extend({
       actions.restoreSaved(globals.ajax, repo, 2);
     },
 
-    removeNode() {
+    removeSelection() {
       deleteSelection(false);
     },
 

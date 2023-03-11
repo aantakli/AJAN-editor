@@ -13,6 +13,17 @@
   background-color: #f0f0f0 !important;
 }
 
+:global(.removeSelection .create-bt-agt),
+:global(.deleteBT .create-bt-agt){
+  padding: 10px 16px;
+  width: 140pt !important;
+  color: #000 !important;
+  text-align: left;
+  background-color: #f0f0f0 !important;
+}
+
+:global(.removeSelection i),
+:global(.deleteBT i),
 :global(.createBT i),
 :global(.cloneBT i),
 :global(.generateAgent i) {
@@ -20,6 +31,8 @@
   color: #000;
 }
 
+:global(.removeSelection .create-bt-agt):hover,
+:global(.deleteBT .create-bt-agt):hover,
 :global(.createBT .create-bt-agt):hover,
 :global(.cloneBT .create-bt-agt):hover,
 :global(.generateAgent .create-bt-agt):hover {

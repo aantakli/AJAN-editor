@@ -76,17 +76,28 @@
       onClick=(action "save")
     }}
   {{/unless}}
-  {{ui/menu-bar/button
+
+  {{#ui/menu-bar/dropdown
     label="Delete"
-    onClick=(action "delete")
+    class="action-bar"
   }}
+    {{ui/menu-bar/create-button
+      label="Delete BT"
+      class="deleteBT"
+      compAction=(action "delete")
+      icon="trash"
+    }}
+    {{ui/menu-bar/create-button
+      label="Remove Selection"
+      class="removeSelection"
+      compAction=(action "removeSelection")
+      icon="ban"
+    }}
+  {{/ui/menu-bar/dropdown}}
+
   {{ui/menu-bar/button
     label="Restore"
     onClick=(action "restoreSave")
-  }}
-  {{ui/menu-bar/button
-    label="Remove"
-    onClick=(action "removeNode")
   }}
 
   <div class="store-url-cont vcenter" local-class="rightmost">

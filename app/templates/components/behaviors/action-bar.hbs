@@ -57,25 +57,6 @@
     icon="user plus"
   }}
   {{/ui/menu-bar/dropdown}}
-  {{ui/menu-bar/button
-    label="Sort"
-    onClick=(action "sort")
-  }}
-  {{#if this.unsaved}}
-    {{ui/menu-bar/button
-      label="Save"
-      class="behaviors-save-button unsavedChanges"
-      icon="save icon"
-      onClick=(action "save")
-    }}
-  {{/if}}
-  {{#unless this.unsaved}}
-    {{ui/menu-bar/button
-      label="Save"
-      class="behaviors-save-button"
-      onClick=(action "save")
-    }}
-  {{/unless}}
 
   {{#ui/menu-bar/dropdown
     label="Delete"
@@ -95,9 +76,25 @@
     }}
   {{/ui/menu-bar/dropdown}}
 
+  {{#if this.unsaved}}
+    {{ui/menu-bar/button
+      label="Save"
+      class="behaviors-save-button unsavedChanges"
+      icon="save icon"
+      onClick=(action "save")
+    }}
+  {{/if}}
+  {{#unless this.unsaved}}
+    {{ui/menu-bar/button
+      label="Save"
+      class="behaviors-save-button"
+      onClick=(action "save")
+    }}
+  {{/unless}}
+
   {{ui/menu-bar/button
-    label="Restore"
-    onClick=(action "restoreSave")
+    label="Sort"
+    onClick=(action "sort")
   }}
 
   <div class="store-url-cont vcenter" local-class="rightmost">

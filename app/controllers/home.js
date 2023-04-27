@@ -29,7 +29,7 @@ export default Ember.Controller.extend({
 	note: `All hail His Grace, Alex of House Grethen, First of His Name, King of the HiWis, Lord of the AJAN Editor, and Protector of the Agents.`,
 
 	actions: {
-		transitionToEditorBehavior() {
+    transitionToEditorBehavior() {
 			this.transitionToRoute("editor.behaviors");
 		}
 	}

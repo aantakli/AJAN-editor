@@ -89,8 +89,8 @@ class TriplestoreListing {
 	transitionEvent(event) {
 		let target = $(event.target);
 		//TODO: return if div is in edit mode
-		if (target.is("input")) return;
-		localStorage.currentStore = this.$uri[0].innerText;
+    if (target.is("input")) return;
+    localStorage.currentStore = this.$uri[0].innerText;
 		this.parentComponent.sendAction("transitionToEditorBehavior");
 	}
 

@@ -36,7 +36,7 @@ export default Ember.Component.extend({
 		// ...
 		self = this;
 		triplestoreCollection = new TriplestoreCollection(this);
-		bindEnterEvent();
+    bindEnterEvent();
 	},
 
 	actions: {

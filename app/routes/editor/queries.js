@@ -23,8 +23,15 @@ import Route from "@ember/routing/route";
 export default Route.extend({
   model: function () {
 		return this.store.findAll("repository").catch(e => {
-			console.error("Error loading repositories", e);
-			return [];
+      console.error("Error loading repositories", e);
+      if ($("#error-message").length > 0) {
+        $("#error-message").trigger("showToast", [
+          "Error while accessing selected repository! Check if repository is accessible or secured!"
+        ]);
+        throw e;
+      } else {
+        alert("Error while accessing selected repository! Check if repository is accessible or secured!");
+      }
 		});
 	},
 	actions: {

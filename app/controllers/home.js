@@ -30,7 +30,7 @@ export default Ember.Controller.extend({
 
 	actions: {
     transitionToEditorBehavior() {
-			this.transitionToRoute("editor.behaviors");
+        this.transitionToRoute("editor.behaviors");
 		}
 	}
 });

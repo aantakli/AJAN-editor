@@ -92,7 +92,7 @@ function loadAgentsRepo(ajax, tripleStoreRepository, token) {
   }).catch(function (error) {
     tokenizer.removeToken(localStorage.currentStore);
     $("#error-message").trigger("showToast", [
-      "Error while accessing agent repository! Check if repository is accessible, secured or credentials are right!"
+      "Error while accessing selected repository! Check if repository is accessible, secured or credentials are right!"
     ]);
   });
 

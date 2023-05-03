@@ -71,7 +71,7 @@ function loadServicesRepo(ajax, tripleStoreRepository, token) {
   }).catch(function (error) {
     tokenizer.removeToken(localStorage.currentStore);
     $("#error-message").trigger("showToast", [
-      "Error while accessing services repository! Check if repository is accessible or secured!", true
+      "Error while accessing selected repository! Check if repository is accessible or secured!", true
     ]);
   });
 

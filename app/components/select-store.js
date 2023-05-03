@@ -31,7 +31,7 @@ export default Ember.Component.extend({
   ajax: Ember.inject.service(),
   cytoscapeService: Ember.inject.service("behaviors/cytoscape"),
 
-	didInsertElement() {
+  didInsertElement() {
 		this._super(...arguments);
 		// ...
 		self = this;

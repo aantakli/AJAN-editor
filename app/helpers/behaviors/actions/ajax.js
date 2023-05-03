@@ -67,7 +67,7 @@ function loadBehaviorsRepo(ajax, tripleStoreRepository, token) {
   }).catch(function (error) {
     tokenizer.removeToken(localStorage.currentStore);
     $("#error-message").trigger("showToast", [
-      "Error while accessing behaviors repository! Check if repository is accessible or secured!", true
+      "Error while accessing selected repository! Check if repository is accessible or secured!", true
     ]);
   });
 

@@ -24,8 +24,18 @@ import Ember from "ember";
 let $ = Ember.$;
 
 export default Ember.Route.extend({
-	model() {
-    return this.store.findAll("repository");
+  model() {
+     return this.store.findAll("repository").catch(e => {
+        console.error("Error loading repositories", e);
+       if ($("#error-message").length > 0) {
+         $("#error-message").trigger("showToast", [
+           "Error while accessing selected repository! Check if repository is accessible or secured!"
+         ]);
+         throw e;
+       } else {
+         alert("Error while accessing selected repository! Check if repository is accessible or secured!");
+       }
+     });
   },
 
 	actions: {

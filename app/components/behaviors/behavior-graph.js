@@ -51,7 +51,7 @@ export default Ember.Component.extend({
   cyRef: undefined,
 
   init() {
-this._super(...arguments);
+    this._super(...arguments);
     that = this;
 
     this.get('dataBus').on('addBT', function (bt) {

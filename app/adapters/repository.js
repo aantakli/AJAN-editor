@@ -19,9 +19,12 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import DS from 'ember-data';
+import { computed } from '@ember/object';
 
 // export default DS.JSONAPIAdapter.extend({
 export default DS.RESTAdapter.extend({
-  host: localStorage.currentStore.replace("/repositories/", ""),
+  host: computed(function () {
+    return localStorage.currentStore.replace("/repositories/", "");
+  }).volatile(),
   contentType: 'application/sparql-results+json',
 });

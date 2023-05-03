@@ -35,7 +35,9 @@ let ajax = null; // ajax
 export default Component.extend({
   ajax: Ember.inject.service(),
 	vocabularyManager: Ember.inject.service("data-manager/vocabulary-manager"),
-	defaultRepository: "http://localhost:8090/rdf4j/repositories/agents",
+  defaultRepository: computed("defaultRepository", function () {
+    return localStorage.currentStore + "agents";
+  }),
   showQueryResults: true,
   prefixes: [],
 	currentRepository: computed("defaultRepository", function() {

@@ -30,8 +30,8 @@ import stringToStream from "npm:string-to-stream";
 
 export default function(ajax) {
 	let repo =
-		(localStorage.currentStore || "http://localhost:8090/rdf4j/repositories") +
-		"/node_definitions";
+		(localStorage.currentStore || "http://localhost:8090/rdf4j/repositories/") +
+		"node_definitions";
 	let ajaxPromise = ajax.post(repo, {
 		contentType: "application/sparql-query; charset=utf-8",
 		headers: {

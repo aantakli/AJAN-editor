@@ -37,13 +37,14 @@ export default {
 // Use this to parse data for behavior
 // Request the entire graph
 function getAgentsGraph(data) {
-	const quadStream = parser.import(stringToStream(JSON.stringify(data)));
+  const quadStream = parser.import(stringToStream(JSON.stringify(data)));
 	let obj = rdf
 		.dataset()
 		.import(quadStream)
 		.then(function(dataset) {
 			// Dataset is array of quads
-			let agents = new Array();
+      let agents = new Array();
+      console.log(dataset);
 			getAgents(dataset, agents);
 			return [agents, dataset];
 		});
@@ -82,33 +83,36 @@ function getAgentsDefinitions(graph, resource) {
       }
       if (quad.predicate.value === RDF.type) {
 				agent.type = quad.object.value;
-			}
+      }
       if (quad.predicate.value === AGENTS.event) {
         agent.events = {};
         agent.events.uri = quad.object.value;
-        graph.forEach(function (innerquad){
-          if (innerquad.subject.equals(quad.object)){
+        graph.forEach(function (innerquad) {
+          if (innerquad.subject.equals(quad.object)) {
             if (innerquad.predicate.value === RDFS.label) {
-				        agent.events.label=innerquad.object.value;
-			        }
+              agent.events.label = innerquad.object.value;
+            }
           }
-          });
+        });
         events.push(agent.events);
       }
-       if (quad.predicate.value === AGENTS.endpoint) {
+      if (quad.predicate.value === AGENTS.initKnowledge) {
+        agent.initKnowledge = quad.object.value;
+      }
+      if (quad.predicate.value === AGENTS.endpoint) {
         agent.endpoints = {};
         agent.endpoints.uri = quad.object.value;
         graph.forEach(function (innerquad){
-           if (innerquad.subject.equals(quad.object)){
-             if (innerquad.predicate.value === RDFS.label) {
-				       agent.endpoints.label=innerquad.object.value;
-             }
-             if (innerquad.predicate.value === AGENTS.capability) {
-               agent.endpoints.capability = innerquad.object.value;
-             }
-           }
-           });
-         endpoints.push(agent.endpoints);
+            if (innerquad.subject.equals(quad.object)){
+              if (innerquad.predicate.value === RDFS.label) {
+				        agent.endpoints.label=innerquad.object.value;
+              }
+              if (innerquad.predicate.value === AGENTS.capability) {
+                agent.endpoints.capability = innerquad.object.value;
+              }
+            }
+          });
+        endpoints.push(agent.endpoints);
       }
       if (quad.predicate.value === AGENTS.behavior) {
         agent.behaviors = {};

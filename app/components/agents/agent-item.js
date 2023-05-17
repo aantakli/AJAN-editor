@@ -26,12 +26,18 @@ import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 import globals from "ajan-editor/helpers/global-parameters";
 import actions from "ajan-editor/helpers/agents/actions";
 
+import stringToStream from "npm:string-to-stream";
+import N3Parser from "npm:rdf-parser-n3";
+import rdf from "npm:rdf-ext";
+
 let self;
+let parser = new N3Parser();
 
 export default Component.extend({
   dataBus: Ember.inject.service('data-bus'),
 	overview: null,
 	activeAgent: null,
+  agentInitKnowledge: "",
   activeValue: null,
 	selectedEndpoints: null,
 	selectedEvents: null,
@@ -57,6 +63,7 @@ export default Component.extend({
     self.set('selectedBehaviors', []);
     if (this.get("activeAgent") != null) {
       setFileContent(this.get("activeAgent.uri"));
+      readAgentInitKnowledge();
     }
 	},
 
@@ -306,4 +313,30 @@ function setFileContent(uri) {
   let eventRDF = rdfGraph.getAllQuads(uri);
   self.set("fileName", "agents_agent_" + label.value + ".ttl");
   self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF) + "."])));
+}
+
+
+function readAgentInitKnowledge() {
+  if (rdfGraph.data) {
+    let content = "<http://test/Test_0> {<http://test/Test_1> <http://test/test> <http://test/Test_1> . <http://test/Test_2> <http://test/test> <http://test/Test_2> . }";
+
+    let quadStream = parser.import(stringToStream(content));
+    rdf.dataset().import(quadStream).then((dataset) => {
+      // loop over all quads an write them to the console
+      dataset.forEach((quad) => {
+        rdfGraph.add(quad);
+      });
+
+      let knowledge = rdf.dataset();
+
+      rdfGraph.forEach((quad) => {
+        if (quad.graph.value == self.get("activeAgent.initKnowledge")) {
+          knowledge.add(rdf.quad(quad.subject, quad.predicate, quad.object));
+        }
+      })
+
+      console.log(knowledge.toCanonical());
+      self.set("agentInitKnowledge", knowledge.toCanonical());
+    });
+  }
 }

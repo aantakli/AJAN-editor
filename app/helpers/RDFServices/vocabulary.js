@@ -220,6 +220,7 @@ let AGENTS = {
   event: "http://www.ajan.de/ajan-ns#event",
   goal: "http://www.ajan.de/ajan-ns#goal",
   agentKnowledge: "http://www.ajan.de/ajan-ns#agentKnowledge",
+  initKnowledge: "http://www.ajan.de/ajan-ns#agentInitKnowledge",
   endpoint: "http://www.ajan.de/ajan-ns#endpoint",
   initialBehavior: "http://www.ajan.de/ajan-ns#initialBehavior",
   finalBehavior: "http://www.ajan.de/ajan-ns#finalBehavior",

@@ -328,7 +328,8 @@ function createInitMessage(label, logs, pswd, templateUri, knowledge) {
   let know = getAgentInitKnowledge(knowledge);
   Promise.resolve(know).then(x => {
     if (x != undefined) {
-      let content = type + name + tmpl + credentials + x + knowledge + logsRDF;
+      let content = type + name + tmpl + credentials + x + logsRDF;
+      console.log(content);
       let agents = actions.createAgent(that.get("ajanService") + that.ajanAgentsRoot, content);
       Promise.resolve(agents).then(function (data) {
         that.actions.loadAgents();
@@ -344,18 +345,13 @@ function getAgentInitKnowledge(content) {
   let returnValue = Promise.resolve(dataset)
     .then(x => {
       let knowledge = "";
-      console.log(x);
-      x._quads.forEach(quad => {
-        console.log(quad);
-        let value = "";
-        if (quad.subject.termType === "NamedNode" && quad.graph.termType === "DefaultGraph") {
-          value = "<" + quad.subject.value + ">";
-          knowledge = knowledge + "_:init <http://www.ajan.de/ajan-ns#agentInitKnowledge> " + value + " . ";
-        } else if (quad.graph.termType === "NamedNode") {
-          value = "<" + quad.graph.value + ">";
-          knowledge = knowledge + "_:init <http://www.ajan.de/ajan-ns#agentInitKnowledge> " + value + " . ";
-        }
-      });
+      if (x._quads.length > 0) {
+        let value = "<http://www.ajan.de/ajan-ns#AgentInitKnowledgeGraph>";
+        knowledge = "_:init <http://www.ajan.de/ajan-ns#agentInitKnowledge> " + value + " . ";
+        knowledge += value + " { ";
+        knowledge += x.toCanonical();
+        knowledge += " } ";
+      }
       return knowledge;
     }).catch(function (error) {
       $("#error-message").trigger("showToast", [

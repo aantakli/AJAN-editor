@@ -322,7 +322,7 @@ function setFileContent(uri) {
   let label = rdfGraph.getObject(uri, RDFS.label);
   let eventRDF = rdfGraph.getAllQuads(uri);
   self.set("fileName", "agents_agent_" + label.value + ".trig");
-  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF) + "."])));
+  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF)])));
 }
 
 

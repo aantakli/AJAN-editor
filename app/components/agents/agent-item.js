@@ -38,6 +38,7 @@ export default Component.extend({
 	overview: null,
 	activeAgent: null,
   agentInitKnowledge: "",
+  oldInitKnowledge: "",
   activeValue: null,
 	selectedEndpoints: null,
 	selectedEvents: null,
@@ -253,6 +254,7 @@ export default Component.extend({
           break;
 
         case "knowledge":
+          toggleKnowledge();
           self.toggleProperty('editKnowledge');
           break;
 				default:
@@ -306,6 +308,16 @@ function selectedEndpoints() {
 	}
 }
 
+function toggleKnowledge() {
+  if (!self.get("editKnowledge")) {
+    self.set("oldInitKnowledge", self.get("agentInitKnowledge"));
+    console.log(self.get("editKnowledge"));
+  } else {
+    self.set("agentInitKnowledge", self.get("oldInitKnowledge"));
+    $(".error-txt").text("");
+  }
+}
+
 function updateRepo() {
 	let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
 						+ globals.agentsRepository;
@@ -346,19 +358,24 @@ function saveInitKnowledge() {
     }
   });
 
-  deleteList.forEach((quad) => {
-    rdfGraph.remove(quad);
-  });
-
   let quadStream = parser.import(stringToStream(self.get("agentInitKnowledge")));
   rdf.dataset().import(quadStream).then((dataset) => {
+
+    deleteList.forEach((quad) => {
+      rdfGraph.remove(quad);
+    });
+
     console.log(dataset);
     dataset.forEach((quad) => {
       quad.graph = rdf.namedNode(self.get("activeAgent.initKnowledge"));
       rdfGraph.add(quad);
     });
-    self.actions.toggle("knowledge");
     updateRepo();
     reset();
+    self.set("oldInitKnowledge", self.get("agentInitKnowledge"));
+    self.actions.toggle("knowledge");
+    $(".error-txt").text("");
+  }).catch(function (error) {
+    $(".error-txt").text("Content-type: 'text/turtle' expected! " + error);
   });
 }

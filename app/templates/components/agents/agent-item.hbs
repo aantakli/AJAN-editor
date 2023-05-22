@@ -409,35 +409,41 @@
 
   {{#if this.editKnowledge}}
   <div local-class="item-row-content-edit">
-    <div local-class="item-row-value item-row-rdf-textarea">
+    <div local-class="item-row-value item-row-rdf-textarea-edit">
       {{textarea value=agentInitKnowledge cols="80" rows="6"}}
     </div>
-
     <div local-class="item-row-buttons">
-
       <button local-class="item-row-cancel" class="ui negative right icon button" {{action "cancel"}}>
         <i class="close icon no-side-margins"></i>
       </button>
-
       <button local-class="item-row-apply" class="ui positive right icon button" {{action "saveKnowledge"}}>
         <i class="pencil icon no-side-margins"></i>
       </button>
-
     </div>
+    <p class="error-txt"></p>
   </div>
   {{/if}}
 
   {{#unless this.editKnowledge}}
-  <div local-class="item-row-content ">
-    <div local-class="item-row-value item-row-rdf-textarea">
-      {{textarea readonly=true value=agentInitKnowledge cols="80" rows="6"}}
-    </div>
-    <div local-class="item-row-buttons">
-      <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "knowledge" agentInitKnowledge}}>
-        <i class="edit icon no-side-margins"></i>
-      </button>
-    </div>
+<div local-class="item-row-content ">
+  {{#if (eq agentInitKnowledge "")}}
+  <div class="ajan-optional">you can define initial agent knowledge (text/turtle)&nbsp;&nbsp;</div>
+  <div local-class="item-row-buttons">
+    <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "knowledge" agentInitKnowledge}}>
+      <i class="edit icon no-side-margins"></i>
+    </button>
   </div>
+  {{else}}
+  <div local-class="item-row-value item-row-rdf-textarea">
+    {{textarea readonly=true value=agentInitKnowledge cols="80" rows="6"}}
+  </div>
+  <div local-class="item-row-buttons">
+    <button local-class="item-row-edit" class="ui yellow icon button rightmost" {{action "edit" "knowledge" agentInitKnowledge}}>
+      <i class="edit icon no-side-margins"></i>
+    </button>
+  </div>
+  {{/if}}
+</div>
   {{/unless}}
 
 </div>

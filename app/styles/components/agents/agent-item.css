@@ -144,8 +144,17 @@
   padding: 0px !important;
 }
 
-.item-row-rdf-textarea {
+.item-row-rdf-textarea textarea {
   font-size: 12px;
+  padding: 5px;
+  cursor: default;
+  color: #606060;
+  border-color: #606060;
+}
+
+.item-row-rdf-textarea-edit textarea {
+  font-size: 12px;
+  padding: 5px;
 }
 
 :global(.agent-edit-dropdown.ui.selection) {

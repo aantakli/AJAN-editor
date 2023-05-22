@@ -220,12 +220,17 @@ export default Component.extend({
 			self.actions.toggle(self.edit);
 			self.set("activeAgent." + self.edit, self.activeValue);
 			reset();
-		},
+    },
+
+    saveKnowledge() {
+      saveInitKnowledge();
+    },
 
 		toggle(key) {
 			switch(key) {
 				case "AGENT": self.toggleProperty('showAgent'); break;
-				case "label": self.toggleProperty('editLabel'); break;
+        case "label": self.toggleProperty('editLabel'); break;
+
         case "initialBehavior":
           self.toggleProperty('editInitialBehavior');
           break;
@@ -245,7 +250,11 @@ export default Component.extend({
 				case "endpoint": 
 					selectedEndpoints();
 					self.toggleProperty('editEndpoint'); 
-					break;
+          break;
+
+        case "knowledge":
+          self.toggleProperty('editKnowledge');
+          break;
 				default:
 					break;
 			}
@@ -304,6 +313,7 @@ function updateRepo() {
 }
 
 function reset() {
+  console.log("reset");
 	self.activeValue = null;
 	self.edit = "";
 }
@@ -311,32 +321,44 @@ function reset() {
 function setFileContent(uri) {
   let label = rdfGraph.getObject(uri, RDFS.label);
   let eventRDF = rdfGraph.getAllQuads(uri);
-  self.set("fileName", "agents_agent_" + label.value + ".ttl");
+  self.set("fileName", "agents_agent_" + label.value + ".trig");
   self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF) + "."])));
 }
 
 
 function readAgentInitKnowledge() {
   if (rdfGraph.data) {
-    let content = "<http://test/Test_0> {<http://test/Test_1> <http://test/test> <http://test/Test_1> . <http://test/Test_2> <http://test/test> <http://test/Test_2> . }";
-
-    let quadStream = parser.import(stringToStream(content));
-    rdf.dataset().import(quadStream).then((dataset) => {
-      // loop over all quads an write them to the console
-      dataset.forEach((quad) => {
-        rdfGraph.add(quad);
-      });
-
-      let knowledge = rdf.dataset();
-
-      rdfGraph.forEach((quad) => {
-        if (quad.graph.value == self.get("activeAgent.initKnowledge")) {
-          knowledge.add(rdf.quad(quad.subject, quad.predicate, quad.object));
-        }
-      })
-
-      console.log(knowledge.toCanonical());
-      self.set("agentInitKnowledge", knowledge.toCanonical());
+    let knowledge = rdf.dataset();
+    rdfGraph.forEach((quad) => {
+      if (quad.graph.value == self.get("activeAgent.initKnowledge")) {
+        knowledge.add(rdf.quad(quad.subject, quad.predicate, quad.object));
+      }
     });
+    self.set("agentInitKnowledge", knowledge.toCanonical());
   }
+}
+
+function saveInitKnowledge() {
+  let deleteList = [];
+  rdfGraph.forEach((quad) => {
+    if (quad.graph.value == self.get("activeAgent.initKnowledge")) {
+      deleteList.push(quad);
+    }
+  });
+
+  deleteList.forEach((quad) => {
+    rdfGraph.remove(quad);
+  });
+
+  let quadStream = parser.import(stringToStream(self.get("agentInitKnowledge")));
+  rdf.dataset().import(quadStream).then((dataset) => {
+    console.log(dataset);
+    dataset.forEach((quad) => {
+      quad.graph = rdf.namedNode(self.get("activeAgent.initKnowledge"));
+      rdfGraph.add(quad);
+    });
+    self.actions.toggle("knowledge");
+    updateRepo();
+    reset();
+  });
 }

@@ -144,6 +144,10 @@
   padding: 0px !important;
 }
 
+.item-row-rdf-textarea {
+  font-size: 12px;
+}
+
 :global(.agent-edit-dropdown.ui.selection) {
   min-height: 25px;
   height: 25px;
@@ -348,3 +352,5 @@ tr {
   height: 100%;
   min-height: 100%;
 }
+
+

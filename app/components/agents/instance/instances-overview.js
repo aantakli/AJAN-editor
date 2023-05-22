@@ -346,9 +346,13 @@ function getAgentInitKnowledge(content) {
       let knowledge = "";
       console.log(x);
       x._quads.forEach(quad => {
+        console.log(quad);
         let value = "";
-        if (quad.subject.termType === "NamedNode") {
+        if (quad.subject.termType === "NamedNode" && quad.graph.termType === "DefaultGraph") {
           value = "<" + quad.subject.value + ">";
+          knowledge = knowledge + "_:init <http://www.ajan.de/ajan-ns#agentInitKnowledge> " + value + " . ";
+        } else if (quad.graph.termType === "NamedNode") {
+          value = "<" + quad.graph.value + ">";
           knowledge = knowledge + "_:init <http://www.ajan.de/ajan-ns#agentInitKnowledge> " + value + " . ";
         }
       });

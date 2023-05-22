@@ -49,7 +49,7 @@ export default {
     return $.ajax({
       url: endpoint,
       type: "POST",
-      contentType: "text/turtle",
+      contentType: "application/trig",
       data: content
     }).catch(function (error) {
       let message = "Agent could not be created! Please check the used Agent Template.";

@@ -355,7 +355,7 @@ function getAgentInitKnowledge(content) {
       return knowledge;
     }).catch(function (error) {
       $("#error-message").trigger("showToast", [
-        "Malformed Agent Init Knowledge!"
+        "Malformed Agent Init Knowledge! It has to be in text/turtle!"
       ]);
     });
   return returnValue;

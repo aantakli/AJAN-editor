@@ -38,7 +38,8 @@ WHERE {?s ?p ?o}`,
     );
   },
 
-	update: function(str) {
+  update: function (str) {
+    console.log(str);
 		return (
 			`DELETE { ?s ?p ?o } WHERE { ?s ?p ?o };
 INSERT DATA{` +

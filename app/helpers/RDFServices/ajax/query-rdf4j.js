@@ -51,8 +51,8 @@ function sendFile(ajax, repository, content) {
       return Ember.$.ajax({
         url: repository + "/statements",
         type: "POST",
-        headers: getHeaders(token, "text/turtle; charset=utf-8"),
-        contentType: "text/turtle",
+        headers: getHeaders(token, "application/trig; charset=utf-8"),
+        contentType: "application/trig",
         data: content
       })
         .then(handleAjaxFileReturn)

@@ -142,7 +142,6 @@ function updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd) {
 
   let postDestination = tripleStoreRepository + "/statements";
   let rdfString = rdfGraph.toString();
-  console.log(rdfString);
   let query = SparqlQueries.update(rdfString);
   let dataString = $.param({ update: query });
 
@@ -167,7 +166,7 @@ function updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd) {
         onEnd();
       }
     })
-    /*.catch(function (error) {
+    .catch(function (error) {
       if (isServerError(error)) {
         // handle 5XX errors
 
@@ -201,7 +200,7 @@ function updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd) {
           .then((token) => updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd));
       }
       throw error;
-    });*/
+    });
 
   rdfGraph.unsavedChanges = false;
 }

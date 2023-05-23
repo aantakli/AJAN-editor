@@ -18,29 +18,43 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { computed, observer } from "@ember/object";
 import Component from "@ember/component";
-import {computed} from "@ember/object";
-import {Filter} from "ajan-editor/objects/tables/rdf-filter";
+import 'cytoscape-rdf';
 
 export default Component.extend({
-	classNames: ["full-height"],
-
-  showTableView: computed("viewMode", function () {
-    return this.get("viewMode") === "multiTable";
-  }),
-	showGroupedSubjectView: computed("viewMode", function() {
-		return this.get("viewMode") === "groupedSubject";
-  }),
-  showGraphView: computed("viewMode", function () {
-    return this.get("viewMode") === "graphView";
-  }),
-
-	dataFormat: null,
-	filter: Filter.create(),
-	malformedQuery: false,
-  model: null,
+  classNames: ["auto-size full-width"],
 
   didInsertElement() {
-    this._super(...arguments);
+    setGraph(this);
   },
+
+  modeChanged: observer("mode", "dataFormat", "data", function () {
+    switch (this.get("mode")) {
+      case "all":
+        setGraph(this);
+        break;
+      case "where":
+        setGraph(this);
+        break;
+      case "query":
+        if (this.get("dataFormat") === "RDF") setGraph(this);
+        break;
+      case "none":
+      default:
+    }
+  }),
+
+  actions: {
+
+	}
 });
+
+function setGraph(self) {
+  self.set("queryResult", self.get("data").toCanonical());
+  $("#rdf-graph-view").empty();
+  let rdf = self.get("data").toCanonical();
+  rdf = rdf.replaceAll('"', '"""');
+  let defaultGraph = self.get("currentRepository");
+  $("#rdf-graph-view").append("<cytoscape-rdf id='cytoscapeNanopub' rdf='<" + defaultGraph + "> {" + rdf + "}' />");
+}

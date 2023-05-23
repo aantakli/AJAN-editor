@@ -40,7 +40,7 @@ export default Component.extend({
   }),
   showQueryResults: true,
   prefixes: [],
-	currentRepository: computed("defaultRepository", function() {
+  currentRepository: computed("defaultRepository", function () {
 		return this.get(defaultRepositoryString);
 	}),
 	modeChanged: observer("mode", function() {
@@ -72,7 +72,9 @@ export default Component.extend({
 
 	actions: {
     repoSelected(repo) {
-			this.set(currentRepositoryString, repo);
+      this.set(currentRepositoryString, repo);
+      this.set("parentView.currentRepository", this.get(currentRepositoryString));
+      console.log(this.parentView.currentRepository);
 			let query = getWhereGraphQuery(
 				ace
 					.edit("ace-editor")
@@ -189,7 +191,8 @@ function setGraphDataRDF(query, that) {
 	let promise = sendQuery(ajax, that.get(currentRepositoryString), query);
   promise.then(data => {
     let dataset = graphDatasetBeautify(data, that.prefixes);
-		that.set("tableData", dataset);
+    that.set("tableData", dataset);
+    that.set("data", data);
 	});
 }
 

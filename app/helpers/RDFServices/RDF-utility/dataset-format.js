@@ -21,11 +21,10 @@
 function graphDatasetBeautify(dataset, prefixes) {
 	if (!dataset) return;
 	return dataset._quads.map(quad => {
-		return {
+    return {
 			subject: getValue(quad.subject, prefixes),
 			predicate: getValue(quad.predicate, prefixes),
-			object: getValue(quad.object, prefixes),
-			graph: getValue(quad.graph, prefixes)
+      object: getValue(quad.object, prefixes)
 		};
 	});
 }

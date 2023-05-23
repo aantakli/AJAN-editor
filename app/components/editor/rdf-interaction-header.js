@@ -61,6 +61,7 @@ export default Component.extend({
 				};
 			});
       that.set("prefixes", data);
+      that.set("parentView.prefixes", data);
       
 			this.send("repoSelected", this.get(defaultRepositoryString));
 			let editor = ace.edit("ace-editor");

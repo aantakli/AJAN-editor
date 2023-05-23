@@ -39,9 +39,11 @@ export default Component.extend({
         break;
       case "query":
         if (this.get("dataFormat") === "RDF") setGraph(this);
+        else $("#rdf-graph-view").empty();;
         break;
       case "none":
       default:
+        $("#rdf-graph-view").empty();
     }
   }),
 
@@ -51,10 +53,13 @@ export default Component.extend({
 });
 
 function setGraph(self) {
-  self.set("queryResult", self.get("data").toCanonical());
   $("#rdf-graph-view").empty();
   let rdf = self.get("data").toCanonical();
+  let prefixes = "";
+  self.get("prefixes").forEach(entry => {
+    prefixes += "@prefix " + entry.label + " <" + entry.iri + "> . ";
+  });
   rdf = rdf.replaceAll('"', '"""');
   let defaultGraph = self.get("currentRepository");
-  $("#rdf-graph-view").append("<cytoscape-rdf id='cytoscapeNanopub' rdf='<" + defaultGraph + "> {" + rdf + "}' />");
+  $("#rdf-graph-view").append("<cytoscape-rdf id='cytoscapeNanopub' rdf='" + prefixes + "<" + defaultGraph + "> {" + rdf + "}' />");
 }

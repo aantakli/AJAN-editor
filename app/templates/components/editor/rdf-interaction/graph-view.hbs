@@ -4,4 +4,10 @@
 </div>
 {{/if}}
 
+{{#unless data._quads.length}}
+<div local-class="empty">
+  No results found.
+</div>
+{{/unless}}
+
 <div id="rdf-graph-view"></div>

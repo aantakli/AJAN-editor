@@ -29,21 +29,36 @@ export default Component.extend({
     setGraph(this);
   },
 
-  modeChanged: observer("mode", "dataFormat", "data", function () {
+  modeChanged: observer("mode", "dataFormat", "data", "malformedQuery", function () {
+    if (this.get("malformedQuery")) {
+      emptyGraph();
+      return;
+    }
+    if (this.get("data") && this.get("data._quads").length == 0) {
+      console.log(this.get("data._quads"));
+      emptyGraph();
+      return;
+    }
+
     switch (this.get("mode")) {
       case "all":
+        emptyGraph();
         setGraph(this);
         break;
       case "where":
+        emptyGraph();
         setGraph(this);
         break;
       case "query":
-        if (this.get("dataFormat") === "RDF") setGraph(this);
-        else $("#rdf-graph-view").empty();;
+        if (this.get("dataFormat") === "RDF") {
+          emptyGraph();
+          setGraph(this);
+        }
+        else emptyGraph();
         break;
       case "none":
       default:
-        $("#rdf-graph-view").empty();
+        emptyGraph();
     }
   }),
 
@@ -53,7 +68,6 @@ export default Component.extend({
 });
 
 function setGraph(self) {
-  $("#rdf-graph-view").empty();
   let rdf = self.get("data").toCanonical();
   let prefixes = "";
   self.get("prefixes").forEach(entry => {
@@ -62,4 +76,8 @@ function setGraph(self) {
   rdf = rdf.replaceAll('"', '"""');
   let defaultGraph = self.get("currentRepository");
   $("#rdf-graph-view").append("<cytoscape-rdf id='cytoscapeNanopub' rdf='" + prefixes + "<" + defaultGraph + "> {" + rdf + "}' />");
+}
+
+function emptyGraph() {
+  $("#rdf-graph-view").empty();
 }

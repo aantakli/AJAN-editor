@@ -7,10 +7,17 @@
   background-color: lightcoral;
 }
 
-.empty {
+.many {
+  background-color: khaki;
+}
+
+.block {
   padding: 3pt;
   padding-top: 7pt;
   padding-bottom: 7pt;
+}
+
+.empty {
   text-align: left;
   border: 1px solid #ddd;
   overflow: hidden;

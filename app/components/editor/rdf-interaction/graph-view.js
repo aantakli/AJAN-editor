@@ -24,6 +24,7 @@ import 'cytoscape-rdf';
 
 export default Component.extend({
   classNames: ["auto-size full-width"],
+  toManyStatements: false,
 
   didInsertElement() {
     setGraph(this);
@@ -31,34 +32,34 @@ export default Component.extend({
 
   modeChanged: observer("mode", "dataFormat", "data", "malformedQuery", function () {
     if (this.get("malformedQuery")) {
-      emptyGraph();
+      emptyGraph(this);
       return;
     }
     if (this.get("data") && this.get("data._quads").length == 0) {
       console.log(this.get("data._quads"));
-      emptyGraph();
+      emptyGraph(this);
       return;
     }
 
     switch (this.get("mode")) {
       case "all":
-        emptyGraph();
+        emptyGraph(this);
         setGraph(this);
         break;
       case "where":
-        emptyGraph();
+        emptyGraph(this);
         setGraph(this);
         break;
       case "query":
         if (this.get("dataFormat") === "RDF") {
-          emptyGraph();
+          emptyGraph(this);
           setGraph(this);
         }
-        else emptyGraph();
+        else emptyGraph(this);
         break;
       case "none":
       default:
-        emptyGraph();
+        emptyGraph(this);
     }
   }),
 
@@ -68,6 +69,15 @@ export default Component.extend({
 });
 
 function setGraph(self) {
+  try {
+    self.set("toManyStatements", false);
+    $("#rdf-graph-view").append("<cytoscape-rdf id='cytoscapeNanopub' rdf='" + getRDF4Graph(self) + "' />");
+  } catch (e) {
+    self.set("toManyStatements", true);
+  }
+}
+
+function getRDF4Graph(self) {
   let rdf = self.get("data").toCanonical();
   let prefixes = "";
   self.get("prefixes").forEach(entry => {
@@ -75,9 +85,10 @@ function setGraph(self) {
   });
   rdf = rdf.replaceAll('"', '"""');
   let defaultGraph = self.get("currentRepository");
-  $("#rdf-graph-view").append("<cytoscape-rdf id='cytoscapeNanopub' rdf='" + prefixes + "<" + defaultGraph + "> {" + rdf + "}' />");
+  return prefixes + " <" + defaultGraph + "> { " + rdf + "}";
 }
 
-function emptyGraph() {
+function emptyGraph(self) {
+  self.set("toManyStatements", false);
   $("#rdf-graph-view").empty();
 }

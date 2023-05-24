@@ -4,9 +4,15 @@
 </div>
 {{/if}}
 
+{{#if toManyStatements}}
+<div local-class="block many">
+  <i class="exclamation triangle icon"></i> Too many statements
+</div>
+{{/if}}
+
 {{#unless data._quads.length}}
-<div local-class="empty">
-  No results found.
+<div local-class="block empty">
+  No results found
 </div>
 {{/unless}}
 

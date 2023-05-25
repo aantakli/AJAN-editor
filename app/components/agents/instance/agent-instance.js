@@ -58,6 +58,7 @@ export default Ember.Component.extend({
   },
 
   didUpdate() {
+    getQueriesRepo(this);
     createLogs();
   },
 
@@ -362,4 +363,11 @@ function myCloseHandler(event) {
   console.log(`On close event has been called: ${event}`);
   that.get('websockets').closeSocketFor("ws://" + document.location.hostname + ":4202");
   that.set("wssConnection", false);
+}
+
+function getQueriesRepo(self) {
+  let repo = self.get("activeInstance.knowledge").replace("/statements", "");
+  let origin = window.location.origin;
+  let path = "/editor/queries?repo=";
+  self.set("activeInstance.repository", origin + path + repo);
 }

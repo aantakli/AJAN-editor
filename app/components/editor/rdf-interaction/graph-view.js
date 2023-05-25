@@ -35,8 +35,7 @@ export default Component.extend({
       emptyGraph(this);
       return;
     }
-    if (this.get("data") && this.get("data._quads").length == 0) {
-      console.log(this.get("data._quads"));
+    if (!this.get("data")) {
       emptyGraph(this);
       return;
     }
@@ -78,14 +77,14 @@ function setGraph(self) {
 }
 
 function getRDF4Graph(self) {
-  let rdf = self.get("data").toCanonical();
+  let rdf = self.get("data");
   let prefixes = "";
   self.get("prefixes").forEach(entry => {
     prefixes += "@prefix " + entry.label + " <" + entry.iri + "> . ";
   });
-  rdf = rdf.replaceAll('"', '"""');
   let defaultGraph = self.get("currentRepository");
-  return prefixes + " <" + defaultGraph + "> { " + rdf + "}";
+  rdf = rdf.replaceAll('{', " <" + defaultGraph + "> { ");
+  return prefixes + rdf;
 }
 
 function emptyGraph(self) {

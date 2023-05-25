@@ -27,6 +27,9 @@ import {
 import Component from "@ember/component";
 import { graphDatasetBeautify, csvDatasetBeautify } from "ajan-editor/helpers/RDFServices/RDF-utility/dataset-format";
 import Sparql from "npm:sparqljs";
+import stringToStream from "npm:string-to-stream";
+import rdf from "npm:rdf-ext";
+import N3Parser from "npm:rdf-parser-n3";
 
 let defaultRepositoryString = "defaultRepository";
 let currentRepositoryString = "defaultRepository";
@@ -188,12 +191,15 @@ function resolveQuery(query, that) {
 }
 
 function setGraphDataRDF(query, that) {
-	that.set("dataFormat", "RDF");
-	let promise = sendQuery(ajax, that.get(currentRepositoryString), query);
+  that.set("dataFormat", "RDF");
+	let promise = sendQuery(ajax, that.get(currentRepositoryString), query, "application/trig");
   promise.then(data => {
-    let dataset = graphDatasetBeautify(data, that.prefixes);
-    that.set("tableData", dataset);
     that.set("data", data);
+    const parser = new N3Parser();
+    const quadStream = parser.import(stringToStream(data));
+    let dataset = rdf.dataset().import(quadStream);
+    let beautiful = graphDatasetBeautify(dataset, that.prefixes);
+    beautiful.then(dataTable => { that.set("tableData", dataTable) });
 	});
 }
 
@@ -201,7 +207,21 @@ function setTableData(query, that) {
   that.set("dataFormat", "TABLE");
   let promise = sendSelectQuery(ajax, that.get(currentRepositoryString), query);
   promise.then(data => {
-    let dataset = csvDatasetBeautify(data, that.prefixes);
+    var lines = data.split('\r');
+    for (let i = 0; i < lines.length; i++) {
+      lines[i] = lines[i].replace(/\s/, '')
+    }
+    var csv = [];
+    var headers = lines[0].split(",");
+    for (var i = 1; i < lines.length; i++) {
+      var obj = {};
+      var currentline = lines[i].split(",");
+      for (var j = 0; j < headers.length; j++) {
+        obj[headers[j].toString()] = currentline[j];
+      }
+      csv.push(obj);
+    }
+    let dataset = csvDatasetBeautify(csv, that.prefixes);
     that.set("tableData", dataset);
   });
 }

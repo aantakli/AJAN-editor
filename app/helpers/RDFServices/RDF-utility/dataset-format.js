@@ -19,13 +19,16 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 function graphDatasetBeautify(dataset, prefixes) {
-	if (!dataset) return;
-	return dataset._quads.map(quad => {
-    return {
-			subject: getValue(quad.subject, prefixes),
-			predicate: getValue(quad.predicate, prefixes),
-      object: getValue(quad.object, prefixes)
-		};
+  if (!dataset) return;
+  return Promise.resolve(dataset)
+    .then(x => {
+      return x._quads.map(quad => {
+        return {
+            subject: getValue(quad.subject, prefixes),
+            predicate: getValue(quad.predicate, prefixes),
+            object: getValue(quad.object, prefixes)
+          };
+      })
 	});
 }
 

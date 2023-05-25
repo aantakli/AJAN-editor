@@ -20,11 +20,8 @@
  */
 import token from "ajan-editor/helpers/token";
 import Ember from "ember";
-import JsonLdParser from "npm:rdf-parser-jsonld";
-import rdf from "npm:rdf-ext";
-import stringToStream from "npm:string-to-stream";
 
-function sendQuery(ajax, repository, query) {
+function sendQuery(ajax, repository, query, contentType = "application/ld+json") {
   if (!query) throw "Empty query";
 
   let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
@@ -33,7 +30,7 @@ function sendQuery(ajax, repository, query) {
         url: repository,
         type: "POST",
         contentType: "application/sparql-query; charset=utf-8",
-        headers: getHeaders(token, "application/ld+json"),
+        headers: getHeaders(token, contentType),
         data: query.toString()
       })
         .then(handleAjaxReturn)
@@ -132,10 +129,7 @@ function getHeaders(token, accept) {
 }
 
 function handleAjaxReturn(result) {
-	let parser = new JsonLdParser();
-	const quadStream = parser.import(stringToStream(JSON.stringify(result)));
-	let dataset = rdf.dataset().import(quadStream);
-	return dataset;
+  return result;
 }
 
 function handleAjaxAskReturn(result) {
@@ -147,21 +141,7 @@ function handleAjaxFileReturn(result) {
 }
 
 function handleAjaxSelectReturn(result) {
-  var lines = result.split('\r');
-  for (let i = 0; i < lines.length; i++) {
-    lines[i] = lines[i].replace(/\s/, '')
-  }
-  var csv = [];
-  var headers = lines[0].split(",");
-  for (var i = 1; i < lines.length; i++) {
-    var obj = {};
-    var currentline = lines[i].split(",");
-    for (var j = 0; j < headers.length; j++) {
-      obj[headers[j].toString()] = currentline[j];
-    }
-    csv.push(obj);
-  }
-  return csv;
+  return result;
 }
 
 export { sendAskQuery, sendSelectQuery, sendQuery, sendFile, deleteRepo};

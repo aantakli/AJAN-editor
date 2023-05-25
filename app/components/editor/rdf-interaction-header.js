@@ -37,15 +37,26 @@ let ajax = null; // ajax
 
 export default Component.extend({
   ajax: Ember.inject.service(),
-	vocabularyManager: Ember.inject.service("data-manager/vocabulary-manager"),
+  vocabularyManager: Ember.inject.service("data-manager/vocabulary-manager"),
+
   defaultRepository: computed("defaultRepository", function () {
-    return localStorage.currentStore + "agents";
+    const urlParams = new URLSearchParams(window.location.search);
+    let repo = urlParams.get('repo');
+    if (this.get("repositories").filter(item => item.uri == repo).length) {
+      return repo;
+    } else {
+      return localStorage.currentStore + "agents";
+    }
   }),
+
   showQueryResults: true,
+
   prefixes: [],
+
   currentRepository: computed("defaultRepository", function () {
-		return this.get(defaultRepositoryString);
-	}),
+    return this.get(defaultRepositoryString);
+  }),
+
 	modeChanged: observer("mode", function() {
 		handleQuery("", this);
 	}),

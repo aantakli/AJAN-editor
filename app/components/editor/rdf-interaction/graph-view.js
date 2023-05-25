@@ -24,7 +24,7 @@ import 'cytoscape-rdf';
 
 export default Component.extend({
   classNames: ["auto-size full-width"],
-  toManyStatements: false,
+  wrongMode: false,
 
   didInsertElement() {
     setGraph(this);
@@ -32,10 +32,12 @@ export default Component.extend({
 
   modeChanged: observer("mode", "dataFormat", "data", "malformedQuery", function () {
     if (this.get("malformedQuery")) {
+      this.set("wrongMode", false);
       emptyGraph(this);
       return;
     }
     if (!this.get("data")) {
+      this.set("wrongMode", false);
       emptyGraph(this);
       return;
     }
@@ -54,7 +56,10 @@ export default Component.extend({
           emptyGraph(this);
           setGraph(this);
         }
-        else emptyGraph(this);
+        else {
+          this.set("wrongMode", true);
+          emptyGraph(this);
+        }
         break;
       case "none":
       default:
@@ -68,12 +73,8 @@ export default Component.extend({
 });
 
 function setGraph(self) {
-  try {
-    self.set("toManyStatements", false);
-    $("#rdf-graph-view").append("<cytoscape-rdf id='cytoscapeNanopub' rdf='" + getRDF4Graph(self) + "' />");
-  } catch (e) {
-    self.set("toManyStatements", true);
-  }
+  self.set("wrongMode", false);
+  $("#rdf-graph-view").append("<cytoscape-rdf id='cytoscapeNanopub' rdf='" + getRDF4Graph(self) + "' />");
 }
 
 function getRDF4Graph(self) {
@@ -83,11 +84,12 @@ function getRDF4Graph(self) {
     prefixes += "@prefix " + entry.label + " <" + entry.iri + "> . ";
   });
   let defaultGraph = self.get("currentRepository");
-  rdf = rdf.replaceAll('{', " <" + defaultGraph + "> { ");
-  return prefixes + rdf;
+  if (rdf) {
+    rdf = rdf.replaceAll('{', " <" + defaultGraph + "> { ");
+    return prefixes + rdf;
+  } else return rdf;
 }
 
 function emptyGraph(self) {
-  self.set("toManyStatements", false);
   $("#rdf-graph-view").empty();
 }

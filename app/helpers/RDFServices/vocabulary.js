@@ -129,6 +129,7 @@ let BT = {
   Report: "http://www.ajan.de/behavior/bt-ns#Report",
   debugging: "http://www.ajan.de/behavior/bt-ns#debugging",
   btNode: "http://www.ajan.de/behavior/bt-ns#btNode",
+  state: "http://www.ajan.de/behavior/bt-ns#state",
   definition: "http://www.ajan.de/behavior/bt-ns#definition"
 };
 let EDITOR = {

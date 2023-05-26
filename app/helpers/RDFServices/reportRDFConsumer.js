@@ -74,8 +74,14 @@ function getReportDefinition(graph, resource) {
       if (quad.predicate.value === AGENTS.bt) {
         report.bt = quad.object.value;
       }
+      if (quad.predicate.value === BT.definition) {
+        report.definition = quad.object.value;
+      }
       if (quad.predicate.value === BT.btNode) {
         report.node = quad.object.value;
+      }
+      if (quad.predicate.value === BT.state) {
+        report.state = quad.object.value;
       }
     }
   });

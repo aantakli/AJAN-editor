@@ -232,6 +232,7 @@ function myMessageHandler(event) {
 
 function createLogs() {
   let agents = that.get("agentLogs");
+  console.log(agents);
   let activeAgentURI = that.get("activeInstance.uri");
   if (!activeAgentURI) return;
   let i = agents.findIndex(e => e.uri === that.get("activeInstance.uri"));
@@ -307,11 +308,13 @@ function getLastLog(report, result, lastLog) {
 
 function createLog(report) {
   console.log(report.debugging);
-  return { time: new Date().toUTCString(), bt: report.bt, debugging: report.debugging, label: report.label };
+  report.time = new Date().toUTCString();
+  return report;
 }
 
 function createEditorMessage($textarea, result, report) {
   that.set("wssMessage", report);
+  console.log(report);
   let status = "agent-report ";
   if (report.label.includes('SUCCEEDED')) {
     status = status + "succeeded-report";

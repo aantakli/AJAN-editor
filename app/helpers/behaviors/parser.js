@@ -30,7 +30,7 @@ function createNode(nodeData) {
 
 // TODO: Adapt this for behavior trees
 export default {
-	behavior2cy: function(data) {
+	behavior2cy: function(data, states) {
 		//TODO: data might consist of several trees
 		//console.log('data', data);
 		let graph = {
@@ -46,7 +46,11 @@ export default {
     data.nodes.forEach(nd => {
 			if (nd) {
 				// Register as node
-        graph.nodes.push(createNode(nd));
+        let node = createNode(nd);
+        if (states && node.data && node.data.uri) {
+          setNodeState(states, node);
+        }
+        graph.nodes.push(node);
 				// Register children
 				if (nd.children) {
 					nd.children.forEach(child => {
@@ -62,9 +66,58 @@ export default {
 					graph.edges.push(edge);
 				}
 			}
-		});
+    });
 
 		//console.log('The graph', graph);
 		return graph;
 	}
 };
+
+
+function setNodeState(states, node) {
+  let state = states.filter(item => item.defined === node.data.uri);
+  if (state[0].state) {
+    switch (state[0].state) {
+      case "FRESH":
+        node.style = nodeFresh();
+        break;
+      case "SUCCEEDED":
+        node.style = nodeSuccseeded();
+        break;
+      case "FAILED":
+        node.style = nodeFailed();
+        break;
+      case "RUNNING":
+        node.style = nodeRunning();
+        break;
+      default:
+        node.style = nodeFresh();
+        break;
+    }
+  }
+}
+
+function nodeFresh() {
+   return { "border-color": "#000" };
+}
+
+function nodeSuccseeded() {
+  return {
+    "border-color": "#32a852",
+    "border-width": "7px"
+  };
+}
+
+function nodeFailed() {
+  return {
+    "border-color": "#a83232",
+    "border-width": "7px"
+  };
+}
+
+function nodeRunning() {
+  return {
+    "border-color": "#325ca8",
+    "border-width": "7px"
+  };
+}

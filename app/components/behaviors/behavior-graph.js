@@ -20,7 +20,7 @@
  */
 import actions from "ajan-editor/helpers/behaviors/actions";
 import actionsAgnt from "ajan-editor/helpers/agents/actions";
-import {cleanDOM} from "ajan-editor/helpers/graph/cy-cleanup";
+import {cleanDOM}  from "ajan-editor/helpers/graph/cy-cleanup";
 import Ember from "ember";
 import events from "ajan-editor/helpers/behaviors/event-bindings";
 import globals from "ajan-editor/helpers/global-parameters";

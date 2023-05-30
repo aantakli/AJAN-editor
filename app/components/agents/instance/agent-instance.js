@@ -38,6 +38,7 @@ export default Ember.Component.extend({
   messageError: {},
   wssConnection: false,
   wssMessage: "",
+  btView: "",
   debugReport: null,
   prefixes: {
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#": "rdf:",
@@ -55,6 +56,7 @@ export default Ember.Component.extend({
     this._super(...arguments);
     that = this;
     this.get("activeInstance").actions = new Array();
+    setBTView(this);
   },
 
   didUpdate() {
@@ -373,4 +375,10 @@ function getQueriesRepo(self) {
   let origin = window.location.origin;
   let path = "/editor/queries?repo=";
   self.set("activeInstance.repository", origin + path + repo);
+}
+
+function setBTView(self) {
+  let origin = window.location.origin;
+  let path = "/editor/behaviors?bt=";
+  self.set("btView", origin + path);
 }

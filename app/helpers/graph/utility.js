@@ -371,19 +371,3 @@ function errorText(node, error) {
     node.style("color", "#000");
   }
 }
-
-function nodeDefault(node) {
-  node.style("border-color", "#000");
-}
-
-function nodeSuccsess(node) {
-  node.style("border-color", "#0F0");
-}
-
-function nodeFailure(node) {
-  node.style("border-color", "#F00");
-}
-
-function nodeRunning(node) {
-  node.style("border-color", "#00F");
-}

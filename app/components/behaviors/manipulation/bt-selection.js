@@ -23,6 +23,8 @@ import Component from "@ember/component";
 import {computed, observer} from "@ember/object";
 import parser from "ajan-editor/helpers/behaviors/parser";
 import graphOperations from "ajan-editor/helpers/graph/graph-operations";
+import btStateParser from "ajan-editor/helpers/RDFServices/activeBTRDFConsumer";
+import { BT } from "ajan-editor/helpers/RDFServices/vocabulary";
 
 export default Component.extend({
 	selectedValue: undefined,
@@ -47,33 +49,48 @@ export default Component.extend({
 });
 
 function selectBT(that) {
+  let selectedURI = that.get("selectedValue");
+  const urlParams = new URLSearchParams(window.location.search);
+  let bt = urlParams.get('bt');
+  if (bt) {
+    $.ajax({
+      url: bt + "?method=info&mode=detail",
+      type: "GET",
+    }).then(function (data) {
+      btStateParser.getActiveBTGraph(data).then((states) => {
+        let activeBT = states.filter(item => item.type === BT.BehaviorTree);
+        if (activeBT[0] && activeBT[0].defined) {
+          setSelectedBT(that, activeBT[0].defined, states);
+        } else {
+          setSelectedBT(that, selectedURI);
+        }
+      })
+    });
+  } else {
+    setSelectedBT(that, selectedURI);
+  }
+}
+
+function setSelectedBT(that, selectedURI, states) {
   that.get('dataBus').exportBT();
-	let selectedURI = that.get("selectedValue");
-	let behaviorGraphs = that.get("availableBTs");
-	let cy = that.get("cyRef");
-	//find matching graph
-	let graphUnparsed =
-		behaviorGraphs.findBy("uri", selectedURI) || behaviorGraphs[0];
-
-		//set selection
-		that.set("selectedValue",graphUnparsed.uri);
-
-		// Store index for next session
-		localStorage.setItem("bt-selected", graphUnparsed.uri);
-
-		//parse correct graph
-		let graph = parser.behavior2cy(graphUnparsed);
-		try{
-			cy.$().remove();
-			cy.add(graph.nodes);
-			cy.add(graph.edges);
-
-		} catch(e) {
-			console.warn("Errors while creating graph:", e);
-		}
-
-			// update the graph
-		graphOperations.updateGraphInit(cy);
-
-
+  let behaviorGraphs = that.get("availableBTs");
+  let cy = that.get("cyRef");
+  //find matching graph
+  let graphUnparsed = behaviorGraphs.findBy("uri", selectedURI) || behaviorGraphs[0];
+  //set selection
+  that.set("selectedValue", graphUnparsed.uri);
+  // Store index for next session
+  localStorage.setItem("bt-selected", graphUnparsed.uri);
+  //parse correct graph
+  let graph = parser.behavior2cy(graphUnparsed, states);
+  console.log(graph);
+  try {
+    cy.$().remove();
+    cy.add(graph.nodes);
+    cy.add(graph.edges);
+  } catch (e) {
+    console.warn("Errors while creating graph:", e);
+  }
+  // update the graph
+  graphOperations.updateGraphInit(cy);
 }

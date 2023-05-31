@@ -1,6 +1,6 @@
 FROM node:8.6-alpine
 
-RUN apk update && apk add git && apk add supervisor
+RUN apk update && apk upgrade && apk add git && apk add supervisor
 RUN mkdir app
 
 ADD . app/

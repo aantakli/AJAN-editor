@@ -218,6 +218,7 @@ function myOpenHandler(event) {
   that.set("wssMessage", "");
   let $textarea = $("#report-service-message-content");
   $textarea.empty();
+  setBTView(that);
 }
 
 function myMessageHandler(event) {
@@ -234,7 +235,6 @@ function myMessageHandler(event) {
 
 function createLogs() {
   let agents = that.get("agentLogs");
-  console.log(agents);
   let activeAgentURI = that.get("activeInstance.uri");
   if (!activeAgentURI) return;
   let i = agents.findIndex(e => e.uri === that.get("activeInstance.uri"));
@@ -316,7 +316,6 @@ function createLog(report) {
 
 function createEditorMessage($textarea, result, report) {
   that.set("wssMessage", report);
-  console.log(report);
   let status = "agent-report ";
   if (report.label.includes('SUCCEEDED')) {
     status = status + "succeeded-report";
@@ -368,6 +367,8 @@ function myCloseHandler(event) {
   console.log(`On close event has been called: ${event}`);
   that.get('websockets').closeSocketFor("ws://" + document.location.hostname + ":4202");
   that.set("wssConnection", false);
+  that.set('socketRef', null);
+  setBTView(that);
 }
 
 function getQueriesRepo(self) {
@@ -379,6 +380,6 @@ function getQueriesRepo(self) {
 
 function setBTView(self) {
   let origin = window.location.origin;
-  let path = "/editor/behaviors?bt=";
+  let path = "/editor/behaviors?wssConnection=" + that.get("wssConnection") + "&bt=";
   self.set("btView", origin + path);
 }

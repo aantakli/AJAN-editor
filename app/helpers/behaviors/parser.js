@@ -48,7 +48,8 @@ export default {
 				// Register as node
         let node = createNode(nd);
         if (states && node.data && node.data.uri) {
-          setNodeState(states, node);
+          let state = states.filter(item => item.defined === node.data.uri);
+          setNodeState(state[0].state, node);
         }
         graph.nodes.push(node);
 				// Register children
@@ -73,11 +74,9 @@ export default {
 	}
 };
 
-
-function setNodeState(states, node) {
-  let state = states.filter(item => item.defined === node.data.uri);
-  if (state[0].state) {
-    switch (state[0].state) {
+function setNodeState(state, node) {
+  if (state) {
+    switch (state) {
       case "FRESH":
         node.style = nodeFresh();
         break;

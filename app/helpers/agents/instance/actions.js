@@ -126,6 +126,9 @@ function getAgentInstance(graph, uri, templates) {
       if (quad.predicate.value === AGENTS.agentKnowledge) {
         agent.knowledge = quad.object.value;
       }
+      if (quad.predicate.value === AGENTS.reportURI) {
+        agent.reportURI = quad.object.value;
+      }
       if (quad.predicate.value === AGENTS.behavior) {
         let behavior = {};
         behavior.uri = quad.object.value;

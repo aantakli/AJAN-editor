@@ -70,7 +70,7 @@ function selectBT() {
   that.set("activeBT", bt);
   if (bt) {
     $.ajax({
-      url: bt + "?method=info&mode=detail",
+      url: getBTDetailsURL(bt),
       type: "GET",
     }).then(function (data) {
       btStateParser.getActiveBTGraph(data).then((states) => {
@@ -162,7 +162,7 @@ function setNodeState(log) {
   let cy = that.get("cyRef");
   let elements = cy.elements();
   $.ajax({
-      url: that.get("activeBT") + "?method=info&mode=detail",
+    url: getBTDetailsURL(that.get("activeBT")),
       type: "GET",
     }).then(function (data) {
       btStateParser.getActiveBTGraph(data).then((states) => {
@@ -195,4 +195,8 @@ function setNodeState(log) {
         }
       })
     });
+}
+
+function getBTDetailsURL(url) {
+  return url + "?method=info&mode=detail";
 }

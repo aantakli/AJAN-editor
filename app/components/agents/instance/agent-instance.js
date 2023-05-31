@@ -56,11 +56,11 @@ export default Ember.Component.extend({
     this._super(...arguments);
     that = this;
     this.get("activeInstance").actions = new Array();
-    setBTView(this);
   },
 
   didUpdate() {
     getQueriesRepo(this);
+    setBTView(this);
     createLogs();
   },
 
@@ -380,6 +380,10 @@ function getQueriesRepo(self) {
 
 function setBTView(self) {
   let origin = window.location.origin;
-  let path = "/editor/behaviors?wssConnection=" + that.get("wssConnection") + "&bt=";
+  let connect = false;
+  if (self.get("activeInstance.reportURI")) {
+    connect = true;
+  }
+  let path = "/editor/behaviors?wssConnection=" + connect + "&bt=";
   self.set("btView", origin + path);
 }

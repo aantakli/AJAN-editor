@@ -233,7 +233,8 @@ let AGENTS = {
 	variables: "http://www.ajan.de/ajan-ns#variables",
 	dataType:"http://www.ajan.de/ajan-ns#dataType",
   capability: "http://www.ajan.de/ajan-ns#capability",
-  clearEKB: "http://www.ajan.de/ajan-ns#clearEKB"
+  clearEKB: "http://www.ajan.de/ajan-ns#clearEKB",
+  reportURI: "http://www.ajan.de/ajan-ns#agentReportURI"
 };
 
 export {BT, EDITOR, ACTN, ND, RDF, RDFS, DCT, STRIPS, XSD, HTTP, SPIN, AGENTS};

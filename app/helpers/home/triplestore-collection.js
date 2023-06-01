@@ -45,14 +45,37 @@ class TriplestoreCollection {
 		});
 	}
 
-	insertNewTriplestore() {
-		//TODO: Check whether it already exists?
-		let triplestore = getNewTriplestore();
-		new TriplestoreListing(triplestore, this.parentComponent);
-		this.triplestores.push(triplestore);
-		localStorage.triplestores = JSON.stringify(this.triplestores);
-	}
+  insertNewTriplestore() {
+    let triplestore = getNewTriplestore();
+    if (!checkExistence(this, triplestore)) {
+      new TriplestoreListing(triplestore, this.parentComponent);
+      this.triplestores.push(triplestore);
+      localStorage.triplestores = JSON.stringify(this.triplestores);
+    }
+  }
+
+  insertDefinedTriplestore(name, uri) {
+    let triplestore = getNewTriplestore(name, uri);
+    if (!checkExistence(this, triplestore)) {
+      new TriplestoreListing(triplestore, this.parentComponent);
+      this.triplestores.push(triplestore);
+      localStorage.triplestores = JSON.stringify(this.triplestores);
+    }
+  }
 }
+
+function checkExistence(that, triplestore) {
+  let existing = false;
+  that.triplestores.forEach(item => {
+    if (!existing) {
+      if (item.label == triplestore.label) {
+        existing = true;
+      }
+    }
+  });
+  return existing;
+}
+
 
 function getNewTriplestore() {
 	return {
@@ -62,6 +85,16 @@ function getNewTriplestore() {
     expiration: 0,
 		uri: getURI()
 	};
+}
+
+function getNewTriplestore(name, uri) {
+  return {
+    label: name,
+    secured: false,
+    token: "",
+    expiration: 0,
+    uri: uri
+  };
 }
 
 function getLabel() {

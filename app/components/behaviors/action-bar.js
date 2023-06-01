@@ -42,6 +42,8 @@ export default Component.extend({
   repoContent: "",
   btFileName: "",
   btContent: "",
+  noSave: false,
+
   init() {
     this._super(...arguments);
     that = this;
@@ -49,6 +51,13 @@ export default Component.extend({
       (localStorage.currentStore ||
         "http://localhost:8090/rdf4j/repositories") +
       globals.behaviorsRepository;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let bt = urlParams.get('bt');
+    console.log(bt);
+    if (bt) {
+      this.set("noSave", true);
+    }
 
     this.get('dataBus').on('save', function (content) {
       saveGraph(content);

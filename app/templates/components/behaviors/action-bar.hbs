@@ -1,6 +1,9 @@
+{{#unless noSave}}
 {{behaviors/create-bt}}
 {{behaviors/delete-bt}}
+{{/unless}}
 {{#ui/menu-bar}}
+  {{#unless noSave}}
   {{#ui/menu-bar/dropdown
     label="File"
     class="action-bar"
@@ -91,12 +94,12 @@
       onClick=(action "save")
     }}
   {{/unless}}
-
+  {{/unless}}
   {{ui/menu-bar/button
     label="Sort"
     onClick=(action "sort")
   }}
-
+  
   <div class="store-url-cont vcenter" local-class="rightmost">
     <div>
       <div local-class="store">Triplestore:</div>

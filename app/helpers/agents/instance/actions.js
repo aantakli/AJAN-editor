@@ -79,7 +79,7 @@ export default {
       url: endpoint,
       type: "DELETE",
     }).then(function (data) {
-      console.log(endpoint + "deleted!");
+      console.log(endpoint + " deleted!");
     }).catch(function (error) {
       console.log(error);
     });

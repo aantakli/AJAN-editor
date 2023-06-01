@@ -381,10 +381,12 @@ function closeSocket() {
 }
 
 function getQueriesRepo(self) {
-  let repo = self.get("activeInstance.knowledge").replace("/statements", "");
-  let origin = window.location.origin;
-  let path = "/editor/queries?repo=";
-  self.set("activeInstance.repository", origin + path + repo);
+  if (self.get("activeInstance.knowledge")) {
+    let repo = self.get("activeInstance.knowledge").replace("/statements", "");
+    let origin = window.location.origin;
+    let path = "/editor/queries?repo=";
+    self.set("activeInstance.repository", origin + path + repo);
+  }
 }
 
 function setBTView(self) {
@@ -393,6 +395,7 @@ function setBTView(self) {
   if (self.get("activeInstance.reportURI")) {
     connect = true;
   }
-  let path = "/editor/behaviors?wssConnection=" + connect + "&bt=";
+  console.log(self.get("activeInstance"));
+  let path = "/editor/behaviors?wssConnection=" + connect + "&agent=" + self.get("activeInstance.id");
   self.set("btView", origin + path);
 }

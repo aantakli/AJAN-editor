@@ -99,7 +99,16 @@
     label="Sort"
     onClick=(action "sort")
   }}
-  
+  {{#if noSave}}
+  <div class="store-url-cont vcenter" local-class="rightmost">
+    <div>
+      {{#if connect}}
+      <i class="icon rss alternate green"></i>
+      {{/if}}
+      <span>Initiated SPARQL-BT view of Agent: <span><b> {{agent}} </b></span></span>
+    </div>
+  </div>
+  {{/if}}
   <div class="store-url-cont vcenter" local-class="rightmost">
     <div>
       <div local-class="store">Triplestore:</div>

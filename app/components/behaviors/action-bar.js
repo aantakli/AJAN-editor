@@ -54,9 +54,16 @@ export default Component.extend({
 
     const urlParams = new URLSearchParams(window.location.search);
     let bt = urlParams.get('bt');
-    console.log(bt);
     if (bt) {
       this.set("noSave", true);
+    }
+    let agent = urlParams.get('agent');
+    if (agent) {
+      this.set("agent", agent);
+    }
+    let connect = urlParams.get('wssConnection');
+    if (connect && connect == "true") {
+      this.set("connect", connect);
     }
 
     this.get('dataBus').on('save', function (content) {

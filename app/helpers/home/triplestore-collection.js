@@ -55,7 +55,7 @@ class TriplestoreCollection {
   }
 
   insertDefinedTriplestore(name, uri) {
-    let triplestore = getNewTriplestore(name, uri);
+    let triplestore = getDefinedTriplestore(name, uri);
     if (!checkExistence(this, triplestore)) {
       new TriplestoreListing(triplestore, this.parentComponent);
       this.triplestores.push(triplestore);
@@ -87,7 +87,7 @@ function getNewTriplestore() {
 	};
 }
 
-function getNewTriplestore(name, uri) {
+function getDefinedTriplestore(name, uri) {
   return {
     label: name,
     secured: false,

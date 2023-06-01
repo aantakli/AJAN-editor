@@ -1,0 +1,19 @@
+{{#if malformedQuery}}
+<div local-class="block false">
+  <i class="exclamation circle icon"></i> Malformed query
+</div>
+{{/if}}
+
+{{#if wrongMode}}
+<div local-class="block many">
+  <i class="exclamation triangle icon"></i> Only RDF graphs can be visualized
+</div>
+{{/if}}
+
+{{#unless tableData}}
+<div local-class="block empty">
+  No results found
+</div>
+{{/unless}}
+
+<div id="rdf-graph-view"></div>

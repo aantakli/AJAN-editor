@@ -58,6 +58,9 @@
       <a data-tooltip="download knowledge" class="ui right icon button" local-class="instance-row-download" target="_blank" rel="noopener" href={{activeInstance.knowledge}}>
         <i class="icon download no-side-margins"></i>
       </a>
+      <a data-tooltip="query knowledge" class="ui right icon button" local-class="instance-row-download" target="_blank" rel="noopener noreferrer" href={{activeInstance.repository}}>
+        <i class="icon search no-side-margins"></i>
+      </a>
     </div>
   </div>
 </div>
@@ -76,8 +79,11 @@
         {{behavior.name}}
       </div>
       <div>
-        <a data-tooltip="open behaviors state" class="ui right icon button" local-class="instance-row-download" rel="noopener noreferrer" rel="noopener" target="_blank" href={{concat behavior.uri '?method=info&mode=detail'}}>
-          <i class="icon sitemap alternate no-side-margins"></i>
+        <!--<a data-tooltip="open behaviors state" class="ui right icon button" local-class="instance-row-download" rel="noopener noreferrer" rel="noopener" target="_blank" href={{concat behavior.uri '?method=info&mode=detail'}}>
+          <i class="icon share alternate no-side-margins"></i>
+        </a>-->
+        <a data-tooltip="open behaviors state" class="ui right icon button" local-class="instance-row-download" rel="noopener noreferrer" rel="noopener" target="_blank" href={{concat btView '&bt=' behavior.uri}}>
+          <i class="icon share alternate no-side-margins"></i>
         </a>
         <a data-tooltip="open behaviors knowledge" class="ui right icon button" local-class="instance-row-download" rel="noopener noreferrer" rel="noopener" target="_blank" href={{concat behavior.uri '?method=knowledge'}}>
           <i class="icon database alternate no-side-margins"></i>
@@ -97,8 +103,8 @@
   </ul>
 </div>
 
-<!-- Send Message -->
-
+<!-- Show Reports -->
+{{#if this.activeInstance.reportURI}}
 <div local-class="instance-seperation">
   <hr><i>Reports</i>
 </div>
@@ -131,6 +137,7 @@
     </div>
   </div>
 </div>
+{{/if}}
 
 <!-- Send Message -->
 
@@ -165,14 +172,14 @@
       {{textarea value=value.agentMessage cols="80" rows="6"}}
     </div>
     {{#if (eq messageError.uri value.uri)}}
-  <p local-class="error-message">{{messageError.error}}</p>
+    <p local-class="error-message">{{messageError.error}}</p>
     {{/if}}
     <div>
       <button data-tooltip="send Message" class="ui right icon yellow button" local-class="instance-row-copy" {{action "sendMsgToAgent" value.uri value.agentMessage value.selectedType}}>
         <i class="icon send no-side-margins"></i>
       </button>
     </div>
-</div>
+  </div>
 </div>
 {{/each}}
 {{/if}}

@@ -32,6 +32,7 @@ export default {
 function createAgent(definition) {
 	rdfGraph.add(rdfFact.quad(definition.uri, RDF.type, AGENTS.AgentTemplate));
   rdfGraph.add(rdfFact.quadLiteral(definition.uri, RDFS.label, definition.label));
+  rdfGraph.add(rdfFact.quad(definition.uri, AGENTS.initKnowledge, definition.initKnowledge));
 }
 
 function createAgentRDFString(definition) {
@@ -46,6 +47,9 @@ function createAgentRDFString(definition) {
 function createTeamplateQuads(quads, template) {
   quads.add(rdfFact.quad(template.uri, RDF.type, AGENTS.AgentTemplate));
   quads.add(rdfFact.quadLiteral(template.uri, RDFS.label, template.label));
+  if (template.initKnowledge != "") {
+    quads.add(rdfFact.quad(template.uri, AGENTS.initKnowledge, template.initKnowledge));
+  }
   if (template.events.length > 0) {
     addEvents(quads, template)
   }

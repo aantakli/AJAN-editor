@@ -45,7 +45,6 @@ class TriplestoreListing {
 	}
 
   initiate() {
-
 		this.createFields();
 		this.setAuxiliaryFields();
 		this.attachFields();

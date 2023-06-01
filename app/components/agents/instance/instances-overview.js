@@ -26,6 +26,7 @@ import templateActns from "ajan-editor/helpers/agents/actions";
 import globals from "ajan-editor/helpers/global-parameters";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import actions from "ajan-editor/helpers/agents/instance/actions";
+import { AGENTS } from "ajan-editor/helpers/RDFServices/vocabulary";
 
 let that;
 let ajax = null;
@@ -151,6 +152,8 @@ function setAvailableTemaplates() {
 }
 
 function createModal() {
+  $("#select-agent-templates").show().appendTo("#templates-wrapper");
+  that.set("initAgentMessage", "");
 
   if (!localStorage.getItem("initAgents")) {
     console.log("empty");
@@ -254,14 +257,9 @@ function createModal() {
     $body.append(createLogsField());
   }
 
-
   // Listen for the confirm event
   let elem = document.getElementById("universal-modal");
-  elem.addEventListener("modal:confirm", createAgentInitEvent);
-  elem.addEventListener("modal:cancel", () => {
-    $("#select-agent-templates").show().appendTo("#templates-wrapper");
-    that.set("initAgentMessage", "");
-  });
+  elem.addEventListener("modal:cancel", () => {});
   elem.addEventListener("modal:confirm", createAgentInitEvent);
 }
 
@@ -279,7 +277,6 @@ function createLogsField() {
 }
 
 function createAgentInitEvent() {
-  $("#select-agent-templates").show().appendTo("#templates-wrapper");
   createInitMessage(
     $("#label-input"),
     $("#show-agent-logs"),
@@ -304,7 +301,7 @@ function createInitMessage(label, logs, pswd, templateUri, knowledge) {
   }
   let logsRDF = "";
   if (logs && logs.is(':checked')) {
-    logsRDF = "_:init <http://www.ajan.de/ajan-ns#agentInitKnowledge> [ <http://www.ajan.de/ajan-ns#agentReportURI> 'http://" + document.location.hostname + ":4202/report'^^<http://www.w3.org/2001/XMLSchema#anyURI> ] .";
+    logsRDF = "_:init <http://www.ajan.de/ajan-ns#agentInitKnowledge> [ <" + AGENTS.reportURI + "> 'http://" + document.location.hostname + ":4202/report'^^<http://www.w3.org/2001/XMLSchema#anyURI> ] .";
   }
   if (templateUri === null) {
     $("#error-message").trigger("showToast", [
@@ -328,7 +325,8 @@ function createInitMessage(label, logs, pswd, templateUri, knowledge) {
   let know = getAgentInitKnowledge(knowledge);
   Promise.resolve(know).then(x => {
     if (x != undefined) {
-      let content = type + name + tmpl + credentials + x + knowledge + logsRDF;
+      let content = type + name + tmpl + credentials + x + logsRDF;
+      console.log(content);
       let agents = actions.createAgent(that.get("ajanService") + that.ajanAgentsRoot, content);
       Promise.resolve(agents).then(function (data) {
         that.actions.loadAgents();
@@ -344,18 +342,17 @@ function getAgentInitKnowledge(content) {
   let returnValue = Promise.resolve(dataset)
     .then(x => {
       let knowledge = "";
-      console.log(x);
-      x._quads.forEach(quad => {
-        let value = "";
-        if (quad.subject.termType === "NamedNode") {
-          value = "<" + quad.subject.value + ">";
-          knowledge = knowledge + "_:init <http://www.ajan.de/ajan-ns#agentInitKnowledge> " + value + " . ";
-        }
-      });
+      if (x._quads.length > 0) {
+        let value = "<http://www.ajan.de/ajan-ns#AgentInitKnowledgeGraph>";
+        knowledge = "_:init <http://www.ajan.de/ajan-ns#agentInitKnowledge> " + value + " . ";
+        knowledge += value + " { ";
+        knowledge += x.toCanonical();
+        knowledge += " } ";
+      }
       return knowledge;
     }).catch(function (error) {
       $("#error-message").trigger("showToast", [
-        "Malformed Agent Init Knowledge!"
+        "Malformed Agent Init Knowledge! It has to be in text/turtle!"
       ]);
     });
   return returnValue;

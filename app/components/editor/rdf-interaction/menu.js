@@ -40,7 +40,11 @@ export default Component.extend({
 		{
 			label: "Grouped - Subject",
 			value: "groupedSubject"
-		}
+    },
+    {
+      label: "Graph View",
+      value: "graphView"
+    }
 	],
 
 	dropdownResultMode: [

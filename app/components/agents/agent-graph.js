@@ -238,7 +238,6 @@ function loadbtRdfGraphData() {
 }
 
 function rdfDataHasLoaded(rdfData) {
-  console.log(rdfData);
 	rdfGraph.reset();
 	rdfGraph.set(rdfData);
   setAvailableAgents();

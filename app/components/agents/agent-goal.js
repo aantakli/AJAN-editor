@@ -200,8 +200,8 @@ function reset() {
 function setFileContent(uri) {
   let label = rdfGraph.getObject(uri, RDFS.label);
   let eventRDF = actions.exportGoal(uri);
-  self.set("fileName", "agents_goals_" + label.value + ".ttl");
-  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF) + "."])));
+  self.set("fileName", "agents_goals_" + label.value + ".trig");
+  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF)])));
 }
 
 

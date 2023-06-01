@@ -35,7 +35,7 @@ let that = undefined;
 export default Component.extend({
   dataBus: Ember.inject.service('data-bus'),
   ajax: Ember.inject.service(),
-  fileName: "agents.ttl",
+  fileName: "agents.trig",
   fileContent: "",
   agentDefs: [],
 
@@ -51,11 +51,10 @@ export default Component.extend({
       Promise.resolve(token.resolveToken(that.ajax, localStorage.currentStore))
         .then((token) => {
           $.ajax({
-            url: repo,
-            type: "POST",
-            contentType: "application/sparql-query; charset=utf-8",
-            headers: getHeaders(token),
-            data: queries.constructGraph
+            url: repo + "/statements",
+            type: "GET",
+            contentType: "application/trig; charset=utf-8",
+            headers: getHeaders(token)
           }).then(function (data) {
             that.set("fileContent", URL.createObjectURL(new Blob([data])));
           });
@@ -83,11 +82,11 @@ function getHeaders(token) {
   if (token) {
     return {
       Authorization: "Bearer " + token,
-      Accept: "text/turtle; charset=utf-8",
+      Accept: "application/trig; charset=utf-8",
     }
   } else {
     return {
-      Accept: "text/turtle; charset=utf-8",
+      Accept: "application/trig; charset=utf-8",
     }
   }
 }

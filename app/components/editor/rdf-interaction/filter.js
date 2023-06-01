@@ -37,10 +37,6 @@ export default Component.extend({
 		{
 			value: "object",
 			label: "Object"
-		},
-		{
-			value: "graph",
-			label: "Graph"
 		}
 	],
 

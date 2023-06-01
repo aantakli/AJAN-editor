@@ -36,6 +36,17 @@
         filter=filter
         data=data
       }}
+    {{else if showGraphView}}
+      {{component 'editor/rdf-interaction/graph-view'
+        tableData=tableData
+        mode=resultMode
+        dataFormat=dataFormat
+        malformedQuery=malformedQuery
+        filter=filter
+        data=data
+        prefixes=prefixes
+        currentRepository=currentRepository
+      }}
     {{else}}
       <!-- Default -->
       {{component 'editor/rdf-interaction/resource-table'

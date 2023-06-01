@@ -129,6 +129,7 @@ let BT = {
   Report: "http://www.ajan.de/behavior/bt-ns#Report",
   debugging: "http://www.ajan.de/behavior/bt-ns#debugging",
   btNode: "http://www.ajan.de/behavior/bt-ns#btNode",
+  state: "http://www.ajan.de/behavior/bt-ns#state",
   definition: "http://www.ajan.de/behavior/bt-ns#definition"
 };
 let EDITOR = {
@@ -220,6 +221,7 @@ let AGENTS = {
   event: "http://www.ajan.de/ajan-ns#event",
   goal: "http://www.ajan.de/ajan-ns#goal",
   agentKnowledge: "http://www.ajan.de/ajan-ns#agentKnowledge",
+  initKnowledge: "http://www.ajan.de/ajan-ns#agentInitKnowledge",
   endpoint: "http://www.ajan.de/ajan-ns#endpoint",
   initialBehavior: "http://www.ajan.de/ajan-ns#initialBehavior",
   finalBehavior: "http://www.ajan.de/ajan-ns#finalBehavior",
@@ -231,7 +233,8 @@ let AGENTS = {
 	variables: "http://www.ajan.de/ajan-ns#variables",
 	dataType:"http://www.ajan.de/ajan-ns#dataType",
   capability: "http://www.ajan.de/ajan-ns#capability",
-  clearEKB: "http://www.ajan.de/ajan-ns#clearEKB"
+  clearEKB: "http://www.ajan.de/ajan-ns#clearEKB",
+  reportURI: "http://www.ajan.de/ajan-ns#agentReportURI"
 };
 
 export {BT, EDITOR, ACTN, ND, RDF, RDFS, DCT, STRIPS, XSD, HTTP, SPIN, AGENTS};

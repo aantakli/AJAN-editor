@@ -26,12 +26,19 @@ import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 import globals from "ajan-editor/helpers/global-parameters";
 import actions from "ajan-editor/helpers/agents/actions";
 
+import stringToStream from "npm:string-to-stream";
+import N3Parser from "npm:rdf-parser-n3";
+import rdf from "npm:rdf-ext";
+
 let self;
+let parser = new N3Parser();
 
 export default Component.extend({
   dataBus: Ember.inject.service('data-bus'),
 	overview: null,
 	activeAgent: null,
+  agentInitKnowledge: "",
+  oldInitKnowledge: "",
   activeValue: null,
 	selectedEndpoints: null,
 	selectedEvents: null,
@@ -57,6 +64,7 @@ export default Component.extend({
     self.set('selectedBehaviors', []);
     if (this.get("activeAgent") != null) {
       setFileContent(this.get("activeAgent.uri"));
+      readAgentInitKnowledge();
     }
 	},
 
@@ -213,12 +221,17 @@ export default Component.extend({
 			self.actions.toggle(self.edit);
 			self.set("activeAgent." + self.edit, self.activeValue);
 			reset();
-		},
+    },
+
+    saveKnowledge() {
+      saveInitKnowledge();
+    },
 
 		toggle(key) {
 			switch(key) {
 				case "AGENT": self.toggleProperty('showAgent'); break;
-				case "label": self.toggleProperty('editLabel'); break;
+        case "label": self.toggleProperty('editLabel'); break;
+
         case "initialBehavior":
           self.toggleProperty('editInitialBehavior');
           break;
@@ -238,7 +251,12 @@ export default Component.extend({
 				case "endpoint": 
 					selectedEndpoints();
 					self.toggleProperty('editEndpoint'); 
-					break;
+          break;
+
+        case "knowledge":
+          toggleKnowledge();
+          self.toggleProperty('editKnowledge');
+          break;
 				default:
 					break;
 			}
@@ -290,6 +308,16 @@ function selectedEndpoints() {
 	}
 }
 
+function toggleKnowledge() {
+  if (!self.get("editKnowledge")) {
+    self.set("oldInitKnowledge", self.get("agentInitKnowledge"));
+    console.log(self.get("editKnowledge"));
+  } else {
+    self.set("agentInitKnowledge", self.get("oldInitKnowledge"));
+    $(".error-txt").text("");
+  }
+}
+
 function updateRepo() {
 	let repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories")
 						+ globals.agentsRepository;
@@ -297,6 +325,7 @@ function updateRepo() {
 }
 
 function reset() {
+  console.log("reset");
 	self.activeValue = null;
 	self.edit = "";
 }
@@ -304,6 +333,49 @@ function reset() {
 function setFileContent(uri) {
   let label = rdfGraph.getObject(uri, RDFS.label);
   let eventRDF = rdfGraph.getAllQuads(uri);
-  self.set("fileName", "agents_agent_" + label.value + ".ttl");
-  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF) + "."])));
+  self.set("fileName", "agents_agent_" + label.value + ".trig");
+  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF)])));
+}
+
+
+function readAgentInitKnowledge() {
+  if (rdfGraph.data) {
+    let knowledge = rdf.dataset();
+    rdfGraph.forEach((quad) => {
+      if (quad.graph.value == self.get("activeAgent.initKnowledge")) {
+        knowledge.add(rdf.quad(quad.subject, quad.predicate, quad.object));
+      }
+    });
+    self.set("agentInitKnowledge", knowledge.toCanonical());
+  }
+}
+
+function saveInitKnowledge() {
+  let deleteList = [];
+  rdfGraph.forEach((quad) => {
+    if (quad.graph.value == self.get("activeAgent.initKnowledge")) {
+      deleteList.push(quad);
+    }
+  });
+
+  let quadStream = parser.import(stringToStream(self.get("agentInitKnowledge")));
+  rdf.dataset().import(quadStream).then((dataset) => {
+
+    deleteList.forEach((quad) => {
+      rdfGraph.remove(quad);
+    });
+
+    console.log(dataset);
+    dataset.forEach((quad) => {
+      quad.graph = rdf.namedNode(self.get("activeAgent.initKnowledge"));
+      rdfGraph.add(quad);
+    });
+    updateRepo();
+    reset();
+    self.set("oldInitKnowledge", self.get("agentInitKnowledge"));
+    self.actions.toggle("knowledge");
+    $(".error-txt").text("");
+  }).catch(function (error) {
+    $(".error-txt").text("Content-type: 'text/turtle' expected! " + error);
+  });
 }

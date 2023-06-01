@@ -1,0 +1,26 @@
+:global(#rdf-graph-view) {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+.false {
+  background-color: lightcoral;
+}
+
+.many {
+  background-color: khaki;
+}
+
+.block {
+  padding: 3pt;
+  padding-top: 7pt;
+  padding-bottom: 7pt;
+}
+
+.empty {
+  text-align: left;
+  border: 1px solid #ddd;
+  overflow: hidden;
+  white-space: nowrap;
+  background-color: rgb(242, 242, 242);
+}

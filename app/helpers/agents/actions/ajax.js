@@ -85,10 +85,9 @@ function getHeaders(token) {
 }
 
 function loadAgentsRepo(ajax, tripleStoreRepository, token) {
-  let ajaxPromise = ajax.post(tripleStoreRepository, {
-    contentType: "application/sparql-query; charset=utf-8",
+  let ajaxPromise = ajax.request(tripleStoreRepository + "/statements", {
+    accept: "application/ld+json; charset=utf-8",
     headers: getHeaders(token),
-    data: SparqlQueries.constructGraph,
   }).catch(function (error) {
     tokenizer.removeToken(localStorage.currentStore);
     $("#error-message").trigger("showToast", [

@@ -8,9 +8,15 @@
 }
 
 .true {
-    background-color: palegreen;
+  background-color: palegreen;
 }
 
 .false {
-    background-color: lightcoral;
+  background-color: lightcoral;
+}
+
+.block {
+  padding: 3pt;
+  padding-top: 7pt;
+  padding-bottom: 7pt;
 }

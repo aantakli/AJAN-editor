@@ -18,29 +18,52 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import Component from "@ember/component";
-import {computed} from "@ember/object";
-import {Filter} from "ajan-editor/objects/tables/rdf-filter";
+import {BT, RDF, RDFS} from "ajan-editor/helpers/RDFServices/vocabulary";
+import rdf from "npm:rdf-ext";
+import N3Parser from "npm:rdf-parser-n3";
+import stringToStream from "npm:string-to-stream";
 
-export default Component.extend({
-	classNames: ["full-height"],
+let parser = new N3Parser();
 
-  showTableView: computed("viewMode", function () {
-    return this.get("viewMode") === "multiTable";
-  }),
-	showGroupedSubjectView: computed("viewMode", function() {
-		return this.get("viewMode") === "groupedSubject";
-  }),
-  showGraphView: computed("viewMode", function () {
-    return this.get("viewMode") === "graphView";
-  }),
+export default {
+  getActiveBTGraph: getActiveBTGraph
+};
 
-	dataFormat: null,
-	filter: Filter.create(),
-	malformedQuery: false,
-  model: null,
+function getActiveBTGraph(data) {
+  const quadStream = parser.import(stringToStream(data));
+	let obj = rdf
+		.dataset()
+		.import(quadStream)
+    .then(function (dataset) {
+      let states = new Array();
+      getStates(dataset, states);
+      return states;
+		});
+	return Promise.resolve(obj);
+}
 
-  didInsertElement() {
-    this._super(...arguments);
-  },
-});
+function getStates(graph, states) {
+	Promise.resolve(graph).then(function(graph) {
+		graph.forEach(quad => {
+			if (
+        quad.predicate.value === RDFS.isDefinedBy
+      ) {
+        let state = { uri: quad.subject.value, defined: quad.object.value };
+        states.push(getNodeState(graph, state));
+			}
+		});
+	});
+}
+
+function getNodeState(graph, state) {
+	graph.forEach(function(quad) {
+    if (quad.subject.value === state.uri) {
+      if (quad.predicate.value === RDF.type) {
+        state.type = quad.object.value;
+			} else if (quad.predicate.value === BT.state) {
+				state.state = quad.object.value;
+			}
+		}
+	});
+	return state;
+}

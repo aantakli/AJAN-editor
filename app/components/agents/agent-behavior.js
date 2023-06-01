@@ -208,7 +208,7 @@ function reset() {
 function setFileContent(uri) {
   let label = rdfGraph.getObject(uri, RDFS.label);
   let eventRDF = rdfGraph.getAllQuads(uri);
-  self.set("fileName", "agents_behaviors_" + label.value + ".ttl");
-  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF) + "."])));
+  self.set("fileName", "agents_behaviors_" + label.value + ".trig");
+  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF)])));
 }
 

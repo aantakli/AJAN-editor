@@ -250,15 +250,21 @@ class RDFGraph {
       quads = this.data;
     }
     let array = [];
-    array.push("@prefix xsd: <http://www.w3.org/2001/XMLSchema#>");
+    array.push("@prefix xsd: <http://www.w3.org/2001/XMLSchema#> . ");
     quads.forEach(quad => {
+      let str = "";
       let subj = termEval(quad.subject);
       let pred = termEval(quad.predicate);
       let obje = termEval(quad.object);
-      let str = subj + " " + pred + " " + obje;
+      if (quad.graph.value != "") {
+        let graph = termEval(quad.graph);
+        str = graph + "{ " + subj + " " + pred + " " + obje + " . } " ;
+      } else {
+        str = subj + " " + pred + " " + obje + " . ";
+      }
       array.push(str);
     });
-    return array.join(". ");
+    return array.join("");
   }
 } // end class def
 

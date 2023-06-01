@@ -49,7 +49,7 @@ export default {
     return $.ajax({
       url: endpoint,
       type: "POST",
-      contentType: "text/turtle",
+      contentType: "application/trig",
       data: content
     }).catch(function (error) {
       let message = "Agent could not be created! Please check the used Agent Template.";
@@ -79,7 +79,7 @@ export default {
       url: endpoint,
       type: "DELETE",
     }).then(function (data) {
-      console.log(endpoint + "deleted!");
+      console.log(endpoint + " deleted!");
     }).catch(function (error) {
       console.log(error);
     });
@@ -126,8 +126,10 @@ function getAgentInstance(graph, uri, templates) {
       if (quad.predicate.value === AGENTS.agentKnowledge) {
         agent.knowledge = quad.object.value;
       }
+      if (quad.predicate.value === AGENTS.reportURI) {
+        agent.reportURI = quad.object.value;
+      }
       if (quad.predicate.value === AGENTS.behavior) {
-        console.log(quad.object.value);
         let behavior = {};
         behavior.uri = quad.object.value;
         graph.forEach(innerquad => {

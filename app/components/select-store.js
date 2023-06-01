@@ -37,12 +37,22 @@ export default Ember.Component.extend({
 		self = this;
 		triplestoreCollection = new TriplestoreCollection(this);
     bindEnterEvent();
+    addDefinedTriplestore();
 	},
 
 	actions: {
 		addTriplestore
 	}
 });
+
+function addDefinedTriplestore() {
+  const urlParams = new URLSearchParams(window.location.search);
+  let name = urlParams.get('name');
+  let uri = urlParams.get('uri');
+  if (name && uri) {
+    triplestoreCollection.insertDefinedTriplestore(name, uri);
+  }
+}
 
 function addTriplestore() {
 	triplestoreCollection.insertNewTriplestore();

@@ -137,6 +137,7 @@ function createDefaultAgent(repo) {
   agent.behaviors = new Array();
   agent.events = new Array();
   agent.endpoints = new Array();
+  agent.initKnowledge = agent.uri + "/initKnowledge";
   return agent;
 }
 

@@ -28,7 +28,9 @@ export default {
 	// Triplestore Repository for domains
 	domainRepository: "domain",
 	// Triplestore Repository for services
-	servicesRepository: "services",
+  servicesRepository: "services",
+  // Triplestore Repository for editor_data
+  definitionsRepository: "editor_data",
 	// Current component reference
 	currentComponent: undefined,
 	// Cytoscape Reference

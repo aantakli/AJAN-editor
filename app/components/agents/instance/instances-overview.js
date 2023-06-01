@@ -152,6 +152,8 @@ function setAvailableTemaplates() {
 }
 
 function createModal() {
+  $("#select-agent-templates").show().appendTo("#templates-wrapper");
+  that.set("initAgentMessage", "");
 
   if (!localStorage.getItem("initAgents")) {
     console.log("empty");
@@ -255,14 +257,9 @@ function createModal() {
     $body.append(createLogsField());
   }
 
-
   // Listen for the confirm event
   let elem = document.getElementById("universal-modal");
-  elem.addEventListener("modal:confirm", createAgentInitEvent);
-  elem.addEventListener("modal:cancel", () => {
-    $("#select-agent-templates").show().appendTo("#templates-wrapper");
-    that.set("initAgentMessage", "");
-  });
+  elem.addEventListener("modal:cancel", () => {});
   elem.addEventListener("modal:confirm", createAgentInitEvent);
 }
 
@@ -280,7 +277,6 @@ function createLogsField() {
 }
 
 function createAgentInitEvent() {
-  $("#select-agent-templates").show().appendTo("#templates-wrapper");
   createInitMessage(
     $("#label-input"),
     $("#show-agent-logs"),

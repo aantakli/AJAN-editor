@@ -40,6 +40,7 @@ export default Ember.Component.extend({
   wssMessage: "",
   btView: "",
   debugReport: null,
+
   prefixes: {
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#": "rdf:",
     "http://www.w3.org/2000/01/rdf-schema#": "rdfs:",
@@ -62,6 +63,10 @@ export default Ember.Component.extend({
     getQueriesRepo(this);
     setBTView(this);
     createLogs();
+  },
+
+  didDestroyElement() {
+    closeSocket();
   },
 
   actions: {
@@ -149,9 +154,7 @@ export default Ember.Component.extend({
         socket.off('open', myOpenHandler);
         socket.off('message', myMessageHandler);
         socket.off('close', myCloseHandler);
-        that.set("wssConnection", false);
-        that.get('websockets').closeSocketFor("ws://" + document.location.hostname + ":4202");
-        that.set('socketRef', null);
+        closeSocket();
         emptyLogs();
       }
     },
@@ -216,12 +219,12 @@ function myOpenHandler(event) {
   console.log(`On open event has been called: ${event}`);
   that.set("wssConnection", true);
   that.set("wssMessage", "");
-  let $textarea = $("#report-service-message-content");
-  $textarea.empty();
+  emptyLogs();
   setBTView(that);
 }
 
 function myMessageHandler(event) {
+  this.set("wssConnection", true);
   let rdf = reportConsumer.getReportGraph(event.data);
   let promise = Promise.resolve(rdf);
   promise.then(function (result) {
@@ -254,19 +257,21 @@ function createLogs() {
       createEditorMessage($textarea, agents[i].result, item);
     })
     $("#report-service-message").scrollTop($("#report-service-message")[0].scrollHeight);
+  } else if (!that.get("wssConnection")) {
+    $textarea.append("<p>To show agent logs, please press connect.</p>");
   } else if (i == -1 && agents.length > 0) {
     $textarea.append("<p>Agent logs are available, but not for the selected agent.</p>");
   } else {
-    $textarea.append("<p>To receive report messages from the agent LeafNodes, please run the ReportService (reportService.js) on Port 4202 and instantiate the agent with 'Show Logs' selected.</p>");
+    $textarea.append("<p>No new agent logs available.</p>");
   }
 }
 
 function emptyLogs(agent) {
   let agents = that.get("agentLogs");
+  let $textarea = $("#report-service-message-content");
   if (agent) {
     const i = agents.findIndex(e => e.uri === agent);
     if (i > -1) {
-      let $textarea = $("#report-service-message-content");
       $textarea.empty();
       agents[i].logs = [];
     }
@@ -365,10 +370,14 @@ function createEditorMessage($textarea, result, report) {
 
 function myCloseHandler(event) {
   console.log(`On close event has been called: ${event}`);
+  closeSocket();
+  setBTView(that);
+}
+
+function closeSocket() {
   that.get('websockets').closeSocketFor("ws://" + document.location.hostname + ":4202");
   that.set("wssConnection", false);
   that.set('socketRef', null);
-  setBTView(that);
 }
 
 function getQueriesRepo(self) {

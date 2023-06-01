@@ -52,19 +52,7 @@ export default Component.extend({
         "http://localhost:8090/rdf4j/repositories") +
       globals.behaviorsRepository;
 
-    const urlParams = new URLSearchParams(window.location.search);
-    let bt = urlParams.get('bt');
-    if (bt) {
-      this.set("noSave", true);
-    }
-    let agent = urlParams.get('agent');
-    if (agent) {
-      this.set("agent", agent);
-    }
-    let connect = urlParams.get('wssConnection');
-    if (connect && connect == "true") {
-      this.set("connect", connect);
-    }
+    readURLParameters();
 
     this.get('dataBus').on('save', function (content) {
       saveGraph(content);
@@ -217,5 +205,25 @@ function updateType(content, importFile) {
   } else {
     sendFile(that.ajax, repo, content)
       .then(window.location.reload());
+  }
+}
+
+function readURLParameters() {
+  const urlParams = new URLSearchParams(window.location.search);
+  let bt = urlParams.get('bt');
+  if (bt) {
+    that.set("noSave", true);
+  }
+  let agent = urlParams.get('agent');
+  if (agent) {
+    that.set("agent", agent);
+  }
+  let connect = urlParams.get('wssConnection');
+  if (connect && connect == "true") {
+    that.set("connect", connect);
+  }
+  let repo = urlParams.get('repo');
+  if (repo && repo != "") {
+    that.set("agentRepo", repo);
   }
 }

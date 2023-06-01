@@ -382,7 +382,7 @@ function closeSocket() {
 
 function getQueriesRepo(self) {
   if (self.get("activeInstance.knowledge")) {
-    let repo = self.get("activeInstance.knowledge").replace("/statements", "");
+    let repo = getAgentStatementsURI(self);
     let origin = window.location.origin;
     let path = "/editor/queries?repo=";
     self.set("activeInstance.repository", origin + path + repo);
@@ -396,6 +396,10 @@ function setBTView(self) {
     connect = true;
   }
   console.log(self.get("activeInstance"));
-  let path = "/editor/behaviors?wssConnection=" + connect + "&agent=" + self.get("activeInstance.id");
+  let path = "/editor/behaviors?wssConnection=" + connect + "&agent=" + self.get("activeInstance.id") + "&repo=" + getAgentStatementsURI(self);
   self.set("btView", origin + path);
+}
+
+function getAgentStatementsURI(self) {
+  return self.get("activeInstance.knowledge").replace("/statements", "");
 }

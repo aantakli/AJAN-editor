@@ -20,7 +20,4 @@
  */
 import Component from "@ember/component";
 
-let $ = Ember.$;
-
-export default Component.extend({
-});
+export default Component.extend({});

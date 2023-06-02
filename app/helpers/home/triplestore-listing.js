@@ -28,6 +28,7 @@ import btActions from "ajan-editor/helpers/behaviors/actions";
 import importModal from "ajan-editor/helpers/ui/import-modal";
 import exportModal from "ajan-editor/helpers/ui/export-modal";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
+import token from "ajan-editor/helpers/token";
 import * as zip from "zip-js-webpack";
 
 let $ = Ember.$;
@@ -340,7 +341,19 @@ function loadRdfGraphData(triplestore, ajax) {
       let btDefs = getBTDefs();
       behaviors.rdf = rdfData;
       behaviors.defs = btDefs;
-      exportModal.createExportModal(agents, behaviors);
+      let domainRepo = (triplestore || "http://localhost:8090/rdf4j/repositories")
+        + globals.domainRepository;
+      loadTrigGraphData(ajax, domainRepo, function (rdfData) {
+        let domain = { defs: [] };
+        domain.defs.push({ name: "Domain Repository", id: domainRepo, uri: domainRepo, data: rdfData });
+        let definitionsRepo = (triplestore || "http://localhost:8090/rdf4j/repositories")
+          + globals.definitionsRepository;
+        loadTrigGraphData(ajax, definitionsRepo, function (rdfData) {
+          let definitions = { defs: [] };
+          definitions.defs.push({ name: "Definitions Repository", id: definitionsRepo, uri: definitionsRepo, data: rdfData });
+          exportModal.createExportModal(agents, behaviors, domain, definitions);
+        });
+      });
     });
   });
 }
@@ -394,6 +407,33 @@ function loadBTsRdfGraphData(ajax, triplestore, onend) {
       onend(rdfData);
     });
   })
+}
+
+function loadTrigGraphData(ajax, repo, onend) {
+  Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    .then((token) => {
+      $.ajax({
+        url: repo + "/statements",
+        type: "GET",
+        contentType: "application/trig; charset=utf-8",
+        headers: getHeaders(token)
+      }).then(function (data) {
+        onend(data);
+      });
+    });
+}
+
+function getHeaders(token) {
+  if (token) {
+    return {
+      Authorization: "Bearer " + token,
+      Accept: "application/trig; charset=utf-8",
+    }
+  } else {
+    return {
+      Accept: "application/trig; charset=utf-8",
+    }
+  }
 }
 
 function getBTDefs() {

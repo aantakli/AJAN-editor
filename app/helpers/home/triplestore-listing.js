@@ -19,7 +19,7 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Ember from "ember";
-import { sendFile } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
+import { sendFile, deleteRepo } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import nodeDefs from "ajan-editor/helpers/RDFServices/node-definitions/common";
 import globals from "ajan-editor/helpers/global-parameters";
 import htmlGen from "ajan-editor/helpers/home/html-generator";
@@ -29,6 +29,7 @@ import importModal from "ajan-editor/helpers/ui/import-modal";
 import exportModal from "ajan-editor/helpers/ui/export-modal";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import token from "ajan-editor/helpers/token";
+import queries from "ajan-editor/helpers/RDFServices/queries";
 import * as zip from "zip-js-webpack";
 
 let $ = Ember.$;
@@ -256,17 +257,22 @@ function unzip(file, onEnd) {
     info: { entry: null, import: null },
     agents: { entry: null, import: null, original: { rdf: null, defs: null } },
     behaviors: { entry: null, import: null, original: { rdf: null, defs: null } },
-    domains: { entry: null, import: null, original: { rdf: null, defs: null } },
+    domain: { entry: null, import: null, original: { rdf: null, defs: null } },
+    definitions: { entry: null, import: null, original: { rdf: null, defs: null } },
     actions: { entry: null, import: null, original: { rdf: null, defs: null } }
   };
   getEntries(file, function (entries) {
     entries.forEach(function (entry) {
       if (entry.filename.includes("info.json"))
         zipFile.info.entry = entry;
-      else if (entry.filename.includes("agents/agents.ttl"))
+      else if (entry.filename.includes("agents/agents.trig"))
         zipFile.agents.entry = entry;
       else if (entry.filename.includes("behaviors/behaviors.ttl"))
         zipFile.behaviors.entry = entry;
+      else if (entry.filename.includes("domain/domain.trig"))
+        zipFile.domain.entry = entry;
+      else if (entry.filename.includes("definitions/editor_data.trig"))
+        zipFile.definitions.entry = entry;
       else
         console.log("none");
     });
@@ -308,7 +314,7 @@ function readAgentsTTL(zipFile, triplestore, ajax) {
 
 function readBTsTTL(zipFile, triplestore, ajax) {
   if (zipFile.behaviors.entry == null) {
-    loadRdfGraphZipData(zipFile, triplestore, ajax);
+    readDomainTrig(zipFile, triplestore, ajax);
   } else {
     let writer = new zip.BlobWriter();
     zipFile.behaviors.entry.getData(writer, function (blob) {
@@ -316,8 +322,40 @@ function readBTsTTL(zipFile, triplestore, ajax) {
       oFReader.onloadend = function (e) {
         btActions.readTTLInput(this.result, function (importFile) {
           zipFile.behaviors.import = importFile;
-          loadRdfGraphZipData(zipFile, triplestore, ajax);
+          readDomainTrig(zipFile, triplestore, ajax);
         });
+      };
+      oFReader.readAsText(blob);
+    }, onprogress);
+  }
+}
+
+function readDomainTrig(zipFile, triplestore, ajax) {
+  if (zipFile.domain.entry == null) {
+    readDefinitionsTrig(zipFile, triplestore, ajax);
+  } else {
+    let writer = new zip.BlobWriter();
+    zipFile.domain.entry.getData(writer, function (blob) {
+      let oFReader = new FileReader()
+      oFReader.onloadend = function (e) {
+        zipFile.domain.import = this.result;
+        readDefinitionsTrig(zipFile, triplestore, ajax);
+      };
+      oFReader.readAsText(blob);
+    }, onprogress);
+  }
+}
+
+function readDefinitionsTrig(zipFile, triplestore, ajax) {
+  if (zipFile.definitions.entry == null) {
+    loadRdfGraphZipData(zipFile, triplestore, ajax);
+  } else {
+    let writer = new zip.BlobWriter();
+    zipFile.definitions.entry.getData(writer, function (blob) {
+      let oFReader = new FileReader()
+      oFReader.onloadend = function (e) {
+        zipFile.definitions.import = this.result;
+        loadRdfGraphZipData(zipFile, triplestore, ajax);
       };
       oFReader.readAsText(blob);
     }, onprogress);
@@ -460,6 +498,14 @@ function showImportDialog(ajax, triplestore, zipFile, matches) {
       btActions.saveGraph(ajax, triplestore + globals.behaviorsRepository, null);
     } else if (zipFile.behaviors.import) {
       sendFile(ajax, triplestore + globals.behaviorsRepository, zipFile.behaviors.import.raw);
+    }
+    if (zipFile.domain.import) {
+      deleteRepo(ajax, triplestore + globals.domainRepository, queries.deleteAll())
+        .then(sendFile(ajax, triplestore + globals.domainRepository, zipFile.domain.import))
+    }
+    if (zipFile.definitions.import) {
+      deleteRepo(ajax, triplestore + globals.definitionsRepository, queries.deleteAll())
+        .then(sendFile(ajax, triplestore + globals.definitionsRepository, zipFile.definitions.import))
     }
     $("#save-confirmation").trigger("showToast");
   }, zipFile.info.input);

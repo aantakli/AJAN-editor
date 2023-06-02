@@ -140,7 +140,7 @@ function getAgentChecks(json, model) {
   quads = setEndpoints(json, model, quads);
   quads = setEvents(json, model, quads);
   quads = setGoals(json, model, quads);
-  return rdfGraph.toString(quads) + ".";
+  return rdfGraph.toString(quads);
 }
 
 function getBehaviorChecks(json, model) {

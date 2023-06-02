@@ -67,6 +67,7 @@ class TriplestoreListing {
     this.$editButton = this.$buttons.children(".triplestore-edit");
     this.$importButton = this.$buttons.children(".triplestore-import");
     this.$exportButton = this.$buttons.children(".triplestore-export");
+    this.$cloudButton = this.$buttons.children(".triplestore-cloud");
 		this.$editButtonContent = this.$editButton.children();
 	}
 
@@ -81,6 +82,7 @@ class TriplestoreListing {
     this.bindEditClickEvent();
     this.bindImportClickEvent();
     this.bindExportClickEvent();
+    this.bindCloudClickEvent();
 	}
 
 	bindTransitionEvent() {
@@ -235,6 +237,7 @@ class TriplestoreListing {
   bindImportClickEvent() {
     this.$importButton.on("change", (event) => {
       event.stopPropagation();
+      console.log("Import");
       let ajax = this.parentComponent.ajax;
       let triplestore = this.triplestore.uri;
       let file = event.target.files[0];
@@ -244,6 +247,39 @@ class TriplestoreListing {
       });
     })
   }
+
+  bindCloudClickEvent() {
+    this.$cloudButton.off("click").click(event => {
+      event.stopPropagation();
+      console.log("Cloud");
+      let ajax = this.parentComponent.ajax;
+      let triplestore = this.triplestore.uri;
+      getGitPackages(ajax, triplestore);
+    })
+  }
+}
+
+function getGitPackages(ajax, triplestore) {
+  $.ajax({
+    url: "https://api.github.com/repos/aantakli/AJAN-packages/contents/packages/",
+    type: "GET",
+    accept: "application/json; charset=utf-8"
+  }).then(function (data) {
+    data.forEach(file => {
+      console.log(file.download_url);
+      let zip = async () => {
+        let url = file.download_url;
+        let response = await fetch(url);
+        console.log(response);
+        const blob = await response.blob();
+        unzip(blob, function (zipFile) {
+          readInfoJSON(zipFile, triplestore, ajax, readAgentsTTL);
+        });
+      }
+      console.log(zip());
+      
+    })
+  });
 }
 
 function fixUri(uri) {

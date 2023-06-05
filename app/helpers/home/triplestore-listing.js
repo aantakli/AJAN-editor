@@ -26,6 +26,7 @@ import htmlGen from "ajan-editor/helpers/home/html-generator";
 import agtActions from "ajan-editor/helpers/agents/actions";
 import btActions from "ajan-editor/helpers/behaviors/actions";
 import importModal from "ajan-editor/helpers/ui/import-modal";
+import cloudModal from "ajan-editor/helpers/ui/cloud-modal";
 import exportModal from "ajan-editor/helpers/ui/export-modal";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import token from "ajan-editor/helpers/token";
@@ -251,35 +252,11 @@ class TriplestoreListing {
   bindCloudClickEvent() {
     this.$cloudButton.off("click").click(event => {
       event.stopPropagation();
-      console.log("Cloud");
       let ajax = this.parentComponent.ajax;
       let triplestore = this.triplestore.uri;
-      getGitPackages(ajax, triplestore);
-    })
+      showCloudDialog(ajax, triplestore);
+    });
   }
-}
-
-function getGitPackages(ajax, triplestore) {
-  $.ajax({
-    url: "https://api.github.com/repos/aantakli/AJAN-packages/contents/packages/",
-    type: "GET",
-    accept: "application/json; charset=utf-8"
-  }).then(function (data) {
-    data.forEach(file => {
-      console.log(file.download_url);
-      let zip = async () => {
-        let url = file.download_url;
-        let response = await fetch(url);
-        console.log(response);
-        const blob = await response.blob();
-        unzip(blob, function (zipFile) {
-          readInfoJSON(zipFile, triplestore, ajax, readAgentsTTL);
-        });
-      }
-      console.log(zip());
-      
-    })
-  });
 }
 
 function fixUri(uri) {
@@ -545,6 +522,17 @@ function showImportDialog(ajax, triplestore, zipFile, matches) {
     }
     $("#save-confirmation").trigger("showToast");
   }, zipFile.info.input);
+}
+
+function showCloudDialog(ajax, triplestore) {
+  cloudModal.createCloudModal(function (file) {
+    console.log(file);
+    if (file && file.length > 0) {
+      unzip(file[0].zip, function (zipFile) {
+        readInfoJSON(zipFile, triplestore, ajax, readAgentsTTL);
+      });
+    }
+  });
 }
 
 export {TriplestoreListing};

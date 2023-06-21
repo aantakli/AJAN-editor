@@ -98,7 +98,7 @@ function buttonExport() {
 
 function buttonImport() {
   return $('<div class="triplestore-import ui grey icon button"></div>').append(
-    $('<input class="upload icon" type="file" accept=".zip" value="">')
+    $('<input class="upload icon" type="file" accept=".ajan" value="">')
   );
 }
 

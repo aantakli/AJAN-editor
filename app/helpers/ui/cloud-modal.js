@@ -101,16 +101,23 @@ function getGitPackages(event, $url) {
   }).then(function (data) {
     data.forEach(file => {
       let zip = async () => {
-        if (file.name.endsWith(".zip")) {
+        console.log(file.name);
+        if (file.name.endsWith(".ajan")) {
+          let thing = { id: file.name, zip: "" };
+          packages.push(thing);
           let url = file.download_url;
           let response = await fetch(url);
           const blob = await response.blob();
-          packages.push({ id: file.name, zip: blob });
+          thing.zip = blob;
           $packages.append(createRepoCheckbox(file, blob));
         }
       }
       zip();
-    })
+    });
+    console.log(packages.length)
+    if (packages.length == 0) {
+      $packages.append($("<p>No files available!</p>"));
+    }
   });
 }
 

@@ -250,7 +250,7 @@ function downloadFile(info, agents, behaviors, domain, definitions) {
   zipBlob(new Blob([info]), new Blob([agents]), new Blob([behaviors]), new Blob([domain]), new Blob([definitions]), function (zip) {
     var a = window.document.createElement('a');
     a.href = URL.createObjectURL(new Blob([zip]));
-    a.download = 'ajanPackage.zip';
+    a.download = 'ajanPackage.ajan';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

@@ -97,6 +97,10 @@
   display: block;
 }
 
+:global(.modal-models-overview.active .modal-input) {
+  width: 150px;
+}
+
 :global(.add-optional) {
   float: right;
   height: 50px;

@@ -33,6 +33,7 @@ export default {
 function getInfoHTML($body, info) {
   let $header = $("<h2>Package Information</h2>", {});
   let $info = $("<div>", { class: "modal-models-overview active" });
+  info.package = createInputField($info, "Package Name");
   info.author = createInputField($info, "Author");
   info.vendor = createInputField($info, "Vendor");
   info.domain = createInputField($info, "Domain");

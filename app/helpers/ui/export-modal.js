@@ -105,14 +105,13 @@ function onConfirm() {
   let behaviorsRDF = getBehaviorChecks(json, behaviors);
   let domainRDF = getReposChecks(json, domain);
   let definitionsRDF = getReposChecks(json, definitions);
-  let infotxt = JSON.stringify(json, null, 2);
-  console.log(infotxt);
-  downloadFile(infotxt, agentsRDF, behaviorsRDF, domainRDF, definitionsRDF);
+  downloadFile(json, agentsRDF, behaviorsRDF, domainRDF, definitionsRDF);
   removeModelsSectionListener();
   elem.removeEventListener("modal:confirm", onConfirm);
 }
 
 function getVals(json, model) {
+  json["package"] = model.package.val();
   json["author"] = model.author.val();
   json["vendor"] = model.vendor.val();
   json["vendorDomain"] = model.domain.val();
@@ -247,10 +246,16 @@ function getReposChecks(json, model) {
 }
 
 function downloadFile(info, agents, behaviors, domain, definitions) {
-  zipBlob(new Blob([info]), new Blob([agents]), new Blob([behaviors]), new Blob([domain]), new Blob([definitions]), function (zip) {
+  let infotxt = JSON.stringify(info, null, 2);
+  console.log(infotxt);
+  zipBlob(new Blob([infotxt]), new Blob([agents]), new Blob([behaviors]), new Blob([domain]), new Blob([definitions]), function (zip) {
     var a = window.document.createElement('a');
     a.href = URL.createObjectURL(new Blob([zip]));
-    a.download = 'ajanPackage.ajan';
+    console.log(info.package);
+    if (info.package == "")
+      a.download = 'ajanPackage.ajan';
+    else
+      a.download = info.package + '.ajan';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

@@ -19,15 +19,18 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Ember from "ember";
-import { sendFile } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
+import { sendFile, deleteRepo } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import nodeDefs from "ajan-editor/helpers/RDFServices/node-definitions/common";
 import globals from "ajan-editor/helpers/global-parameters";
 import htmlGen from "ajan-editor/helpers/home/html-generator";
 import agtActions from "ajan-editor/helpers/agents/actions";
 import btActions from "ajan-editor/helpers/behaviors/actions";
 import importModal from "ajan-editor/helpers/ui/import-modal";
+import cloudModal from "ajan-editor/helpers/ui/cloud-modal";
 import exportModal from "ajan-editor/helpers/ui/export-modal";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
+import token from "ajan-editor/helpers/token";
+import queries from "ajan-editor/helpers/RDFServices/queries";
 import * as zip from "zip-js-webpack";
 
 let $ = Ember.$;
@@ -65,6 +68,7 @@ class TriplestoreListing {
     this.$editButton = this.$buttons.children(".triplestore-edit");
     this.$importButton = this.$buttons.children(".triplestore-import");
     this.$exportButton = this.$buttons.children(".triplestore-export");
+    this.$cloudButton = this.$buttons.children(".triplestore-cloud");
 		this.$editButtonContent = this.$editButton.children();
 	}
 
@@ -79,6 +83,7 @@ class TriplestoreListing {
     this.bindEditClickEvent();
     this.bindImportClickEvent();
     this.bindExportClickEvent();
+    this.bindCloudClickEvent();
 	}
 
 	bindTransitionEvent() {
@@ -233,6 +238,7 @@ class TriplestoreListing {
   bindImportClickEvent() {
     this.$importButton.on("change", (event) => {
       event.stopPropagation();
+      console.log("Import");
       let ajax = this.parentComponent.ajax;
       let triplestore = this.triplestore.uri;
       let file = event.target.files[0];
@@ -241,6 +247,15 @@ class TriplestoreListing {
         readInfoJSON(zipFile, triplestore, ajax, readAgentsTTL);
       });
     })
+  }
+
+  bindCloudClickEvent() {
+    this.$cloudButton.off("click").click(event => {
+      event.stopPropagation();
+      let ajax = this.parentComponent.ajax;
+      let triplestore = this.triplestore.uri;
+      showCloudDialog(ajax, triplestore);
+    });
   }
 }
 
@@ -255,17 +270,22 @@ function unzip(file, onEnd) {
     info: { entry: null, import: null },
     agents: { entry: null, import: null, original: { rdf: null, defs: null } },
     behaviors: { entry: null, import: null, original: { rdf: null, defs: null } },
-    domains: { entry: null, import: null, original: { rdf: null, defs: null } },
+    domain: { entry: null, import: null, original: { rdf: null, defs: null } },
+    definitions: { entry: null, import: null, original: { rdf: null, defs: null } },
     actions: { entry: null, import: null, original: { rdf: null, defs: null } }
   };
   getEntries(file, function (entries) {
     entries.forEach(function (entry) {
       if (entry.filename.includes("info.json"))
         zipFile.info.entry = entry;
-      else if (entry.filename.includes("agents/agents.ttl"))
+      else if (entry.filename.includes("agents/agents.trig"))
         zipFile.agents.entry = entry;
       else if (entry.filename.includes("behaviors/behaviors.ttl"))
         zipFile.behaviors.entry = entry;
+      else if (entry.filename.includes("domain/domain.trig"))
+        zipFile.domain.entry = entry;
+      else if (entry.filename.includes("definitions/editor_data.trig"))
+        zipFile.definitions.entry = entry;
       else
         console.log("none");
     });
@@ -307,7 +327,7 @@ function readAgentsTTL(zipFile, triplestore, ajax) {
 
 function readBTsTTL(zipFile, triplestore, ajax) {
   if (zipFile.behaviors.entry == null) {
-    loadRdfGraphZipData(zipFile, triplestore, ajax);
+    readDomainTrig(zipFile, triplestore, ajax);
   } else {
     let writer = new zip.BlobWriter();
     zipFile.behaviors.entry.getData(writer, function (blob) {
@@ -315,8 +335,40 @@ function readBTsTTL(zipFile, triplestore, ajax) {
       oFReader.onloadend = function (e) {
         btActions.readTTLInput(this.result, function (importFile) {
           zipFile.behaviors.import = importFile;
-          loadRdfGraphZipData(zipFile, triplestore, ajax);
+          readDomainTrig(zipFile, triplestore, ajax);
         });
+      };
+      oFReader.readAsText(blob);
+    }, onprogress);
+  }
+}
+
+function readDomainTrig(zipFile, triplestore, ajax) {
+  if (zipFile.domain.entry == null) {
+    readDefinitionsTrig(zipFile, triplestore, ajax);
+  } else {
+    let writer = new zip.BlobWriter();
+    zipFile.domain.entry.getData(writer, function (blob) {
+      let oFReader = new FileReader()
+      oFReader.onloadend = function (e) {
+        zipFile.domain.import = this.result;
+        readDefinitionsTrig(zipFile, triplestore, ajax);
+      };
+      oFReader.readAsText(blob);
+    }, onprogress);
+  }
+}
+
+function readDefinitionsTrig(zipFile, triplestore, ajax) {
+  if (zipFile.definitions.entry == null) {
+    loadRdfGraphZipData(zipFile, triplestore, ajax);
+  } else {
+    let writer = new zip.BlobWriter();
+    zipFile.definitions.entry.getData(writer, function (blob) {
+      let oFReader = new FileReader()
+      oFReader.onloadend = function (e) {
+        zipFile.definitions.import = this.result;
+        loadRdfGraphZipData(zipFile, triplestore, ajax);
       };
       oFReader.readAsText(blob);
     }, onprogress);
@@ -340,7 +392,19 @@ function loadRdfGraphData(triplestore, ajax) {
       let btDefs = getBTDefs();
       behaviors.rdf = rdfData;
       behaviors.defs = btDefs;
-      exportModal.createExportModal(agents, behaviors);
+      let domainRepo = (triplestore || "http://localhost:8090/rdf4j/repositories")
+        + globals.domainRepository;
+      loadTrigGraphData(ajax, domainRepo, function (rdfData) {
+        let domain = { defs: [] };
+        domain.defs.push({ name: "Domain Repository", id: domainRepo, uri: domainRepo, data: rdfData });
+        let definitionsRepo = (triplestore || "http://localhost:8090/rdf4j/repositories")
+          + globals.definitionsRepository;
+        loadTrigGraphData(ajax, definitionsRepo, function (rdfData) {
+          let definitions = { defs: [] };
+          definitions.defs.push({ name: "Definitions Repository", id: definitionsRepo, uri: definitionsRepo, data: rdfData });
+          exportModal.createExportModal(agents, behaviors, domain, definitions);
+        });
+      });
     });
   });
 }
@@ -396,33 +460,88 @@ function loadBTsRdfGraphData(ajax, triplestore, onend) {
   })
 }
 
+function loadTrigGraphData(ajax, repo, onend) {
+  Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
+    .then((token) => {
+      $.ajax({
+        url: repo + "/statements",
+        type: "GET",
+        contentType: "application/trig; charset=utf-8",
+        headers: getHeaders(token)
+      }).then(function (data) {
+        onend(data);
+      });
+    });
+}
+
+function getHeaders(token) {
+  if (token) {
+    return {
+      Authorization: "Bearer " + token,
+      Accept: "application/trig; charset=utf-8",
+    }
+  } else {
+    return {
+      Accept: "application/trig; charset=utf-8",
+    }
+  }
+}
+
 function getBTDefs() {
   return btActions.getBehaviorTrees();
 }
 
 function showImportDialog(ajax, triplestore, zipFile, matches) {
   importModal.createImportModal(matches, function () {
+    if (zipFile.domain.import) {
+      deleteRepo(ajax, triplestore + globals.domainRepository, queries.deleteAll())
+        .then(sendFile(ajax, triplestore + globals.domainRepository, zipFile.domain.import))
+    }
+    if (zipFile.definitions.import) {
+      deleteRepo(ajax, triplestore + globals.definitionsRepository, queries.deleteAll())
+        .then(sendFile(ajax, triplestore + globals.definitionsRepository, zipFile.definitions.import))
+    }
+    console.log(matches.agents);
     if (matches.agents.length > 0) {
       rdfGraph.reset();
       rdfGraph.set(zipFile.agents.original.rdf);
       agtActions.deleteMatches(matches.agents);
       rdfGraph.addAll(zipFile.agents.import.quads);
-      agtActions.saveAgentGraph(ajax, triplestore + globals.agentsRepository, null);
+      agtActions.saveAgentGraph(ajax, triplestore + globals.agentsRepository, null, function () {
+        saveImportedBTs(ajax, triplestore, matches, zipFile);
+      });
     } else if (zipFile.agents.import) {
       sendFile(ajax, triplestore + globals.agentsRepository, zipFile.agents.import.raw);
-    }
-    console.log(matches.behaviors);
-    if (matches.behaviors.length > 0) {
-      rdfGraph.reset();
-      rdfGraph.set(zipFile.behaviors.original.rdf);
-      btActions.deleteMatches(matches.behaviors, zipFile.behaviors.original.defs);
-      rdfGraph.addAll(zipFile.behaviors.import.quads);
-      btActions.saveGraph(ajax, triplestore + globals.behaviorsRepository, null);
-    } else if (zipFile.behaviors.import) {
-      sendFile(ajax, triplestore + globals.behaviorsRepository, zipFile.behaviors.import.raw);
+      saveImportedBTs(ajax, triplestore, matches, zipFile);
+    } else {
+      console.log(matches.behaviors);
+      saveImportedBTs(ajax, triplestore, matches, zipFile);
     }
     $("#save-confirmation").trigger("showToast");
   }, zipFile.info.input);
+}
+
+function saveImportedBTs(ajax, triplestore, matches, zipFile) {
+  if (matches.behaviors.length > 0) {
+    rdfGraph.reset();
+    rdfGraph.set(zipFile.behaviors.original.rdf);
+    btActions.deleteMatches(matches.behaviors, zipFile.behaviors.original.defs);
+    rdfGraph.addAll(zipFile.behaviors.import.quads);
+    btActions.saveGraph(ajax, triplestore + globals.behaviorsRepository, null);
+  } else if (zipFile.behaviors.import) {
+    sendFile(ajax, triplestore + globals.behaviorsRepository, zipFile.behaviors.import.raw);
+  }
+}
+
+function showCloudDialog(ajax, triplestore) {
+  cloudModal.createCloudModal(function (file) {
+    console.log(file);
+    if (file && file.length > 0) {
+      unzip(file[0].zip, function (zipFile) {
+        readInfoJSON(zipFile, triplestore, ajax, readAgentsTTL);
+      });
+    }
+  });
 }
 
 export {TriplestoreListing};

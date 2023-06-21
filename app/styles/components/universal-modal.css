@@ -81,3 +81,24 @@ h2 {
   height: 100%;
   line-height: normal;
 }
+
+:global(.cloud-modal .modal-p) {
+  margin-top: 10px;
+}
+
+:global(.cloud-modal .modal-p input) {
+  margin-left: 10px;
+  width: 25em;
+}
+
+:global(.cloud-modal button) {
+  margin-left: 10px !important;
+}
+
+:global(.cloud-modal .available-packages) {
+  margin-top: 20px;
+}
+
+:global(.cloud-modal .available-packages input) {
+  width: 5em;
+}

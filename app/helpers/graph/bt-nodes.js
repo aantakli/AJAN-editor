@@ -32,7 +32,6 @@ class btNodes {
 	}
 
   init(nodes) {
-    console.log(nodes);
 		this.data = nodes || this.data;
     nodes.forEach(node => {
 			node.class = "BehaviorTree";

@@ -26,15 +26,17 @@ import * as zip from "zip-js-webpack";
 
 let $ = Ember.$;
 let agents = null;
-let info = {};
 let behaviors = null;
+let domain = null;
+let definitions = null;
+let info = {};
 let elem = null;
 
 export default {
   createExportModal: createExportModal
 };
 
-function createExportModal(agentsModel, behaviorsModel) {
+function createExportModal(agentsModel, behaviorsModel, domainModel, definitionsModel) {
   console.log("Ask for export AJAN-models");
   $("#modal-header-title").text("Export AJAN-models");
   let $body = $("#modal-body"),
@@ -44,12 +46,16 @@ function createExportModal(agentsModel, behaviorsModel) {
 
   agents = agentsModel;
   behaviors = behaviorsModel;
+  domain = domainModel;
+  definitions = definitionsModel;
   info = {};
 
   modals.getInfoHTML($body, info);
   modals.getOptionals($body, info);
   modals.getAgentModels($body, agents);
   modals.getBehaviorsModels($body, behaviors);
+  modals.getDomain($body, domain);
+  modals.getDefinitions($body, definitions);
 
   addModelsSectionListener();
 
@@ -97,14 +103,15 @@ function onConfirm() {
   json["contains"] = new Array();
   let agentsRDF = getAgentChecks(json, agents);
   let behaviorsRDF = getBehaviorChecks(json, behaviors);
-  let infotxt = JSON.stringify(json, null, 2);
-  console.log(infotxt);
-  downloadFile(infotxt, agentsRDF, behaviorsRDF);
+  let domainRDF = getReposChecks(json, domain);
+  let definitionsRDF = getReposChecks(json, definitions);
+  downloadFile(json, agentsRDF, behaviorsRDF, domainRDF, definitionsRDF);
   removeModelsSectionListener();
   elem.removeEventListener("modal:confirm", onConfirm);
 }
 
 function getVals(json, model) {
+  json["package"] = model.package.val();
   json["author"] = model.author.val();
   json["vendor"] = model.vendor.val();
   json["vendorDomain"] = model.domain.val();
@@ -132,7 +139,7 @@ function getAgentChecks(json, model) {
   quads = setEndpoints(json, model, quads);
   quads = setEvents(json, model, quads);
   quads = setGoals(json, model, quads);
-  return rdfGraph.toString(quads) + ".";
+  return rdfGraph.toString(quads);
 }
 
 function getBehaviorChecks(json, model) {
@@ -224,27 +231,48 @@ function setBTs(json, model) {
       output += rdfManager.exportBT(entry.uri, model.defs.filter(item => item.uri !== entry.uri));
     }
   });
-  return "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> . " + output;
+  return "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n" + output;
 }
 
-function downloadFile(info, agents, behaviors) {
-  zipBlob(new Blob([info]), new Blob([agents]), new Blob([behaviors]), function (zip) {
+function getReposChecks(json, model) {
+  let output = "";
+  model.defs.forEach(function (entry) {
+    if (entry.field.prop('checked')) {
+      createObject(json, entry, "Repository");
+      output += entry.data;
+    }
+  });
+  return output;
+}
+
+function downloadFile(info, agents, behaviors, domain, definitions) {
+  let infotxt = JSON.stringify(info, null, 2);
+  console.log(infotxt);
+  zipBlob(new Blob([infotxt]), new Blob([agents]), new Blob([behaviors]), new Blob([domain]), new Blob([definitions]), function (zip) {
     var a = window.document.createElement('a');
     a.href = URL.createObjectURL(new Blob([zip]));
-    a.download = 'ajanPackage.zip';
+    console.log(info.package);
+    if (info.package == "")
+      a.download = 'ajanPackage.ajan';
+    else
+      a.download = info.package + '.ajan';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
   });
 }
 
-function zipBlob(info, agents, behaviors, callback) {
+function zipBlob(info, agents, behaviors, domain, definitions, callback) {
   zip.createWriter(new zip.BlobWriter("application/zip"), function (zipWriter) {
     zipWriter.add('info.json', new zip.BlobReader(info), function () {
-      zipWriter.add('agents/agents.ttl', new zip.BlobReader(agents), function () {
+      zipWriter.add('agents/agents.trig', new zip.BlobReader(agents), function () {
         zipWriter.add('behaviors/behaviors.ttl', new zip.BlobReader(behaviors), function () {
-          zipWriter.close(callback);
-        });
+          zipWriter.add('domain/domain.trig', new zip.BlobReader(domain), function () {
+            zipWriter.add('definitions/editor_data.trig', new zip.BlobReader(definitions), function () {
+              zipWriter.close(callback);
+            });
+          });
+        })
       });
     });
   }, onerror);

@@ -25,12 +25,15 @@ export default {
   getInfoHTML: getInfoHTML,
   getOptionals: getOptionals,
   getAgentModels: getAgentModels,
-  getBehaviorsModels: getBehaviorsModels
+  getBehaviorsModels: getBehaviorsModels,
+  getDomain: getDomain,
+  getDefinitions: getDefinitions
 };
 
 function getInfoHTML($body, info) {
   let $header = $("<h2>Package Information</h2>", {});
   let $info = $("<div>", { class: "modal-models-overview active" });
+  info.package = createInputField($info, "Package Name");
   info.author = createInputField($info, "Author");
   info.vendor = createInputField($info, "Vendor");
   info.domain = createInputField($info, "Domain");
@@ -211,6 +214,50 @@ function getBehaviorsModels($body, model) {
 
 function createBTs($info, model) {
   $info.append($("<h3>Behavior Trees</h3>"));
+  model.defs.forEach(function (entry) {
+    entry.field = createSelectField($info, entry);
+  });
+}
+
+// ---------------------------------
+// Domain
+// ---------------------------------
+
+function getDomain($body, model) {
+  let $header = createHeader("Add Domain information");
+  let $info = $("<div>", { class: "modal-models-overview" });
+  createDomains($info, model);
+  console.log($body);
+  console.log(model);
+  let $infoDiv = createModelsDiv($header, $info);
+  // Append to modal body
+  $body.append($infoDiv);
+}
+
+function createDomains($info, model) {
+  $info.append($("<h3>Domain Information</h3>"));
+  model.defs.forEach(function (entry) {
+    entry.field = createSelectField($info, entry);
+  });
+}
+
+// ---------------------------------
+// Definitions
+// ---------------------------------
+
+function getDefinitions($body, model) {
+  let $header = createHeader("Add Editor Definitions");
+  let $info = $("<div>", { class: "modal-models-overview" });
+  createDefinitions($info, model);
+  console.log($body);
+  console.log(model);
+  let $infoDiv = createModelsDiv($header, $info);
+  // Append to modal body
+  $body.append($infoDiv);
+}
+
+function createDefinitions($info, model) {
+  $info.append($("<h3>Editor Definitions</h3>"));
   model.defs.forEach(function (entry) {
     entry.field = createSelectField($info, entry);
   });

@@ -137,7 +137,6 @@ function getMatchesHTML(matches, $body) {
 }
 
 function getTypeMatches(matches, $matches) {
-  console.log(matches);
   matches.forEach((item) => {
     if (item != undefined) {
       if (item.label != undefined) {

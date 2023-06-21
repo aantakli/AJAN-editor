@@ -98,12 +98,18 @@ function buttonExport() {
 
 function buttonImport() {
   return $('<div class="triplestore-import ui grey icon button"></div>').append(
-    $('<input class="upload icon" type="file" accept=".zip" value="">')
+    $('<input class="upload icon" type="file" accept=".ajan" value="">')
+  );
+}
+
+function buttonCloud() {
+  return $('<div class="triplestore-cloud ui grey icon button"></div>').append(
+    $('<i class="download cloud icon"></i>')
   );
 }
 
 function buttons() {
 	return $("<div>", {
 		class: "blocks btn right"
-  }).append(buttonExport(), buttonImport(), buttonEdit(), buttonRemove());
+  }).append(buttonExport(), buttonImport(), buttonCloud(), buttonEdit(), buttonRemove());
 }

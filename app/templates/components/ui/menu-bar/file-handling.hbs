@@ -1,0 +1,17 @@
+{{#ui/menu-bar/dropdown
+  label="File"
+  class="tab-bar"
+}}
+{{ui/menu-bar/input-button
+    label="Load Repo"
+    class="loadRepo"
+    accept=".trig"
+    compAction=(action "loadRepo")
+    icon="cloud upload"
+  }}
+<div class="exportRepo">
+  <i class="download icon"></i>
+  <a class="menu menu-button primary button" {{action "exportRepo"}}>Export Repo</a>
+</div>
+{{/ui/menu-bar/dropdown}}
+

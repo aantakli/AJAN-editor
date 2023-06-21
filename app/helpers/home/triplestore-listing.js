@@ -493,25 +493,6 @@ function getBTDefs() {
 
 function showImportDialog(ajax, triplestore, zipFile, matches) {
   importModal.createImportModal(matches, function () {
-    if (matches.agents.length > 0) {
-      rdfGraph.reset();
-      rdfGraph.set(zipFile.agents.original.rdf);
-      agtActions.deleteMatches(matches.agents);
-      rdfGraph.addAll(zipFile.agents.import.quads);
-      agtActions.saveAgentGraph(ajax, triplestore + globals.agentsRepository, null);
-    } else if (zipFile.agents.import) {
-      sendFile(ajax, triplestore + globals.agentsRepository, zipFile.agents.import.raw);
-    }
-    console.log(matches.behaviors);
-    if (matches.behaviors.length > 0) {
-      rdfGraph.reset();
-      rdfGraph.set(zipFile.behaviors.original.rdf);
-      btActions.deleteMatches(matches.behaviors, zipFile.behaviors.original.defs);
-      rdfGraph.addAll(zipFile.behaviors.import.quads);
-      btActions.saveGraph(ajax, triplestore + globals.behaviorsRepository, null);
-    } else if (zipFile.behaviors.import) {
-      sendFile(ajax, triplestore + globals.behaviorsRepository, zipFile.behaviors.import.raw);
-    }
     if (zipFile.domain.import) {
       deleteRepo(ajax, triplestore + globals.domainRepository, queries.deleteAll())
         .then(sendFile(ajax, triplestore + globals.domainRepository, zipFile.domain.import))
@@ -520,8 +501,36 @@ function showImportDialog(ajax, triplestore, zipFile, matches) {
       deleteRepo(ajax, triplestore + globals.definitionsRepository, queries.deleteAll())
         .then(sendFile(ajax, triplestore + globals.definitionsRepository, zipFile.definitions.import))
     }
+    console.log(matches.agents);
+    if (matches.agents.length > 0) {
+      rdfGraph.reset();
+      rdfGraph.set(zipFile.agents.original.rdf);
+      agtActions.deleteMatches(matches.agents);
+      rdfGraph.addAll(zipFile.agents.import.quads);
+      agtActions.saveAgentGraph(ajax, triplestore + globals.agentsRepository, null, function () {
+        saveImportedBTs(ajax, triplestore, matches, zipFile);
+      });
+    } else if (zipFile.agents.import) {
+      sendFile(ajax, triplestore + globals.agentsRepository, zipFile.agents.import.raw);
+      saveImportedBTs(ajax, triplestore, matches, zipFile);
+    } else {
+      console.log(matches.behaviors);
+      saveImportedBTs(ajax, triplestore, matches, zipFile);
+    }
     $("#save-confirmation").trigger("showToast");
   }, zipFile.info.input);
+}
+
+function saveImportedBTs(ajax, triplestore, matches, zipFile) {
+  if (matches.behaviors.length > 0) {
+    rdfGraph.reset();
+    rdfGraph.set(zipFile.behaviors.original.rdf);
+    btActions.deleteMatches(matches.behaviors, zipFile.behaviors.original.defs);
+    rdfGraph.addAll(zipFile.behaviors.import.quads);
+    btActions.saveGraph(ajax, triplestore + globals.behaviorsRepository, null);
+  } else if (zipFile.behaviors.import) {
+    sendFile(ajax, triplestore + globals.behaviorsRepository, zipFile.behaviors.import.raw);
+  }
 }
 
 function showCloudDialog(ajax, triplestore) {

@@ -36,6 +36,7 @@ function createCloudModal(callbackFunct) {
   $("#modal-header-title").text("Import AJAN-packages");
   let $body = $("#modal-body"),
     $modal = $("#universal-modal");
+  $body.addClass("cloud-modal");
   $body.empty();
   getURL($body);
   $modal.show();
@@ -68,13 +69,15 @@ function onCancel() {
 function getURL($body) {
   let $info = $("<div>", {});
   $info.append($("<h2>Packages Location</h2>"));
-  let $url = $("<input class='cloud-url' value='" + url + "'\>");
+  let $url = $("<div class='ui input' ><input class='ember-text-field cloud-url' value='" + url + "'\ ></div>");
+  let $button = $("<button class='ui icon button'><i class='sync icon'></i></button>");
   $info.append($("<div>", {
     class: "modal-p"
   }).append("<b>URL:</b> ")
     .append($url)
-    .append("<button class='reload icon'><i class='reload icon'></i></button>")
-    .off("click").click(event => getGitPackages(event, $url)));
+    .append($button));
+
+  $button.off("click").click(event => getGitPackages(event, $url));
 
   $packages = $('<div class="available-packages">');
   $info.append($packages);
@@ -92,7 +95,7 @@ function getGitPackages(event, $url) {
   $packages.empty();
   $packages.append($("<h2>Available Packages</h2>"));
   $.ajax({
-    url: $url.val(),
+    url: $url.children('input').val(),
     type: "GET",
     accept: "application/json; charset=utf-8"
   }).then(function (data) {

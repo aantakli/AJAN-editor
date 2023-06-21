@@ -139,26 +139,24 @@
 }
 
 :global(.input.label) {
-  width: 20%;
-  left: 0;
+  width: 17%;
+  left: 10px;
 }
 
 :global(.input.uri) {
-  width: 50%;
+  width: 45%;
   left: 20%;
 }
 
 :global(.checkbox.secured) {
   width: 10%;
   height: 28px;
-  left: 70%;
-  padding-left: 20px;
+  left: 66%;
 }
 
 :global(.checkbox.secured input) {
   top: -27px;
   position: relative;
-  margin-left: 10px;
 }
 
 
@@ -227,3 +225,6 @@ input {
   height: 2.55em !important;
 }
 
+:global(.triplestore-remove) {
+  margin-right: 10px !important;
+}

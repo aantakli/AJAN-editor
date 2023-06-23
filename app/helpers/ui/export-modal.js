@@ -153,6 +153,13 @@ function setTemplates(json, model, quads) {
     if (entry.field.prop('checked')) {
       createObject(json, entry, "Agent");
       quads = quads.concat(rdfGraph.getAllQuads(entry.uri));
+      if (entry.initKnowledge) {
+        rdfGraph.forEach(item => {
+          if (item.graph.value == entry.initKnowledge) {
+            quads = quads.concat(item);
+          }
+        });
+      }
     }
   });
   return quads;

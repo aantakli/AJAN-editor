@@ -217,7 +217,17 @@ class RDFGraph {
         );
       });
     }
-	}
+  }
+
+  removeNamedGraph(val) {
+    this.setUnsavedChanges(true);
+    console.warn("Delete NamedGraph", val);
+    this.data._quads = this.data._quads.filter(quad => {
+      return (
+        quad.graph.value !== val
+      );
+    });
+  }
 
   removeRelatedQuads(subject, predicate) {
     this.setUnsavedChanges(true);

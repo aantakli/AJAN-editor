@@ -98,6 +98,7 @@ function getAgentsDefinitions(graph, resource) {
       }
       if (quad.predicate.value === AGENTS.initKnowledge) {
         agent.initKnowledge = quad.object.value;
+        agent.knowledgeData = readAgentInitKnowledge(graph, agent.initKnowledge);
       }
       if (quad.predicate.value === AGENTS.endpoint) {
         agent.endpoints = {};
@@ -154,5 +155,15 @@ function getAgentsDefinitions(graph, resource) {
   agent.events = events;
   agent.endpoints = endpoints;
   return agent;
+}
+
+function readAgentInitKnowledge(graph, initKnowledge) {
+  let knowledge = rdf.dataset();
+  graph.forEach((quad) => {
+    if (quad.graph.value == initKnowledge) {
+      knowledge.add(rdf.quad(quad.subject, quad.predicate, quad.object));
+    }
+  });
+  return knowledge.toCanonical();
 }
 

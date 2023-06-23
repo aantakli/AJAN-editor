@@ -93,7 +93,8 @@ export default {
 };
 
 function deleteAgent(agent, noObject) {
-	console.log(agent);
+  console.log(agent);
+  rdfGraph.removeNamedGraph(agent.initKnowledge);
   rdfGraph.removeAllRelated(agent.uri, noObject);
 }
 
@@ -137,7 +138,7 @@ function createDefaultAgent(repo) {
   agent.behaviors = new Array();
   agent.events = new Array();
   agent.endpoints = new Array();
-  agent.initKnowledge = agent.uri + "/initKnowledge";
+  agent.initKnowledge = agent.uri + "/InitKnowledge";
   return agent;
 }
 

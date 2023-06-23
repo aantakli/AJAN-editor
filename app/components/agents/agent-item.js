@@ -339,14 +339,8 @@ function setFileContent(uri) {
 
 
 function readAgentInitKnowledge() {
-  if (rdfGraph.data) {
-    let knowledge = rdf.dataset();
-    rdfGraph.forEach((quad) => {
-      if (quad.graph.value == self.get("activeAgent.initKnowledge")) {
-        knowledge.add(rdf.quad(quad.subject, quad.predicate, quad.object));
-      }
-    });
-    self.set("agentInitKnowledge", knowledge.toCanonical());
+  if (self.get("activeAgent.initKnowledge")) {
+    self.set("agentInitKnowledge", self.get("activeAgent.knowledgeData"));
   }
 }
 

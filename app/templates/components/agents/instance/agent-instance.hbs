@@ -162,12 +162,10 @@
 <br />
 
 <div class="agentInstance-action" local-class="instance-row clearfix">
-  <h4>
-    <span data-tooltip={{this.selectedEndpoint.uri}}>{{this.selectedEndpoint.label}}</span>
-  </h4>
+  <h4><u>{{this.selectedEndpoint.label}}</u></h4>
   {{this.selectedEndpoint.contentType}}
-<div class="contentType-wrapper">
-  HTTP Method: POST; Content-Type: {{#ui-dropdown class="selection service-edit-dropdown" selected=this.selectedEndpoint.selectedType onChange=(action (mut this.selectedEndpoint.selectedType))}}
+  <div class="contentType-wrapper">
+    <b>HTTP Method:</b> POST; <b>Content-Type:</b> {{#ui-dropdown class="selection service-edit-dropdown" selected=this.selectedEndpoint.selectedType onChange=(action (mut this.selectedEndpoint.selectedType))}}
   <div class="default text">{{this.selectedEndpoint.selectedType}}</div>
   <i class="dropdown icon"></i>
   <div class="menu">
@@ -179,20 +177,20 @@
   </div>
   {{/ui-dropdown}}
 </div>
-
-<div local-class="instance-row-content">
-  <div id="test" local-class="instance-row-value">
-    {{textarea value=this.selectedEndpoint.agentMessage cols="80" rows="6"}}
+  <b>URI:</b> {{this.selectedEndpoint.uri}}<br />
+  <div local-class="instance-row-content" style="margin-top: 10px">
+    <div id="test" local-class="instance-row-value">
+      {{textarea value=this.selectedEndpoint.agentMessage cols="80" rows="6"}}
+    </div>
+    {{#if (eq messageError.uri this.selectedEndpoint.uri)}}
+    <p local-class="error-message">{{messageError.error}}</p>
+    {{/if}}
+    <div>
+      <button data-tooltip="send Message" class="ui right icon yellow button" local-class="instance-row-copy" {{action "sendMsgToAgent" this.selectedEndpoint.uri this.selectedEndpoint.agentMessage this.selectedEndpoint.selectedType}}>
+        <i class="icon send no-side-margins"></i>
+      </button>
+    </div>
   </div>
-  {{#if (eq messageError.uri this.selectedEndpoint.uri)}}
-  <p local-class="error-message">{{messageError.error}}</p>
-  {{/if}}
-  <div>
-    <button data-tooltip="send Message" class="ui right icon yellow button" local-class="instance-row-copy" {{action "sendMsgToAgent" this.selectedEndpoint.uri this.selectedEndpoint.agentMessage this.selectedEndpoint.selectedType}}>
-      <i class="icon send no-side-margins"></i>
-    </button>
-  </div>
-</div>
 </div>
 
   {{/if}}

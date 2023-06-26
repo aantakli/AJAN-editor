@@ -362,4 +362,11 @@ tr {
   min-height: 100%;
 }
 
+:global(.message-to-endpoint) {
+  float: left;
+}
 
+:global(.endpoint-selection) {
+  margin-left: 10px;
+  top: 8px;
+}

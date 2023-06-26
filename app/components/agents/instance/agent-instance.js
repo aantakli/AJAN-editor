@@ -40,6 +40,8 @@ export default Ember.Component.extend({
   wssMessage: "",
   btView: "",
   debugReport: null,
+  selectedCapability: null,
+  selectedEndpoint: null,
 
   prefixes: {
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#": "rdf:",
@@ -59,10 +61,24 @@ export default Ember.Component.extend({
     this.get("activeInstance").actions = new Array();
   },
 
+  didReceiveAttrs() {
+    console.log("didReceiveAttrs");
+    let firstAction = this.get("activeInstance.actions")[0];
+    if (firstAction) {
+      this.set("selectedCapability", firstAction.uri);
+      console.log(this.get("selectedCapability"));
+    }
+  },
+
   didUpdate() {
     getQueriesRepo(this);
     setBTView(this);
     createLogs();
+    let uri = this.get("selectedCapability");
+    let filter = this.get("activeInstance.actions").filter(item => item.uri == uri);
+    if (filter[0]) {
+      this.set("selectedEndpoint", filter[0]);
+    }
   },
 
   didDestroyElement() {
@@ -92,6 +108,9 @@ export default Ember.Component.extend({
     },
 
     sendMsgToAgent(uri, content, type) {
+      console.log(uri);
+      console.log(content);
+      console.log(type);
       try {
         let dataset = checkContent(content, type);
         Promise.resolve(dataset)
@@ -395,7 +414,6 @@ function setBTView(self) {
   if (self.get("activeInstance.reportURI")) {
     connect = true;
   }
-  console.log(self.get("activeInstance"));
   let path = "/editor/behaviors?wssConnection=" + connect + "&agent=" + self.get("activeInstance.id") + "&repo=" + getAgentStatementsURI(self);
   self.set("btView", origin + path);
 }

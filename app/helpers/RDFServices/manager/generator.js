@@ -118,7 +118,11 @@ function generateParameter(
 			node = quad.object;
 		}
 		// Add quads to graph
-		rdfGraph.add(rdfFact.quadLiteral(node, BT.sparql, "", XSD.string));
+    if (structure.default) {
+      rdfGraph.add(rdfFact.quadLiteral(node, BT.sparql, structure.default, XSD.string));
+    } else {
+      rdfGraph.add(rdfFact.quadLiteral(node, BT.sparql, "", XSD.string));
+    }
 		// Differentiate between target and origin base
 		if (!structure.targetBase && !structure.originBase) {
 			rdfGraph.add(rdfFact.quad(node, BT.beliefBase, "http://www.ajan.de/ajan-ns#AgentKnowledge"));

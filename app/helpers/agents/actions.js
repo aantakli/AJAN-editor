@@ -151,6 +151,7 @@ function createDefinedAgent(repo, btDef, includedEvents, includedBehaviors, incl
   agent.behaviors = includedBehaviors;
   agent.events = includedEvents.all;
   agent.endpoints = includedEndpoints;
+  agent.initKnowledge = agent.uri + "/InitKnowledge";
   return agent;
 }
 
@@ -251,7 +252,7 @@ function createDefinedEndpoint(repo, btDef, event, includedEndpoints) {
   endpoint.type = AGENTS.Endpoint;
   endpoint.name = "Endpoint";
   endpoint.label = btDef.name + " Endpoint";
-  endpoint.capability = "execute";
+  endpoint.capability = btDef.name.replaceAll(" ","_");
   endpoint.events = [event];
   includedEndpoints.push(endpoint.uri);
   return endpoint;

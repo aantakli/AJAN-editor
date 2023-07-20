@@ -139,7 +139,13 @@ function getAgentChecks(json, model) {
   quads = setEndpoints(json, model, quads);
   quads = setEvents(json, model, quads);
   quads = setGoals(json, model, quads);
-  return rdfGraph.toString(quads);
+  if (quads.length > 0) {
+    return rdfGraph.toString(quads);
+  }
+  else {
+    console.log("No agent models selected for exporting!");
+    return "";
+  }
 }
 
 function getBehaviorChecks(json, model) {
@@ -238,7 +244,13 @@ function setBTs(json, model) {
       output += rdfManager.exportBT(entry.uri, model.defs.filter(item => item.uri !== entry.uri));
     }
   });
-  return "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n" + output;
+  if (output) {
+    return "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n" + output;
+  }
+  else {
+    console.log("No behaviors selected for exporting!");
+    return "";
+  }
 }
 
 function getReposChecks(json, model) {
@@ -272,15 +284,51 @@ function downloadFile(info, agents, behaviors, domain, definitions) {
 function zipBlob(info, agents, behaviors, domain, definitions, callback) {
   zip.createWriter(new zip.BlobWriter("application/zip"), function (zipWriter) {
     zipWriter.add('info.json', new zip.BlobReader(info), function () {
-      zipWriter.add('agents/agents.trig', new zip.BlobReader(agents), function () {
-        zipWriter.add('behaviors/behaviors.ttl', new zip.BlobReader(behaviors), function () {
-          zipWriter.add('domain/domain.trig', new zip.BlobReader(domain), function () {
-            zipWriter.add('definitions/editor_data.trig', new zip.BlobReader(definitions), function () {
-              zipWriter.close(callback);
-            });
-          });
-        })
-      });
+      addAgentsFile(zipWriter, agents, behaviors, domain, definitions, callback);
     });
   }, onerror);
+}
+
+function addAgentsFile(zipWriter, agents, behaviors, domain, definitions, callback) {
+  if (agents.size > 0) {
+    zipWriter.add('agents/agents.trig', new zip.BlobReader(agents), function () {
+      addBehaviorsFile(zipWriter, behaviors, domain, definitions, callback);
+    });
+  }
+  else {
+    addBehaviorsFile(zipWriter, behaviors, domain, definitions, callback);
+  }
+}
+
+function addBehaviorsFile(zipWriter, behaviors, domain, definitions, callback) {
+  if (behaviors.size > 0) {
+    zipWriter.add('behaviors/behaviors.ttl', new zip.BlobReader(behaviors), function () {
+      addDomainFile(zipWriter, domain, definitions, callback);
+    });
+  }
+  else {
+    addDomainFile(zipWriter, domain, definitions, callback);
+  }
+}
+
+function addDomainFile(zipWriter, domain, definitions, callback) {
+  if (domain.size > 0) {
+    zipWriter.add('behaviors/domain.ttl', new zip.BlobReader(domain), function () {
+      addDefinitionsFile(zipWriter, definitions, callback);
+    });
+  }
+  else {
+    addDefinitionsFile(zipWriter, definitions, callback);
+  }
+}
+
+function addDefinitionsFile(zipWriter, definitions, callback) {
+  if (definitions.size > 0) {
+    zipWriter.add('definitions/editor_data.trig', new zip.BlobReader(definitions), function () {
+      zipWriter.close(callback);
+    });
+  }
+  else {
+    zipWriter.close(callback);
+  }
 }

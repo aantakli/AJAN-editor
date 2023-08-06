@@ -89,6 +89,9 @@ function setNodeState(state, node) {
       case "RUNNING":
         node.style = nodeRunning();
         break;
+      case "CANCELLED":
+        node.style = nodeCancelled();
+        break;
       default:
         node.style = nodeFresh();
         break;
@@ -117,6 +120,13 @@ function nodeFailed() {
 function nodeRunning() {
   return {
     "border-color": "#325ca8",
+    "border-width": "7px"
+  };
+}
+
+function nodeCancelled() {
+  return {
+    "border-color": "#cc9f2f",
     "border-width": "7px"
   };
 }

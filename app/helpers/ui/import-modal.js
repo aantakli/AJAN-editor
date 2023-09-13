@@ -39,7 +39,7 @@ function createImportModal(matches, callbackFunct, info) {
     getInfoHTML(info, $body);
   }
   if (matches) {
-    getMatchesHTML(matches, $body);
+    getMatchesHTML(info, matches, $body);
   }
 
   // Listen for the confirm event
@@ -118,7 +118,8 @@ function setOptionalsHTML(optionals, $info) {
   }
 }
 
-function getMatchesHTML(matches, $body) {
+function getMatchesHTML(info, matches, $body) {
+  console.log(info);
   let $matches = $("<div>", {});
   $matches.append($("<hr><h3>Following matches will be overwritten!</h3>"));
   if (Array.isArray(matches))
@@ -129,6 +130,7 @@ function getMatchesHTML(matches, $body) {
     if (matches.behaviors.length > 0)
       getTypeMatches(matches.behaviors, $matches);
   }
+  getRepositoryMatches(info, $matches);
   let $matchesDiv = $("<div>", {
     class: "modal-body-div"
   }).append($matches);
@@ -139,6 +141,7 @@ function getMatchesHTML(matches, $body) {
 function getTypeMatches(matches, $matches) {
   matches.forEach((item) => {
     if (item != undefined) {
+      console.log(item);
       if (item.label != undefined) {
         $matches.append($("<p>", {
           style: 'color: #c92306',
@@ -152,4 +155,18 @@ function getTypeMatches(matches, $matches) {
       }
     }
   });
+}
+
+function getRepositoryMatches(info, $matches) {
+  if (info.contains) {
+    info.contains.forEach((item) => {
+      if (item.type == "Repository") {
+        console.log(item);
+        $matches.append($("<p>", {
+          style: 'color: #c92306',
+          class: "modal-p"
+        }).append("<i>" + item.type + "</i> | <b>" + item.name + "</b> | " + item.uri));
+      }
+    });
+  }
 }

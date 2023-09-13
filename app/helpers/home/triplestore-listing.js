@@ -32,6 +32,7 @@ import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import token from "ajan-editor/helpers/token";
 import queries from "ajan-editor/helpers/RDFServices/queries";
 import * as zip from "zip-js-webpack";
+import rdf from "npm:rdf-ext";
 
 let $ = Ember.$;
 let that = null;
@@ -410,7 +411,7 @@ function loadRdfGraphData(triplestore, ajax) {
 }
 
 function loadRdfGraphZipData(zipFile, triplestore, ajax) {
-  let matches = { agents: [], behaviors: [] };
+  let matches = { agents: [], behaviors: [], repositories: [] };
   loadAgentRdfGraphData(ajax, triplestore, function () {
     let agentDefs = getAgentDefs();
     zipFile.agents.original.rdf = rdfGraph.get();
@@ -420,12 +421,26 @@ function loadRdfGraphZipData(zipFile, triplestore, ajax) {
       zipFile.behaviors.original.rdf = rdfData;
       zipFile.behaviors.original.defs = btDefs;
       if (zipFile.agents.import)
-        matches.agents = agtActions.getAgentDefsMatches(agentDefs, zipFile.agents.import);
+        matches.agents = agtActions.getAgentDefsMatches(agentDefs, zipFile.agents.import, zipFile.info.input.contains);
       if (zipFile.behaviors.import)
         matches.behaviors = btActions.getTTLMatches(btDefs, zipFile.behaviors.import);
+      if (zipFile.definitions.import || zipFile.domain.import)
+        matches.repositories = getRepositoryMatches(zipFile.info.input) ;
       showImportDialog(ajax, triplestore, zipFile, matches);
     });
   });
+}
+
+function getRepositoryMatches(info) {
+  let repositories = [];
+  if (info.contains) {
+    info.contains.forEach((item) => {
+      if (item.type == "Repository") {
+        repositories.push({ name: "Repository", label: item.name, uri: item.uri, match: true });
+      }
+    });
+  }
+  return repositories;
 }
 
 function loadAgentRdfGraphData(ajax, triplestore, onend) {
@@ -501,14 +516,20 @@ function showImportDialog(ajax, triplestore, zipFile, matches) {
       deleteRepo(ajax, triplestore + globals.definitionsRepository, queries.deleteAll())
         .then(sendFile(ajax, triplestore + globals.definitionsRepository, zipFile.definitions.import))
     }
-    console.log(matches.agents);
     if (matches.agents.length > 0) {
+      console.log(matches);
+      rdfGraph.reset();
+      rdfGraph.set(rdf.dataset(zipFile.agents.import.quads));
+      console.log("deleteInverseMatches");
+      agtActions.deleteInverseMatches(matches.agents);
+      let matchesGraph = [...rdfGraph.data._quads];
       rdfGraph.reset();
       rdfGraph.set(zipFile.agents.original.rdf);
+      console.log("deleteMatches");
       agtActions.deleteMatches(matches.agents);
-      rdfGraph.addAll(zipFile.agents.import.quads);
+      rdfGraph.addAll(matchesGraph);
       agtActions.saveAgentGraph(ajax, triplestore + globals.agentsRepository, null, function () {
-        saveImportedBTs(ajax, triplestore, matches, zipFile);
+        //saveImportedBTs(ajax, triplestore, matches, zipFile);
       });
     } else if (zipFile.agents.import) {
       sendFile(ajax, triplestore + globals.agentsRepository, zipFile.agents.import.raw);

@@ -28,6 +28,7 @@ import queries from "ajan-editor/helpers/RDFServices/queries";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import modal from "ajan-editor/helpers/ui/import-modal";
 import token from "ajan-editor/helpers/token";
+import rdf from "npm:rdf-ext";
 
 let $ = Ember.$;
 let repo = undefined;
@@ -200,8 +201,15 @@ function updateType(content, importFile) {
   console.log(matches);
   if (matches.behaviors.length > 0) {
     modal.createImportModal(matches, function () {
+      let originGraph = [...rdfGraph.data._quads];
+      rdfGraph.reset();
+      rdfGraph.set(rdf.dataset(importFile.quads));
+      actions.deleteInverseMatches(matches.behaviors, that.get("availableBTs"));
+      let matchesGraph = [...rdfGraph.data._quads];
+      rdfGraph.set(rdf.dataset(originGraph));
       actions.deleteMatches(matches.behaviors, that.get("availableBTs"));
-      //saveGraph(importFile.quads);
+      rdfGraph.addAll(matchesGraph);
+      saveGraph();
     }, actions.setImportContains(importFile));
   } else {
     sendFile(that.ajax, repo, content)

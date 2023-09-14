@@ -41,6 +41,7 @@ function createImportModal(matches, callbackFunct, info) {
   $modal.show();
 
   if (info) {
+    console.log(info);
     getInfoHTML(info, matches, $body, $matchesDiv);
   }
   if (matches) {
@@ -67,28 +68,42 @@ function onCancel() {
 function getInfoHTML(info, matches, $body, $matchesDiv) {
   let $info = $("<div>", {});
   $info.append($("<h2>Package Information</h2>"));
-  $info.append($("<p>", {
-    class: "modal-p"
-  }).append("<b>Author:</b> " + info.author));
-  $info.append($("<p>", {
-    class: "modal-p"
-  }).append("<b>Vendor:</b> " + info.vendor));
-  $info.append($("<p>", {
-    class: "modal-p"
-  }).append("<b>Domain:</b> " + info.vendorDomain));
-  $info.append($("<p>", {
-    class: "modal-p"
-  }).append("<b>Date:</b> " + info.date));
-  $info.append($("<p>", {
-    class: "modal-p"
-  }).append("<b>Version:</b> " + info.version));
-  $info.append($("<p>", {
-    class: "modal-p"
-  }).append("<b>Comment:</b> " + info.comment));
-
-  setContainsHTML(info.contains, matches, $info, $matchesDiv);
-  setOptionalsHTML(info.optionals, $info);
-
+  if (info.author) {
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Author:</b> " + info.author));
+  }
+  if (info.vendor) {
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Vendor:</b> " + info.vendor));
+  }
+  if (info.vendorDomain) {
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Domain:</b> " + info.vendorDomain));
+  }
+  if (info.date) {
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Date:</b> " + info.date));
+  }
+  if (info.version) {
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Version:</b> " + info.version));
+  }
+  if (info.comment) {
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Comment:</b> " + info.comment));
+  }
+  if (info.contains) {
+    setContainsHTML(info.contains, matches, $info, $matchesDiv);
+  }
+  if (info.optionals) {
+    setOptionalsHTML(info.optionals, $info);
+  }
   let $infoDiv = $("<div>", {
     class: "modal-body-div"
   }).append($info);
@@ -102,7 +117,6 @@ function setContainsHTML(contains, matches, $info, $matchesDiv) {
     $contains.append($("<p><b>Contains/Import:</b>"));
     let $list = $("<ul style='padding-left:0px'>", {});
     contains.forEach((item) => {
-      setImport(matches, item, true);
       let $input = $("<input style='width:3%' type='checkbox' checked id='" + item.uri + "'>");
       $input.click(function () {
         setImport(matches, item, $input.is(":checked"));
@@ -118,12 +132,18 @@ function setContainsHTML(contains, matches, $info, $matchesDiv) {
 }
 
 function setImport(matches, item, checked) {
-  let agtMatch = matches.agents.find(x => x.uri === item.uri);
-  let btMatch = matches.behaviors.find(x => x.uri === item.uri);
-  let repoMatch = matches.repositories.find(x => x.uri === item.uri);
-  if (agtMatch) agtMatch.import = checked;
-  if (btMatch) btMatch.import = checked;
-  if (repoMatch) repoMatch.import = checked;
+  if (matches.agents) {
+    let agtMatch = matches.agents.find(x => x.uri === item.uri);
+    if (agtMatch) agtMatch.import = checked;
+  }
+  if (matches.behaviors) {
+    let btMatch = matches.behaviors.find(x => x.uri === item.uri);
+    if (btMatch) btMatch.import = checked;
+  }
+  if (matches.repositories) {
+    let repoMatch = matches.repositories.find(x => x.uri === item.uri);
+    if (repoMatch) repoMatch.import = checked;
+  }
 }
 
 function setOptionalsHTML(optionals, $info) {
@@ -146,11 +166,11 @@ function getMatchesHTML(matches, $matchesDiv) {
   if (Array.isArray(matches))
     getTypeMatches(matches, $matches);
   else {
-    if (matches.agents.length > 0)
+    if (matches.agents && matches.agents.length > 0)
       getTypeMatches(matches.agents, $matches);
-    if (matches.behaviors.length > 0)
+    if (matches.behaviors && matches.behaviors.length > 0)
       getTypeMatches(matches.behaviors, $matches);
-    if (matches.repositories.length > 0)
+    if (matches.repositories && matches.repositories.length > 0)
       getTypeMatches(matches.repositories, $matches);
   }
   $matchesDiv.append($matches);
@@ -177,6 +197,7 @@ function getTypeMatches(matches, $matches) {
 
 function getTypeName(type) {
   switch (type) {
+    case AGENTS.Repository: return "Repository";
     case AGENTS.AgentTemplate: return "Agent";
     case AGENTS.Behavior: return "Behavior";
     case AGENTS.InitialBehavior: return "InitialBehavior";

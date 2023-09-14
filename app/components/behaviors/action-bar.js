@@ -65,7 +65,7 @@ export default Component.extend({
 
     this.get('dataBus').on('saveExportedBT', function (bt) {
       that.set("btFileName", bt.label + "_bt.ttl");
-      that.set("btContent", URL.createObjectURL(new Blob(["# Root: <" + bt.uri + "> \r\r@prefix xsd: <http://www.w3.org/2001/XMLSchema#> . " + bt.definition])));
+      that.set("btContent", URL.createObjectURL(new Blob(["# Root: <" + bt.uri + "> \r# Label: '" + bt.label + "' \r \r@prefix xsd: <http://www.w3.org/2001/XMLSchema#> . " + bt.definition])));
     });
 
     this.get('dataBus').on('updatedBT', function () {
@@ -194,14 +194,15 @@ function readInput(content) {
 }
 
 function updateType(content, importFile) {
-  let matches = [];
+  let matches = { behaviors: [] };
   if (that.get("availableBTs"))
-    matches = actions.getTTLMatches(that.get("availableBTs"), importFile);
-  if (matches.length > 0) {
+    matches.behaviors = actions.getTTLMatches(that.get("availableBTs"), importFile);
+  console.log(matches);
+  if (matches.behaviors.length > 0) {
     modal.createImportModal(matches, function () {
-      actions.deleteMatches(matches, that.get("availableBTs"));
-      saveGraph(importFile.quads);
-    });
+      actions.deleteMatches(matches.behaviors, that.get("availableBTs"));
+      //saveGraph(importFile.quads);
+    }, actions.setImportContains(importFile));
   } else {
     sendFile(that.ajax, repo, content)
       .then(window.location.reload());

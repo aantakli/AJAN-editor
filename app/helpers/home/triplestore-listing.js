@@ -31,6 +31,7 @@ import exportModal from "ajan-editor/helpers/ui/export-modal";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import token from "ajan-editor/helpers/token";
 import queries from "ajan-editor/helpers/RDFServices/queries";
+import { AGENTS } from "ajan-editor/helpers/RDFServices/vocabulary";
 import * as zip from "zip-js-webpack";
 import rdf from "npm:rdf-ext";
 
@@ -436,7 +437,7 @@ function getRepositoryMatches(info) {
   if (info.contains) {
     info.contains.forEach((item) => {
       if (item.type == "Repository") {
-        repositories.push({ name: "Repository", label: item.name, uri: item.uri, match: true });
+        repositories.push({ type: AGENTS.Repository, name: "Repository", label: item.name, uri: item.uri, match: true, import: true });
       }
     });
   }
@@ -517,19 +518,16 @@ function showImportDialog(ajax, triplestore, zipFile, matches) {
         .then(sendFile(ajax, triplestore + globals.definitionsRepository, zipFile.definitions.import))
     }
     if (matches.agents.length > 0) {
-      console.log(matches);
       rdfGraph.reset();
       rdfGraph.set(rdf.dataset(zipFile.agents.import.quads));
-      console.log("deleteInverseMatches");
       agtActions.deleteInverseMatches(matches.agents);
       let matchesGraph = [...rdfGraph.data._quads];
       rdfGraph.reset();
       rdfGraph.set(zipFile.agents.original.rdf);
-      console.log("deleteMatches");
       agtActions.deleteMatches(matches.agents);
       rdfGraph.addAll(matchesGraph);
       agtActions.saveAgentGraph(ajax, triplestore + globals.agentsRepository, null, function () {
-        //saveImportedBTs(ajax, triplestore, matches, zipFile);
+        saveImportedBTs(ajax, triplestore, matches, zipFile);
       });
     } else if (zipFile.agents.import) {
       sendFile(ajax, triplestore + globals.agentsRepository, zipFile.agents.import.raw);
@@ -545,9 +543,13 @@ function showImportDialog(ajax, triplestore, zipFile, matches) {
 function saveImportedBTs(ajax, triplestore, matches, zipFile) {
   if (matches.behaviors.length > 0) {
     rdfGraph.reset();
+    rdfGraph.set(rdf.dataset(zipFile.behaviors.import.quads));
+    btActions.deleteInverseMatches(matches.behaviors, zipFile.behaviors.original.defs);
+    let matchesGraph = [...rdfGraph.data._quads];
+    rdfGraph.reset();
     rdfGraph.set(zipFile.behaviors.original.rdf);
     btActions.deleteMatches(matches.behaviors, zipFile.behaviors.original.defs);
-    rdfGraph.addAll(zipFile.behaviors.import.quads);
+    rdfGraph.addAll(matchesGraph);
     btActions.saveGraph(ajax, triplestore + globals.behaviorsRepository, null);
   } else if (zipFile.behaviors.import) {
     sendFile(ajax, triplestore + globals.behaviorsRepository, zipFile.behaviors.import.raw);

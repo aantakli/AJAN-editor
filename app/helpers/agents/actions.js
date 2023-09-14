@@ -324,11 +324,13 @@ function getAgentDefsMatches(agentDefs, importFile, contains) {
   matches = getTTLMatches(agentDefs.endpoints, importFile.endpoints, matches);
   matches = getTTLMatches(agentDefs.events, importFile.events, matches);
   matches = getTTLMatches(agentDefs.goals, importFile.goals, matches);
-  setNonMatches(importFile.agents, matches, contains);
-  setNonMatches(importFile.behaviors, matches, contains);
-  setNonMatches(importFile.endpoints, matches, contains);
-  setNonMatches(importFile.events, matches, contains);
-  setNonMatches(importFile.goals, matches, contains);
+  if (contains) {
+    setNonMatches(importFile.agents, matches, contains);
+    setNonMatches(importFile.behaviors, matches, contains);
+    setNonMatches(importFile.endpoints, matches, contains);
+    setNonMatches(importFile.events, matches, contains);
+    setNonMatches(importFile.goals, matches, contains);
+  }  
   return matches;
 }
 
@@ -340,6 +342,7 @@ function getTTLMatches(defs, imports, matches) {
       imports.forEach((item) => {
         if (data.uri === item) {
           data.match = true;
+          data.import = true;
           if (!matches.find(x => x.uri === data.uri))
             matches.push(data);
         }
@@ -355,12 +358,12 @@ function setNonMatches(imports, matches, contains) {
     let importData = clone.find(x => x.uri === data);
     if (!importData) {
       let contain = contains.find(x => x.uri === data);
-      console.log(contain);
       matches.push({
         uri: contain.uri,
         name: contain.name,
         type: getContainType(contain.type),
-        match: false
+        match: false,
+        import: true
       });
     }
   });
@@ -393,7 +396,6 @@ function deleteInverseMatches(matches) {
   if (matches.length > 0) {
     matches.forEach((data) => {
       if (!data.import) {
-        console.log(data);
         deleteMatch(data);
       }
     });

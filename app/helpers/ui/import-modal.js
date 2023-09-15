@@ -140,6 +140,10 @@ function setImport(matches, item, checked) {
     let btMatch = matches.behaviors.find(x => x.uri === item.uri);
     if (btMatch) btMatch.import = checked;
   }
+  if (matches.actions) {
+    let actnMatch = matches.actions.find(x => x.uri === item.uri);
+    if (actnMatch) actnMatch.import = checked;
+  }
   if (matches.repositories) {
     let repoMatch = matches.repositories.find(x => x.uri === item.uri);
     if (repoMatch) repoMatch.import = checked;
@@ -170,6 +174,8 @@ function getMatchesHTML(matches, $matchesDiv) {
       getTypeMatches(matches.agents, $matches);
     if (matches.behaviors && matches.behaviors.length > 0)
       getTypeMatches(matches.behaviors, $matches);
+    if (matches.actions && matches.actions.length > 0)
+      getTypeMatches(matches.actions, $matches);
     if (matches.repositories && matches.repositories.length > 0)
       getTypeMatches(matches.repositories, $matches);
   }
@@ -205,6 +211,7 @@ function getTypeName(type) {
     case AGENTS.Endpoint: return "Endpoint";
     case AGENTS.Event: return "Event";
     case AGENTS.Goal: return "Goal";
+    case ACTN.ServiceAction: return "ServiceAction";
     default: return type;
   }
 }

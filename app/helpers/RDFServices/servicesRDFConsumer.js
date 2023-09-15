@@ -35,9 +35,10 @@ export default {
 
 // Use this to parse data for behavior
 // Request the entire graph
-function getActionsGraph(data) {
-	const quadStream = parser.import(stringToStream(JSON.stringify(data)));
-
+function getActionsGraph(data, ttl) {
+  let quadStream = data;
+  if (!ttl)
+    quadStream = parser.import(stringToStream(JSON.stringify(data)));
 	let obj = rdf
 		.dataset()
 		.import(quadStream)

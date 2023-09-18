@@ -27,6 +27,7 @@ import * as zip from "zip-js-webpack";
 let $ = Ember.$;
 let agents = null;
 let behaviors = null;
+let actions = null;
 let domain = null;
 let definitions = null;
 let info = {};
@@ -36,7 +37,7 @@ export default {
   createExportModal: createExportModal
 };
 
-function createExportModal(agentsModel, behaviorsModel, domainModel, definitionsModel) {
+function createExportModal(agentsModel, behaviorsModel, actionsModel, domainModel, definitionsModel) {
   console.log("Ask for export AJAN-models");
   $("#modal-header-title").text("Export AJAN-models");
   let $body = $("#modal-body"),
@@ -46,6 +47,7 @@ function createExportModal(agentsModel, behaviorsModel, domainModel, definitions
 
   agents = agentsModel;
   behaviors = behaviorsModel;
+  actions = actionsModel;
   domain = domainModel;
   definitions = definitionsModel;
   info = {};
@@ -53,7 +55,8 @@ function createExportModal(agentsModel, behaviorsModel, domainModel, definitions
   modals.getInfoHTML($body, info);
   modals.getOptionals($body, info);
   modals.getAgentModels($body, agents);
-  modals.getBehaviorsModels($body, behaviors);
+  modals.getBehaviorModels($body, behaviors);
+  modals.getActionModels($body, actions);
   modals.getDomain($body, domain);
   modals.getDefinitions($body, definitions);
 
@@ -103,9 +106,10 @@ function onConfirm() {
   json["contains"] = new Array();
   let agentsRDF = getAgentChecks(json, agents);
   let behaviorsRDF = getBehaviorChecks(json, behaviors);
+  let actionsRDF = getActionChecks(json, actions);
   let domainRDF = getReposChecks(json, domain);
   let definitionsRDF = getReposChecks(json, definitions);
-  downloadFile(json, agentsRDF, behaviorsRDF, domainRDF, definitionsRDF);
+  downloadFile(json, agentsRDF, behaviorsRDF, actionsRDF, domainRDF, definitionsRDF);
   removeModelsSectionListener();
   elem.removeEventListener("modal:confirm", onConfirm);
 }
@@ -253,6 +257,30 @@ function setBTs(json, model) {
   }
 }
 
+function getActionChecks(json, model) {
+  rdfGraph.reset();
+  rdfGraph.set(model.rdf);
+  return setActions(json, model);
+}
+
+function setActions(json, model) {
+  let output = "";
+  model.defs.services.forEach(function (entry) {
+    if (entry.field.prop('checked')) {
+      createObject(json, entry, "ServiceAction");
+      output += rdfGraph.toString(entry.quads);
+    }
+  });
+  console.log(output);
+  if (output) {
+    return output;
+  }
+  else {
+    console.log("No actions selected for exporting!");
+    return "";
+  }
+}
+
 function getReposChecks(json, model) {
   let output = "";
   model.defs.forEach(function (entry) {
@@ -264,10 +292,10 @@ function getReposChecks(json, model) {
   return output;
 }
 
-function downloadFile(info, agents, behaviors, domain, definitions) {
+function downloadFile(info, agents, behaviors, actions, domain, definitions) {
   let infotxt = JSON.stringify(info, null, 2);
   console.log(infotxt);
-  zipBlob(new Blob([infotxt]), new Blob([agents]), new Blob([behaviors]), new Blob([domain]), new Blob([definitions]), function (zip) {
+  zipBlob(new Blob([infotxt]), new Blob([agents]), new Blob([behaviors]), new Blob([actions]), new Blob([domain]), new Blob([definitions]), function (zip) {
     var a = window.document.createElement('a');
     a.href = URL.createObjectURL(new Blob([zip]));
     console.log(info.package);
@@ -281,28 +309,39 @@ function downloadFile(info, agents, behaviors, domain, definitions) {
   });
 }
 
-function zipBlob(info, agents, behaviors, domain, definitions, callback) {
+function zipBlob(info, agents, behaviors, actions, domain, definitions, callback) {
   zip.createWriter(new zip.BlobWriter("application/zip"), function (zipWriter) {
     zipWriter.add('info.json', new zip.BlobReader(info), function () {
-      addAgentsFile(zipWriter, agents, behaviors, domain, definitions, callback);
+      addAgentsFile(zipWriter, agents, behaviors, actions, domain, definitions, callback);
     });
   }, onerror);
 }
 
-function addAgentsFile(zipWriter, agents, behaviors, domain, definitions, callback) {
+function addAgentsFile(zipWriter, agents, behaviors, actions, domain, definitions, callback) {
   if (agents.size > 0) {
     zipWriter.add('agents/agents.trig', new zip.BlobReader(agents), function () {
-      addBehaviorsFile(zipWriter, behaviors, domain, definitions, callback);
+      addBehaviorsFile(zipWriter, behaviors, actions, domain, definitions, callback);
     });
   }
   else {
-    addBehaviorsFile(zipWriter, behaviors, domain, definitions, callback);
+    addBehaviorsFile(zipWriter, behaviors, actions, domain, definitions, callback);
   }
 }
 
-function addBehaviorsFile(zipWriter, behaviors, domain, definitions, callback) {
+function addBehaviorsFile(zipWriter, behaviors, actions, domain, definitions, callback) {
   if (behaviors.size > 0) {
     zipWriter.add('behaviors/behaviors.ttl', new zip.BlobReader(behaviors), function () {
+      addActionsFile(zipWriter, actions, domain, definitions, callback);
+    });
+  }
+  else {
+    addActionsFile(zipWriter, actions, domain, definitions, callback);
+  }
+}
+
+function addActionsFile(zipWriter, actions, domain, definitions, callback) {
+  if (actions.size > 0) {
+    zipWriter.add('services/actions.ttl', new zip.BlobReader(actions), function () {
       addDomainFile(zipWriter, domain, definitions, callback);
     });
   }

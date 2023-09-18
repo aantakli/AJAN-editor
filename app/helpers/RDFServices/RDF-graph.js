@@ -171,7 +171,7 @@ class RDFGraph {
 		if (quad) {
 			// Update quad
       if (o !== quad.object.value) {
-				quad.object.value = o;
+        quad.object.value = o;
         this.setUnsavedChanges(true);
 			}
 		} else {

@@ -110,12 +110,31 @@ function createBinding(type, rootUri, definition) {
 	rdfGraph.add(rdfFact.quad(definition.uri, RDF.type, ACTN.Binding));
 	rdfGraph.add(rdfFact.quad(definition.uri, RDF.type, HTTP.Request));
 	rdfGraph.add(rdfFact.quadLiteral(definition.uri, HTTP.version, definition.version, XSD.string));
-	rdfGraph.add(rdfFact.quad(definition.uri, HTTP.mthd, definition.mthd));
+  rdfGraph.add(rdfFact.quad(definition.uri, HTTP.mthd, getMethodResource(definition.mthd)));
   rdfGraph.add(rdfFact.quad(definition.uri, HTTP.uri, definition.requestUri));
   createHeaders(definition.uri, definition);
   rdfGraph.add(rdfFact.quadLiteral(definition.uri, ACTN.headers, "", XSD.string));
   if(definition.payload != null)
     createPayload(definition.uri, definition.payload);
+}
+
+function getMethodResource(o) {
+  if (o == "POST") return rdfFact.toNode(HTTP.Post);
+  else if (o == "PUT") return rdfFact.toNode(HTTP.Put);
+  else if (o == "GET") return rdfFact.toNode(HTTP.Get);
+  else if (o == "PATCH") return rdfFact.toNode(HTTP.Patch);
+  else if (o == "DELETE") return rdfFact.toNode(HTTP.Delete);
+  else if (o == "COPY") return rdfFact.toNode(HTTP.Copy);
+  else if (o == "HEAD") return rdfFact.toNode(HTTP.Head);
+  else if (o == "OPTIONS") return rdfFact.toNode(HTTP.Options);
+  else if (o == "LINK") return rdfFact.toNode(HTTP.Link);
+  else if (o == "UNLINK") return rdfFact.toNode(HTTP.Unlink);
+  else if (o == "PURGE") return rdfFact.toNode(HTTP.Purge);
+  else if (o == "LOCK") return rdfFact.toNode(HTTP.Lock);
+  else if (o == "UNLOCK") return rdfFact.toNode(HTTP.Unlock);
+  else if (o == "PROPFIND") return rdfFact.toNode(HTTP.Propfind);
+  else if (o == "VIEW") return rdfFact.toNode(HTTP.View);
+  else return o;
 }
 
 function createHeaders(rootUri, definition) {

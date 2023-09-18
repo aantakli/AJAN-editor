@@ -19,7 +19,7 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { AGENTS } from "ajan-editor/helpers/RDFServices/vocabulary";
+import { AGENTS, ACTN } from "ajan-editor/helpers/RDFServices/vocabulary";
 
 let callback = null;
 let elem = null;

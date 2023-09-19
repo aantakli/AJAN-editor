@@ -99,9 +99,14 @@ function loadServicesRepo(ajax, tripleStoreRepository, token) {
 }
 
 function updateServicesRepo(ajax, tripleStoreRepository, databus, type, token) {
+  console.log(ajax);
+
   console.log("Saving to triple store: ", tripleStoreRepository);
 
   let postDestination = tripleStoreRepository + "/statements";
+
+  console.log(postDestination);
+
   let rdfString = rdfGraph.toString();
   if (rdfString === "@prefix xsd: <http://www.w3.org/2001/XMLSchema#>") {
     rdfString = "";
@@ -109,14 +114,6 @@ function updateServicesRepo(ajax, tripleStoreRepository, databus, type, token) {
   let query = SparqlQueries.update(rdfString);
   let dataString = $.param({ update: query });
 
-  // Keep local copy of saved stuff
-  localStorage.setItem(
-    "rdf_graph_saved_T-2",
-    localStorage.getItem("rdf_graph_saved_T-1")
-  );
-  localStorage.setItem("rdf_graph_saved_T-1", dataString);
-  console.log(dataString);
-  console.log(postDestination);
   ajax
     .post(postDestination, {
       contentType: "application/x-www-form-urlencoded; charset=utf-8",
@@ -134,9 +131,6 @@ function updateServicesRepo(ajax, tripleStoreRepository, databus, type, token) {
     }).catch(function (error) {
       if (isServerError(error)) {
         // handle 5XX errors
-
-        let restoreID = "rdf_graph_saved_T-2";
-        let restoredItem = localStorage.getItem(restoreID);
         ajax
           .post(postDestination, {
             contentType: "application/x-www-form-urlencoded; charset=utf-8",

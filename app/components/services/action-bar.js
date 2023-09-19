@@ -21,15 +21,10 @@
 import Component from "@ember/component";
 import globals from "ajan-editor/helpers/global-parameters";
 import { sendFile } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
-import { RDF, ACTN } from "ajan-editor/helpers/RDFServices/vocabulary";
 import actions from "ajan-editor/helpers/services/actions";
 import queries from "ajan-editor/helpers/RDFServices/queries";
-import consumer from "ajan-editor/helpers/RDFServices/servicesRDFConsumer";
 import token from "ajan-editor/helpers/token";
 import modal from "ajan-editor/helpers/ui/import-modal";
-import rdf from "npm:rdf-ext";
-import N3 from "npm:rdf-parser-n3";
-import stringToStream from "npm:string-to-stream";
 
 let $ = Ember.$;
 let repo = undefined;
@@ -102,71 +97,16 @@ function loadFile(event) {
   var reader = new FileReader();
   reader.onload = function () {
     let content = reader.result;
-    readTTLInput(content, function (importFile) {
-      let matches = { actions: getMatches(importFile) };
+    actions.readTTLInput(content, function (importFile) {
+      let matches = { actions: actions.getMatches(importFile, that.overview.availableServices) };
       modal.createImportModal(matches, function () {
         console.log(matches);
-        matches.actions.forEach(match => {
-          if (match.import && match.match) {
-            let defs = that.overview.availableServices;
-            let old = defs.find((item) => item.uri == match.uri);
-            actions.deleteService(old);
-          }
-          if (match.import) {
-            actions.createService(match);
-          }
-        });
-        actions.saveGraph(globals.ajax, repo, that.dataBus, "updated");
+        actions.importActions(repo, importFile, that.dataBus, that.overview.availableServices, matches);
         window.location.reload();
       }, importFile.info);
     });
   }
   reader.readAsText(file);
-}
-
-function readTTLInput(content, onend) {
-  console.log("readTTLInput");
-  let parser = new N3({ factory: rdf });
-  let quadStream = parser.import(stringToStream(content));
-  let importFile = {
-    info: { contains: [] },
-    raw: content,
-    quads: [],
-    objects: [],
-    resources: []
-  };
-  let result = consumer.getActionsGraph(quadStream, true);
-  result.then(function (result) {
-    importFile.objects = result[0].services;
-    importFile.resources = result[0].services.map(obj => { return obj.uri });
-    console.log(importFile.objects);
-    importFile.objects.forEach(obj => {
-      importFile.info.contains.push({
-        type: ACTN.ServiceAction,
-        uri: obj.uri,
-        name: obj.label
-      });
-    });
-    onend(importFile);
-  });
-}
-
-function getMatches(importFile) {
-  let matches = [];
-  let defs = that.overview.availableServices;
-  importFile.objects.forEach(obj => {
-    let match = defs.find((item) => item.uri == obj.uri);
-    if (match != undefined) {
-      obj.import = true;
-      obj.match = true;
-      matches.push(obj);
-    } else {
-      obj.import = true;
-      obj.match = false;
-      matches.push(obj);
-    }
-  });
-  return matches;
 }
 
 function loadRepo(event) {

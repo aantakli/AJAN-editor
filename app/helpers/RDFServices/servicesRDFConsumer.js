@@ -35,9 +35,10 @@ export default {
 
 // Use this to parse data for behavior
 // Request the entire graph
-function getActionsGraph(data) {
-	const quadStream = parser.import(stringToStream(JSON.stringify(data)));
-
+function getActionsGraph(data, ttl) {
+  let quadStream = data;
+  if (!ttl)
+    quadStream = parser.import(stringToStream(JSON.stringify(data)));
 	let obj = rdf
 		.dataset()
 		.import(quadStream)
@@ -76,46 +77,57 @@ function getActionDefinitions(graph, resource, name) {
 	let action = {};
 	action.id = util.generateUUID();
 	action.uri = resource.value;
-	action.name = name;
+  action.name = name;
+  let quads = [];
+  action.quads = quads;
 	graph.forEach(function(quad) {
-		if (quad.subject.equals(resource)) {
-			if (quad.predicate.value === RDF.type) {
-				action.type = quad.object.value;
+    if (quad.subject.equals(resource)) {
+      if (quad.predicate.value === RDF.type) {
+        if (quads) quads.push(quad);
+        action.type = quad.object.value;
 			}
-			if (quad.predicate.value === RDFS.label) {
-				action.label = quad.object.value;
+      if (quad.predicate.value === RDFS.label) {
+        if (quads) quads.push(quad);
+        action.label = quad.object.value;
 			}
-			if (quad.predicate.value === ACTN.communication) {
+      if (quad.predicate.value === ACTN.communication) {
+        if (quads) quads.push(quad);
 				if (quad.object.value === ACTN.Synchronous) {
-					action.communication = "Synchronous";
+          action.communication = "Synchronous";
 				} else {
 					action.communication = "Asynchronous";
 				}
 			}
-			if (quad.predicate.value === RDFS.label) {
-				action.label = quad.object.value;
+      if (quad.predicate.value === RDFS.label) {
+        if (quads) quads.push(quad);
+        action.label = quad.object.value;
 			}
-			if (quad.predicate.value === ACTN.runBinding) {
-				action.run = getBinding(graph, quad.object);
+      if (quad.predicate.value === ACTN.runBinding) {
+        if (quads) quads.push(quad);
+        action.run = getBinding(graph, quad.object, quads);
 			}
-			if (quad.predicate.value === ACTN.abortBinding) {
-				action.abort = getBinding(graph, quad.object);
+      if (quad.predicate.value === ACTN.abortBinding) {
+        if (quads) quads.push(quad);
+        action.abort = getBinding(graph, quad.object, quads);
 			}
 			if (quad.predicate.value === ACTN.variables) {
-				let variables = new Array();
-				setVariables(variables, graph, quad.object)
+        let variables = new Array();
+        if (quads) quads.push(quad);
+        setVariables(variables, graph, quad.object, quads)
 				action.variables = variables;
 			}
 			if (quad.predicate.value === ACTN.consumes) {
 				let consumes = {};
-				consumes.uri = quad.object.value;
-				consumes.sparql = getSparql(graph, quad.object);
+        consumes.uri = quad.object.value;
+        if (quads) quads.push(quad);
+        consumes.sparql = getSparql(graph, quad.object, quads);
 				action.consumes = consumes;
 			}
 			if (quad.predicate.value === ACTN.produces) {
 				let produces = {};
-				produces.uri = quad.object.value;
-				produces.sparql = getSparql(graph, quad.object);
+        produces.uri = quad.object.value;
+        if (quads) quads.push(quad);
+        produces.sparql = getSparql(graph, quad.object, quads);
 				action.produces = produces;
 			}
 		}
@@ -123,36 +135,37 @@ function getActionDefinitions(graph, resource, name) {
 	return action;
 }
 
-function getBinding(graph, resource) {
+function getBinding(graph, resource, quads) {
 	let binding = {};
 	binding.uri = resource.value;
 	graph.forEach(function(quad) {
-		if(quad.subject.equals(resource)) {
+    if (quad.subject.equals(resource)) {
       if (quad.predicate.value === HTTP.version) {
+        if (quads) quads.push(quad);
         binding.version = quad.object.value;
       }
-			if (quad.predicate.value === HTTP.mthd) {
-				if (quad.object.value === HTTP.Post) {
-					binding.mthd = "POST";
-				} else if (quad.object.value === HTTP.Put) {
-					binding.mthd = "PUT";
-				} else {
-					binding.mthd = "GET";
-				}
+      if (quad.predicate.value === HTTP.mthd) {
+        if (quads) quads.push(quad);
+        console.log(quad);
+        binding.mthd = getStringMethod(quad.object.value);
 			}
-			if (quad.predicate.value === HTTP.uri) {
+      if (quad.predicate.value === HTTP.uri) {
+        if (quads) quads.push(quad);
 				binding.requestUri = quad.object.value;
       }
       if (quad.predicate.value === HTTP.headers) {
-        setHeaders(binding, graph, quad.object);
+        if (quads) quads.push(quad);
+        setHeaders(binding, graph, quad.object, quads);
       }
       if (quad.predicate.value === ACTN.headers) {
+        if (quads) quads.push(quad);
         binding.actnHeaders = quad.object.value;
       }
 			if (quad.predicate.value === HTTP.body) {
 				let payload = {};
-				payload.uri = quad.object.value;
-				payload.sparql = getSparql(graph, quad.object);
+        payload.uri = quad.object.value;
+        if (quads) quads.push(quad);
+				payload.sparql = getSparql(graph, quad.object, quads);
 				binding.payload = payload;
 			}
 		}
@@ -160,11 +173,47 @@ function getBinding(graph, resource) {
 	return binding;
 }
 
-function getSparql(graph, resource) {
+function getStringMethod(o) {
+  if (o == HTTP.Post)
+    return "POST";
+  else if (o == HTTP.Put)
+    return "PUT";
+  else if (o == HTTP.Get)
+    return "GET";
+  else if (o == HTTP.Patch)
+    return "PATCH";
+  else if (o == HTTP.Delete)
+    return "DELETE";
+  else if (o == HTTP.Copy)
+    return "COPY";
+  else if (o == HTTP.Head)
+    return "HEAD";
+  else if (o == HTTP.Options)
+    return "OPTIONS";
+  else if (o == HTTP.Link)
+    return "LINK";
+  else if (o == HTTP.Unlink)
+    return "UNLINK";
+  else if (o == HTTP.Purge)
+    return "PURGE";
+  else if (o == HTTP.Lock)
+    return "LOCK";
+  else if (o == HTTP.Unlock)
+    return "UNLOCK";
+  else if (o == HTTP.Propfind)
+    return "PROPFIND";
+  else if (o == HTTP.View)
+    return "VIEW";
+  else
+    return o;
+}
+
+function getSparql(graph, resource, quads) {
 	let sparql = "";
 	graph.forEach(function(quad) {
-		if(quad.subject.equals(resource)) {
-			if(quad.predicate.value === ACTN.sparql) {
+    if (quad.subject.equals(resource)) {
+      if (quad.predicate.value === ACTN.sparql) {
+        if (quads) quads.push(quad);
 				sparql = quad.object.value;
 			}
 		}
@@ -172,26 +221,32 @@ function getSparql(graph, resource) {
 	return sparql;
 }
 
-function setVariables(variables, graph, resource) {
+function setVariables(variables, graph, resource, quads) {
 	graph.forEach(function(quad) {
-		if(quad.subject.equals(resource)) {
-			if(quad.predicate.value === RDF.first) {
-				variables.push(getVariable(graph, quad.subject, quad.object));
+    if (quad.subject.equals(resource)) {
+      if (quad.predicate.value === RDF.first) {
+        if (quads) quads.push(quad);
+				variables.push(getVariable(graph, quad.subject, quad.object, quads));
 			}
-			if(quad.predicate.value === RDF.rest && quad.object.value != RDF.nil) {
-				setVariables(variables, graph, quad.object);
-			}
+      if (quad.predicate.value === RDF.rest && quad.object.value != RDF.nil) {
+        if (quads) quads.push(quad);
+				setVariables(variables, graph, quad.object, quads);
+      }
+      if (quad.predicate.value === RDF.rest && quad.object.value == RDF.nil) {
+        if (quads) quads.push(quad);
+      }
 		}
 	});
 }
 
-function getVariable(graph, pointer, resource) {
+function getVariable(graph, pointer, resource, quads) {
 	let variable = {};
 	variable.pointerUri = pointer.value;
 	variable.uri = resource.value;
-	graph.forEach(function(quad) {
+  graph.forEach(function (quad) {
 		if(quad.subject.equals(resource)) {
-			if(quad.predicate.value === SPIN.varName) {
+      if (quad.predicate.value === SPIN.varName) {
+        if (quads) quads.push(quad);
 				variable.var = quad.object.value;
 			}
 		}
@@ -199,32 +254,40 @@ function getVariable(graph, pointer, resource) {
 	return variable;
 }
 
-function setHeaders(binding, graph, resource) {
+function setHeaders(binding, graph, resource, quads) {
   graph.forEach(function (quad) {
     if (quad.subject.equals(resource)) {
       if (quad.predicate.value === RDF.first) {
-        setHeader(quad.subject.value, binding, graph, quad.object);
+        if (quads) quads.push(quad);
+        setHeader(quad.subject.value, binding, graph, quad.object, quads);
       }
       if (quad.predicate.value === RDF.rest && quad.object.value != RDF.nil) {
-        setHeaders(binding, graph, quad.object);
+        if (quads) quads.push(quad);
+        setHeaders(binding, graph, quad.object, quads);
+      }
+      if (quad.predicate.value === RDF.rest && quad.object.value == RDF.nil) {
+        if (quads) quads.push(quad);
       }
     }
   });
 }
 
-function setHeader(root, binding, graph, resource) {
+function setHeader(root, binding, graph, resource, quads) {
   let header = {};
   header.uri = resource.value;
   header.pointerUri = root;
   graph.forEach(function (quad) {
     if (quad.subject.equals(resource)) {
       if (quad.object.value === HTTP.accept) {
+        if (quads) quads.push(quad);
         binding.accept = header;
       }
       if (quad.object.value === HTTP.contentType) {
+        if (quads) quads.push(quad);
         binding.contentType = header;
       }
       if (quad.predicate.value === HTTP.fieldValue) {
+        if (quads) quads.push(quad);
         header.value = quad.object.value;
       }
     }

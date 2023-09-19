@@ -24,6 +24,7 @@ import { sendFile } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import actions from "ajan-editor/helpers/services/actions";
 import queries from "ajan-editor/helpers/RDFServices/queries";
 import token from "ajan-editor/helpers/token";
+import modal from "ajan-editor/helpers/ui/import-modal";
 
 let $ = Ember.$;
 let repo = undefined;
@@ -96,9 +97,15 @@ function loadFile(event) {
   var reader = new FileReader();
   reader.onload = function () {
     let content = reader.result;
-    sendFile(repo, content)
-      .then(window.location.reload());
-  };
+    actions.readTTLInput(content, function (importFile) {
+      let matches = { actions: actions.getMatches(importFile, that.overview.availableServices) };
+      modal.createImportModal(matches, function () {
+        console.log(matches);
+        actions.importActions(repo, importFile, that.dataBus, that.overview.availableServices, matches);
+        window.location.reload();
+      }, importFile.info);
+    });
+  }
   reader.readAsText(file);
 }
 

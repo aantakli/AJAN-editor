@@ -25,13 +25,16 @@ import globals from "ajan-editor/helpers/global-parameters";
 import htmlGen from "ajan-editor/helpers/home/html-generator";
 import agtActions from "ajan-editor/helpers/agents/actions";
 import btActions from "ajan-editor/helpers/behaviors/actions";
+import servActions from "ajan-editor/helpers/services/actions";
 import importModal from "ajan-editor/helpers/ui/import-modal";
 import cloudModal from "ajan-editor/helpers/ui/cloud-modal";
 import exportModal from "ajan-editor/helpers/ui/export-modal";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import token from "ajan-editor/helpers/token";
 import queries from "ajan-editor/helpers/RDFServices/queries";
+import { AGENTS } from "ajan-editor/helpers/RDFServices/vocabulary";
 import * as zip from "zip-js-webpack";
+import rdf from "npm:rdf-ext";
 
 let $ = Ember.$;
 let that = null;
@@ -282,6 +285,8 @@ function unzip(file, onEnd) {
         zipFile.agents.entry = entry;
       else if (entry.filename.includes("behaviors/behaviors.ttl"))
         zipFile.behaviors.entry = entry;
+      else if (entry.filename.includes("services/actions.ttl"))
+        zipFile.actions.entry = entry;
       else if (entry.filename.includes("domain/domain.trig"))
         zipFile.domain.entry = entry;
       else if (entry.filename.includes("definitions/editor_data.trig"))
@@ -327,7 +332,7 @@ function readAgentsTTL(zipFile, triplestore, ajax) {
 
 function readBTsTTL(zipFile, triplestore, ajax) {
   if (zipFile.behaviors.entry == null) {
-    readDomainTrig(zipFile, triplestore, ajax);
+    readActionsTTL(zipFile, triplestore, ajax);
   } else {
     let writer = new zip.BlobWriter();
     zipFile.behaviors.entry.getData(writer, function (blob) {
@@ -335,6 +340,24 @@ function readBTsTTL(zipFile, triplestore, ajax) {
       oFReader.onloadend = function (e) {
         btActions.readTTLInput(this.result, function (importFile) {
           zipFile.behaviors.import = importFile;
+          readActionsTTL(zipFile, triplestore, ajax);
+        });
+      };
+      oFReader.readAsText(blob);
+    }, onprogress);
+  }
+}
+
+function readActionsTTL(zipFile, triplestore, ajax) {
+  if (zipFile.actions.entry == null) {
+    readDomainTrig(zipFile, triplestore, ajax);
+  } else {
+    let writer = new zip.BlobWriter();
+    zipFile.actions.entry.getData(writer, function (blob) {
+      let oFReader = new FileReader()
+      oFReader.onloadend = function (e) {
+        servActions.readTTLInput(this.result, function (importFile) {
+          zipFile.actions.import = importFile;
           readDomainTrig(zipFile, triplestore, ajax);
         });
       };
@@ -384,6 +407,7 @@ function getEntries(file, onend) {
 function loadRdfGraphData(triplestore, ajax) {
   let agents = {};
   let behaviors = {};
+  let actions = {};
   loadAgentRdfGraphData(ajax, triplestore, function () {
     let agentDefs = getAgentDefs();
     agents.rdf = rdfGraph.get();
@@ -392,17 +416,24 @@ function loadRdfGraphData(triplestore, ajax) {
       let btDefs = getBTDefs();
       behaviors.rdf = rdfData;
       behaviors.defs = btDefs;
+      console.log("load actions");
+      loadActionsRdfGraphData(ajax, triplestore, function (rdfData) {
+        let actnDefs = servActions.getActions();
+        actions.rdf = rdfData;
+        actions.defs = actnDefs;
+        console.log(actions);
       let domainRepo = (triplestore || "http://localhost:8090/rdf4j/repositories")
         + globals.domainRepository;
-      loadTrigGraphData(ajax, domainRepo, function (rdfData) {
-        let domain = { defs: [] };
-        domain.defs.push({ name: "Domain Repository", id: domainRepo, uri: domainRepo, data: rdfData });
-        let definitionsRepo = (triplestore || "http://localhost:8090/rdf4j/repositories")
-          + globals.definitionsRepository;
-        loadTrigGraphData(ajax, definitionsRepo, function (rdfData) {
-          let definitions = { defs: [] };
-          definitions.defs.push({ name: "Definitions Repository", id: definitionsRepo, uri: definitionsRepo, data: rdfData });
-          exportModal.createExportModal(agents, behaviors, domain, definitions);
+        loadTrigGraphData(ajax, domainRepo, function (rdfData) {
+          let domain = { defs: [] };
+          domain.defs.push({ name: "Domain Repository", id: domainRepo, uri: domainRepo, data: rdfData });
+          let definitionsRepo = (triplestore || "http://localhost:8090/rdf4j/repositories")
+            + globals.definitionsRepository;
+          loadTrigGraphData(ajax, definitionsRepo, function (rdfData) {
+            let definitions = { defs: [] };
+            definitions.defs.push({ name: "Definitions Repository", id: definitionsRepo, uri: definitionsRepo, data: rdfData });
+            exportModal.createExportModal(agents, behaviors, actions, domain, definitions);
+          });
         });
       });
     });
@@ -410,7 +441,7 @@ function loadRdfGraphData(triplestore, ajax) {
 }
 
 function loadRdfGraphZipData(zipFile, triplestore, ajax) {
-  let matches = { agents: [], behaviors: [] };
+  let matches = { agents: [], behaviors: [], actions: [], repositories: [] };
   loadAgentRdfGraphData(ajax, triplestore, function () {
     let agentDefs = getAgentDefs();
     zipFile.agents.original.rdf = rdfGraph.get();
@@ -419,13 +450,35 @@ function loadRdfGraphZipData(zipFile, triplestore, ajax) {
       let btDefs = getBTDefs();
       zipFile.behaviors.original.rdf = rdfData;
       zipFile.behaviors.original.defs = btDefs;
-      if (zipFile.agents.import)
-        matches.agents = agtActions.getAgentDefsMatches(agentDefs, zipFile.agents.import);
-      if (zipFile.behaviors.import)
-        matches.behaviors = btActions.getTTLMatches(btDefs, zipFile.behaviors.import);
-      showImportDialog(ajax, triplestore, zipFile, matches);
+      loadActionsRdfGraphData(ajax, triplestore, function (rdfData) {
+        let actnDefs = servActions.getActions();
+        console.log(actnDefs);
+        zipFile.actions.original.rdf = rdfData;
+        zipFile.actions.original.defs = actnDefs;
+        if (zipFile.agents.import)
+          matches.agents = agtActions.getAgentDefsMatches(agentDefs, zipFile.agents.import, zipFile.info.input.contains);
+        if (zipFile.behaviors.import)
+          matches.behaviors = btActions.getTTLMatches(btDefs, zipFile.behaviors.import);
+        if (zipFile.actions.import)
+          matches.actions = servActions.getMatches(zipFile.actions.import, actnDefs.services);
+        if (zipFile.definitions.import || zipFile.domain.import)
+          matches.repositories = getRepositoryMatches(zipFile.info.input);
+        showImportDialog(ajax, triplestore, zipFile, matches);
+      });
     });
   });
+}
+
+function getRepositoryMatches(info) {
+  let repositories = [];
+  if (info.contains) {
+    info.contains.forEach((item) => {
+      if (item.type == "Repository") {
+        repositories.push({ type: AGENTS.Repository, name: "Repository", label: item.name, uri: item.uri, match: true, import: true });
+      }
+    });
+  }
+  return repositories;
 }
 
 function loadAgentRdfGraphData(ajax, triplestore, onend) {
@@ -458,6 +511,14 @@ function loadBTsRdfGraphData(ajax, triplestore, onend) {
       onend(rdfData);
     });
   })
+}
+
+function loadActionsRdfGraphData(ajax, triplestore, onend) {
+  let repo = (triplestore || "http://localhost:8090/rdf4j/repositories")
+    + globals.servicesRepository;
+  servActions.getFromServer(ajax, repo).then(function (rdfData) {
+    onend(rdfData);
+  });
 }
 
 function loadTrigGraphData(ajax, repo, onend) {
@@ -501,32 +562,58 @@ function showImportDialog(ajax, triplestore, zipFile, matches) {
       deleteRepo(ajax, triplestore + globals.definitionsRepository, queries.deleteAll())
         .then(sendFile(ajax, triplestore + globals.definitionsRepository, zipFile.definitions.import))
     }
-    console.log(matches.agents);
     if (matches.agents.length > 0) {
+      rdfGraph.reset();
+      rdfGraph.set(rdf.dataset(zipFile.agents.import.quads));
+      agtActions.deleteInverseMatches(matches.agents);
+      let matchesGraph = [...rdfGraph.data._quads];
       rdfGraph.reset();
       rdfGraph.set(zipFile.agents.original.rdf);
       agtActions.deleteMatches(matches.agents);
-      rdfGraph.addAll(zipFile.agents.import.quads);
+      rdfGraph.addAll(matchesGraph);
       agtActions.saveAgentGraph(ajax, triplestore + globals.agentsRepository, null, function () {
-        saveImportedBTs(ajax, triplestore, matches, zipFile);
+        saveImportedActions(ajax, triplestore, matches, zipFile);
       });
     } else if (zipFile.agents.import) {
       sendFile(ajax, triplestore + globals.agentsRepository, zipFile.agents.import.raw);
-      saveImportedBTs(ajax, triplestore, matches, zipFile);
+      saveImportedActions(ajax, triplestore, matches, zipFile);
     } else {
-      console.log(matches.behaviors);
-      saveImportedBTs(ajax, triplestore, matches, zipFile);
+      saveImportedActions(ajax, triplestore, matches, zipFile);
     }
     $("#save-confirmation").trigger("showToast");
   }, zipFile.info.input);
 }
 
+function saveImportedActions(ajax, triplestore, matches, zipFile) {
+  let repo = triplestore + globals.servicesRepository;
+  if (matches.actions.length > 0) {
+    servActions.getFromServer(ajax, repo).then(function (rdfData) {
+      rdfGraph.reset();
+      rdfGraph.set(rdfData);
+      let availableServices = servActions.getActions();
+      console.log(zipFile.actions);
+      servActions.importActions(repo, zipFile.actions.import, that.dataBus, availableServices.services, matches, ajax, function () {
+        saveImportedBTs(ajax, triplestore, matches, zipFile);
+      });
+    });
+  } else if (zipFile.actions.import) {
+    sendFile(ajax, repo, zipFile.actions.import.raw);
+    saveImportedBTs(ajax, triplestore, matches, zipFile);
+  } else {
+    saveImportedBTs(ajax, triplestore, matches, zipFile);
+  }
+}
+
 function saveImportedBTs(ajax, triplestore, matches, zipFile) {
   if (matches.behaviors.length > 0) {
     rdfGraph.reset();
+    rdfGraph.set(rdf.dataset(zipFile.behaviors.import.quads));
+    btActions.deleteInverseMatches(matches.behaviors, zipFile.behaviors.original.defs);
+    let matchesGraph = [...rdfGraph.data._quads];
+    rdfGraph.reset();
     rdfGraph.set(zipFile.behaviors.original.rdf);
     btActions.deleteMatches(matches.behaviors, zipFile.behaviors.original.defs);
-    rdfGraph.addAll(zipFile.behaviors.import.quads);
+    rdfGraph.addAll(matchesGraph);
     btActions.saveGraph(ajax, triplestore + globals.behaviorsRepository, null);
   } else if (zipFile.behaviors.import) {
     sendFile(ajax, triplestore + globals.behaviorsRepository, zipFile.behaviors.import.raw);

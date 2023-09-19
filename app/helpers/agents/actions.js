@@ -89,6 +89,7 @@ export default {
   getAgentDefsMatches: getAgentDefsMatches,
   getTTLMatches: getTTLMatches,
   deleteMatches: deleteMatches,
+  deleteInverseMatches: deleteInverseMatches,
   exportGoal: exportGoal
 };
 
@@ -314,24 +315,36 @@ function readTTLInput(content, onend) {
   });
 }
 
-function getAgentDefsMatches(agentDefs, importFile) {
-  let matches = getTTLMatches(agentDefs.templates, importFile.agents);
-  matches = matches.concat(getTTLMatches(agentDefs.behaviors.final, importFile.behaviors));
-  matches = matches.concat(getTTLMatches(agentDefs.behaviors.initial, importFile.behaviors));
-  matches = matches.concat(getTTLMatches(agentDefs.behaviors.regular, importFile.behaviors));
-  matches = matches.concat(getTTLMatches(agentDefs.endpoints, importFile.endpoints));
-  matches = matches.concat(getTTLMatches(agentDefs.events, importFile.events));
-  matches = matches.concat(getTTLMatches(agentDefs.goals, importFile.goals));
+function getAgentDefsMatches(agentDefs, importFile, contains) {
+  console.log(importFile);
+  let matches = getTTLMatches(agentDefs.templates, importFile.agents, matches);
+  matches = getTTLMatches(agentDefs.behaviors.final, importFile.behaviors, matches);
+  matches = getTTLMatches(agentDefs.behaviors.initial, importFile.behaviors, matches);
+  matches = getTTLMatches(agentDefs.behaviors.regular, importFile.behaviors, matches);
+  matches = getTTLMatches(agentDefs.endpoints, importFile.endpoints, matches);
+  matches = getTTLMatches(agentDefs.events, importFile.events, matches);
+  matches = getTTLMatches(agentDefs.goals, importFile.goals, matches);
+  if (contains) {
+    setNonMatches(importFile.agents, matches, contains);
+    setNonMatches(importFile.behaviors, matches, contains);
+    setNonMatches(importFile.endpoints, matches, contains);
+    setNonMatches(importFile.events, matches, contains);
+    setNonMatches(importFile.goals, matches, contains);
+  }  
   return matches;
 }
 
-function getTTLMatches(defs, imports) {
-  let matches = [];
+function getTTLMatches(defs, imports, matches) {
+  if (!matches)
+    matches = [];
   if (imports) {
     defs.forEach((data) => {
       imports.forEach((item) => {
         if (data.uri === item) {
-          matches.push(data);
+          data.match = true;
+          data.import = true;
+          if (!matches.find(x => x.uri === data.uri))
+            matches.push(data);
         }
       });
     });
@@ -339,25 +352,71 @@ function getTTLMatches(defs, imports) {
   return matches;
 }
 
+function setNonMatches(imports, matches, contains) {
+  imports.forEach((data) => {
+    let clone = [...matches];
+    let importData = clone.find(x => x.uri === data);
+    if (!importData) {
+      let contain = contains.find(x => x.uri === data);
+      matches.push({
+        uri: contain.uri,
+        name: contain.name,
+        type: getContainType(contain.type),
+        match: false,
+        import: true
+      });
+    }
+  });
+}
+
+function getContainType(type) {
+  switch (type) {
+    case "Agent": return AGENTS.AgentTemplate;
+    case "Behavior": return AGENTS.Behavior;
+    case "InitialBehavior": return AGENTS.InitialBehavior;
+    case "FinalBehavior": return AGENTS.FinalBehavior;
+    case "Endpoint": return AGENTS.Endpoint;
+    case "Event": return AGENTS.Event;
+    case "Goal": return AGENTS.Goal;
+    default: return type;
+  }
+}
+
 function deleteMatches(matches) {
   if (matches.length > 0) {
     matches.forEach((data) => {
-      if (data.type === AGENTS.AgentTemplate)
-        deleteAgent(data, true);
-      else if (data.type === AGENTS.InitialBehavior)
-        deleteBehavior(data, true);
-      else if (data.type === AGENTS.FinalBehavior)
-        deleteBehavior(data, true);
-      else if (data.type === AGENTS.Behavior)
-        deleteBehavior(data, true);
-      else if (data.type === AGENTS.Endpoint)
-        deleteEndpoint(data, true);
-      else if (data.type === AGENTS.Event) {
-        deleteEvent(data, true);
-      } else if (data.type === AGENTS.Goal) {
-        deleteGoal(data, true);
+      if (data.import || data.import === undefined) {
+        deleteMatch(data);
       }
     });
+  }
+}
+
+function deleteInverseMatches(matches) {
+  if (matches.length > 0) {
+    matches.forEach((data) => {
+      if (!data.import) {
+        deleteMatch(data);
+      }
+    });
+  }
+}
+
+function deleteMatch(data) {
+  if (data.type === AGENTS.AgentTemplate)
+    deleteAgent(data, true);
+  else if (data.type === AGENTS.InitialBehavior)
+    deleteBehavior(data, true);
+  else if (data.type === AGENTS.FinalBehavior)
+    deleteBehavior(data, true);
+  else if (data.type === AGENTS.Behavior)
+    deleteBehavior(data, true);
+  else if (data.type === AGENTS.Endpoint)
+    deleteEndpoint(data, true);
+  else if (data.type === AGENTS.Event) {
+    deleteEvent(data, true);
+  } else if (data.type === AGENTS.Goal) {
+    deleteGoal(data, true);
   }
 }
 

@@ -186,6 +186,10 @@ function setNodeState(log) {
                 elements[i].style("border-color", "#325ca8");
                 elements[i].style("border-width", "7px");
                 break;
+              case "CANCELLED":
+                elements[i].style("border-color", "#cc9f2f");
+                elements[i].style("border-width", "7px");
+                break;
               default:
                 elements[i].style("border-color", "#000");
                 elements[i].style("border-width", "3px");

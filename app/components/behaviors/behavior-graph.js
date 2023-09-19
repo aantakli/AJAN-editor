@@ -1,3 +1,4 @@
+/* eslint-disable sort-imports */
 /*
  * Created on Tue Nov 10 2020
  *
@@ -83,7 +84,6 @@ export default Ember.Component.extend({
 		initializeSplitPanes();
 		setTriplestoreField();
 		bindRequiredEvents();
-		bindCyRefresh();
 		cy.resize();
 
     loadNodeDefinitionsThenGraph();
@@ -105,7 +105,7 @@ function initializeCytoscape(that) {
 	cy = that.get("cytoscapeService").newCytoscapeInstance();
 	ur = that.get("cytoscapeService").ur;
 	globals.cy = cy;
-	that.set("cyRef",cy)
+	that.set("cyRef", cy)
 }
 
 function initializeGlobals(currentComponent) {
@@ -208,7 +208,6 @@ function generateAgent() {
   agentDef.behavior = actionsAgnt.createDefinedBehavior(agentRepo, selectedBt[0], includedEvents, includedBehaviors);
   agentDef.endpoint = actionsAgnt.createDefinedEndpoint(agentRepo, selectedBt[0], agentDef.event, includedEndpoints);
   agentDef.template = actionsAgnt.createDefinedAgent(agentRepo, selectedBt[0], includedEvents, includedBehaviors, includedEndpoints);
-  console.log(agentDef);
   let stringRDF = actionsAgnt.createAgentRDFString(agentDef);
   saveGeneratedAgent(agentRepo, stringRDF);
 }
@@ -355,8 +354,3 @@ function setTriplestoreField() {
 	$(".store-url").text(localStorage.currentStore);
 }
 
-function bindCyRefresh() {
-	$("#behavior-tree").on("refresh", function() {
-		loadRdfGraphData();
-	});
-}

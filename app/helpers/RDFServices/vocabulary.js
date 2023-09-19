@@ -209,6 +209,7 @@ let AGENTS = {
   Agent: "http://www.ajan.de/ajan-ns#Agent",
   agent: "http://www.ajan.de/ajan-ns#agent",
   Event: "http://www.ajan.de/ajan-ns#ModelEvent",
+  Repository: "http://www.ajan.de/ajan-ns#Repository",
   QueueEvent: "http://www.ajan.de/ajan-ns#ModelQueueEvent",
   MappingEvent: "http://www.ajan.de/ajan-ns#MappingEvent",
   Endpoint: "http://www.ajan.de/ajan-ns#Endpoint",

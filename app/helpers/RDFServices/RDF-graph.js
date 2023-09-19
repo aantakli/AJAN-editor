@@ -67,7 +67,7 @@ class RDFGraph {
     this.setUnsavedChanges(true);
 	}
 
-	addAll(quads) {
+  addAll(quads) {
 		this.data.addAll(quads);
     this.setUnsavedChanges(true);
 	}
@@ -171,7 +171,7 @@ class RDFGraph {
 		if (quad) {
 			// Update quad
       if (o !== quad.object.value) {
-				quad.object.value = o;
+        quad.object.value = o;
         this.setUnsavedChanges(true);
 			}
 		} else {

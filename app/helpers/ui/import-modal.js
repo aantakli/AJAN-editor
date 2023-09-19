@@ -19,6 +19,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { AGENTS, ACTN } from "ajan-editor/helpers/RDFServices/vocabulary";
+
 let callback = null;
 let elem = null;
 
@@ -30,16 +32,21 @@ function createImportModal(matches, callbackFunct, info) {
   callback = callbackFunct;
   console.log("Ask for import AJAN-models");
   $("#modal-header-title").text("Import AJAN-models");
+  let $matchesDiv = $("<div>", {
+    class: "modal-body-div"
+  });
   let $body = $("#modal-body"),
     $modal = $("#universal-modal");
   $body.empty();
   $modal.show();
 
   if (info) {
-    getInfoHTML(info, $body);
+    console.log(info);
+    getInfoHTML(info, matches, $body, $matchesDiv);
   }
   if (matches) {
-    getMatchesHTML(matches, $body);
+    getMatchesHTML(matches, $matchesDiv);
+    $body.append($matchesDiv);
   }
 
   // Listen for the confirm event
@@ -58,31 +65,45 @@ function onCancel() {
   elem.removeEventListener("modal:cancel", onCancel);
 }
 
-function getInfoHTML(info, $body) {
+function getInfoHTML(info, matches, $body, $matchesDiv) {
   let $info = $("<div>", {});
   $info.append($("<h2>Package Information</h2>"));
-  $info.append($("<p>", {
-    class: "modal-p"
-  }).append("<b>Author:</b> " + info.author));
-  $info.append($("<p>", {
-    class: "modal-p"
-  }).append("<b>Vendor:</b> " + info.vendor));
-  $info.append($("<p>", {
-    class: "modal-p"
-  }).append("<b>Domain:</b> " + info.vendorDomain));
-  $info.append($("<p>", {
-    class: "modal-p"
-  }).append("<b>Date:</b> " + info.date));
-  $info.append($("<p>", {
-    class: "modal-p"
-  }).append("<b>Version:</b> " + info.version));
-  $info.append($("<p>", {
-    class: "modal-p"
-  }).append("<b>Comment:</b> " + info.comment));
-
-  setContainsHTML(info.contains, $info);
-  setOptionalsHTML(info.optionals, $info);
-
+  if (info.author) {
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Author:</b> " + info.author));
+  }
+  if (info.vendor) {
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Vendor:</b> " + info.vendor));
+  }
+  if (info.vendorDomain) {
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Domain:</b> " + info.vendorDomain));
+  }
+  if (info.date) {
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Date:</b> " + info.date));
+  }
+  if (info.version) {
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Version:</b> " + info.version));
+  }
+  if (info.comment) {
+    $info.append($("<p>", {
+      class: "modal-p"
+    }).append("<b>Comment:</b> " + info.comment));
+  }
+  if (info.contains) {
+    setContainsHTML(info.contains, matches, $info, $matchesDiv);
+  }
+  if (info.optionals) {
+    setOptionalsHTML(info.optionals, $info);
+  }
   let $infoDiv = $("<div>", {
     class: "modal-body-div"
   }).append($info);
@@ -90,17 +111,42 @@ function getInfoHTML(info, $body) {
   $body.append($infoDiv);
 }
 
-function setContainsHTML(contains, $info) {
+function setContainsHTML(contains, matches, $info, $matchesDiv) {
   if (contains.length > 0) {
     let $contains = $("<div>", {});
-    $contains.append($("<p><b>Contains:</b>"));
-    let $list = $("<ul>", {});
+    $contains.append($("<p><b>Import contained data:</b>"));
+    let $list = $("<ul style='padding-left:0px'>", {});
     contains.forEach((item) => {
-      $list.append($("<li>", {
+      let $input = $("<input style='width:3%' type='checkbox' checked id='" + item.uri + "'>");
+      $input.click(function () {
+        setImport(matches, item, $input.is(":checked"));
+        $matchesDiv.empty();
+        getMatchesHTML(matches, $matchesDiv);
+      });
+      $list.append($("<li style='list-style-type:none'>", {
         class: "modal-p"
-      }).append("<i>" + item.type + "</i> | <b>" + item.name + "</b> | " + item.uri));
+      }).append($input).append("<i>" + item.type + "</i> | <b>" + item.name + "</b> | " + item.uri));
     });
     $info.append($contains.append($list));
+  }
+}
+
+function setImport(matches, item, checked) {
+  if (matches.agents) {
+    let agtMatch = matches.agents.find(x => x.uri === item.uri);
+    if (agtMatch) agtMatch.import = checked;
+  }
+  if (matches.behaviors) {
+    let btMatch = matches.behaviors.find(x => x.uri === item.uri);
+    if (btMatch) btMatch.import = checked;
+  }
+  if (matches.actions) {
+    let actnMatch = matches.actions.find(x => x.uri === item.uri);
+    if (actnMatch) actnMatch.import = checked;
+  }
+  if (matches.repositories) {
+    let repoMatch = matches.repositories.find(x => x.uri === item.uri);
+    if (repoMatch) repoMatch.import = checked;
   }
 }
 
@@ -118,32 +164,33 @@ function setOptionalsHTML(optionals, $info) {
   }
 }
 
-function getMatchesHTML(matches, $body) {
+function getMatchesHTML(matches, $matchesDiv) {
   let $matches = $("<div>", {});
   $matches.append($("<hr><h3>Following matches will be overwritten!</h3>"));
   if (Array.isArray(matches))
     getTypeMatches(matches, $matches);
   else {
-    if (matches.agents.length > 0)
+    if (matches.agents && matches.agents.length > 0)
       getTypeMatches(matches.agents, $matches);
-    if (matches.behaviors.length > 0)
+    if (matches.behaviors && matches.behaviors.length > 0)
       getTypeMatches(matches.behaviors, $matches);
+    if (matches.actions && matches.actions.length > 0)
+      getTypeMatches(matches.actions, $matches);
+    if (matches.repositories && matches.repositories.length > 0)
+      getTypeMatches(matches.repositories, $matches);
   }
-  let $matchesDiv = $("<div>", {
-    class: "modal-body-div"
-  }).append($matches);
-  // Append to modal body
-  $body.append($matchesDiv);
+  $matchesDiv.append($matches);
 }
 
 function getTypeMatches(matches, $matches) {
   matches.forEach((item) => {
-    if (item != undefined) {
+    console.log(item);
+    if (item != undefined && item.match && item.import) {
       if (item.label != undefined) {
         $matches.append($("<p>", {
           style: 'color: #c92306',
           class: "modal-p"
-        }).append("<i>" + item.name + "</i> | <b>" + item.label + "</b> | " + item.uri));
+        }).append("<i>" + getTypeName(item.type) + "</i> | <b>" + item.label + "</b> | " + item.uri));
       } else {
         $matches.append($("<p>", {
           style: 'color: #c92306',
@@ -152,4 +199,19 @@ function getTypeMatches(matches, $matches) {
       }
     }
   });
+}
+
+function getTypeName(type) {
+  switch (type) {
+    case AGENTS.Repository: return "Repository";
+    case AGENTS.AgentTemplate: return "Agent";
+    case AGENTS.Behavior: return "Behavior";
+    case AGENTS.InitialBehavior: return "InitialBehavior";
+    case AGENTS.FinalBehavior: return "FinalBehavior";
+    case AGENTS.Endpoint: return "Endpoint";
+    case AGENTS.Event: return "Event";
+    case AGENTS.Goal: return "Goal";
+    case ACTN.ServiceAction: return "ServiceAction";
+    default: return type;
+  }
 }

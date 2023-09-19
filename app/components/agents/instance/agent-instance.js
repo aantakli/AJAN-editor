@@ -1,3 +1,5 @@
+/* eslint-disable no-var */
+/* eslint-disable max-statements */
 /*
  * Created on Tue Nov 10 2020
  *
@@ -63,10 +65,12 @@ export default Ember.Component.extend({
 
   didReceiveAttrs() {
     console.log("didReceiveAttrs");
-    let firstAction = this.get("activeInstance.actions")[0];
-    if (firstAction) {
-      this.set("selectedCapability", firstAction.uri);
-      console.log(this.get("selectedCapability"));
+    if (this.get("activeInstance")) {
+      let firstAction = this.get("activeInstance.actions")[0];
+      if (firstAction) {
+        this.set("selectedCapability", firstAction.uri);
+        console.log(this.get("selectedCapability"));
+      }
     }
   },
 
@@ -214,7 +218,7 @@ function checkJSONContent(content) {
 
 function checkXMLContent(content) {
   const parser = new DOMParser();
-  const dom = parser.parseFromString(content,"text/xml");
+  const dom = parser.parseFromString(content, "text/xml");
   for (const element of Array.from(dom.querySelectorAll("parsererror"))) {
     if (element instanceof HTMLElement) {
       const error = element;

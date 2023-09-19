@@ -25,7 +25,8 @@ export default {
   getInfoHTML: getInfoHTML,
   getOptionals: getOptionals,
   getAgentModels: getAgentModels,
-  getBehaviorsModels: getBehaviorsModels,
+  getBehaviorModels: getBehaviorModels,
+  getActionModels: getActionModels,
   getDomain: getDomain,
   getDefinitions: getDefinitions
 };
@@ -202,7 +203,7 @@ function createSelectField($info, object) {
 // Behavior Models
 // ---------------------------------
 
-function getBehaviorsModels($body, model) {
+function getBehaviorModels($body, model) {
   let $header = createHeader("Add Behavior Models");
   let $info = $("<div>", { class: "modal-models-overview" });
   createBTs($info, model);
@@ -215,6 +216,27 @@ function getBehaviorsModels($body, model) {
 function createBTs($info, model) {
   $info.append($("<h3>Behavior Trees</h3>"));
   model.defs.forEach(function (entry) {
+    entry.field = createSelectField($info, entry);
+  });
+}
+
+// ---------------------------------
+// Action Models
+// ---------------------------------
+
+function getActionModels($body, model) {
+  let $header = createHeader("Add Action Models");
+  let $info = $("<div>", { class: "modal-models-overview" });
+  createActions($info, model);
+  let $infoDiv = createModelsDiv($header, $info);
+  // Append to modal body
+  $body.append($infoDiv);
+}
+
+function createActions($info, model) {
+  console.log(model);
+  $info.append($("<h3>Service Actions</h3>"));
+  model.defs.services.forEach(function (entry) {
     entry.field = createSelectField($info, entry);
   });
 }

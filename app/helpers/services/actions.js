@@ -18,13 +18,18 @@
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import {HTTP} from "ajan-editor/helpers/RDFServices/vocabulary";
+import { ACTN, HTTP } from "ajan-editor/helpers/RDFServices/vocabulary";
 import ajaxActions from "ajan-editor/helpers/services/actions/ajax";
-import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdfFact from "ajan-editor/helpers/RDFServices/RDF-factory";
 import utility from "ajan-editor/helpers/RDFServices/utility";
+import globals from "ajan-editor/helpers/global-parameters";
 import serviceProducer from "ajan-editor/helpers/RDFServices/servicesRDFProducer";
+
+import rdf from "npm:rdf-ext";
+import N3 from "npm:rdf-parser-n3";
+import stringToStream from "npm:string-to-stream";
+import consumer from "ajan-editor/helpers/RDFServices/servicesRDFConsumer";
 
 export default {
 	// Delete Service Object
@@ -46,7 +51,10 @@ export default {
 	// AJAX related Actions
 	getActions: ajaxActions.getActions,
 	getFromServer: ajaxActions.getFromServer,
-	saveGraph: ajaxActions.saveGraph
+  saveGraph: ajaxActions.saveGraph,
+  readTTLInput: readTTLInput,
+  getMatches: getMatches,
+  importActions: importActions
 };
 
 function deleteService(service) {
@@ -98,4 +106,65 @@ function createDefaultBinding(repo) {
   payload.sparql = "CONSTRUCT {?s ?p ?o} WHERE {?s ?p ?o}";
 	binding.payload = payload;
   return binding;
+}
+
+function readTTLInput(content, onend) {
+  console.log("readTTLInput");
+  let parser = new N3({ factory: rdf });
+  let quadStream = parser.import(stringToStream(content));
+  let importFile = {
+    info: { contains: [] },
+    raw: content,
+    quads: [],
+    objects: [],
+    resources: []
+  };
+  let result = consumer.getActionsGraph(quadStream, true);
+  result.then(function (result) {
+    importFile.objects = result[0].services;
+    importFile.resources = result[0].services.map(obj => { return obj.uri });
+    console.log(importFile.objects);
+    importFile.objects.forEach(obj => {
+      importFile.info.contains.push({
+        type: ACTN.ServiceAction,
+        uri: obj.uri,
+        name: obj.label
+      });
+    });
+    onend(importFile);
+  });
+}
+
+function getMatches(importFile, availableServices) {
+  let matches = [];
+  importFile.objects.forEach(obj => {
+    let match = availableServices.find((item) => item.uri == obj.uri);
+    if (match != undefined) {
+      match.import = true;
+      match.match = true;
+      matches.push(match);
+    } else {
+      obj.import = true;
+      obj.match = false;
+      matches.push(obj);
+    }
+  });
+  return matches;
+}
+
+function importActions(repo, importFile, bus, availableServices, matches, ajax, onend) {
+  matches.actions.forEach(match => {
+    if (match.import && match.match) {
+      let oldDef = availableServices.find((item) => item.uri == match.uri);
+      deleteService(oldDef);
+    }
+    if (match.import) {
+      let newDef = importFile.objects.find((item) => item.uri == match.uri);
+      serviceProducer.createService(newDef);
+    }
+  });
+  if (ajax)
+    ajaxActions.saveGraph(ajax, repo, bus, "updated", onend);
+  else
+    ajaxActions.saveGraph(globals.ajax, repo, bus, "updated", onend);
 }

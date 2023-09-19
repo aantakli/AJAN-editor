@@ -96,8 +96,6 @@ function loadAgentsRepo(ajax, tripleStoreRepository, token) {
   });
 
   return ajaxPromise.then(function (data) {
-    console.log(data);
-
     // read agents
     let agentsGraph = agentsHlp.getAgentsGraph(data);
     let agentsPromise = Promise.resolve(agentsGraph);

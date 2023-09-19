@@ -156,7 +156,7 @@ export default Component.extend({
 			else if (o == HTTP.Delete)
 				self.set("activeAction." + self.edit, "DELETE");
 			else if (o == HTTP.Copy)
-				self.set("activeAction." + self.edit, "Copy");
+				self.set("activeAction." + self.edit, "COPY");
 			else if (o == HTTP.Head)
 				self.set("activeAction." + self.edit, "HEAD");
 			else if (o == HTTP.Options)
@@ -178,8 +178,8 @@ export default Component.extend({
 
       rdfGraph.setObjectValue(s, p, o, type);
 			self.actions.toggle(self.edit);
-			reset();
       self.actions.updateRepo();
+      reset();
 		},
 
     saveVariable(val) {
@@ -295,7 +295,7 @@ function setFileContent(uri) {
   let label = rdfGraph.getObject(uri, RDFS.label);
   let eventRDF = exportService(uri);
   self.set("fileName", "actions_service_" + label.value + ".ttl");
-  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF) + "."])));
+  self.set("content", URL.createObjectURL(new Blob([rdfGraph.toString(eventRDF)])));
 }
 
 function exportService(nodeURI) {

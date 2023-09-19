@@ -1,3 +1,4 @@
+/* eslint-disable sort-imports */
 /*
  * Created on Tue Nov 10 2020
  *
@@ -19,27 +20,36 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Component from '@ember/component';
+import Ember from "ember";
 import {
   sendSelectQuery
 } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 import { ValueChoice } from "ajan-editor/objects/definitions/template";
-import { XSD, RDFS } from "ajan-editor/helpers/RDFServices/vocabulary";
+import { RDFS, XSD } from "ajan-editor/helpers/RDFServices/vocabulary";
+
+let ajax = null;
 
 export default Component.extend({
+  ajax: Ember.inject.service(),
+
   init() {
     this._super(...arguments);
   },
  
   actions: {
-    updateChoices: function() {
-      let promise = sendSelectQuery(this.get("param.sparql.repo"), this.get("param.sparql.query"));
+    updateChoices: function () {
+      let promise = sendSelectQuery(ajax, this.get("param.sparql.repo"), this.get("param.sparql.query"));
       promise.then(data => {
-        if (data[0].label != "" && data[0].dataValue != "") {
+        console.log(data);
+        let rows = data.split("\n");
+        if (rows[0] != "") {
           this.set("param.possibleValues", []);
-          for (var i = 0; i < data.length; i++) {
+          for (let i = 1; i < rows.length; i++) {
+            console.log(rows[i]);
+            let row = rows[i].split(",");
             let param = ValueChoice.create();
-            param.label = data[i].label;
-            param.dataValue = getLiteral(data[i].dataValue, data[i].dataType);
+            param.label = row[getBindingID(rows[0], "label")];
+            param.dataValue = getLiteral(row[getBindingID(rows[0], "dataValue")], row[getBindingID(rows[0], "dataType")]);
             this.get("param.possibleValues").pushObject(param);
           }
         }
@@ -47,6 +57,14 @@ export default Component.extend({
     }
   }
 });
+
+function getBindingID(header, string) {
+  let headers = header.split(",");
+  for (let i = 0; i < headers.length; i++) {
+    if (headers[i] == string) return i;
+  }
+  return 0;
+}
 
 function getLiteral(data, type) {
   let result = undefined;

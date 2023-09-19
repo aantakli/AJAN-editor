@@ -23,7 +23,7 @@ import freeNodes from "ajan-editor/helpers/graph/free-nodes";
 import modalActions from "ajan-editor/helpers/behaviors/actions/modal";
 import graphActions from "ajan-editor/helpers/behaviors/actions/graph";
 import rdfManager from "ajan-editor/helpers/RDFServices/RDF-manager";
-import { BT, RDF } from "ajan-editor/helpers/RDFServices/vocabulary";
+import { BT, RDF, RDFS } from "ajan-editor/helpers/RDFServices/vocabulary";
 import rdf from "npm:rdf-ext";
 import N3 from "npm:rdf-parser-n3";
 import stringToStream from "npm:string-to-stream";
@@ -50,7 +50,9 @@ export default {
 
   readTTLInput: readTTLInput,
   getTTLMatches: getTTLMatches,
-  deleteMatches: deleteMatches
+  setImportContains: setImportContains,
+  deleteMatches: deleteMatches,
+  deleteInverseMatches: deleteInverseMatches
   //deleteBT: modalActions.deleteBT
 };
 
@@ -75,7 +77,7 @@ function saveGraph(ajax, tripleStoreRepository, cy) {
 	} else {
 		// No free nodes, just save it
 		ajaxActions.saveGraph(ajax, tripleStoreRepository);
-	}
+  }
 }
 
 function readTTLInput(content, onend) {
@@ -100,19 +102,67 @@ function readTTLInput(content, onend) {
   });
 }
 
+function setImportContains(importFile) {
+  let info = { contains: [] };
+  importFile.resources.forEach((uri) => {
+    console.log(uri);
+    importFile.quads.forEach((quad) => {
+      if (
+        quad.subject.value === uri &&
+        quad.predicate.value === RDFS.label
+      ) {
+        info.contains.push({
+          type: "BT",
+          uri: uri,
+          name: quad.object.value
+        });
+        console.log(quad.object.value);
+      }
+    });
+  });
+  console.log(info);
+  return info;
+}
+
 function getTTLMatches(defs, imports) {
-  let matches = [];
+  let matches = [] ;
   imports.resources.forEach((uri) => {
     let match = (defs.filter(item => item.uri == uri))[0];
-    if (match != undefined)
+    if (match != undefined) {
+      match.import = true;
+      match.match = true;
       matches.push(match);
+    } else {
+      matches.push({
+        type: BT.BehaviorTree,
+        name: "BT",
+        uri: uri,
+        import: true,
+        match: false
+      });
+    }
   });
   return matches;
 }
 
 function deleteMatches(matches, availableBTs) {
-  matches.forEach((bt) => {
-    if (bt != undefined)
-      rdfManager.deleteBT(bt.uri, availableBTs.filter(item => item.uri !== bt.uri), false);
-  });
+  if (matches.length > 0) {
+    matches.forEach((bt) => {
+      console.log(matches);
+      if (bt.import === undefined || bt.import) {
+        rdfManager.deleteBT(bt.uri, availableBTs.filter(item => item.uri !== bt.uri), false);
+      }
+    });
+  }
+}
+
+function deleteInverseMatches(matches, availableBTs) {
+  if (matches.length > 0) {
+    matches.forEach((bt) => {
+      console.log(matches);
+      if (!bt.import) {
+        rdfManager.deleteBT(bt.uri, availableBTs.filter(item => item.uri !== bt.uri), false);
+      }
+    });
+  }
 }

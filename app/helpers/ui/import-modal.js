@@ -114,7 +114,7 @@ function getInfoHTML(info, matches, $body, $matchesDiv) {
 function setContainsHTML(contains, matches, $info, $matchesDiv) {
   if (contains.length > 0) {
     let $contains = $("<div>", {});
-    $contains.append($("<p><b>Contains/Import:</b>"));
+    $contains.append($("<p><b>Import contained data:</b>"));
     let $list = $("<ul style='padding-left:0px'>", {});
     contains.forEach((item) => {
       let $input = $("<input style='width:3%' type='checkbox' checked id='" + item.uri + "'>");

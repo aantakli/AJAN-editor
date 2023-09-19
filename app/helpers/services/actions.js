@@ -152,7 +152,7 @@ function getMatches(importFile, availableServices) {
   return matches;
 }
 
-function importActions(repo, importFile, bus, availableServices, matches, ajax) {
+function importActions(repo, importFile, bus, availableServices, matches, ajax, onend) {
   matches.actions.forEach(match => {
     if (match.import && match.match) {
       let oldDef = availableServices.find((item) => item.uri == match.uri);
@@ -164,7 +164,7 @@ function importActions(repo, importFile, bus, availableServices, matches, ajax) 
     }
   });
   if (ajax)
-    ajaxActions.saveGraph(ajax, repo, bus, "updated");
+    ajaxActions.saveGraph(ajax, repo, bus, "updated", onend);
   else
-    ajaxActions.saveGraph(globals.ajax, repo, bus, "updated");
+    ajaxActions.saveGraph(globals.ajax, repo, bus, "updated", onend);
 }

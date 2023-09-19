@@ -43,9 +43,9 @@ export default {
   },
 
   // save to repository
-  saveGraph: function (ajax, tripleStoreRepository, databus, type) {
+  saveGraph: function (ajax, tripleStoreRepository, databus, type, onend) {
     Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
-      .then((token) => updateServicesRepo(ajax, tripleStoreRepository, databus, type, token));
+      .then((token) => updateServicesRepo(ajax, tripleStoreRepository, databus, type, token, onend));
   }
 };
 
@@ -98,7 +98,7 @@ function loadServicesRepo(ajax, tripleStoreRepository, token) {
   return promisedRdfGraph;
 }
 
-function updateServicesRepo(ajax, tripleStoreRepository, databus, type, token) {
+function updateServicesRepo(ajax, tripleStoreRepository, databus, type, token, onend) {
   console.log(ajax);
 
   console.log("Saving to triple store: ", tripleStoreRepository);
@@ -127,6 +127,9 @@ function updateServicesRepo(ajax, tripleStoreRepository, databus, type, token) {
           databus.updatedSG();
         if (type === "deleted")
           databus.deletedSG();
+      }
+      if (onend) {
+        onend();
       }
     }).catch(function (error) {
       if (isServerError(error)) {

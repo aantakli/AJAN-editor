@@ -572,16 +572,36 @@ function showImportDialog(ajax, triplestore, zipFile, matches) {
       agtActions.deleteMatches(matches.agents);
       rdfGraph.addAll(matchesGraph);
       agtActions.saveAgentGraph(ajax, triplestore + globals.agentsRepository, null, function () {
-        saveImportedBTs(ajax, triplestore, matches, zipFile);
+        saveImportedActions(ajax, triplestore, matches, zipFile);
       });
     } else if (zipFile.agents.import) {
       sendFile(ajax, triplestore + globals.agentsRepository, zipFile.agents.import.raw);
-      saveImportedBTs(ajax, triplestore, matches, zipFile);
+      saveImportedActions(ajax, triplestore, matches, zipFile);
     } else {
-      saveImportedBTs(ajax, triplestore, matches, zipFile);
+      saveImportedActions(ajax, triplestore, matches, zipFile);
     }
     $("#save-confirmation").trigger("showToast");
   }, zipFile.info.input);
+}
+
+function saveImportedActions(ajax, triplestore, matches, zipFile) {
+  let repo = triplestore + globals.servicesRepository;
+  if (matches.actions.length > 0) {
+    servActions.getFromServer(ajax, repo).then(function (rdfData) {
+      rdfGraph.reset();
+      rdfGraph.set(rdfData);
+      let availableServices = servActions.getActions();
+      console.log(zipFile.actions);
+      servActions.importActions(repo, zipFile.actions.import, that.dataBus, availableServices.services, matches, ajax, function () {
+        saveImportedBTs(ajax, triplestore, matches, zipFile);
+      });
+    });
+  } else if (zipFile.actions.import) {
+    sendFile(ajax, repo, zipFile.actions.import.raw);
+    saveImportedBTs(ajax, triplestore, matches, zipFile);
+  } else {
+    saveImportedBTs(ajax, triplestore, matches, zipFile);
+  }
 }
 
 function saveImportedBTs(ajax, triplestore, matches, zipFile) {
@@ -594,29 +614,9 @@ function saveImportedBTs(ajax, triplestore, matches, zipFile) {
     rdfGraph.set(zipFile.behaviors.original.rdf);
     btActions.deleteMatches(matches.behaviors, zipFile.behaviors.original.defs);
     rdfGraph.addAll(matchesGraph);
-    btActions.saveGraph(ajax, triplestore + globals.behaviorsRepository, null, function () {
-      saveImportedActions(ajax, triplestore, matches, zipFile);
-    });
+    btActions.saveGraph(ajax, triplestore + globals.behaviorsRepository, null);
   } else if (zipFile.behaviors.import) {
     sendFile(ajax, triplestore + globals.behaviorsRepository, zipFile.behaviors.import.raw);
-    saveImportedActions(ajax, triplestore, matches, zipFile);
-  } else {
-    saveImportedActions(ajax, triplestore, matches, zipFile);
-  }
-}
-
-function saveImportedActions(ajax, triplestore, matches, zipFile) {
-  let repo = triplestore + globals.servicesRepository;
-  if (matches.actions.length > 0) {
-    rdfGraph.reset();
-    servActions.getFromServer(ajax, repo).then(function (rdfData) {
-      rdfGraph.set(rdfData);
-      let availableServices = servActions.getActions();
-      console.log(zipFile.actions);
-      servActions.importActions(repo, zipFile.actions.import, that.dataBus, availableServices.services, matches, ajax);
-    });
-  } else if (zipFile.behaviors.import) {
-    sendFile(ajax, repo, zipFile.actions.import.raw);
   }
 }
 

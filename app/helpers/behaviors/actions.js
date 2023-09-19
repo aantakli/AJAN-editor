@@ -56,7 +56,7 @@ export default {
   //deleteBT: modalActions.deleteBT
 };
 
-function saveGraph(ajax, tripleStoreRepository, cy, onend) {
+function saveGraph(ajax, tripleStoreRepository, cy) {
 	let freebies = freeNodes.get();
 	console.log("Free nodes: ", freebies);
 	if (freebies.length > 0) {
@@ -77,9 +77,6 @@ function saveGraph(ajax, tripleStoreRepository, cy, onend) {
 	} else {
 		// No free nodes, just save it
 		ajaxActions.saveGraph(ajax, tripleStoreRepository);
-  }
-  if (onEnd) {
-    onEnd();
   }
 }
 

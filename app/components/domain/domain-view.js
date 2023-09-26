@@ -32,6 +32,9 @@ export default Ember.Component.extend({
     that = this;
 
     setTriplestoreField();
+
+    const clingo = require("clingo-wasm");
+    clingo.run("a. b:- a.").then(console.log);
   },
 
   willDestroyElement() {

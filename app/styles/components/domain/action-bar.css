@@ -40,6 +40,10 @@
   text-align: right;
 }
 
+:global(.domain-save-button.unsavedChanges button) {
+  color: #FFF !important;
+}
+
 /***********************/
 /* Triplestore Display */
 /***********************/

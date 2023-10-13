@@ -8,6 +8,22 @@
   rdf4jRepo="domain"
 }}
 
+{{#if this.unsaved}}
+    {{ui/menu-bar/button
+      label="Save"
+      class="domain-save-button unsavedChanges"
+      icon="save icon"
+      onClick=(action "save")
+    }}
+  {{/if}}
+  {{#unless this.unsaved}}
+    {{ui/menu-bar/button
+      label="Save"
+      class="domain-save-button"
+      onClick=(action "save")
+    }}
+  {{/unless}}
+
 <div class="store-url-cont vcenter" local-class="rightmost">
   <div>
     <div local-class="store">Triplestore:</div>

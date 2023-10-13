@@ -19,5 +19,36 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Component from "@ember/component";
+import queries from "ajan-editor/helpers/RDFServices/queries";
+import { sendFile, deleteRepo } from "ajan-editor/helpers/RDFServices/ajax/query-rdf4j";
 
-export default Component.extend({});
+let $ = Ember.$;
+let that = undefined;
+
+export default Component.extend({
+  unsaved: false,
+  rdfContent: "",
+  repo: "",
+  ajax: Ember.inject.service(),
+  dataBus: Ember.inject.service(),
+
+  init() {
+    this._super(...arguments);
+    that = this;
+
+    this.get('dataBus').on('updateDomain', function (editor, repo) {
+      that.set("rdfContent", editor.session.getValue(), repo);
+      that.set("repo", repo);
+      that.set("unsaved", true);
+    });
+  },
+
+  actions: {
+    save() {
+      let repo = that.get("repo");
+      deleteRepo(that.ajax, repo, queries.deleteAll())
+        .then(sendFile(that.ajax, repo, that.get("rdfContent")))
+        .then(window.location.reload());
+    }
+  }
+});

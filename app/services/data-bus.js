@@ -91,5 +91,9 @@ export default Ember.Service.extend(Ember.Evented, {
 
   updateAgentDefs(defs) {
     this.trigger('updateAgentDefs', defs);
+  },
+
+  updateDomain(editor, repo) {
+    this.trigger('updateDomain', editor, repo);
   }
 });

@@ -19,13 +19,21 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Ember from "ember";
+import token from "ajan-editor/helpers/token";
+import globals from "ajan-editor/helpers/global-parameters";
 
 let $ = Ember.$;
 
 let that;
 
 export default Ember.Component.extend({
+  repo: "",
   workbench: "",
+  rdfEditor: undefined,
+  initialContent: "",
+  classNames: ["full-width full-height"],
+  aceTurtle: Ember.inject.service("editor/ace-turtle"),
+  dataBus: Ember.inject.service(),
 
   didInsertElement() {
     this._super(...arguments);
@@ -33,8 +41,15 @@ export default Ember.Component.extend({
 
     setTriplestoreField();
 
-    const clingo = require("clingo-wasm");
-    clingo.run("a. b:- a.").then(console.log);
+    this.repo =
+      (localStorage.currentStore ||
+        "http://localhost:8090/rdf4j/repositories") +
+      globals.domainRepository;
+
+    //const clingo = require("clingo-wasm");
+    //clingo.run("a. b:- a.").then(console.log);
+
+    getDomainContent(that);
   },
 
   willDestroyElement() {
@@ -42,9 +57,48 @@ export default Ember.Component.extend({
   }
 });
 
+function getDomainContent(that) {
+  Promise.resolve(token.resolveToken(that.ajax, localStorage.currentStore))
+    .then((token) => {
+      $.ajax({
+        url: that.get("repo") + "/statements",
+        type: "GET",
+        contentType: "application/trig; charset=utf-8",
+        headers: getHeaders(token)
+      }).then(function (data) {
+        that.set("initialContent", data);
+        let editor = that.get("aceTurtle").getInstance(that);
+        editor.getSession().on('change', function (data) {
+          rdfUpdate(editor,data);
+        });
+        editor.resize();
+        that.set("rdfEditor", editor);
+        console.log(editor);
+      });
+    });
+}
+
+function getHeaders(token) {
+  if (token) {
+    return {
+      Authorization: "Bearer " + token,
+      Accept: "application/trig; charset=utf-8",
+    }
+  } else {
+    return {
+      Accept: "application/trig; charset=utf-8",
+    }
+  }
+}
+
 function setTriplestoreField() {
   $(".store-url").text(localStorage.currentStore);
   let store = localStorage.currentStore + "domain/summary";
   store = store.replace("rdf4j", "workbench");
   that.set("workbench", store);
+}
+
+function rdfUpdate(editor) {
+  console.log(editor.session.getValue());
+  that.dataBus.updateDomain(editor, that.get("repo"));
 }

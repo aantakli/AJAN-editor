@@ -10,15 +10,22 @@
 }
 
 :global(#domain-view-wrapper) {
-  width: 980px;
-  margin-left: -490px;
+  width: 80%;
+  margin-left: -40%;
   padding: 20px 50px;
   box-shadow: 0px 5px 10px #d1d1e0;
+}
+
+:global(#domain-content) {
 }
 
 :global(#domain-content a) {
   color: #383a94;
   font-weight: bold;
+}
+
+:global(#ace-editor) {
+  min-height: calc(100vh - 319px);
 }
 
 :global(#workbench-link) {

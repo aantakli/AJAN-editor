@@ -60,10 +60,13 @@
 }
 
 :global(#rdf-error .rdf-error-message) {
-  position:absolute;
+  position: absolute;
+  width: 100%;
+  padding-right: 25px;
   float: right;
   margin-top: 2px;
   display: block;
+  text-align: right;
 }
 
 :global(#rdf-error i.textarea-validation-error-hint) {

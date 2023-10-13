@@ -27,6 +27,7 @@ let that = undefined;
 
 export default Component.extend({
   unsaved: false,
+  update: true,
   rdfContent: "",
   repo: "",
   ajax: Ember.inject.service(),
@@ -39,6 +40,12 @@ export default Component.extend({
     this.get('dataBus').on('updateDomain', function (editor, repo) {
       that.set("rdfContent", editor.session.getValue(), repo);
       that.set("repo", repo);
+      that.set("update", true);
+      that.set("unsaved", true);
+    });
+
+    this.get('dataBus').on('noUpdateDomain', function () {
+      that.set("update", false);
       that.set("unsaved", true);
     });
   },
@@ -49,6 +56,14 @@ export default Component.extend({
       deleteRepo(that.ajax, repo, queries.deleteAll())
         .then(sendFile(that.ajax, repo, that.get("rdfContent")))
         .then(window.location.reload());
+    },
+
+    saveError() {
+      alert("Domain information can not be saved, please fix issues first!");
+    },
+
+    noSave() {
+      alert("Nothing has Changed");
     }
   }
 });

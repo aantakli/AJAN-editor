@@ -35,7 +35,6 @@ export default Service.extend({
 
 function getOptions(that) {
   let fontSize = that.get("fontSize") ? that.get("fontSize") : "15pt";
-  console.log(that);
   return {
     fontSize: fontSize,
     // useWrapMode: true,

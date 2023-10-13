@@ -9,6 +9,7 @@
 }}
 
 {{#if this.unsaved}}
+  {{#if this.update}}
     {{ui/menu-bar/button
       label="Save"
       class="domain-save-button unsavedChanges"
@@ -16,13 +17,22 @@
       onClick=(action "save")
     }}
   {{/if}}
-  {{#unless this.unsaved}}
+  {{#unless this.update}}
     {{ui/menu-bar/button
       label="Save"
-      class="domain-save-button"
-      onClick=(action "save")
+      class="domain-nosave-button unsavedChanges"
+      icon="save icon"
+      onClick=(action "saveError")
     }}
   {{/unless}}
+{{/if}}
+{{#unless this.unsaved}}
+    {{ui/menu-bar/button
+      label="Save"
+      class="domain-save-button unsavedChanges"
+      onClick=(action "noSave")
+    }}
+{{/unless}}
 
 <div class="store-url-cont vcenter" local-class="rightmost">
   <div>

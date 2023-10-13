@@ -95,5 +95,9 @@ export default Ember.Service.extend(Ember.Evented, {
 
   updateDomain(editor, repo) {
     this.trigger('updateDomain', editor, repo);
+  },
+
+  noUpdateDomain() {
+    this.trigger('noUpdateDomain');
   }
 });

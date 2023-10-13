@@ -22,6 +22,10 @@ import Ember from "ember";
 import token from "ajan-editor/helpers/token";
 import globals from "ajan-editor/helpers/global-parameters";
 
+import rdf from "npm:rdf-ext";
+import N3 from "npm:rdf-parser-n3";
+import stringToStream from "npm:string-to-stream";
+
 let $ = Ember.$;
 
 let that;
@@ -73,7 +77,6 @@ function getDomainContent(that) {
         });
         editor.resize();
         that.set("rdfEditor", editor);
-        console.log(editor);
       });
     });
 }
@@ -99,6 +102,34 @@ function setTriplestoreField() {
 }
 
 function rdfUpdate(editor) {
-  console.log(editor.session.getValue());
-  that.dataBus.updateDomain(editor, that.get("repo"));
+  let content = editor.session.getValue();
+  let parser = new N3({ factory: rdf });
+  let quadStream = parser.import(stringToStream(content));
+  rdf.dataset().import(quadStream).then((dataset) => {
+    removeAllMarkers(editor);
+    $("#rdf-error").addClass('hidden');
+    $("rdf-error .rdf-error-message").remove();
+    that.dataBus.updateDomain(editor, that.get("repo"));
+  }).catch((error) => {
+    removeAllMarkers(editor);
+    let message = error.message;
+    let lineNumber = message.match(/on\sline\s(\d+)/)[1];
+    console.log(message);
+    console.log(lineNumber);
+    $("#rdf-error .rdf-error-message").text(message);
+    $("#rdf-error").removeClass('hidden');
+    var Range = ace.require('ace/range').Range;
+    editor.session.addMarker(new Range(lineNumber - 1, 0, lineNumber-1, 1), "errorMarker", "fullLine");
+    that.dataBus.noUpdateDomain();
+  });
+}
+
+function removeAllMarkers(editor) {
+  const prevMarkers = editor.session.getMarkers();
+  if (prevMarkers) {
+    const prevMarkersArr = Object.keys(prevMarkers);
+    for (let item of prevMarkersArr) {
+      editor.session.removeMarker(prevMarkers[item].id);
+    }
+  }
 }

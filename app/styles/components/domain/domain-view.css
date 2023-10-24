@@ -5,8 +5,8 @@
 :global(#domain-view) {
   width: 100%;
   margin: 0 50%;
-  padding-top: 40px;
-  padding-bottom: 40px;
+  padding-top: 35px;
+  padding-bottom: 35px;
 }
 
 :global(#domain-view-wrapper) {

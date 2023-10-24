@@ -44,6 +44,7 @@ export default Ember.Component.extend({
 		loadRdfGraphData();
     setTriplestoreField();
     this.dataBus.updatedSG();
+
 	}, // end didInsertElement
 
 

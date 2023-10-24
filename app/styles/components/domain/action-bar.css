@@ -40,10 +40,18 @@
   text-align: right;
 }
 
+:global(.domain-save-button.unsavedChanges button) {
+  color: #FFF !important;
+}
+
+:global(.domain-nosave-button.unsavedChanges button) {
+  color: #F00 !important;
+  text-decoration: line-through;
+}
+
 /***********************/
 /* Triplestore Display */
 /***********************/
-
 :global(.store-url-cont) {
   padding: 0.5em 1em;
 }

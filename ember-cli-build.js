@@ -10,8 +10,8 @@ module.exports = function(defaults) {
     ],
     ace: {
       themes: ['ambiance', 'chaos'],
-      modes: ['sparql'],
-      workers: ['sparql'],
+      modes: ['sparql', 'turtle'],
+      workers: ['sparql', 'turtle'],
       exts: ['language_tools'],
     }
   });
@@ -30,6 +30,7 @@ module.exports = function(defaults) {
   // along with the exports of each module as its value.
 
   app.import('vendor/ace/mode-sparql.js');
+  app.import('vendor/ace/mode-turtle.js');
   app.import('vendor/ace/theme-chaos.js');
   app.import('vendor/ace/theme-dawn.js');
   app.import('vendor/ace/snippets/sparql.js');

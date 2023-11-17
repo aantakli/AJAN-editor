@@ -8,10 +8,22 @@
 }
 
 :global(.gutter) {
-    background-color: black;
-    background-repeat: no-repeat;
-    background-position: 50%;
-    opacity: 0.5;
+  background: none;
+  background-repeat: no-repeat;
+  background-position: 50%;
+  opacity: 0.5;
+}
+
+  /*:global(.gutter) {
+  box-shadow: inset 4px 2px 5px #d1d1e0;
+}*/
+
+:global(#split-left) + :global(.gutter) {
+  margin-top: 20px;
+}
+
+:global(#split-middle) + :global(.gutter) {
+  margin-top: 20px;
 }
 
 :global(.gutter.gutter-horizontal) {

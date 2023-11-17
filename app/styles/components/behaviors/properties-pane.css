@@ -1,6 +1,7 @@
 @value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
 @value color-select from 'ajan-editor/styles/_globals/custom-select';
 
+@value color-intro-bg: color-primary-3;
 @value color-title-bg: color-primary-4;
 @value color-subtitle-bg: color-primary-5;
 @value color-h-bg: color-primary;
@@ -10,7 +11,7 @@
 
 .intro {
   padding: 1em 0.5em;
-  background-color: color-h-bg;
+  background: color-intro-bg;
   color: color-h-font;
 }
 

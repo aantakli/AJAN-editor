@@ -6,7 +6,7 @@
 }
 
 .logo {
-  background-color: #181940;
+  background-color: #000;
   display: block;
   margin: 0;
   height: auto;
@@ -19,28 +19,36 @@
 }
 
 .top {
+  overflow: auto;
+  background: linear-gradient(to bottom right, #1E1B55, #1B3284, #EA5B97, #F5A399, #5CB697, #8EC8B1, #FFF176);
+  animation: gradient 120s ease infinite;
+  background-size: 400% 400%;
   position: absolute;
   top: 0;
-  height: 20em;
-  width: 50%;
+  height: 30em;
+  width: 100%;
   z-index: -1;
 }
 
-.left {
-  background: linear-gradient(#271940, #301940);
-  float: left;
-  left: 0;
-}
-
-.right {
-  background-color: #181940;
-  float: right;
-  right: 0;
-}
-
 .background {
-  background: linear-gradient(to bottom right, #301940 , #181940);
+  margin-top: 20px;
+  background: #D1D6D8;
+  border-top: #000 solid 10px; 
   width: 100%;
   height: 100%;
   position: fixed;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  50% {
+    background-position: 100% 100%;
+  }
+
+  100% {
+    background-position: 0% 0%;
+  }
 }

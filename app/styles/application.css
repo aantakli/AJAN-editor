@@ -3,13 +3,15 @@
 @value color-nav: color-primary;
 @value color-nav-hover: color-primary-2;
 @value color-nav-active: color-primary-1;
+@value color-nav-active-tab: color-primary-3;
 
 .navbar.container {
-  background-color: color-nav;
+  background: color-nav;
   margin: 0;
   height: 100px;
   overflow-x: auto;
   overflow-y: hidden;
+  font-family: monospace;
 }
 
 .navbar.container::-webkit-scrollbar-track {
@@ -27,19 +29,27 @@
   flex-basis: auto;
 }
 
-:global(.img.navbar){
+:global(.img.navbar) {
   display: inline-flex;
   height: 100%;
   margin: 0;
+  padding-top: 20px;
+  padding-right: 10px;
 }
 
+  :global(.img.navbar):hover {
+    background: linear-gradient(to bottom right, #FFF176, #8EC8B1, #5CB697);
+  }
+
+  :global(.img .navbar.link):hover {
+    background: none !important;
+  }
+
 .img-ajan {
-  /* height: 100%;
-  width: auto; */
-  height: 90px;
-  width: 370px;
-  /* height: 70pt;
-  width: 280pt; */
+  height: 150px;
+  width: auto;
+  margin-left: 20px;
+  margin-bottom: -45px;
 }
 
 .list {
@@ -74,6 +84,7 @@
 :global(.main-container) {
   overflow: auto;
   height: 100%;
+  font-family: monospace;
 }
 
 /* Link related */
@@ -83,16 +94,49 @@
 }
 
 a:global(.navbar.link) {
-  color: white;
+  color: #000;
   text-align: center;
 }
 
+a:global(.navbar.link.active) {
+  color: #FFF;
+}
+
+/*a:global(.navbar.link.active):before {
+  content: '';
+  position: relative;
+  top: -55px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: 0;
+  height: 0;
+  border-top: 15px solid #FFF;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+}*/
+
 a:global(.navbar.link):hover:not(:global(.active)) {
-  background-color: color-nav-hover;
+  background: color-nav-hover;
 }
 
 a:global(.navbar.link):global(.active) {
-  background-color: color-nav-active;
+  overflow: auto;
+  background: linear-gradient(to bottom right, #FFF176, #8EC8B1, #5CB697, #F5A399, #EA5B97, #1B3284, #1E1B55);
+  animation: gradient 20s;
+  animation-fill-mode: forwards;
+  background-size: 300% 300%;
+  top: 0;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 100% 100%;
+  }
 }
 
 .list-link {
@@ -106,9 +150,9 @@ a.list-link {
 }
 
 a.list-link:hover:not(:global(.active)) {
-  background-color: color-nav-hover;
+  background: color-nav-hover;
 }
 
-a.list-link:global(.active) {
-  background-color: color-nav-active;
-}
+  a.list-link:global(.active) {
+    background: color-nav-active;
+  }

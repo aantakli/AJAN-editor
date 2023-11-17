@@ -4,19 +4,20 @@
 @value color-title-bg: color-primary-4;
 @value color-subtitle-bg: color-primary-5;
 @value color-h-bg: color-primary;
-@value color-h-font: #ffffff;
+@value color-h-font: #FFF;
 @value color-odd-bg: color-primary-6;
-@value color-font: #000000;
+@value color-font: #FFF;
 
 :global(.title-behaviors:not(.wrapped)) {
-  font-weight: bold;
-  font-size: larger !important;
-  padding: 0.5em 0.5em;
   background-color: color-title-bg;
   border-style: solid;
   border-width: 0 0 2px 0;
   border-color: lightgrey;
   height: 2.5em;
+  color: color-font;
+  font-family: "Segoe UI", monospace, Arial,sans-serif;
+  font-size: 18px;
+  padding: 10px 15px;
 }
 
 :global(.title-behaviors.wrapped) {

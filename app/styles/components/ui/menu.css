@@ -6,20 +6,22 @@
 @value color-h-bg: color-primary;
 
 :global(.menu.background) {
-  background-color: color-interaction-bg;
-  color: color-font;
-  height: 30pt;
+  border-top: #000 solid 10px;
+  background: #1E1B55;
+  color: #FFF;
+  height: 40pt;
 }
 
-:global(.menu.dropdown.primary),  :global(.menu.menu-button.primary){
-  background-color: inherit;
-  color: color-font;
+:global(.menu.dropdown.primary), :global(.menu.menu-button.primary) {
+  background: inherit;
+  color: inherit;
   /* color: inherit; */
   width: 100pt;
   height: 100%;
-  /* padding: 16px; */
-  font-size: 16px;
+  padding-bottom: 16px;
+  font-size: 18px;
   border: none;
+  font-family: "Segoe UI", monospace, Arial,sans-serif;
 }
 
 :global(.menu.dropdown.primary) {
@@ -28,16 +30,16 @@
 
 /* dropdown button set to hover color when content is shown */
 :global(.menu.dropdown):hover :global(.menu.dropdown.primary) {
-  background-color: color-hover;
+  background: #1B3284;
 }
 
 :global(.menu.menu-button.primary):hover {
-  background-color: color-hover;
+  background: #1B3284;
 }
 
 /* Container */
 :global(.action-bar div.menu) {
-  background-color: #f0f0f0 !important;
+  background: #f0f0f0 !important;
 }
 
 
@@ -51,7 +53,7 @@
 :global(.menu.dropdown.content) {
   display: none;
   position: fixed;
-  background-color: #f1f1f1;
+  background: #f1f1f1;
   min-width: 160px;
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   z-index: 5;
@@ -67,7 +69,7 @@
 
 /* Dropdown items on hover */
 :global(.menu.dropdown.content) div:hover {
-  background-color: #ddd;
+  background: #ddd;
 }
 
 /* Show dropdown menu when hovering the button */

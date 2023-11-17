@@ -45,7 +45,7 @@ export default Ember.Component.extend({
 
   actions: {
     connect() {
-      var socket = that.get('websockets').socketFor('ws://localhost:4201');
+      var socket = that.get('websockets').socketFor("ws://" + document.location.hostname + ":4201");
       socket.on('open', myOpenHandler, that);
       socket.on('message', myMessageHandler, that);
       socket.on('close', myCloseHandler, that);
@@ -59,7 +59,7 @@ export default Ember.Component.extend({
         socket.off('message', myMessageHandler);
         socket.off('close', myCloseHandler);
         that.set("wssConnection", false);
-        that.get('websockets').closeSocketFor('ws://localhost:4201');
+        that.get('websockets').closeSocketFor("ws://" + document.location.hostname + ":4201");
         that.set('socketRef', null);
       }
     },
@@ -96,7 +96,7 @@ function myMessageHandler(event) {
 
 function myCloseHandler(event) {
   console.log(`On close event has been called: ${event}`);
-  that.get('websockets').closeSocketFor('ws://localhost:4201');
+  that.get('websockets').closeSocketFor("ws://" + document.location.hostname + ":4201");
   that.set("wssConnection", false);
 }
 
@@ -113,13 +113,13 @@ function getResponseMessage() {
     console.log(data);
     that.set("response", data);
   }).catch(function (error) {
-    alert("No TestServiceAction Service is running on http://localhost/4201");
+    alert("No TestServiceAction Service is running on http://" + document.location.hostname + ":4201");
   });
 }
 
 function sendResponseMessage(content) {
   return $.ajax({
-    url: "http://localhost:4201/response",
+    url: "http://" + document.location.hostname + ":4201/response",
     type: "POST",
     contentType: "text/plain",
     data: content,

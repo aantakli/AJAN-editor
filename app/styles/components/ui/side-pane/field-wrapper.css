@@ -1,8 +1,9 @@
 .container {
   margin: 0;
   margin-top: 2pt;
-  margin-left: 5pt;
+  margin-left: 10pt;
   margin-bottom: 2pt;
+  margin-right: 2pt;
 }
 
 .title {

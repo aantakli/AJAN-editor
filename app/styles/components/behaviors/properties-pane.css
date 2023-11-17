@@ -10,16 +10,16 @@
 @value color-font: #000000;
 
 .intro {
-  padding: 1em 0.5em;
+  padding: 10px 15px;
   background: color-intro-bg;
   color: color-h-font;
 }
 
-.intro h3 {
-  font-weight: bold;
-  margin-top: 0;
-  margin-bottom: 0;
-}
+  .intro h4 {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 20px;
+  }
 
 .side-menu {
   width: 100%;
@@ -27,4 +27,14 @@
   float: left;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+:global(#split-right .ui.button) {
+    border-radius: 0px;
+    box-shadow: 0px;
+}
+
+:global(#split-right .ui.button) {
+  border-radius: 0px;
+  box-shadow: 0px;
 }

@@ -2,10 +2,9 @@
 
 .title {
   background-color: color-title-bg;
-  font-weight: bold;
-  font-size: larger !important;
   padding-left: 5pt;
-
+  color: #FFF;
   border-top: 3px solid lightgrey;
-  /* box-shadow:  0 -3px 5px 6px DarkSlateGrey ; */
+  font-family: "Segoe UI", monospace, Arial,sans-serif;
+  font-size: 16px;
 }

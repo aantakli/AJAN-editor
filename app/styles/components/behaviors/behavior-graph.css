@@ -26,11 +26,13 @@
 :global(#split-left) {
   margin-top: 20px;
   box-shadow: 4px -3px 10px #d1d1e0;
+  padding-bottom: 20px;
 }
 
 :global(#split-right) {
   margin-top: 20px;
   box-shadow: -4px -3px 10px #d1d1e0;
+  padding-bottom: 20px;
 }
 
 :global(#split-right .flex-container.vertical)::-webkit-scrollbar {

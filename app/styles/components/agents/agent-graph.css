@@ -6,6 +6,15 @@
   font-style: normal;
 }
 
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+@value color-intro-bg: color-primary-3;
+@value color-title-bg: color-primary-4;
+@value color-subtitle-bg: color-primary-5;
+@value color-h-bg: color-primary;
+@value color-h-font: #ffffff;
+@value color-odd-bg: color-primary-6;
+@value color-font: #000000;
+
 :global(#ajan-agent-overview) {
   overflow: hidden;
   height: 100%;
@@ -19,6 +28,7 @@
 }
 
 :global(#agents-overview) {
+  margin-top: 20px;
   width: 20%;
   height: 100%;
   min-height: fit-content !important;
@@ -42,7 +52,10 @@
 }
 
 .agent-list-header {
-  padding: 25px 0 15px 20px;
+  padding: 10px 15px;
+  background: color-intro-bg;
+  color: color-h-font;
+  font-size: 22px;
 }
 
 .agent-list-header h3 {
@@ -79,6 +92,17 @@
     background-color: #fffea1;
   }
 
+:global(.overview-list-title) {
+  font-family: "Segoe UI", monospace, Arial,sans-serif;
+  font-size: 16px !important;
+  padding: 5px 10px !important;
+  background: color-title-bg;
+}
+
+:global(.ui.accordion .title.overview-list-title),
+:global(.overview-list-title i) {
+  color: color-h-font;
+}
 
 .agent-list-item-icon {
   width: 25px;
@@ -92,12 +116,12 @@
   height: 50px;
   box-shadow: none;
   border-style: solid;
-  border-width: 2px 0 0 0;
+  border-width: 0px;
   border-color: #ececff;
   cursor: pointer;
   text-align: left;
   padding-left: 15px;
-  background: rgb(255, 255, 255);
+  background: none;
 }
 
 :global(#agents-overview .item.active button) {
@@ -106,10 +130,6 @@
 
 :global(#agents-overview .item.active button:focus) {
   outline: none;
-}
-
-:global(#agents-overview li:last-child button) {
-  border-width: 2px 0 2px 0;
 }
 
 :global(#agents-overview .item button:hover) {
@@ -128,6 +148,14 @@
 
 :global(#agents-overview .item.active:hover .agent-list-item-marker) {
   border-color: transparent transparent transparent #d1d1e0;
+}
+
+li.agent-list-item:nth-child(even) {
+  background: #FFF;
+}
+
+li.agent-list-item:nth-child(odd) {
+  background: #f5f5f7;
 }
 
 footer {
@@ -166,8 +194,7 @@ footer {
 }
 
 .ui.button {
-  font-size: 1.0em;
-  height: 41.6px;
+  font-size: 13px;
   border-radius: 0em !important;
 }
 

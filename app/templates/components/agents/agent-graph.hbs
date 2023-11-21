@@ -2,7 +2,7 @@
 <div id='agents-overview'>
 
   <div local-class="agent-list-header clearfix">
-    <h3>Agent Definitions</h3>
+    <h4>Agent Definitions</h4>
   </div>
 
   <div class="agents-overview-list-content">
@@ -11,8 +11,8 @@
       <i class="add icon no-side-margins"></i>
     </button>
 
-    <div class="active title" style="background-color:#A3A4DC ">
-      <i class="dropdown icon"></i><b><font size="4">Agent Templates</font></b>
+    <div class="active title overview-list-title">
+      <i class="dropdown icon"></i>Agent Templates
     </div>
 
     <ul class="active content" local-class="agent-list-content">
@@ -37,8 +37,8 @@
     <button {{action "createbehavior" "initial"}} class="ui yellow icon button rightmost" local-class="right-aligned ui button">
       <i class="add icon no-side-margins"></i>
     </button>
-    <div class="active title" style="background-color:#A3A4DC">
-      <i class="dropdown icon"></i><b><font size="4">Initial Behaviors</font></b>
+    <div class="active title overview-list-title">
+      <i class="dropdown icon"></i>Initial Behaviors
     </div>
     <ul class="active content" local-class="agent-list-content">
 
@@ -64,8 +64,8 @@
     <button {{action "createbehavior" "final"}} class="ui yellow icon button rightmost" local-class="right-aligned ui button">
       <i class="add icon no-side-margins"></i>
     </button>
-    <div class="active title" style="background-color:#A3A4DC">
-      <i class="dropdown icon"></i><b><font size="4">Final Behaviors</font></b>
+    <div class="active title overview-list-title">
+      <i class="dropdown icon"></i>Final Behaviors
     </div>
     <ul class="active content" local-class="agent-list-content">
       {{#each this.availableBehaviors.final as |value|}}
@@ -90,8 +90,8 @@
     <button {{action "createbehavior"}} class="ui yellow icon button rightmost" local-class="right-aligned ui button">
       <i class="add icon no-side-margins"></i>
     </button>
-    <div class="active title" style="background-color:#A3A4DC">
-      <i class="dropdown icon"></i><b><font size="4">Behaviors</font></b>
+    <div class="active title overview-list-title">
+      <i class="dropdown icon"></i>Behaviors
     </div>
     <ul class="active content" local-class="agent-list-content">
       {{#each this.availableBehaviors.regular as |value|}}
@@ -114,8 +114,8 @@
     <button {{action "createendpoint"}} class="ui yellow icon button rightmost" local-class="right-aligned ui button">
       <i class="add icon no-side-margins"></i>
     </button>
-    <div class="active title" style="background-color:#A3A4DC">
-      <i class="dropdown icon"></i><b><font size="4">Endpoints</font></b>
+    <div class="active title overview-list-title">
+      <i class="dropdown icon"></i>Endpoints
     </div>
 
     <ul class="active content" local-class="agent-list-content">
@@ -139,8 +139,8 @@
     <button {{action "createevent"}} class="ui yellow icon button rightmost" local-class="right-aligned ui button">
       <i class="add icon no-side-margins"></i>
     </button>
-    <div class="active title" style="background-color:#A3A4DC">
-      <i class="dropdown icon"></i><b><font size="4">Events</font></b>
+    <div class="active title overview-list-title">
+      <i class="dropdown icon"></i>Events
     </div>
     <ul class="active content" local-class="agent-list-content">
       {{#each this.availableEvents as |value|}}
@@ -163,8 +163,8 @@
     <button {{action "creategoal"}} class="ui yellow icon button rightmost" local-class="right-aligned ui button">
       <i class="add icon no-side-margins"></i>
     </button>
-    <div class="active title" style="background-color:#A3A4DC">
-      <i class="dropdown icon"></i><b><font size="4">Goals</font></b>
+    <div class="active title overview-list-title">
+      <i class="dropdown icon"></i>Goals
     </div>
     <ul class="active content" local-class="agent-list-content">
 

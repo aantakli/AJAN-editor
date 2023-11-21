@@ -126,16 +126,15 @@
 </div>
 
 <div local-class="instance-row">
-  <div id="test" local-class="instance-row-content">
-    <div id="report-service-wrapper" local-class="instance-row-value">
+    <div id="report-service-wrapper">
       <div id="report-service-message">
         <div id="report-service-message-content"></div>
+        <button class="ui right icon button" onclick={{action "clean"}}>
+          <i class="icon ban no-side-margins"></i>
+        </button>
       </div>
-      <button class="ui right icon button" onclick={{action "clean"}}>
-        <i class="icon ban no-side-margins"></i>
-      </button>
+      
     </div>
-  </div>
 </div>
 {{/if}}
 
@@ -180,7 +179,7 @@
   <b>URI:</b> {{this.selectedEndpoint.uri}}<br />
   <div local-class="instance-row-content" style="margin-top: 10px">
     <div id="test" local-class="instance-row-value">
-      {{textarea value=this.selectedEndpoint.agentMessage cols="80" rows="6"}}
+      {{textarea value=this.selectedEndpoint.agentMessage cols="92" rows="6"}}
     </div>
     {{#if (eq messageError.uri this.selectedEndpoint.uri)}}
     <p local-class="error-message">{{messageError.error}}</p>

@@ -4,14 +4,14 @@
     <i class="icon trophy"></i>
     {{activeGoal.label}}
   </div>
+  <button {{action "deletegoal"}} class="ui red icon button rightmost">
+    <i class="minus icon no-side-margins"></i>
+  </button>
   <a class="ui icon button"
      download={{fileName}}
      href="{{content}}">
     <i class="download icon no-side-margins"></i>
   </a>
-  <button {{action "deletegoal"}} class="ui red icon button rightmost">
-    <i class="minus icon no-side-margins"></i>
-  </button>
 </div>
 
 <div local-class="item-seperation">

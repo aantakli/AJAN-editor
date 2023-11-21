@@ -39,20 +39,3 @@
   margin-right: 0;
   text-align: right;
 }
-
-/***********************/
-/* Triplestore Display */
-/***********************/
-
-:global(.store-url-cont) {
-  padding: 0.5em 1em;
-}
-
-:global(.store-url) {
-  display: inline;
-}
-
-.store {
-  display:inline;
-  font-weight: bold;
-}

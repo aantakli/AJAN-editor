@@ -1,27 +1,33 @@
 /* #service-item */
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6, color-primary-7 from 'ajan-editor/styles/_globals/colors';
+@value color-intro-bg: color-primary-3;
+@value color-title-bg: color-primary-4;
+@value color-subtitle-bg: color-primary-5;
+@value color-item-header-bg: color-primary-7;
+@value color-h-bg: color-primary;
+@value color-h-font: #ffffff;
+@value color-odd-bg: color-primary-6;
+@value color-font: #000000;
 
 .service-item-header {
-  font-size: 40px;
-  font-weight: light;
   width: 100%;
-  height: 50px;
+  height: 45px;
+  margin-top: 20px;
+  margin-bottom: 30px;
+  padding-left: 10px;
   position: relative;
+  background: color-item-header-bg;
 }
 
 .service-item-header-text {
   float: left;
-  height: 50px;
-  padding-right: 30px;
-  margin-bottom: 20px;
 }
 
-.service-item-header button {
-  font-size: 20px;
-  display: block;
-  position: absolute;
-  bottom: 0px;
-  float: left;
-}
+  .service-item-header-text h4 {
+    font-family: monospace, Arial,sans-serif;
+    font-size: 55px;
+    line-height: 52px;
+  }
 
 .item-row {
   float: left;

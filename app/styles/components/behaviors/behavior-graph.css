@@ -4,6 +4,7 @@
 @value color-intro-bg: color-primary-3;
 @value color-title-bg: color-primary-4;
 @value color-subtitle-bg: color-primary-5;
+@value select-node-bg: color-primary-7;
 @value color-h-bg: color-primary;
 @value color-h-font: #ffffff;
 @value color-odd-bg: color-primary-6;
@@ -129,10 +130,10 @@ div.button-group {
 
 :global(.ui.selection.dropdown.bt-selection),
 :global(.ui.selection.dropdown.bt-selection.active.visible) {
-  background: #EA5B97;
+  background: color-subtitle-bg;
   border-radius: 0px;
-  margin-top: -1px;
-  font-size: 18px;
+  margin-top: -2px;
+  font-size: 16px;
 }
 
 :global(.ui.selection.dropdown.bt-selection .text),

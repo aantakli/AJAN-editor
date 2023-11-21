@@ -1,15 +1,15 @@
 <div id="service-item">
 
   <div local-class="service-item-header clearfix">
-    <div local-class="service-item-header-text">{{activeAction.label}}</div>
+    <div local-class="service-item-header-text"><h4>{{activeAction.label}}</h4></div>
+    <button {{action "delete"}} class="ui red icon button rightmost">
+      <i class="minus icon no-side-margins"></i>
+    </button>
     <a class="ui icon button"
        download={{fileName}}
        href="{{content}}">
       <i class="download icon no-side-margins"></i>
     </a>
-    <button {{action "delete"}} class="ui red icon button rightmost">
-      <i class="minus icon no-side-margins"></i>
-    </button>
   </div>
 
   <div id="service-item-show">

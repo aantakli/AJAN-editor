@@ -6,10 +6,10 @@
 @value color-h-bg: color-primary;
 
 :global(.menu.background) {
-  border-top: #000 solid 10px;
+  border-top: #000 solid 7px;
   background: #1E1B55;
-  color: #FFF;
-  height: 40pt;
+  color: color-font;
+  height: 30pt;
 }
 
 :global(.menu.dropdown.primary), :global(.menu.menu-button.primary) {
@@ -18,10 +18,17 @@
   /* color: inherit; */
   width: 100pt;
   height: 100%;
-  padding-bottom: 16px;
-  font-size: 18px;
+  font-size: 16px;
   border: none;
   font-family: "Segoe UI", monospace, Arial,sans-serif;
+}
+
+:global(button.menu.primary.button) {
+  padding: 0px;
+}
+
+:global(.menu.dropdown.content button.menu.primary.button) {
+  padding: 8px 16px;
 }
 
 :global(.menu.dropdown.primary) {
@@ -30,11 +37,11 @@
 
 /* dropdown button set to hover color when content is shown */
 :global(.menu.dropdown):hover :global(.menu.dropdown.primary) {
-  background: #1B3284;
+  background: color-primary-4;
 }
 
 :global(.menu.menu-button.primary):hover {
-  background: #1B3284;
+  background: color-primary-4;
 }
 
 /* Container */
@@ -79,4 +86,24 @@
 
 :global(.menu.dropdown.item) {
   text-align: left;
+}
+
+:global(.store-url-cont) {
+  padding-top: 5px;
+  padding-bottom: 3px !important;
+  padding-right: 15px;
+  padding-left: 0px;
+}
+
+:global(.store-url-cont) {
+  padding: 0.5em 1em;
+}
+
+:global(.store-url) {
+  display: inline;
+}
+
+:global(.store-name) {
+  display: inline;
+  font-weight: bold;
 }

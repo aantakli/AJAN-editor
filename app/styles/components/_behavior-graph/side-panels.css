@@ -16,8 +16,8 @@
   height: 2.5em;
   color: color-font;
   font-family: "Segoe UI", monospace, Arial,sans-serif;
-  font-size: 18px;
-  padding: 10px 15px;
+  font-size: 16px;
+  padding: 5px 15px;
 }
 
 :global(.title-behaviors.wrapped) {

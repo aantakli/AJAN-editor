@@ -1,9 +1,9 @@
 /* #agent-item */
-@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6, color-primary-7 from 'ajan-editor/styles/_globals/colors';
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6, color-primary-7, color-headlines-bg from 'ajan-editor/styles/_globals/colors';
 @value color-intro-bg: color-primary-3;
 @value color-title-bg: color-primary-4;
 @value color-subtitle-bg: color-primary-5;
-@value color-item-header-bg: color-primary-7;
+@value color-item-header-bg: color-headlines-bg;
 @value color-h-bg: color-primary;
 @value color-h-font: #ffffff;
 @value color-odd-bg: color-primary-6;
@@ -39,6 +39,7 @@
   width: 80%;
   height: 45px;
   position: relative;
+  color: color-h-font;
   background: color-item-header-bg;
   font-family: monospace, Arial,sans-serif;
 }

@@ -1,16 +1,9 @@
 .img-ajan {
   height: 20em;
-  margin: 0;
-  position: fixed;
+  margin-top: 5em;
+  margin-left: auto;
+  margin-right: auto;
   z-index: 1;
-}
-
-.logo {
-  background-color: #000;
-  display: block;
-  margin: 0;
-  height: auto;
-  width:0;
 }
 
 .center {
@@ -24,6 +17,7 @@
   animation: gradient 120s ease infinite;
   background-size: 400% 400%;
   position: absolute;
+  text-align: center;
   top: 0;
   height: 30em;
   width: 100%;

@@ -359,7 +359,6 @@ function updateErrorsList(comp, error) {
 
 function errorText(node, error) {
   let nodeDef = nodeDefs.getTypeDef(node[0]._private.data.type);
-  console.log(nodeDef);
   if (error) {
     node.style("background-image", "/icons/error.png");
     node.style("color", "#F00");

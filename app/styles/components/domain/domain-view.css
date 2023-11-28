@@ -1,5 +1,22 @@
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6, color-headlines-bg from 'ajan-editor/styles/_globals/colors';
+
+@value color-interaction-bg: color-primary-1;
+@value color-item-header-bg: color-headlines-bg;
+@value color-hover: color-primary-2;
+@value color-interaction-font: white;
+
 :global(#domain) {
   overflow-x: hidden;
+}
+
+:global(#domain h1) {
+  padding-left: 15px;
+  height: 45px;
+  font-size: 35px;
+  margin-bottom: 20px;
+  width: 100% !important;
+  background: color-headlines-bg;
+  color: #FFF;
 }
 
 :global(#domain-view) {

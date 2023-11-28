@@ -64,6 +64,7 @@ let ND = {
 	StyleDef: "http://www.ajan.de/behavior/nd-ns#StyleDef",
 	default: "http://www.ajan.de/behavior/nd-ns#default",
   icon: "http://www.ajan.de/behavior/nd-ns#icon",
+  node_icon: "http://www.ajan.de/behavior/nd-ns#node-icon",
   textarea: "http://www.ajan.de/behavior/nd-ns#textarea",
   optional: "http://www.ajan.de/behavior/nd-ns#optional"
 };

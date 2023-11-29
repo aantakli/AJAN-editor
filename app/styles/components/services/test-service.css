@@ -1,7 +1,3 @@
-:global(#services) {
-  overflow-x: hidden;
-}
-
 :global(#test-service) {
   width: 100%;
   margin: 0 50%;

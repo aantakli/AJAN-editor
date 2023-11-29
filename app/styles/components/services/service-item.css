@@ -10,13 +10,12 @@
 @value color-font: #000000;
 
 :global(#service-item) {
-  width: 80%;
-  padding: 0 0 0 20px;
-  float: left;
+  width: 100%;
+  padding: 0 0 40px 40px;
 }
 
 .service-item-header {
-  width: 100%;
+  width: 80%;
   height: 45px;
   margin-top: 20px;
   margin-bottom: 30px;

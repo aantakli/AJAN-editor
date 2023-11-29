@@ -16,10 +16,6 @@
   margin-bottom: 10pt;
 }
 
-:global(.editor.action-bar) {
-  height: 40pt;
-}
-
 :global(.editor.tab-bar.button) {
   flex-basis: 10em;
   text-align: center;

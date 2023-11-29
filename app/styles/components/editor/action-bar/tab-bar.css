@@ -1,15 +1,14 @@
 @value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
 
-@value color-interaction-bg: color-primary-1;
-@value color-hover: color-primary-2;
-@value color-font: white;
-@value color-font-active: black;
+@value color-interaction-bg: color-primary;
+@value color-hover: color-primary-4;
+@value color-font: black;
+@value color-font-active: white;
 @value color-h-bg: color-primary;
 
 :global(.editor.tab-bar) {
   height: 40pt;
-  background-color: black;
-  background-color: color-interaction-bg;
+  background: color-interaction-bg;
   color: color-font;
 }
 
@@ -27,21 +26,20 @@
   vertical-align: middle;
 
   border: 0;
-  border-right: 2px;
+  border-right: 1px;
   border-style: solid;
-  border-color: lightgrey;
-
-  font-weight: bold;
+  border-color: white;
+  font-size: 18px;
 }
 
 :global(.editor.tab-bar.button.active) {
-  background-color: white;
+  background: color-primary-5;
   color: color-font-active;
 }
 
-:global(.editor.tab-bar.button:hover):not(:global(.active)){
-  color: color-font;
-  background-color: color-hover;
+:global(.editor.tab-bar.button:hover):not(:global(.active)) {
+  color: color-font-active;
+  background: color-hover;
 }
 
 :global(.editor.query-selection.tab-bar.button) {

@@ -8,10 +8,18 @@
 @value color-odd-bg: color-primary-6;
 @value color-font: #000000;
 
-:global(#services-body) {
-  overflow: auto;
+:global(#services) {
+  overflow: hidden;
+  position: relative;
+  height: 100%;
 }
 
+
+:global(#services-body) {
+  overflow: auto;
+  position: absolute;
+  height: 100%;
+}
 /* #services-overview */
 
 :global(#services-overview) {

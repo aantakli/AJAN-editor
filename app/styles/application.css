@@ -121,7 +121,6 @@ a:global(.navbar.link):hover:not(:global(.active)) {
 }
 
 a:global(.navbar.link):global(.active) {
-  overflow: auto;
   background: linear-gradient(to bottom right, #FFF176, #8EC8B1, #5CB697, #F5A399, #EA5B97, #1B3284, #1E1B55);
   animation: gradient 20s;
   animation-fill-mode: forwards;

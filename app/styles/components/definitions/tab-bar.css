@@ -1,1 +1,3 @@
-
+:global(#definitions-menu .ember-view) {
+    height: 100% !important;
+}

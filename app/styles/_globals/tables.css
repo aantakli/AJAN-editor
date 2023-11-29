@@ -1,11 +1,11 @@
-@value color-primary, color-primary-1, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+@value color-primary, color-primary-1, color-primary-2, color-primary-4, color-primary-5, color-primary-6, color-headlines-bg from 'ajan-editor/styles/_globals/colors';
 /* @value color-select: color-primary-1; */
 @value color-select: color-primary-5;
 /* @value color-option: color-primary-2; */
 @value color-option: color-primary-6;
 /* @value color-option: #595ac0; */
 @value color-title-bg: color-primary-4;
-@value color-subtitle-bg: color-primary-5;
+@value color-subtitle-bg: color-primary-4;
 @value color-h-bg: color-primary;
 @value color-h-font: #ffffff;
 @value color-odd-bg: color-primary-6;
@@ -14,7 +14,8 @@
 @value color-odd-row: #f2f2f2;
 
 :global(.table-header), th {
-  background-color: color-subtitle-bg;
+  background: color-subtitle-bg;
+  color: color-h-font;
 }
 
 table {
@@ -23,7 +24,7 @@ table {
 }
 
 th, td {
-  padding: 3pt;
+  padding: 5pt;
   padding-top: 7pt;
   padding-bottom: 7pt;
   text-align: left;
@@ -54,13 +55,13 @@ tr:not(:global(.lt-expanded-row)):hover :not(th) {
 
 :global(div.table-title) {
   /* padding: 1em 0.8em; */
-  background-color: color-h-bg;
-  color: color-h-font;
+  background: color-h-bg;
+  color: color-font;
 }
 
 :global(.table-title div) {
   font-weight: bold;
-  font-size: 1.8em;
+  font-size: 1.5em;
 }
 
 :global(.table-title-text) {

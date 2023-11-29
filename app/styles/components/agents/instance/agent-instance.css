@@ -29,7 +29,7 @@
   height: 45px;
   position: relative;
   color: color-h-font;
-  background: color-item-header-bg;
+  background: linear-gradient(to right, #1E1B55, #1E1B55, #1E1B55, #1B3284, #EA5B97, #F5A399);
   font-family: monospace, Arial,sans-serif;
 }
 

@@ -31,9 +31,9 @@
 				<div><b style="padding-right:10px;">Date:</b> {{wssMessage.date}}</div>
 				<div class="test-service-headers">
 					<b>Headers:</b>
-						{{#each wssMessage.headers as |header|}}
-							<span style="padding-left:10px;"><i style="color:blue;">{{header.key}}:</i> "{{header.value}}"</span>
-						{{/each}}
+					{{#each wssMessage.headers as |header|}}
+					<span style="padding-left:10px;"><i style="color:blue;">{{header.key}}:</i> "{{header.value}}"</span>
+					{{/each}}
 				</div>
 				<div id="test-service-message">
 					<button class="ui right icon button" onclick={{action "clean"}}>

@@ -20,6 +20,10 @@
   height: 100%;
 }
 
+:global(#ajan-agent-view) {
+    margin-top: 20px;
+}
+
 :global(#ajan-agent-view > .ember-view) {
   display: flex;
   flex-direction: column;
@@ -28,7 +32,6 @@
 }
 
 :global(#agents-overview) {
-  margin-top: 20px;
   width: 20%;
   height: 100%;
   min-height: fit-content !important;

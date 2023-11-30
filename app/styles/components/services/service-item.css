@@ -35,6 +35,11 @@
     line-height: 45px;
   }
 
+    .service-item-header-text h4 i {
+      font-size: 30px;
+      margin: 0px;
+    }
+
 .service-item-header a {
   font-size: 25px;
   margin-bottom: -5px !important;

@@ -80,7 +80,7 @@ h2 {
   width: 40%;
 }
 
-:global(.modal-body-div input) {
+:global(.modal-body-div input:not([type=checkbox])) {
   width: 10%;
   height: 100%;
   line-height: normal;

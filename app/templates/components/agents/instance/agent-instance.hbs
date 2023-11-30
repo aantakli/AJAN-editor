@@ -1,6 +1,6 @@
 {{#if activeInstance.id}}
 <div local-class="agent-instance-header clearfix">
-  <div local-class="agent-instance-header-text">{{activeInstance.id}}</div>
+  <div local-class="agent-instance-header-text"><i class="icon user"></i>{{activeInstance.id}}</div>
   <button {{action "deleteAgent" activeInstance.uri}} class="ui red icon button rightmost">
     <i class="minus icon no-side-margins"></i>
   </button>

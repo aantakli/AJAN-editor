@@ -40,6 +40,12 @@
   line-height: 45px;
 }
 
+  .agent-instance-header-text i {
+    padding: 0px;
+    margin-right: 10px;
+    font-size: 30px;
+  }
+
 .agent-instance-header button {
   font-size: 20px;
   height: 45px;

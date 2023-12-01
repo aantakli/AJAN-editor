@@ -49,7 +49,7 @@
 }
 
 :global(#ace-editor) {
-  min-height: calc(100vh - 319px);
+  min-height: calc(100vh - 385px);
 }
 
 :global(#workbench-link) {

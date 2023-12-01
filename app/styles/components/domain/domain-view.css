@@ -39,6 +39,8 @@
 }
 
 :global(#domain-content) {
+  box-shadow: inset 0px 0px 5px 0px #d1d1e0;
+  padding: 7px;
 }
 
 :global(#domain-content a) {
@@ -144,11 +146,6 @@
   position: absolute;
   background: rgba(200,100,100,0.5);
   z-index: 20
-}
-
-:global(#ace-editor) {
-  border: 1px solid #D1D6D8;
-  border-radius: 0.28571429rem;
 }
 
 /* clearfix */

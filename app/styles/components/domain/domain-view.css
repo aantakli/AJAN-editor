@@ -15,7 +15,7 @@
   padding-left: 15px;
   height: 45px;
   font-size: 35px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   width: 100% !important;
   background: color-headlines-bg;
   color: #FFF;
@@ -67,18 +67,50 @@
   padding: 40px 0 10px 0;
 }
 
+:global(#domain-searchbox) {
+  width: 100%;
+}
+
+:global(#searchbox-wrapper) {
+  width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+:global(#domain-searchbox button) {
+  width: 30px;
+  height: 30px;
+  padding: 0px;
+}
+
+:global(#domain-searchbox button i) {
+}
+
+:global(#domain-searchbox input) {
+  width: 200px;
+  height: 30px;
+  border: solid 1px #D1D6D8;
+  border-radius: 0.28571429rem;
+}
+
 :global(#domain-view .entry-title) {
   float: left;
   width: 20%;
 }
 
+:global(.error-field) {
+  width: 100%;
+  min-height: 35px;
+  position: relative;
+}
+
 :global(#rdf-error) {
   position: relative;
-  margin-top: 15px;
   float: right;
   width: 80%;
   color: #f00;
   font-size: 1em;
+  padding-bottom: 10px;
 }
 
 :global(#rdf-error .rdf-error-message) {
@@ -113,6 +145,12 @@
   background: rgba(200,100,100,0.5);
   z-index: 20
 }
+
+:global(#ace-editor) {
+  border: 1px solid #D1D6D8;
+  border-radius: 0.28571429rem;
+}
+
 /* clearfix */
 .clearfix::before, .clearfix::after {
   content: " ";

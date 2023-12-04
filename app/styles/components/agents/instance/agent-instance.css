@@ -155,7 +155,7 @@ ul.instance-row-content {
 
 
 :global(.agentInstance-action) {
-  margin-bottom: 20px;
+  padding-bottom: 50px;
 }
 
 :global(.contentType-wrapper) {

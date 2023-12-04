@@ -21,7 +21,8 @@
   border-right: 1px;
   border-style: solid;
   border-color: lightgrey;
-  background: color-interaction-bg;
+  color: black;
+  background: color-primary;
 }
 
 :global(.tabbar-link) {

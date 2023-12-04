@@ -54,14 +54,13 @@
 					Specify content (text/turtle) that the <b>Test Service</b> will send after calling its /post endpoint.
 				</p>
 				<div id="test-service-response-message">
-					<button data-tooltip="send Message" class="ui right icon yellow button" local-class="test-service-ser-response" {{action "setResponse" response}}>
-						<i class="icon send no-side-margins"></i>
-					</button>
-					<div id="test" local-class="test-service-row-value">
+					<div id="test-service-response" local-class="test-service-row-value">
 						{{textarea value=response cols="93" rows="6"}}
+						<button data-tooltip="send Message" class="ui right icon yellow button" local-class="test-service-ser-response" {{action "setResponse" response}}>
+							<i class="icon send no-side-margins"></i>
+						</button>
 					</div>
 				</div>
-
 			</div>
 		</div>
 	</div>

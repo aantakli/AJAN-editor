@@ -56,11 +56,21 @@
   padding: 0px !important;
 }
 
+:global(#test-service-response) {
+  position: relative;
+  overflow: auto;
+}
+
+:global(#test-service-response textarea) {
+  float: left;
+}
+
 .test-service-ser-response {
   height: 25px;
   width: 25px;
-  float: right;
+  float: left;
   padding: 0px !important;
+  margin-left: 10px !important;
 }
 
 /* clearfix */

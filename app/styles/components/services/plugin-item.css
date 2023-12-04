@@ -224,6 +224,7 @@ global(#item-bindings .item) {
 :global(#item-bindings) {
   cursor: pointer;
   margin-bottom: 100px;
+  width: 80%;
 }
 
 :global(.sparql-edit.error) {

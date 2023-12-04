@@ -1,4 +1,4 @@
-@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6, color-primary-8 from 'ajan-editor/styles/_globals/colors';
 
 @value color-interaction-bg: color-primary-3;
 @value color-hover: color-primary-4;
@@ -20,9 +20,9 @@
   border: 0;
   border-right: 1px;
   border-style: solid;
-  border-color: lightgrey;
+  border-color: white;
   color: black;
-  background: color-primary;
+  background: color-primary-8;
 }
 
 :global(.tabbar-link) {

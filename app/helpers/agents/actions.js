@@ -114,12 +114,14 @@ function deleteEndpoint(endpoint, noObject) {
 
 function deleteGoal(goal, noObject) {
   console.log(goal);
-  goal.variables.forEach(item => {
-    rdfGraph.removeAllRelated(item.uri);
-    rdfGraph.removeAllRelated(item.pointerUri);
-  });
-  rdfGraph.removeAllRelated(goal.consumes.uri);
-  rdfGraph.removeAllRelated(goal.produces.uri);
+  if (goal.variables && goal.consumes && goal.produces) {
+    goal.variables.forEach(item => {
+      rdfGraph.removeAllRelated(item.uri);
+      rdfGraph.removeAllRelated(item.pointerUri);
+    });
+    rdfGraph.removeAllRelated(goal.consumes.uri);
+    rdfGraph.removeAllRelated(goal.produces.uri);
+  }
   rdfGraph.removeAllRelated(goal.uri, noObject);
 }
 

@@ -30,38 +30,6 @@ You will need the following things properly installed on your computer.
 * cmd: `node npm/node_modules/ember-cli/bin/ember serve` or run `startEditor.bat`
 * Visit your app at [http://localhost:4200](http://localhost:4200).
 
-## Setup RDF4J Triplestore for AJAN-editor
-
-The AJAN-editor needs several repositories to store editor data and to load node definitions. Especially the node definitions are necessary to interpret and display an AJAN Behavior Tree correctly. To create these repositories, start the triplestore provided with the AJAN service and create two new repositories.
-
-To do this, open the RDF4J Workbench ([http://localhost:8090/workbench/repositories](http://localhost:8090/workbench/repositories) by default) and follow the steps below:
-
-### Create Repositories
-
-If this is the first time you are connecting to the Triplestore or the associated Wokbench, the "RDF4J Server URL" must first be customized. To do this, adjust the URL in this form: `http://localhost:8090/rdf4j`
-
-The respective repositories must be filled with RDF data. These can be found under `<AJAN-editor Root Folder>/Triplestore Repos/`. This data includes, among other things, information on how the individual Behavior Tree primitives must be represented.
-
-* create Node Definitions repository:
--> open `New Repository`
--> select Type: `Native Store` and click `Next`
--> specify Id: `node_definitions` and click `Create`
-* Load Node Definitions
--> select the newly created repository and open the `Add` dialog
--> unselect `use base URI as context identifier`
--> load RDF Data File: `<AJAN-editor Root Folder>/Triplestore Repos/node_definitions.ttl`
-
-Now do the same with the Editor Data Repository:
-
-* create Editor Data repository:
--> open `New Repository`
--> select Type: `Native Store` and click `Next`
--> specify Id: `editor_data` and click `Create`
-* Load Node Definitions
--> select the newly created repository and open the `Add` dialog
--> unselect `use base URI as context identifier`
--> load RDF Data File: `<AJAN-editor Root Folder>/Triplestore Repos/editor_data.trig`
-
 ## Interaction with AJAN-service
 
 After the AJAN-editor is prepared, interaction with the AJAN-service is now possible. For this, however, the AJAN-service must run with its triplestore. If this is the case, please open `http://localhost:4200/home` and follow the next steps:

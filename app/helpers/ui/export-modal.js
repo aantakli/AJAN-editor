@@ -352,7 +352,7 @@ function addActionsFile(zipWriter, actions, domain, definitions, callback) {
 
 function addDomainFile(zipWriter, domain, definitions, callback) {
   if (domain.size > 0) {
-    zipWriter.add('behaviors/domain.ttl', new zip.BlobReader(domain), function () {
+    zipWriter.add('domain/domain.trig', new zip.BlobReader(domain), function () {
       addDefinitionsFile(zipWriter, definitions, callback);
     });
   }

@@ -1,4 +1,13 @@
 /* #agent-item */
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6, color-primary-7, color-headlines-bg from 'ajan-editor/styles/_globals/colors';
+@value color-intro-bg: color-primary-3;
+@value color-title-bg: color-primary-4;
+@value color-subtitle-bg: color-primary-5;
+@value color-item-header-bg: color-primary-7;
+@value color-h-bg: color-primary;
+@value color-h-font: #ffffff;
+@value color-odd-bg: color-primary-6;
+@value color-font: #000000;
 
 :global(#agent-instance) {
   width: 80%;
@@ -14,25 +23,37 @@
 
 .agent-instance-header {
   font-size: 40px;
+  padding-left: 10px;
   font-weight: light;
-  width: 100%;
-  height: 50px;
+  width: 80%;
+  height: 45px;
   position: relative;
+  color: color-h-font;
+  background: linear-gradient(to right, #1E1B55, #1E1B55, #1E1B55, #1B3284, #EA5B97, #F5A399);
+  font-family: monospace, Arial,sans-serif;
 }
 
 .agent-instance-header-text {
   float: left;
-  height: 50px;
-  padding-right: 30px;
   margin-bottom: 20px;
+  font-size: 35px;
+  line-height: 45px;
 }
+
+  .agent-instance-header-text i {
+    padding: 0px;
+    margin-right: 10px;
+    font-size: 30px;
+  }
 
 .agent-instance-header button {
   font-size: 20px;
+  height: 45px;
+  width: 45px;
   display: block;
-  position: absolute;
   bottom: 0px;
-  float: left;
+  float: right;
+  border-radius: 0em !important;
 }
 
 .agent-instance-reminder {
@@ -134,7 +155,7 @@ ul.instance-row-content {
 
 
 :global(.agentInstance-action) {
-  margin-bottom: 20px;
+  padding-bottom: 50px;
 }
 
 :global(.contentType-wrapper) {
@@ -149,18 +170,11 @@ ul.instance-row-content {
   position: relative;
 }
 
-:global(#report-service-message) {
-  max-width: 100%;
-  padding: 0px;
-  margin: 0;
-  position: relative;
-}
-
 :global(#report-service-wrapper button) {
   position: relative;
-  top: -190px;
   float: right;
-  left: -5px;
+  top: -30px;
+  right: -21px;
   width: 25px;
   height: 25px;
   padding: 0px !important;
@@ -169,7 +183,7 @@ ul.instance-row-content {
 :global(#report-service-message) {
   overflow: scroll;
   height: 200px;
-  width: 760px;
+  width: 80%;
   padding: 20px;
   margin: 30px 0 0 0;
   color: #ffffff;

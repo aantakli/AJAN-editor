@@ -363,11 +363,19 @@ function errorText(node, error) {
     node.style("background-image", "/icons/error.png");
     node.style("color", "#F00");
   } else {
-    if (nodeDef.style.icon) {
-      node.style("background-image", nodeDef.style.icon);
+    if (nodeDef.style.node_icon) {
+      node.style("background-image", nodeDef.style.node_icon);
     } else {
-      node.style("background-image", "");
+      if (nodeDef.style.icon) {
+        node.style("background-image", nodeDef.style.icon);
+      } else {
+        node.style("background-image", "");
+      }
     }
-    node.style("color", "#000");
+    if (nodeDef.style.style.color) {
+        node.style("color", nodeDef.style.style.color);
+    } else {
+      node.style("color", "#000");
+    }
   }
 }

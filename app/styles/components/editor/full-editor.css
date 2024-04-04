@@ -1,0 +1,7 @@
+:global(#split-editor-left) {
+  box-shadow: 4px -3px 10px #d1d1e0;
+}
+
+:global(#split-editor-right) {
+  box-shadow: -4px -3px 10px #d1d1e0;
+}

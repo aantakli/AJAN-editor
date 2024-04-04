@@ -33,14 +33,6 @@
   overflow-y: hidden;
   position: relative;
   margin-left: 5pt;
-  /* padding-left: 1em; */
-  border-width: 0 0 0px 3px;
-  /* border-left: 5px; */
-  border-style: solid;
-  /* border-color: color-primary-1; */
-  border-color: lightgrey;
-  /* border-color: color-title-bg; */
-  padding-bottom: 2pt !important;
   /* transition: max-height 0.3s ease-out; */
   /* transition: height 0.3s ease-out; */
 }

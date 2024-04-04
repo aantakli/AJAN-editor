@@ -1,7 +1,8 @@
-@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6, color-primary-8 from 'ajan-editor/styles/_globals/colors';
 
-@value color-interaction-bg: color-primary-1;
-@value color-hover: color-primary-2;
+@value color-interaction-bg: color-primary-3;
+@value color-hover: color-primary-4;
+@value color-active-bg: color-primary-5;
 @value color-interaction-font: white;
 @value color-h-bg: color-primary;
 
@@ -13,33 +14,47 @@
 }
 
 :global(.tabbar-button) {
-  flex-basis: 10em;
+  flex-basis: 9em;
   text-align: center;
   vertical-align: middle;
-
   border: 0;
-  border-right: 2px;
+  border-right: 1px;
   border-style: solid;
-  border-color: lightgrey;
+  border-color: white;
+  color: black;
+  background: color-primary-8;
+}
 
-  font-weight: bold;
+:global(.tabbar-link) {
+  height: 100%;
+  font-size: 16px;
+  font-family: "Segoe UI", monospace, Arial,sans-serif;
+}
+
+:global(a.tabbar-link.active < .tabbar-button) {
+  background: color-hover;
 }
 
 :global(.tabbar-button > .ember-view) {
-  height: 100%
+  height: 100%;
+  width: 100%;
+  display: block;
+  line-height: 30px;
 }
 
-:global(.tabbar-button:hover, .tabbar-link:hover) {
-  color: color-interaction-font;
-  background-color: color-hover;
+:global(.tabbar-button:hover),
+:global(.tabbar-button a:hover) {
+  color: white;
+  background: color-hover;
 }
 
 
-:global(a.tabbar-link.active), :global(.tabbar-button:hover a.tabbar-link.active:hover){
-    /* background-color: white; */
-    /* color: color-interaction-bg; */
-    background-color: color-h-bg;
-    color: white;
+:global(a.tabbar-link.active), :global(.tabbar-button:hover a.tabbar-link.active:hover) {
+  /* background-color: white; */
+  /* color: color-interaction-bg; */
+  background: color-active-bg;
+  border-color: color-active-bg;
+  color: white;
 }
 
 :global(div.tab-box) {

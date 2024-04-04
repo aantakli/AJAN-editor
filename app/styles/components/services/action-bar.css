@@ -10,19 +10,6 @@
   height: 50px;
 }
 
-.actionbar-button {
-  flex-basis: 10em;
-  text-align: center;
-  vertical-align: middle;
-
-  border: 0;
-  border-right: 2px;
-  border-style: solid;
-  border-color: lightgrey;
-
-  font-weight: bold;
-}
-
 .actionbar-button:hover {
   background-color: color-hover;
 }
@@ -38,21 +25,4 @@
   margin-left: auto;
   margin-right: 0;
   text-align: right;
-}
-
-/***********************/
-/* Triplestore Display */
-/***********************/
-
-:global(.store-url-cont) {
-  padding: 0.5em 1em;
-}
-
-:global(.store-url) {
-  display: inline;
-}
-
-.store {
-  display:inline;
-  font-weight: bold;
 }

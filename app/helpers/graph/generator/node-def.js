@@ -32,7 +32,8 @@ export default function(id, label, uri, ndClass, ndType, pos) {
 			uri: uri,
 			type: ndType,
 			class: ndClass,
-			icon: (typeDef) ? typeDef.style.icon : undefined
+			icon: (typeDef) ? typeDef.style.icon : undefined,
+      node_icon: (typeDef) ? typeDef.style.node_icon : undefined,
 		},
 		// cytoscape classes, not node class!
 		classes: ndClass + " " + ndType,

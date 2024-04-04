@@ -1,6 +1,6 @@
 
 <div local-class='intro' class="flex-container">
-  <h3>Properties</h3>
+  <h4>Properties</h4>
   {{behaviors/properties-casual/toggle-mode
     class="rightmost"
     advancedMode=advancedMode
@@ -11,7 +11,7 @@
   {{#if advancedMode}}
     {{component 'behaviors/properties/properties-content'
       node=node
-      class="flex-fill-item"
+      class="flex-fill-item properties-content"
     }}
   {{else}}
     {{component 'behaviors/properties-casual/properties-content'

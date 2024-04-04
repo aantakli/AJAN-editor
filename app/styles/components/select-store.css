@@ -1,3 +1,12 @@
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+@value color-intro-bg: color-primary-3;
+@value color-title-bg: color-primary-4;
+@value color-subtitle-bg: color-primary-5;
+@value color-h-bg: color-primary;
+@value color-h-font: #ffffff;
+@value color-odd-bg: color-primary-6;
+@value color-font: #000000;
+
 .accordion {
   width: 100%;
   margin: 2em 0;
@@ -17,7 +26,7 @@
 }
 
 .container {
-  padding-top: 20em;
+  padding-top: 30em;
 }
 
 .new-triplestore {
@@ -62,13 +71,16 @@
   padding-top: 7px !important;
   padding-bottom: 10px !important;
   font-size: 18px !important;
-  background: #A3A4DC;
-
+  background: color-title-bg;
   -moz-user-select: none;
   -khtml-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+:global(.ui.accordion .modal-models-header.title:not(.ui)) {
+  color: white;
 }
 
 :global(.modal-models-header span) {
@@ -159,7 +171,7 @@
 }
 
 :global(.checkbox.secured input) {
-  top: -27px;
+  top: -28px;
   position: relative;
 }
 

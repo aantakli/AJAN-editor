@@ -1,8 +1,10 @@
 @value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
 @value color-select from 'ajan-editor/styles/_globals/custom-select';
 
+@value color-intro-bg: color-primary-3;
 @value color-title-bg: color-primary-4;
 @value color-subtitle-bg: color-primary-5;
+@value select-node-bg: color-primary-7;
 @value color-h-bg: color-primary;
 @value color-h-font: #ffffff;
 @value color-odd-bg: color-primary-6;
@@ -11,8 +13,8 @@
 
 .behaviors-body {
   height: 100%;
-  overflow: auto;
   position: relative;
+  overflow-y: hidden;
 }
 
 .cy {
@@ -20,6 +22,22 @@
   height: 100%;
   overflow: none;
   float: left;
+}
+
+:global(#split-left) {
+  margin-top: 20px;
+  box-shadow: 4px -3px 10px #d1d1e0;
+  padding-bottom: 20px;
+}
+
+:global(#split-right) {
+  margin-top: 20px;
+  box-shadow: -4px -3px 10px #d1d1e0;
+  padding-bottom: 20px;
+}
+
+:global(#split-right .flex-container.vertical)::-webkit-scrollbar {
+  display: none;
 }
 
 .side-menu {
@@ -70,24 +88,37 @@ div.button-group {
 }
 
   .node-container h4 {
-    padding: 0.5em 0.5em;
     height: 2.5em;
     margin-top: 20px !important;
     margin-bottom: 0px !important;
-    background-color: #A3A4DC;
-    font-weight: bold;
-    font-size: larger !important;
+    background: color-title-bg;
+    color: color-h-font;
+    font-family: "Segoe UI", monospace, Arial,sans-serif;
+    font-size: 16px;
+    padding: 10px 15px;
   }
 
-/* ToDo: same class used in different files, combine */
-.intro {
-  padding: 1em 0.5em;
-  background-color: color-h-bg;
-  color: color-h-font;
+:global(.title.composite-selection),
+:global(.title.decorator-selection),
+:global(.title.leaf-selection),
+:global(.title.behavior-tree-selection) {
+  background: color-h-bg;
 }
 
-.intro h3 {
-  font-weight: bold;
+:global(.ui.accordion .title.composite-selection),
+:global(.ui.accordion .title.decorator-selection),
+:global(.ui.accordion .title.leaf-selection),
+:global(.ui.accordion .title.behavior-tree-selection) {
+  font-family: "Segoe UI", monospace, Arial,sans-serif;
+  font-size: 16px;
+  padding: 5px 10px;
+}
+/* ToDo: same class used in different files, combine */
+.intro {
+  padding: 10px 15px;
+  background: color-intro-bg;
+  color: color-h-font;
+  font-size: 22px;
 }
 
 .bt-container {
@@ -95,6 +126,21 @@ div.button-group {
   margin-bottom: 0.5em;
   border-bottom: 2px solid lightgrey; */
   background-color: color-select;
+}
+
+:global(.ui.selection.dropdown.bt-selection),
+:global(.ui.selection.dropdown.bt-selection.active.visible) {
+  background: color-subtitle-bg;
+  border-radius: 0px;
+  margin-top: -2px;
+  font-size: 16px;
+}
+
+:global(.ui.selection.dropdown.bt-selection .text),
+:global(.ui.selection.dropdown.bt-selection.active.visible .text),
+:global(.ui.selection.dropdown.bt-selection .dropdown),
+:global(.ui.selection.dropdown.bt-selection.active.visible .dropdown) {
+  color: #FFF;
 }
 
 .bt-select {

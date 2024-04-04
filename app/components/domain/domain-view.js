@@ -33,6 +33,7 @@ let that;
 export default Ember.Component.extend({
   repo: "",
   workbench: "",
+  searchText: "",
   rdfEditor: undefined,
   initialContent: "",
   classNames: ["full-width full-height"],
@@ -58,6 +59,22 @@ export default Ember.Component.extend({
 
   willDestroyElement() {
     this._super(...arguments);
+  },
+
+  actions: {
+    search() {
+      rdfSearch(this.get("searchText"));
+    },
+
+    next() {
+      let editor = that.get("rdfEditor");
+      editor.findNext();
+    },
+
+    previous() {
+      let editor = that.get("rdfEditor");
+      editor.findPrevious();
+    },
   }
 });
 
@@ -132,4 +149,16 @@ function removeAllMarkers(editor) {
       editor.session.removeMarker(prevMarkers[item].id);
     }
   }
+}
+
+function rdfSearch(search) {
+  let editor = that.get("rdfEditor");
+  let range = editor.find(search, {
+    backwards: false,
+    wrap: false,
+    caseSensitive: false,
+    wholeWord: false,
+    regExp: false
+  });
+  editor.session.addMarker(range, "info", "text");
 }

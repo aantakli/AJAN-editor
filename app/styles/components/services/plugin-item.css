@@ -1,26 +1,69 @@
 /* #service-item */
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6, color-primary-7, color-headlines-bg from 'ajan-editor/styles/_globals/colors';
+@value color-intro-bg: color-primary-3;
+@value color-title-bg: color-primary-4;
+@value color-subtitle-bg: color-primary-5;
+@value color-item-header-bg: color-headlines-bg;
+@value color-h-bg: color-primary;
+@value color-h-font: #ffffff;
+@value color-odd-bg: color-primary-6;
+@value color-font: #000000;
+
+:global(#service-item) {
+  width: 100%;
+  padding: 0 0 40px 40px;
+}
 
 .service-item-header {
-  font-size: 40px;
-  font-weight: light;
-  width: 100%;
-  height: 50px;
+  width: 80%;
+  height: 45px;
+  margin-top: 20px;
+  margin-bottom: 30px;
+  padding-left: 10px;
   position: relative;
+  color: color-h-font;
+  background: color-item-header-bg;
 }
 
 .service-item-header-text {
   float: left;
-  height: 50px;
-  padding-right: 30px;
-  margin-bottom: 20px;
 }
 
-.service-item-header button {
+  .service-item-header-text h4 {
+    font-family: monospace, Arial,sans-serif;
+    font-size: 35px;
+    line-height: 45px;
+  }
+
+    .service-item-header-text h4 i {
+      font-size: 30px;
+      margin: 0px;
+    }
+
+.service-item-header a {
+  font-size: 25px;
+  margin-bottom: -5px !important;
+  margin-right: 0px !important;
+  float: right;
+}
+
+.service-item-header .button {
   font-size: 20px;
   display: block;
   position: absolute;
   bottom: 0px;
-  float: left;
+}
+
+.service-item-header :global(.button) {
+  float: right;
+  border-radius: 0px;
+  height: 45px;
+  width: 45px;
+}
+
+:global(#service-item-show) {
+  width: 100%;
+  position: relative;
 }
 
 .item-row {
@@ -35,14 +78,14 @@
   position: relative;
 }
 
-.item-seperation i {
-  float: right;
-  display: block;
-  background: #FFF;
-  padding: 0 10px;
-  margin-top: -33px;
-  color: #DDD;
-}
+  .item-seperation i {
+    float: right;
+    display: block;
+    background: #FFF;
+    padding: 0 10px;
+    margin-top: -33px;
+    color: #DDD;
+  }
 
 .item-row-title,
 .item-seperation,
@@ -55,7 +98,7 @@
 }
 
 .item-row-title {
-  width: 15%;
+  width: 20%;
   height: 100%;
   font-weight: bold;
 }
@@ -63,17 +106,17 @@
 .item-row-content,
 .item-row-content-edit,
 .item-row-collection {
-  width: 85%;
+  width: 80%;
   position: relative;
 }
 
-.item-row-content-edit.variable {
-  width: 280px;
-}
+  .item-row-content-edit.variable {
+    width: 280px;
+  }
 
-.item-row-collection .item-row-title {
-  font-style: italic;
-}
+  .item-row-collection .item-row-title {
+    font-style: italic;
+  }
 
 .item-row-edit,
 .item-row-apply,
@@ -92,17 +135,36 @@
   cursor: default;
 }
 
-.item-row-content:hover .item-row-buttons,
-.item-row-content-edit .item-row-buttons {
-  visibility: visible;
-  cursor: pointer;
+  .item-row-content:hover .item-row-buttons,
+  .item-row-content-edit .item-row-buttons {
+    visibility: visible;
+    cursor: pointer;
+  }
+
+.item-row-copy {
+  width: 25px;
+  height: 25px;
+  padding: 0px !important;
+}
+
+:global(.service-edit-dropdown.ui.selection) {
+  min-height: 25px;
+  height: 25px;
+  padding: 5px 10px 5px 10px;
+  margin-right: 10px;
+  margin-bottom: 0px;
+}
+
+:global(.service-edit-dropdown i.dropdown.icon) {
+  padding: 4px !important;
+  height: 10px;
 }
 
 .item-row-value {
   padding-right: 10px;
 }
 
-.item-row-variable-noedit {
+.item-row-variable {
   height: 25px;
   border-radius: 5px;
   border-color: #ececff;
@@ -115,9 +177,15 @@
   font-family: "Courier New";
 }
 
-.item-row-variable-noedit:last-child {
-  margin-right: 0px;
-}
+  .item-row-variable:last-child {
+    margin-right: 0px;
+  }
+
+  .item-row-variable:hover {
+    background: #d01919;
+    text-decoration: line-through;
+    cursor: pointer;
+  }
 
 .item-row-content-edit .item-row-apply {
   right: 0px;
@@ -149,10 +217,23 @@
   color: #96337c;
 }
 
-.item-row-copy {
-  width: 25px;
-  height: 25px;
-  padding: 0px !important;
+global(#item-bindings .item) {
+  cursor: pointer;
+}
+
+:global(#item-bindings) {
+  cursor: pointer;
+  margin-bottom: 100px;
+  width: 80%;
+}
+
+:global(.sparql-edit.error) {
+  border-color: #F00;
+}
+
+:global(p.error-txt) {
+  color: #F00;
+  float: left;
 }
 
 /* clearfix */

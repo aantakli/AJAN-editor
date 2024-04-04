@@ -1,3 +1,7 @@
+:global(.help-pane-menu.menu) {
+    border-top: 0px;
+}
+
 .title {
   font-weight: bold;
   padding: 0.5em;

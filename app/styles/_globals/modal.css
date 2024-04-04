@@ -1,5 +1,5 @@
 @value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
-@value color-head: color-primary-2;
+@value color-head: color-primary-3;
 @value color-subtitle-bg: color-primary-5;
 
 :global(div.modal-parent) {
@@ -72,7 +72,7 @@
 
 :global(.modal-header) {
   padding: 0.5em 2em;
-  background-color: color-head;
+  background: color-head;
   color: white;
   align-items: center;
 }

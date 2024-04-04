@@ -13,7 +13,8 @@
   /*  Vertically center text*/
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: end;
+  padding-bottom: 10px;
 }
 
 :global(.btn) {

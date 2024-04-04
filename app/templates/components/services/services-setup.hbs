@@ -9,15 +9,15 @@
 		<!-- Menu -->
 		<div id='services-overview'>
 			<div local-class="service-list-header clearfix">
-				<h3>Action Definitions</h3>
+				<h4>Action Definitions</h4>
 			</div>
 
 			{{#ui-accordion exclusive=false}}
 			<button class="ui yellow icon button rightmost" {{action "create"}} local-class="right-aligned ui button">
 				<i class="add icon no-side-margins"></i>
 			</button>
-			<div class="active title" style="background-color:#A3A4DC ">
-				<i class="dropdown icon"></i><b><font size="4">Service Actions</font></b>
+			<div class="active title service-list-title">
+				<i class="dropdown icon"></i>Service Actions
 			</div>
 			<ul class="active content" local-class="service-list-content">
 				{{#each this.availableServices as |value|}}
@@ -33,8 +33,8 @@
 			{{/ui-accordion}}
 			<br />
 			{{#ui-accordion exclusive=false}}
-			<div class="active title" style="background-color:#A3A4DC ">
-				<i class="dropdown icon"></i><b><font size="4">Plugin Actions</font></b>
+			<div class="active title service-list-title">
+				<i class="dropdown icon"></i>Plugin Actions
 			</div>
 			<ul class="active content" local-class="service-list-content">
 				{{#each this.availablePlugins as |value|}}
@@ -51,13 +51,13 @@
 		</div>
 		<!-- Content -->
 		{{#if this.ServiceAction}}
-				<div id='service-item'>
-					<br>{{services/service-item activeAction=this.activeAction overview=this}}
+				<div id='service-wrapper'>
+					{{services/service-item activeAction=this.activeAction overview=this}}
 				</div>
 		{{/if}}
 		{{#unless this.ServiceAction}}
-		<div id='service-item'>
-			<br>{{services/plugin-item activeAction=this.activeAction overview=this}}
+		<div id='service-wrapper'>
+			{{services/plugin-item activeAction=this.activeAction overview=this}}
 		</div>
 		{{/unless}}
 		<div local-class="clearfix"></div>

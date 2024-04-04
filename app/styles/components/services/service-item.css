@@ -1,38 +1,64 @@
 /* #service-item */
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6, color-primary-7, color-headlines-bg from 'ajan-editor/styles/_globals/colors';
+@value color-intro-bg: color-primary-3;
+@value color-title-bg: color-primary-4;
+@value color-subtitle-bg: color-primary-5;
+@value color-item-header-bg: color-headlines-bg;
+@value color-h-bg: color-primary;
+@value color-h-font: #ffffff;
+@value color-odd-bg: color-primary-6;
+@value color-font: #000000;
 
 :global(#service-item) {
-  width: 80%;
-  padding: 0 0 0 20px;
-  float: left;
+  width: 100%;
+  padding: 0 0 40px 40px;
 }
 
 .service-item-header {
-  font-size: 40px;
-  font-weight: light;
-  width: 100%;
-  height: 50px;
+  width: 80%;
+  height: 45px;
+  margin-top: 20px;
+  margin-bottom: 30px;
+  padding-left: 10px;
   position: relative;
+  color: color-h-font;
+  background: color-item-header-bg;
 }
 
 .service-item-header-text {
   float: left;
-  height: 50px;
-  padding-right: 30px;
-  margin-bottom: 20px;
 }
+
+  .service-item-header-text h4 {
+    font-family: monospace, Arial,sans-serif;
+    font-size: 35px;
+    line-height: 45px;
+  }
+
+    .service-item-header-text h4 i {
+      font-size: 30px;
+      margin: 0px;
+    }
 
 .service-item-header a {
-  font-size: 20px;
+  font-size: 25px;
   margin-bottom: -5px !important;
-  margin-right: 10px !important;
+  margin-right: 0px !important;
+  float: right;
 }
 
-.service-item-header button {
+.service-item-header .button {
   font-size: 20px;
   display: block;
   position: absolute;
   bottom: 0px;
-  float: left;
+}
+
+.service-item-header :global(.button) {
+  float: right;
+  border-radius: 0px;
+  height: 45px;
+  width: 45px;
 }
 
 :global(#service-item-show) {

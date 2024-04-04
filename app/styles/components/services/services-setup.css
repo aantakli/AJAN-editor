@@ -1,21 +1,49 @@
 /* #services-body */
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+@value color-intro-bg: color-primary-3;
+@value color-title-bg: color-primary-4;
+@value color-subtitle-bg: color-primary-5;
+@value color-h-bg: color-primary;
+@value color-h-font: #ffffff;
+@value color-odd-bg: color-primary-6;
+@value color-font: #000000;
+
+:global(div:has(#services)) {
+  position: relative;
+  height: 100%;
+}
+
+:global(#services) {
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+}
+
+:global(#service-wrapper) {
+  width: 80%;
+  float:right;
+}
 
 :global(#services-body) {
   overflow: auto;
+  position: absolute;
+  height: 100%;
 }
-
 /* #services-overview */
 
 :global(#services-overview) {
   width: 20%;
-  min-height: 100%;
+  margin-top: 20px;
   float: left;
   box-shadow: 0px 10px 10px #d1d1e0;
   overflow: fixed;
 }
 
 .service-list-header {
-  padding: 25px 0 15px 20px;
+  padding: 10px 15px;
+  background: color-intro-bg;
+  color: color-h-font;
+  font-size: 22px;
 }
 
 .service-list-header h3 {
@@ -31,10 +59,22 @@
   padding: 0px !important;
 }
 
-.service-list-content {
-  margin: 0px;
-  padding: 0px;
+:global(.ui.accordion .title.service-list-title) {
+  font-family: "Segoe UI", monospace, Arial,sans-serif;
+  font-size: 16px;
+  padding: 5px 10px;
+  background: color-title-bg;
 }
+
+:global(.ui.accordion .title.service-list-title),
+:global(.service-list-title i) {
+  color: color-h-font;
+}
+
+  .service-list-content {
+    margin: 0px;
+    padding: 0px;
+  }
 
 .service-list-item {
   list-style: none;
@@ -53,13 +93,19 @@
   width: 100%;
   height: 50px;
   box-shadow: none;
-  border-style: solid;
-  border-width: 2px 0 0 0;
-  border-color: #ececff;
+  border-width: 0px;
   cursor: pointer;
   text-align: left;
   padding-left: 15px;
-  background: rgb(255, 255, 255);
+  background: none;
+}
+
+li.service-list-item:nth-child(even) {
+  background: #FFF;
+}
+
+li.service-list-item:nth-child(odd) {
+  background: #f5f5f7;
 }
 
 :global(#services-overview .item.active button) {
@@ -70,26 +116,8 @@
   outline: none;
 }
 
-:global(#services-overview li:last-child button) {
-  border-width: 2px 0 2px 0;
-}
-
 :global(#services-overview .item button:hover) {
   background: #d1d1e0;
-}
-
-:global(#services-overview .item.active i) {
-  width: 0;
-  height: 0;
-  margin-right: -10px;
-  float: right;
-  border-style: solid;
-  border-width: 25px 0 25px 10px;
-  border-color: transparent transparent transparent #ececff;
-}
-
-:global(#services-overview .item.active:hover i) {
-  border-color: transparent transparent transparent #d1d1e0;
 }
 
 footer {
@@ -106,8 +134,8 @@ footer {
 }
 
 .ui.button {
-  font-size: 1.0em;
-  height: 41.6px;
+  font-size: 13px;
+  padding: 5px 10px;
   border-radius: 0em !important;
 }
 

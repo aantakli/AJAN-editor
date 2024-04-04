@@ -6,9 +6,28 @@
   <div id="domain-view">
     <div id="domain-view-wrapper">
       <header class="entry-header">
-        <h1 class="entry-title" style="padding-bottom: 20px;">Domain</h1><div id="rdf-error" class="hidden"><i class="textarea-validation-error-hint"></i><span class="rdf-error-message"></span></div>
+        <h1 class="entry-title" style="padding-bottom: 20px;">Domain</h1>
       </header>
 
+      <div id="domain-searchbox">
+        <div id="searchbox-wrapper">
+          <button local-class="searchbox-previous" class="ui grey icon button leftmost" {{action "previous"}}>
+            <i class="icon no-side-margins arrow alternate circle left"></i>
+          </button>
+          {{input value=searchText placeholder="search ..." enter='search'}}
+          <button local-class="searchbox-next" class="ui grey icon button rightmost" {{action "next"}}>
+            <i class="icon no-side-margins arrow alternate circle right"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="error-field">
+        <div id="rdf-error" class="hidden">
+          <i class="textarea-validation-error-hint"></i>
+          <span class="rdf-error-message"></span>
+        </div>
+      </div>
+      
       <div id="domain-content">
         <!-- {{ember-ace lines=10 value=value update=(action 'valueUpdated')}} -->
         {{#ember-ace

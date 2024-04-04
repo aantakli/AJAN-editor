@@ -1,5 +1,5 @@
 @value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
-@value color-subheader: color-primary;
+@value color-subheader: color-primary-4;
 @value color-subtitle-bg: color-primary-5;
 @value color-param-bg: color-primary-5;
 .body {
@@ -35,7 +35,7 @@
 }
 
 :global(.template-def.subsubheader) {
-  background-color: color-subheader;
+  background: color-subheader;
   color: white;
   padding: 0;
   padding-left: 8pt;

@@ -41,20 +41,3 @@
 :global(.behaviors-save-button.unsavedChanges button) {
   color: #FFF !important;
 }
-
-/***********************/
-/* Triplestore Display */
-/***********************/
-
-:global(.store-url-cont) {
-  padding: 0.5em 1em;
-}
-
-:global(.store-url) {
-  display: inline;
-}
-
-.store {
-  display:inline;
-  font-weight: bold;
-}

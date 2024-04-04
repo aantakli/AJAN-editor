@@ -1,19 +1,25 @@
-:global(#services) {
-  overflow-x: hidden;
-}
-
 :global(#test-service) {
   width: 100%;
-  margin: 0 50%;
   padding-top: 40px;
   padding-bottom: 40px;
 }
 
 :global(#test-service-wrapper) {
-  width: 980px;
-  margin-left: -490px;
-  padding: 20px 50px;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 30px;
   box-shadow: 0px 5px 10px #d1d1e0;
+}
+
+:global(#test-service-wrapper h1) {
+  padding-left: 15px;
+  height: 45px;
+  font-size: 35px;
+  margin-bottom: 20px;
+  width: 100% !important;
+  background: linear-gradient(to right, #1E1B55, #1E1B55, #1E1B55, #1B3284, #EA5B97, #F5A399);
+  color: #FFF;
 }
 
 :global(#test-service-content) {
@@ -22,9 +28,11 @@
 
 .connect-button,
 .disconnect-button {
-  top: -7px;
-  left: 10px;
+  height: 45px;
+  float: right;
+  margin-right: 0px !important;
   position: relative;
+  border-radius: 0px !important;
 }
 
 :global(#test-service-message) {
@@ -48,11 +56,21 @@
   padding: 0px !important;
 }
 
+:global(#test-service-response) {
+  position: relative;
+  overflow: auto;
+}
+
+:global(#test-service-response textarea) {
+  float: left;
+}
+
 .test-service-ser-response {
   height: 25px;
   width: 25px;
-  float: right;
+  float: left;
   padding: 0px !important;
+  margin-left: 10px !important;
 }
 
 /* clearfix */

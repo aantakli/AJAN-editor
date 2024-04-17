@@ -124,6 +124,7 @@ export default Ember.Component.extend({
                 $("#send-message").trigger("showToast");
                 that.set("messageError", {});
                 $("#test textarea").val("");
+                that.set("selectedEndpoint.agentMessage", "");
             });
           })
           .catch(function (error) {

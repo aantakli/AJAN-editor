@@ -37,17 +37,8 @@ export default Component.extend({
     this._super(...arguments);
     that = this;
 
-    this.get('dataBus').on('updateDomain', function (editor, repo) {
-      that.set("rdfContent", editor.session.getValue(), repo);
-      that.set("repo", repo);
-      that.set("update", true);
-      that.set("unsaved", true);
-    });
-
-    this.get('dataBus').on('noUpdateDomain', function () {
-      that.set("update", false);
-      that.set("unsaved", true);
-    });
+    this.get('dataBus').on('updateDomain', updateDomain);
+    this.get('dataBus').on('noUpdateDomain', noUpdateDomain);
   },
 
   actions: {
@@ -65,5 +56,22 @@ export default Component.extend({
     noSave() {
       alert("Nothing has Changed");
     }
+  },
+
+  willDestroyElement() {
+    this.get('dataBus').off('updateDomain', updateDomain);
+    this.get('dataBus').off('noUpdateDomain', noUpdateDomain);
   }
 });
+
+function updateDomain(editor, repo) {
+  that.set("rdfContent", editor.session.getValue(), repo);
+  that.set("repo", repo);
+  that.set("update", true);
+  that.set("unsaved", true);
+}
+
+function noUpdateDomain() {
+  that.set("update", false);
+  that.set("unsaved", true);
+}

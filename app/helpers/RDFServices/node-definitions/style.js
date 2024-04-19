@@ -40,7 +40,6 @@ function generateStyle(styleURI, defaultLabel, selector, fixedLabel = false) {
 	if (icon) icon = iconPrefix + icon;
   let node_icon = util.getObjectValue(quads, styleURI, ND.node_icon);
 	if (node_icon) node_icon = iconPrefix + node_icon;
-  console.log(node_icon);
 	//TODO: Check whether label will be properly overwritten for dynamic labels later on
 	if (defaultLabel && fixedLabel) style["label"] = defaultLabel;
 	let bgColor = util.getObjectValue(quads, styleURI, ND.color);

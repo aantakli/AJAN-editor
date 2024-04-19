@@ -55,34 +55,10 @@ export default Component.extend({
 
     readURLParameters();
 
-    this.get('dataBus').on('save', function (content) {
-      saveGraph(content);
-    });
-
-    this.get('dataBus').on('unsavedChanges', function () {
-      console.log("Unsaved changes!");
-      if (!that.get("unsaved")) that.set("unsaved", true);
-    });
-
-    this.get('dataBus').on('saveExportedBT', function (bt) {
-      that.set("btFileName", bt.label + "_bt.ttl");
-      that.set("btContent", URL.createObjectURL(new Blob(["# Root: <" + bt.uri + "> \r# Label: '" + bt.label + "' \r \r@prefix xsd: <http://www.w3.org/2001/XMLSchema#> . " + bt.definition])));
-    });
-
-    this.get('dataBus').on('updatedBT', function () {
-      Promise.resolve(token.resolveToken(that.ajax, localStorage.currentStore))
-        .then((token) => {
-          $.ajax({
-            url: repo,
-            type: "POST",
-            contentType: "application/sparql-query; charset=utf-8",
-            headers: getHeaders(token),
-            data: queries.constructGraph
-          }).then(function (data) {
-            that.set("repoContent", URL.createObjectURL(new Blob([data])));
-          });
-      });
-    });
+    this.get('dataBus').on('save', saveGraph);
+    this.get('dataBus').on('unsavedChanges', unsavedChanges);
+    this.get('dataBus').on('saveExportedBT', saveExportedBT);
+    this.get('dataBus').on('updatedBT', updatedBT);
   },
 
   actions: {
@@ -133,6 +109,13 @@ export default Component.extend({
     loadRepo() {
       loadRepo(event);
     }
+  },
+
+  willDestroyElement() {
+    this.get('dataBus').off('save', saveGraph);
+    this.get('dataBus').off('unsavedChanges', unsavedChanges);
+    this.get('dataBus').off('saveExportedBT', saveExportedBT);
+    this.get('dataBus').off('updatedBT', updatedBT);
   }
 });
 
@@ -172,6 +155,21 @@ function loadBT(event) {
     readInput(content);
   };
   reader.readAsText(file);
+}
+
+function updatedBT() {
+  Promise.resolve(token.resolveToken(that.ajax, localStorage.currentStore))
+    .then((token) => {
+      $.ajax({
+        url: repo,
+        type: "POST",
+        contentType: "application/sparql-query; charset=utf-8",
+        headers: getHeaders(token),
+        data: queries.constructGraph
+      }).then(function (data) {
+        that.set("repoContent", URL.createObjectURL(new Blob([data])));
+      });
+    });
 }
 
 function loadRepo(event) {
@@ -235,4 +233,13 @@ function readURLParameters() {
   if (repo && repo != "") {
     that.set("agentRepo", repo);
   }
+}
+
+function unsavedChanges() {
+  if (!that.get("unsaved")) that.set("unsaved", true);
+}
+
+function saveExportedBT(bt) {
+  that.set("btFileName", bt.label + "_bt.ttl");
+  that.set("btContent", URL.createObjectURL(new Blob(["# Root: <" + bt.uri + "> \r# Label: '" + bt.label + "' \r \r@prefix xsd: <http://www.w3.org/2001/XMLSchema#> . " + bt.definition])));
 }

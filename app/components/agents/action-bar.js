@@ -47,23 +47,8 @@ export default Component.extend({
         "http://localhost:8090/rdf4j/repositories") +
       globals.agentsRepository;
 
-    this.get('dataBus').on('updatedAG', function () {
-      Promise.resolve(token.resolveToken(that.ajax, localStorage.currentStore))
-        .then((token) => {
-          $.ajax({
-            url: repo + "/statements",
-            type: "GET",
-            contentType: "application/trig; charset=utf-8",
-            headers: getHeaders(token)
-          }).then(function (data) {
-            that.set("fileContent", URL.createObjectURL(new Blob([data])));
-          });
-        });
-    });
-
-    this.get('dataBus').on('updateAgentDefs', function (defs) {
-      that.set("agentDefs", defs);
-    });
+    this.get('dataBus').on('updatedAG', updatedAG);
+    this.get('dataBus').on('updateAgentDefs', setAgentDefs);
   },
 
   actions: {
@@ -75,6 +60,11 @@ export default Component.extend({
     loadFile() {
       loadFile(event)
     }
+  },
+
+  willDestroyElement() {
+    this.get('dataBus').off('updatedAG', updatedAG);
+    this.get('dataBus').off('updateAgentDefs', setAgentDefs);
   }
 });
 
@@ -136,4 +126,22 @@ function updateType(content, importFile) {
     sendFile(that.ajax, repo, content)
       .then(window.location.reload());
   }
+}
+
+function updatedAG() {
+  Promise.resolve(token.resolveToken(that.ajax, localStorage.currentStore))
+    .then((token) => {
+      $.ajax({
+        url: repo + "/statements",
+        type: "GET",
+        contentType: "application/trig; charset=utf-8",
+        headers: getHeaders(token)
+      }).then(function (data) {
+        that.set("fileContent", URL.createObjectURL(new Blob([data])));
+      });
+    });
+}
+
+function setAgentDefs(defs) {
+  that.set("agentDefs", defs);
 }

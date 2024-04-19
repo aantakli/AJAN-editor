@@ -55,29 +55,17 @@ export default Ember.Component.extend({
     this._super(...arguments);
     that = this;
 
-    this.get('dataBus').on('addBT', function (bt) {
-      createBT(bt);
-    });
-    this.get('dataBus').on('generateAgent', function (bt) {
-      generateAgent();
-    });
-    this.get('dataBus').on('cloneBT', function () {
-      cloneBT();
-    });
-    this.get('dataBus').on('exportBT', function () {
-      that.get('dataBus').saveExportedBT(exportBT());
-    });
-    this.get('dataBus').on('importBT', function (bt) {
-      importBT(bt);
-    });
-    this.get('dataBus').on('deleteBT', function () {
-      deleteBT();
-    });
+    this.get('dataBus').on('addBT', createBT);
+    this.get('dataBus').on('generateAgent', generateAgent);
+    this.get('dataBus').on('cloneBT', cloneBT);
+    this.get('dataBus').on('exportBT', saveExportedBT);
+    this.get('dataBus').on('importBT', importBT);
+    this.get('dataBus').on('deleteBT', deleteBT);
   },
 
 	// After the element has been inserted into the DOM
-	didInsertElement() {
-		this._super(...arguments);
+  didInsertElement() {
+    this._super(...arguments);
 
 		initializeCytoscape(this);
 		initializeGlobals(this);
@@ -96,8 +84,17 @@ export default Ember.Component.extend({
 	},
 
 	willDestroyElement() {
-		this._super(...arguments);
-		cleanDOM();
+    this._super(...arguments);
+
+    this.get('dataBus').off('addBT', createBT);
+    this.get('dataBus').off('generateAgent', generateAgent);
+    this.get('dataBus').off('cloneBT', cloneBT);
+    this.get('dataBus').off('exportBT', saveExportedBT);
+    this.get('dataBus').off('importBT', importBT);
+    this.get('dataBus').off('deleteBT', deleteBT);
+    console.log("adele");
+
+    cleanDOM();
 	}
 }); // end Ember export
 
@@ -198,7 +195,6 @@ function generateAgent() {
   let agentRepo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories/") + "agents";
   let selected = localStorage.getItem("bt-selected");
   let selectedBt = that.get("availableBTs").filter(item => item.uri == selected);
-  console.log(selectedBt);
   let includedEvents = { all: new Array(), handle: new Array(), produce: new Array()};
   getEvents(includedEvents, selectedBt[0], that.get("availableBehaviors").filter(item => item.bt.uri != selectedBt[0].uri), true);
   let includedBehaviors = getBehaviors(selectedBt[0], includedEvents);
@@ -215,6 +211,7 @@ function generateAgent() {
 function saveGeneratedAgent(repo, stringRDF) {
   try {
     actions.saveAgentGraph(globals.ajax, repo, stringRDF);
+    //window.location.reload();
   } catch (e) {
     $("#error-message").trigger("showToast", [
       "Error while saving generated Agent"
@@ -328,6 +325,10 @@ function exportBT() {
     bt.definition = rdfManager.exportBT(bts[0].uri, that.get("availableBTs").filter(item => item.uri !== selected));
   }
   return bt;
+}
+
+function saveExportedBT() {
+  that.get('dataBus').saveExportedBT(exportBT());
 }
 
 function deleteBT() {

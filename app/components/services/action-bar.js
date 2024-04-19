@@ -40,30 +40,12 @@ export default Component.extend({
   init() {
     this._super(...arguments);
     that = this;
-    repo =
-      (localStorage.currentStore ||
+    repo = (localStorage.currentStore ||
         "http://localhost:8090/rdf4j/repositories") +
       globals.servicesRepository;
 
-    this.get('dataBus').on('updatedSG', function () {
-      Promise.resolve(token.resolveToken(that.ajax, localStorage.currentStore))
-        .then((token) => {
-          $.ajax({
-            url: repo,
-            type: "POST",
-            contentType: "application/sparql-query; charset=utf-8",
-            headers: getHeaders(token),
-            data: queries.getAllServiceActions
-          }).then(function (data) {
-            that.set("fileContent", URL.createObjectURL(new Blob([data])));
-          });
-        });
-    });
-
-    this.get('dataBus').on('deletedSG', function () {
-      sendFile(that.ajax, repo, that.get("importContent"))
-        .then(window.location.reload());
-    });
+    this.get('dataBus').on('updatedSG', updatedSG);
+    this.get('dataBus').on('deletedSG', deletedSG);
   },
 
 	actions: {
@@ -75,7 +57,12 @@ export default Component.extend({
     loadFile() {
       loadFile(event)
     }
-	}
+  },
+
+  willDestroyElement() {
+    this.get('dataBus').off('updatedSG', updatedSG);
+    this.get('dataBus').off('deletedSG', deletedSG);
+  }
 });
 
 function getHeaders(token) {
@@ -129,4 +116,24 @@ function deleteAllServiceActions() {
     actions.deleteService(x);
   });
   actions.saveGraph(globals.ajax, repo, that.dataBus, "deleted");
+}
+
+function updatedSG() {
+  Promise.resolve(token.resolveToken(that.ajax, localStorage.currentStore))
+    .then((token) => {
+      $.ajax({
+        url: repo,
+        type: "POST",
+        contentType: "application/sparql-query; charset=utf-8",
+        headers: getHeaders(token),
+        data: queries.getAllServiceActions
+      }).then(function (data) {
+        that.set("fileContent", URL.createObjectURL(new Blob([data])));
+      });
+    });
+}
+
+function deletedSG() {
+  sendFile(that.ajax, repo, that.get("importContent"))
+    .then(window.location.reload());
 }

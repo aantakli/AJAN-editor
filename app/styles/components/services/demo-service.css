@@ -4,7 +4,7 @@
   padding-bottom: 40px;
 }
 
-:global(#test-service-wrapper) {
+:global(#demo-service-wrapper) {
   width: 80%;
   margin-left: auto;
   margin-right: auto;
@@ -12,7 +12,7 @@
   box-shadow: 0px 5px 10px #d1d1e0;
 }
 
-:global(#test-service-wrapper h1) {
+:global(#demo-service-wrapper h1) {
   padding-left: 15px;
   height: 45px;
   font-size: 35px;
@@ -22,8 +22,87 @@
   color: #FFF;
 }
 
-:global(#test-service-content) {
-    padding-top: 20px;
+:global(#demo-service-content) {
+  padding-top: 0px;
+  position: relative;
+  width: 100%;
+}
+
+:global(#demo-playground) {
+  padding-top: 0px;
+  width: 80%;
+  margin-left: 10%;
+  margin-right: 10%;
+}
+
+:global(#demo-arm-open) {
+  box-shadow:
+      -0em -1em 0 0 black,
+      -1em -1em 0 0 black,
+      1em -1em 0 0 black,
+      -3em -1em 0 0 black,
+      -2em -1em 0 0 black,
+      2em -1em 0 0 black,
+      3em -1em 0 0 black,
+      -4em -1em 0 0 black,
+      4em -1em 0 0 black,
+      -5em 0em 0 0 black,
+      -4em 0em 0 0 black,
+      4em 0em 0 0 black,
+      5em 0em 0 0 black,
+      -5em 1em 0 0 black,
+      5em 1em 0 0 black,
+      6em 1em 0 0 black,
+      -6em 1em 0 0 black,
+      6em 2em 0 0 black,
+      -6em 2em 0 0 black;
+  background: white;
+  width: 1em;
+  height: 1em;
+  overflow: hidden;
+  margin: 0 50% 20px 50%;
+}
+
+:global(#demo-blocks) {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 300px;
+  margin-bottom: 1em;
+  width: 36em;
+}
+
+:global(.demo-block) {
+  background: red;
+  width: 7em;
+  height: 4em;
+  overflow: hidden;
+  margin: 0 1em;
+  float: left;
+}
+
+:global(#demo-block-purple) {
+  background: purple;
+}
+
+:global(#demo-block-orange) {
+  background: orange;
+}
+
+:global(#demo-block-blue) {
+  background: blue;
+}
+
+:global(#demo-block-green) {
+  background: green;
+}
+
+:global(#demo-table) {
+  background: black;
+  height: 1em;
+  width: 36em;
+  margin-top: 10em;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .connect-button,
@@ -33,44 +112,6 @@
   margin-right: 0px !important;
   position: relative;
   border-radius: 0px !important;
-}
-
-:global(#test-service-message) {
-  max-width: 100%;
-  min-height: 50px;
-  padding: 20px;
-  margin: 30px 0;
-  color: #ffffff;
-  position: relative;
-  box-shadow: inset 0px 0px 5px #cccccc;
-  font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
-  background-color: rgb(24, 25, 64);
-}
-
-:global(#test-service-message button) {
-  float: right;
-  margin-right: -10px;
-  margin-top: -10px;
-  width: 25px;
-  height: 25px;
-  padding: 0px !important;
-}
-
-:global(#test-service-response) {
-  position: relative;
-  overflow: auto;
-}
-
-:global(#test-service-response textarea) {
-  float: left;
-}
-
-.test-service-ser-response {
-  height: 25px;
-  width: 25px;
-  float: left;
-  padding: 0px !important;
-  margin-left: 10px !important;
 }
 
 /* clearfix */

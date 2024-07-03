@@ -1,0 +1,89 @@
+:global(#demo-service) {
+  width: 100%;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+:global(#test-service-wrapper) {
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 30px;
+  box-shadow: 0px 5px 10px #d1d1e0;
+}
+
+:global(#test-service-wrapper h1) {
+  padding-left: 15px;
+  height: 45px;
+  font-size: 35px;
+  margin-bottom: 20px;
+  width: 100% !important;
+  background: linear-gradient(to right, #1E1B55, #1E1B55, #1E1B55, #1B3284, #EA5B97, #F5A399);
+  color: #FFF;
+}
+
+:global(#test-service-content) {
+    padding-top: 20px;
+}
+
+.connect-button,
+.disconnect-button {
+  height: 45px;
+  float: right;
+  margin-right: 0px !important;
+  position: relative;
+  border-radius: 0px !important;
+}
+
+:global(#test-service-message) {
+  max-width: 100%;
+  min-height: 50px;
+  padding: 20px;
+  margin: 30px 0;
+  color: #ffffff;
+  position: relative;
+  box-shadow: inset 0px 0px 5px #cccccc;
+  font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
+  background-color: rgb(24, 25, 64);
+}
+
+:global(#test-service-message button) {
+  float: right;
+  margin-right: -10px;
+  margin-top: -10px;
+  width: 25px;
+  height: 25px;
+  padding: 0px !important;
+}
+
+:global(#test-service-response) {
+  position: relative;
+  overflow: auto;
+}
+
+:global(#test-service-response textarea) {
+  float: left;
+}
+
+.test-service-ser-response {
+  height: 25px;
+  width: 25px;
+  float: left;
+  padding: 0px !important;
+  margin-left: 10px !important;
+}
+
+/* clearfix */
+.clearfix::before,
+.clearfix::after {
+  content: " ";
+  display: table;
+}
+
+.clearfix::after {
+  clear: both;
+}
+
+.clearfix {
+  *zoom: 1; /* Für den IE6 und IE7 */
+}

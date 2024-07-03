@@ -1,0 +1,36 @@
+<div id="demo">
+
+	<div id="services-action-bar">
+		{{services/action-bar}}
+	</div>
+
+	<div id='demo-service'>
+		<!-- Menu -->
+		<div id="test-service-wrapper">
+			<header class="entry-header">
+				<h1>
+					AJAN Demo
+					{{#if wssConnection}}
+					<button local-class="disconnect-button" class="ui right icon button" onclick={{action "disconnect"}}>
+						Disconnect <i class="icon red bell slash no-side-margins"></i>
+					</button>
+					{{/if}}
+					{{#unless wssConnection}}
+					<button local-class="connect-button" class="ui right icon button" onclick={{action "connect"}}>
+						Connect <i class="icon green bell no-side-margins"></i>
+					</button>
+					{{/unless}}
+				</h1>
+			</header>
+
+			<div id="demo-service-content">
+				<p>
+					lorem ipsum dolor ....
+				</p>
+				
+			</div>
+			<div local-class="clearfix"></div>
+		</div>
+	</div>
+</div>
+

@@ -8,7 +8,7 @@
   width: 80%;
   margin-left: auto;
   margin-right: auto;
-  padding: 30px;
+  padding: 30px 30px 50px 30px;
   box-shadow: 0px 5px 10px #d1d1e0;
 }
 
@@ -30,13 +30,23 @@
 
 :global(#demo-playground) {
   padding-top: 0px;
-  width: 80%;
-  margin-left: 10%;
-  margin-right: 10%;
+  width: 100%;
+  height: 30em;
 }
 
-:global(#demo-arm-open) {
+:global(#demo-arm) {
+  width: 1em;
+  height: 1em;
+  overflow: hidden;
+  position: absolute;
+  top: -23em;
+  left: 4em;
+}
+
+:global(#demo-arm.open) {
   box-shadow:
+      -0em -2em 0 0 black,
+      -0em -3em 0 0 black,
       -0em -1em 0 0 black,
       -1em -1em 0 0 black,
       1em -1em 0 0 black,
@@ -51,58 +61,88 @@
       4em 0em 0 0 black,
       5em 0em 0 0 black,
       -5em 1em 0 0 black,
-      5em 1em 0 0 black,
-      6em 1em 0 0 black,
-      -6em 1em 0 0 black,
-      6em 2em 0 0 black,
-      -6em 2em 0 0 black;
-  background: white;
-  width: 1em;
-  height: 1em;
-  overflow: hidden;
-  margin: 0 50% 20px 50%;
+      5em 1em 0 0 black;
+}
+
+:global(#demo-arm.closed) {
+  box-shadow:
+      -0em -2em 0 0 black,
+      -0em -3em 0 0 black,
+      -0em -1em 0 0 black,
+      -1em -1em 0 0 black,
+      1em -1em 0 0 black,
+      -3em -1em 0 0 black,
+      -2em -1em 0 0 black,
+      2em -1em 0 0 black,
+      3em -1em 0 0 black,
+      -4em -1em 0 0 black,
+      4em -1em 0 0 black,
+      -4em 0em 0 0 black,
+      4em 0em 0 0 black,
+      -4em 1em 0 0 black,
+      4em 1em 0 0 black,
+      4em 1em 0 0 black,
+      -4em 1em 0 0 black,
+      4em 2em 0 0 black,
+      -4em 2em 0 0 black;
 }
 
 :global(#demo-blocks) {
   margin-left: auto;
   margin-right: auto;
-  margin-top: 300px;
   margin-bottom: 1em;
   width: 36em;
-}
-
-:global(.demo-block) {
-  background: red;
-  width: 7em;
-  height: 4em;
-  overflow: hidden;
-  margin: 0 1em;
-  float: left;
-}
-
-:global(#demo-block-purple) {
-  background: purple;
-}
-
-:global(#demo-block-orange) {
-  background: orange;
-}
-
-:global(#demo-block-blue) {
-  background: blue;
-}
-
-:global(#demo-block-green) {
-  background: green;
+  position: relative;
+  top: 24em;
 }
 
 :global(#demo-table) {
   background: black;
   height: 1em;
   width: 36em;
-  margin-top: 10em;
   margin-left: auto;
   margin-right: auto;
+  position: relative;
+  top: 29em;
+}
+
+:global(.demo-block) {
+  width: 7em;
+  height: 4em;
+  overflow: hidden;
+  margin: 0 1em;
+  position: absolute;
+}
+
+:global(.demo-block p) {
+  font-weight: bold;
+  color: #FFFFFF;
+  background: rgba(0,0,0,0.5);
+  padding-left: 0.5em;
+}
+
+:global(#demo-block-purple) {
+  background: #EA5B97;
+  top: 0em;
+  left: 0em;
+}
+
+:global(#demo-block-orange) {
+  background: #FBBD08;
+  top: 0em;
+  left: 9em;
+}
+
+:global(#demo-block-blue) {
+  background: #1B3284;
+  top: 0em;
+  left: 18em;
+}
+
+:global(#demo-block-green) {
+  background: #8EC8B1;
+  top: 0em;
+  left: 27em;
 }
 
 .connect-button,

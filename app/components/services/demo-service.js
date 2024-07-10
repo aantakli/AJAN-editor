@@ -23,17 +23,33 @@ import Ember from "ember";
 let that;
 let $ = Ember.$;
 
+const timer = ms => new Promise(res => setTimeout(res, ms))
+
+let grid = [[{ "x": 0, "y": 0 }, { "x": 9, "y": 0 }, { "x": 18, "y": 0 }, { "x": 27, "y": 0 }],
+[{ "x": 0, "y": -4 }, { "x": 9, "y": -4 }, { "x": 18, "y": -4 }, { "x": 27, "y": -4 }],
+[{ "x": 0, "y": -8 }, { "x": 9, "y": -8 }, { "x": 18, "y": -8 }, { "x": 27, "y": -8 }],
+[{ "x": 0, "y": -12 }, { "x": 9, "y": -12 }, { "x": 18, "y": -12 }, { "x": 27, "y": -12 }]];
+
 export default Ember.Component.extend({
   websockets: Ember.inject.service(),
   wssConnection: false,
   socketRef: null,
   response: "",
+  px2em: 16,
+
+  arm: { "id": "demo-arm", "closed": true, "x": 4, "y": -23 },
+  purple: { "id": "demo-block-purple", "name": "purple", "d1": 0, "d2": 0 },
+  orange: { "id": "demo-block-orange", "name": "orange", "d1": 0, "d2": 1 },
+  blue: { "id": "demo-block-blue", "name": "blue", "d1": 0, "d2": 2 },
+  green: { "id": "demo-block-green", "name": "green", "d1": 0, "d2": 3 },
+  table: { "id": "demo-table", "name": "table", "purple": 0, "orange": 1, "blue": 2, "green": 3 },
 
   didInsertElement() {
     this._super(...arguments);
     that = this;
     setTriplestoreField();
-    getResponseMessage();
+    setPX2EM();
+    grapBlock(this.orange);
   },
 
   willDestroyElement() {
@@ -67,6 +83,67 @@ export default Ember.Component.extend({
     },
   }
 })
+
+function setPX2EM() {
+    let $arm = $("#" + that.get("arm.id") + "");
+    let armTop = parseInt($arm.css("top"), 10);
+    let y = that.get("arm.y");
+    let value = (armTop) / (y);
+    that.set("px2em", value);
+}
+
+function setBlockPosition(block, destination) {
+  if (destination.name == "table") return;
+  else {
+    let $block = $("#" + block.id + "");
+    console.log($block);
+
+    let $destination = $("#" + destination.id + "");
+    console.log($destination);
+    console.log(grid[destination.d1][destination.d2]);
+    let cell = grid[destination.d1][destination.d2];
+    $block.css("top", cell.y + "em");
+    $block.css("left", cell.x + "em");
+  }
+}
+
+async function grapBlock(block) {
+  let $block = $("#" + block.id + "");
+  let $arm = $("#" + that.get("arm.id") + "");
+  console.log($arm);
+  if($arm.hasClass("closed")) {
+    $arm.removeClass("closed");
+    $arm.addClass("open");
+  }
+
+  let armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
+  let armLeft = parseInt($arm.css("left"), 10) / that.get("px2em");
+  let cell = grid[block.d1][block.d2];
+  let destTop = cell.y;
+  let destLeft = cell.x + 4;
+
+  console.log(armLeft, destLeft);
+
+  for(let i=armLeft; i<=destLeft; i++) {
+    console.log(i);
+    $arm.css("left", i + "em");
+    await timer(50);
+  }
+
+  for(let i=armTop; i<=destTop; i++) {
+    console.log(i);
+    $arm.css("top", i + "em");
+    await timer(50);
+  }
+
+  if($arm.hasClass("open")) {
+    $arm.removeClass("open");
+    $arm.addClass("closed");
+  }
+
+  //$arm.css("top", top + "em");
+  //$arm.css("left", left + "em");
+}
 
 function myOpenHandler(event) {
   console.log(`On open event has been called: ${event}`);

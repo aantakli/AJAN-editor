@@ -9,6 +9,7 @@ if "%NODE_VERSION%" == "node is not recognized as an internal or external comman
       start cmd.exe /c startEditor.bat
       start cmd.exe /c startReportService.bat
       start cmd.exe /c startTestActionService.bat
+	  start cmd.exe /c startAJANDemoService.bat
 
       echo Local IP:
       ipconfig | findstr "IPv4"

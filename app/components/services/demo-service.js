@@ -36,6 +36,7 @@ export default Ember.Component.extend({
   socketRef: null,
   response: "",
   px2em: 16,
+  grabbed: "",
 
   arm: { "id": "demo-arm", "closed": true, "x": 4, "y": -23 },
   purple: { "id": "demo-block-purple", "name": "purple", "d1": 0, "d2": 0 },
@@ -49,7 +50,7 @@ export default Ember.Component.extend({
     that = this;
     setTriplestoreField();
     setPX2EM();
-    grapBlock(this.orange);
+    pickUpBlock(this.orange);
   },
 
   willDestroyElement() {
@@ -92,25 +93,22 @@ function setPX2EM() {
     that.set("px2em", value);
 }
 
-function setBlockPosition(block, destination) {
-  if (destination.name == "table") return;
-  else {
-    let $block = $("#" + block.id + "");
-    console.log($block);
+async function moveArm2Init() {
+    let $arm = $("#" + that.get("arm.id") + "");
+    let armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
+    let armLeft = parseInt($arm.css("left"), 10) / that.get("px2em");
 
-    let $destination = $("#" + destination.id + "");
-    console.log($destination);
-    console.log(grid[destination.d1][destination.d2]);
-    let cell = grid[destination.d1][destination.d2];
-    $block.css("top", cell.y + "em");
-    $block.css("left", cell.x + "em");
-  }
+    for(let i=armTop; i>=that.get("arm.y"); i--) {
+      $arm.css("top", i + "em");
+      await timer(50);
+    }
+    $arm.css("top", that.get("arm.y") + "em");
 }
 
-async function grapBlock(block) {
+async function pickUpBlock(block) {
   let $block = $("#" + block.id + "");
   let $arm = $("#" + that.get("arm.id") + "");
-  console.log($arm);
+
   if($arm.hasClass("closed")) {
     $arm.removeClass("closed");
     $arm.addClass("open");
@@ -119,30 +117,160 @@ async function grapBlock(block) {
   let armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
   let armLeft = parseInt($arm.css("left"), 10) / that.get("px2em");
   let cell = grid[block.d1][block.d2];
-  let destTop = cell.y;
-  let destLeft = cell.x + 4;
+  let blockTop = cell.y;
+  let blockLeft = cell.x + 4;
 
-  console.log(armLeft, destLeft);
-
-  for(let i=armLeft; i<=destLeft; i++) {
-    console.log(i);
+  for(let i=armLeft; i<=blockLeft; i++) {
     $arm.css("left", i + "em");
     await timer(50);
   }
+  $arm.css("left", blockLeft + "em");
 
-  for(let i=armTop; i<=destTop; i++) {
-    console.log(i);
+  for(let i=armTop; i<=blockTop; i++) {
     $arm.css("top", i + "em");
     await timer(50);
   }
+  $arm.css("top", blockTop + "em");
 
   if($arm.hasClass("open")) {
     $arm.removeClass("open");
     $arm.addClass("closed");
   }
 
-  //$arm.css("top", top + "em");
-  //$arm.css("left", left + "em");
+  armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
+  for(let i=armTop; i>=that.get("arm.y"); i--) {
+    $arm.css("top", i + "em");
+    $block.css("top", i + "em");
+    await timer(50);
+  }
+  $arm.css("top", that.get("arm.y") + "em");
+  $block.css("top", that.get("arm.y") + "em");
+
+  that.set("grabbed", block);
+
+  stackBlock(that.orange, that.blue);
+}
+
+async function putDownBlock(block) {
+  let $arm = $("#" + that.get("arm.id") + "");
+  let $block = $("#" + block.id + "");
+
+  let armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
+  let armLeft = parseInt($arm.css("left"), 10) / that.get("px2em");
+
+  let tableTop = grid[0][that.get("table." + block.name + "")].y;
+  let tableLeft = grid[0][that.get("table." + block.name + "")].x;
+
+console.log(armLeft, tableLeft);
+
+  for(let i=armLeft; i<=tableLeft; i++) {
+    $arm.css("left", i + 4 + "em");
+    $block.css("left", i + "em");
+    await timer(50);
+  }
+  $arm.css("left", tableLeft + 4 + "em");
+  $block.css("left", tableLeft + "em");
+
+  armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
+  for(let i=armTop; i<tableTop+1; i++) {
+    $arm.css("top", i + "em");
+    $block.css("top", i + "em");
+    await timer(50);
+  }
+  $arm.css("top", tableTop + "em");
+  $block.css("top", tableTop + "em");
+
+  if($arm.hasClass("closed")) {
+    $arm.removeClass("closed");
+    $arm.addClass("open");
+  }
+
+  that.set("grabbed", "");
+
+  moveArm2Init();
+}
+
+async function unStackBlock(block) {
+  let $block = $("#" + block.id + "");
+  let $arm = $("#" + that.get("arm.id") + "");
+
+  if($arm.hasClass("closed")) {
+    $arm.removeClass("closed");
+    $arm.addClass("open");
+  }
+
+  let armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
+  let armLeft = parseInt($arm.css("left"), 10) / that.get("px2em");
+  let blockTop = parseInt($block.css("top"), 10) / that.get("px2em");
+  let blockLeft = parseInt($block.css("left"), 10) / that.get("px2em");
+
+  for(let i=armLeft; i<=blockLeft; i++) {
+    $arm.css("left", i + 2 + "em");
+    await timer(50);
+  }
+  $arm.css("left", blockLeft + 2 + "em");
+
+  for(let i=armTop; i<=blockTop; i++) {
+    $arm.css("top", i + "em");
+    await timer(50);
+  }
+  $arm.css("top", blockTop + "em");
+
+  if($arm.hasClass("open")) {
+    $arm.removeClass("open");
+    $arm.addClass("closed");
+  }
+
+  armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
+  for(let i=armTop; i>=that.get("arm.y"); i--) {
+    $arm.css("top", i + "em");
+    $block.css("top", i + "em");
+    await timer(50);
+  }
+  $arm.css("top", that.get("arm.y") + "em");
+  $block.css("top", that.get("arm.y") + "em");
+
+  that.set("grabbed", block);
+
+  putDownBlock(block);
+}
+
+async function stackBlock(block, dest) {
+  let $arm = $("#" + that.get("arm.id") + "");
+  let $block = $("#" + block.id + "");
+
+  let armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
+  let armLeft = parseInt($arm.css("left"), 10) / that.get("px2em");
+  let blockTop = grid[block.d1][block.d2].y;
+  let blockLeft = grid[block.d1][block.d2].x + 4;
+  let destTop = grid[dest.d1 + 1][dest.d2].y;
+  let destLeft = grid[dest.d1][dest.d2].x + 4;
+
+  for(let i=armLeft; i<=destLeft; i++) {
+    $arm.css("left", i + "em");
+    $block.css("left", i - 4 + "em");
+    await timer(50);
+  }
+  $arm.css("left", destLeft + "em");
+  $block.css("left", destLeft - 4 + "em");
+
+  armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
+  for(let i=armTop; i<destTop+1; i++) {
+    $arm.css("top", i + "em");
+    $block.css("top", i+ "em");
+    await timer(50);
+  }
+  $arm.css("top", destTop + "em");
+  $block.css("top", destTop + "em");
+
+  if($arm.hasClass("closed")) {
+    $arm.removeClass("closed");
+    $arm.addClass("open");
+  }
+
+  that.set("grabbed", "");
+
+  unStackBlock(block);
 }
 
 function myOpenHandler(event) {

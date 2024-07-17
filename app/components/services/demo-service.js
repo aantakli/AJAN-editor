@@ -116,7 +116,7 @@ function getDemoObject(value) {
   return object;
 }
 
-async function moveArm2Init() {
+async function moveArm2Init(action) {
     let $arm = $("#" + that.get("arm.id") + "");
     let armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
     let armLeft = parseInt($arm.css("left"), 10) / that.get("px2em");
@@ -126,10 +126,11 @@ async function moveArm2Init() {
       await timer(50);
     }
     $arm.css("top", that.get("arm.y") + "em");
+    sendResponse(action);
 }
 
 async function pickUpBlock(action) {
-  let block = getDemoObject(action.block);
+  let block = getDemoObject(action.blockX);
   let $block = $("#" + block.id + "");
   let $arm = $("#" + that.get("arm.id") + "");
 
@@ -171,37 +172,38 @@ async function pickUpBlock(action) {
   $block.css("top", that.get("arm.y") + "em");
 
   that.set("grabbed", block);
-  let ws = that.get("socketRef");
   sendResponse(action);
 }
 
-async function putDownBlock(action) {
-  let block = getDemoObject(action.val1);
+async function stackBlock(action) {
+  let block = getDemoObject(action.blockX);
+  let dest = getDemoObject(action.blockY);
   let $arm = $("#" + that.get("arm.id") + "");
   let $block = $("#" + block.id + "");
 
   let armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
   let armLeft = parseInt($arm.css("left"), 10) / that.get("px2em");
+  let blockTop = grid[block.d1][block.d2].y;
+  let blockLeft = grid[block.d1][block.d2].x + 4;
+  let destTop = grid[dest.d1 + 1][dest.d2].y;
+  let destLeft = grid[dest.d1][dest.d2].x + 4;
 
-  let tableTop = grid[0][that.get("table." + block.name + "")].y;
-  let tableLeft = grid[0][that.get("table." + block.name + "")].x;
-
-  for(let i=armLeft; i<=tableLeft; i++) {
-    $arm.css("left", i + 4 + "em");
-    $block.css("left", i + "em");
+  for(let i=armLeft; i<=destLeft; i++) {
+    $arm.css("left", i + "em");
+    $block.css("left", i - 4 + "em");
     await timer(50);
   }
-  $arm.css("left", tableLeft + 4 + "em");
-  $block.css("left", tableLeft + "em");
+  $arm.css("left", destLeft + "em");
+  $block.css("left", destLeft - 4 + "em");
 
   armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
-  for(let i=armTop; i<tableTop+1; i++) {
+  for(let i=armTop; i<destTop+1; i++) {
     $arm.css("top", i + "em");
-    $block.css("top", i + "em");
+    $block.css("top", i+ "em");
     await timer(50);
   }
-  $arm.css("top", tableTop + "em");
-  $block.css("top", tableTop + "em");
+  $arm.css("top", destTop + "em");
+  $block.css("top", destTop + "em");
 
   if($arm.hasClass("closed")) {
     $arm.removeClass("closed");
@@ -209,12 +211,12 @@ async function putDownBlock(action) {
   }
 
   that.set("grabbed", "");
-  moveArm2Init();
-  let ws = that.get("socketRef");
-  ws.send(action);
+
+  moveArm2Init(action);
 }
 
-async function unStackBlock(block) {
+async function unStackBlock(action) {
+  let block = getDemoObject(action.blockX);
   let $block = $("#" + block.id + "");
   let $arm = $("#" + that.get("arm.id") + "");
 
@@ -256,36 +258,36 @@ async function unStackBlock(block) {
 
   that.set("grabbed", block);
 
-  putDownBlock(block);
+  sendResponse(action);
 }
 
-async function stackBlock(block, dest) {
+async function putDownBlock(action) {
+  let block = getDemoObject(action.blockX);
   let $arm = $("#" + that.get("arm.id") + "");
   let $block = $("#" + block.id + "");
 
   let armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
   let armLeft = parseInt($arm.css("left"), 10) / that.get("px2em");
-  let blockTop = grid[block.d1][block.d2].y;
-  let blockLeft = grid[block.d1][block.d2].x + 4;
-  let destTop = grid[dest.d1 + 1][dest.d2].y;
-  let destLeft = grid[dest.d1][dest.d2].x + 4;
 
-  for(let i=armLeft; i<=destLeft; i++) {
-    $arm.css("left", i + "em");
-    $block.css("left", i - 4 + "em");
+  let tableTop = grid[0][that.get("table." + block.name + "")].y;
+  let tableLeft = grid[0][that.get("table." + block.name + "")].x;
+
+  for(let i=armLeft; i<=tableLeft; i++) {
+    $arm.css("left", i + 4 + "em");
+    $block.css("left", i + "em");
     await timer(50);
   }
-  $arm.css("left", destLeft + "em");
-  $block.css("left", destLeft - 4 + "em");
+  $arm.css("left", tableLeft + 4 + "em");
+  $block.css("left", tableLeft + "em");
 
   armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
-  for(let i=armTop; i<destTop+1; i++) {
+  for(let i=armTop; i<tableTop+1; i++) {
     $arm.css("top", i + "em");
-    $block.css("top", i+ "em");
+    $block.css("top", i + "em");
     await timer(50);
   }
-  $arm.css("top", destTop + "em");
-  $block.css("top", destTop + "em");
+  $arm.css("top", tableTop + "em");
+  $block.css("top", tableTop + "em");
 
   if($arm.hasClass("closed")) {
     $arm.removeClass("closed");
@@ -293,8 +295,7 @@ async function stackBlock(block, dest) {
   }
 
   that.set("grabbed", "");
-
-  unStackBlock(block);
+  moveArm2Init(action);
 }
 
 function myOpenHandler(event) {
@@ -308,6 +309,10 @@ function myMessageHandler(event) {
   console.log(action);
   if (action.action == "pickUp") {
     pickUpBlock(action);
+  } else if (action.action == "stack") {
+    stackBlock(action);
+  } else if (action.action == "unStack") {
+    unStackBlock(action);
   } else if (action.action == "putDown") {
     putDownBlock(action);
   }
@@ -324,7 +329,8 @@ function setTriplestoreField() {
 }
 
 function sendResponse(action) {
-  console.log(action);
+  console.log(action.asyncResponse);
+  console.log(action.requestURI);
   return $.ajax({
     url: action.requestURI,
     type: "POST",

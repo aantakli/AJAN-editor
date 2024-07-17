@@ -35,10 +35,41 @@ app.get('/', (req, res) => {
 });
 
 app.post('/pickUp', (req, res) => {
-  let wssMessage = JSON.parse(req.body);
   console.log(req.body);
+  let wssMessage = JSON.parse(req.body);
   let action = createAction(wssMessage, "pickUp");
-  action.asyncResponse = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n PREFIX ajan: <http://www.ajan.de/ajan-ns#> \n PREFIX actn: <http://www.ajan.de/actn#> \n PREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n \n <" + action.block + "> strips:is ajan:Holding.";
+  action.blockX = getActionSubject(wssMessage, "http://www.ajan.de/ajan-ns#Table");
+  action.asyncResponse = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n PREFIX ajan: <http://www.ajan.de/ajan-ns#> \n PREFIX actn: <http://www.ajan.de/actn#> \n PREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n \n <" + action.blockX + "> strips:is ajan:Holding.";
+  let actionRequest = JSON.stringify(action);
+  wss.clients.forEach(client => {
+    client.send(actionRequest);
+  });
+  res.set('Content-Type', 'text/turtle');
+  res.send(response);
+});
+
+app.post('/stack', (req, res) => {
+  console.log(req.body);
+  let wssMessage = JSON.parse(req.body);
+  let action = createAction(wssMessage, "stack");
+  action.blockX = getActionSubject(wssMessage, "http://www.ajan.de/ajan-ns#Holding");
+  action.blockY = getActionSubject(wssMessage, "http://www.ajan.de/ajan-ns#Clear");
+  action.asyncResponse = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n PREFIX ajan: <http://www.ajan.de/ajan-ns#> \n PREFIX actn: <http://www.ajan.de/actn#> \n PREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n  \n ajan:Arm strips:is ajan:Empty . <" + action.blockX + "> strips:is ajan:Clear . \n <" + action.blockX + "> ajan:on <" + action.blockY + "> .";
+  let actionRequest = JSON.stringify(action);
+  wss.clients.forEach(client => {
+    client.send(actionRequest);
+  });
+  res.set('Content-Type', 'text/turtle');
+  res.send(response);
+});
+
+app.post('/unStack', (req, res) => {
+  console.log(req.body);
+  let wssMessage = JSON.parse(req.body);
+  let action = createAction(wssMessage, "unStack");
+  action.blockX = getActionSubject(wssMessage, "http://www.ajan.de/ajan-ns#Clear");
+  action.blockY = getActionObject(wssMessage, "http://www.ajan.de/ajan-ns#on");
+  action.asyncResponse = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n PREFIX ajan: <http://www.ajan.de/ajan-ns#> \n PREFIX actn: <http://www.ajan.de/actn#> \n PREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n  \n <" + action.blockX + "> strips:is ajan:Holding . \n <" + action.blockY + "> strips:is ajan:Clear .";
   let actionRequest = JSON.stringify(action);
   wss.clients.forEach(client => {
     client.send(actionRequest);
@@ -48,13 +79,17 @@ app.post('/pickUp', (req, res) => {
 });
 
 app.post('/putDown', (req, res) => {
-  let wssMessage = JSON.parse(req.body);
   console.log(req.body);
+  let wssMessage = JSON.parse(req.body);
+  let action = createAction(wssMessage, "putDown");
+  action.blockX = getActionSubject(wssMessage, "http://www.ajan.de/ajan-ns#Holding");
+  action.asyncResponse = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n PREFIX ajan: <http://www.ajan.de/ajan-ns#> \n PREFIX actn: <http://www.ajan.de/actn#> \n PREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n  \n ajan:Arm strips:is ajan:Empty . \n <" + action.blockX + "> strips:is ajan:Table . \n <" + action.blockX + ">  strips:is ajan:Clear .";
+  let actionRequest = JSON.stringify(action);
   wss.clients.forEach(client => {
-    client.send(createAction(wssMessage, "putDown"));
+    client.send(actionRequest);
   });
   res.set('Content-Type', 'text/turtle');
-  res.send(wssMessage);
+  res.send(response);
 });
 
 wss.on('connection', function connection(ws) {
@@ -92,9 +127,36 @@ function createAction(wssMessage, actionType) {
       console.log(entry["http://www.ajan.de/actn#asyncRequestURI"][0]["@id"]);
       action.requestURI = entry["http://www.ajan.de/actn#asyncRequestURI"][0]["@id"];
     }
-    if(entry["@type"] == "http://www.ajan.de/ajan-ns#Block") {
-        action.block = entry["@id"];
-    }
   });
   return action;
+}
+
+function getActionSubject(wssMessage, parameter) {
+  let result = null;
+  wssMessage.forEach((entry) => {
+    if(entry["http://www.ajan.de/behavior/strips-ns#is"] != null) {
+        entry["http://www.ajan.de/behavior/strips-ns#is"].forEach((object) => {
+            if(object["@id"] == parameter) {
+              console.log(entry["@id"]);
+              result = entry["@id"];
+            }
+        });
+    }
+  });
+  return result;
+}
+
+function getActionObject(wssMessage, parameter) {
+  let result = null;
+  wssMessage.forEach((entry) => {
+    if(entry[parameter] != null) {
+      entry[parameter].forEach((object) => {
+          if(object["@id"] != null) {
+            console.log(object["@id"]);
+            result = object["@id"];
+          }
+      });
+    }
+  });
+  return result;
 }

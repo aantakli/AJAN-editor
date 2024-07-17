@@ -50,7 +50,6 @@ export default Ember.Component.extend({
     that = this;
     setTriplestoreField();
     setPX2EM();
-    pickUpBlock(this.orange);
   },
 
   willDestroyElement() {
@@ -93,6 +92,30 @@ function setPX2EM() {
     that.set("px2em", value);
 }
 
+function getDemoObject(value) {
+  let object = "";
+  switch (value) {
+    case "http://www.ajan.de/ajan-ns#PurpleBlock":
+      object = that.purple;
+      break;
+    case "http://www.ajan.de/ajan-ns#OrangeBlock":
+      object = that.orange;
+      break;
+    case "http://www.ajan.de/ajan-ns#BlueBlock":
+      object = that.blue;
+      break;
+    case "http://www.ajan.de/ajan-ns#GreenBlock":
+      object = that.green;
+      break;
+    case "http://www.ajan.de/ajan-ns#OrangeBlock":
+      object = that.table;
+      break;
+    default:
+      object = that.table;
+  }
+  return object;
+}
+
 async function moveArm2Init() {
     let $arm = $("#" + that.get("arm.id") + "");
     let armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
@@ -105,7 +128,8 @@ async function moveArm2Init() {
     $arm.css("top", that.get("arm.y") + "em");
 }
 
-async function pickUpBlock(block) {
+async function pickUpBlock(action) {
+  let block = getDemoObject(action.block);
   let $block = $("#" + block.id + "");
   let $arm = $("#" + that.get("arm.id") + "");
 
@@ -147,11 +171,12 @@ async function pickUpBlock(block) {
   $block.css("top", that.get("arm.y") + "em");
 
   that.set("grabbed", block);
-
-  stackBlock(that.orange, that.blue);
+  let ws = that.get("socketRef");
+  sendResponse(action);
 }
 
-async function putDownBlock(block) {
+async function putDownBlock(action) {
+  let block = getDemoObject(action.val1);
   let $arm = $("#" + that.get("arm.id") + "");
   let $block = $("#" + block.id + "");
 
@@ -160,8 +185,6 @@ async function putDownBlock(block) {
 
   let tableTop = grid[0][that.get("table." + block.name + "")].y;
   let tableLeft = grid[0][that.get("table." + block.name + "")].x;
-
-console.log(armLeft, tableLeft);
 
   for(let i=armLeft; i<=tableLeft; i++) {
     $arm.css("left", i + 4 + "em");
@@ -186,8 +209,9 @@ console.log(armLeft, tableLeft);
   }
 
   that.set("grabbed", "");
-
   moveArm2Init();
+  let ws = that.get("socketRef");
+  ws.send(action);
 }
 
 async function unStackBlock(block) {
@@ -280,6 +304,13 @@ function myOpenHandler(event) {
 
 function myMessageHandler(event) {
   console.log(`Message: ${event.data}`);
+  let action = $.parseJSON(event.data);
+  console.log(action);
+  if (action.action == "pickUp") {
+    pickUpBlock(action);
+  } else if (action.action == "putDown") {
+    putDownBlock(action);
+  }
 }
 
 function myCloseHandler(event) {
@@ -292,29 +323,15 @@ function setTriplestoreField() {
   $(".store-url").text(localStorage.currentStore);
 }
 
-function getResponseMessage() {
+function sendResponse(action) {
+  console.log(action);
   return $.ajax({
-    url: "http://localhost:4203/getResponse",
-    type: "GET",
-    headers: { Accept: "text/plain" }
-  }).then(function (data) {
-    console.log(data);
-    that.set("response", data);
-  }).catch(function (error) {
-    alert("No AJAN Demo Service is running on http://" + document.location.hostname + ":4203");
-  });
-}
-
-function sendResponseMessage(content) {
-  return $.ajax({
-    url: "http://" + document.location.hostname + ":4203/response",
+    url: action.requestURI,
     type: "POST",
-    contentType: "text/plain",
-    data: content,
-  }).then(function (data) {
-    $("#send-message").trigger("showToast");
-    getResponseMessage();
+    contentType: "text/turtle",
+    data: action.asyncResponse,
   }).catch (function (error) {
     console.log(error);
   });
 }
+

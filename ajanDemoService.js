@@ -34,6 +34,14 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
+app.get('/initScene', (req, res) => {
+  wss.clients.forEach(client => {
+    client.send('{ "init": "true" }');
+  });
+  res.set('Content-Type', 'text/turtle');
+  res.send("<http://www.ajan.de/ajan-ns#Scene> <http://www.ajan.de/ajan-ns#init> true .");
+});
+
 app.post('/pickUp', (req, res) => {
   console.log(req.body);
   let wssMessage = JSON.parse(req.body);

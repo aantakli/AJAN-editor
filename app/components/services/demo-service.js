@@ -116,6 +116,20 @@ function getDemoObject(value) {
   return object;
 }
 
+function initScene() {
+  console.log("init scene");
+  initBlock(that.get("purple"));
+  initBlock(that.get("orange"))
+  initBlock(that.get("blue"))
+  initBlock(that.get("green"));
+}
+
+function initBlock(block) {
+  let $block = $("#" + block.id  + "");
+  $block.css("left", grid[block.d1][block.d2].x + "em");
+  $block.css("top", grid[block.d1][block.d2].y + "em");
+}
+
 async function moveArm2Init(action) {
     let $arm = $("#" + that.get("arm.id") + "");
     let armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
@@ -145,9 +159,16 @@ async function pickUpBlock(action) {
   let blockTop = cell.y;
   let blockLeft = cell.x + 4;
 
-  for(let i=armLeft; i<=blockLeft; i++) {
-    $arm.css("left", i + "em");
-    await timer(50);
+  if(armLeft <= blockLeft) {
+    for(let i=armLeft; i<=blockLeft; i++) {
+      $arm.css("left", i + "em");
+      await timer(50);
+    }
+  } else {
+    for(let i=armLeft; i>=blockLeft; i--) {
+      $arm.css("left", i + "em");
+      await timer(50);
+    }
   }
   $arm.css("left", blockLeft + "em");
 
@@ -188,10 +209,18 @@ async function stackBlock(action) {
   let destTop = grid[dest.d1 + 1][dest.d2].y;
   let destLeft = grid[dest.d1][dest.d2].x + 4;
 
-  for(let i=armLeft; i<=destLeft; i++) {
-    $arm.css("left", i + "em");
-    $block.css("left", i - 4 + "em");
-    await timer(50);
+  if(armLeft <= destLeft) {
+    for(let i=armLeft; i<=destLeft; i++) {
+      $arm.css("left", i + "em");
+      $block.css("left", i - 4 + "em");
+      await timer(50);
+    }
+  } else {
+    for(let i=armLeft; i>=destLeft; i--) {
+      $arm.css("left", i + "em");
+      $block.css("left", i - 4 + "em");
+      await timer(50);
+    }
   }
   $arm.css("left", destLeft + "em");
   $block.css("left", destLeft - 4 + "em");
@@ -230,11 +259,18 @@ async function unStackBlock(action) {
   let blockTop = parseInt($block.css("top"), 10) / that.get("px2em");
   let blockLeft = parseInt($block.css("left"), 10) / that.get("px2em");
 
-  for(let i=armLeft; i<=blockLeft; i++) {
-    $arm.css("left", i + 2 + "em");
-    await timer(50);
+  if(armLeft <= blockLeft) {
+    for(let i=armLeft; i<=blockLeft; i++) {
+      $arm.css("left", i + 4 + "em");
+      await timer(50);
+    }
+  } else {
+    for(let i=armLeft; i>=blockLeft; i--) {
+      $arm.css("left", i + 4 + "em");
+      await timer(50);
+    }
   }
-  $arm.css("left", blockLeft + 2 + "em");
+  $arm.css("left", blockLeft + 4 + "em");
 
   for(let i=armTop; i<=blockTop; i++) {
     $arm.css("top", i + "em");
@@ -272,10 +308,18 @@ async function putDownBlock(action) {
   let tableTop = grid[0][that.get("table." + block.name + "")].y;
   let tableLeft = grid[0][that.get("table." + block.name + "")].x;
 
-  for(let i=armLeft; i<=tableLeft; i++) {
-    $arm.css("left", i + 4 + "em");
-    $block.css("left", i + "em");
-    await timer(50);
+  if(armLeft <= tableLeft) {
+    for(let i=armLeft; i<=tableLeft; i++) {
+      $arm.css("left", i + 4 + "em");
+      $block.css("left", i + "em");
+      await timer(50);
+    }
+  } else {
+    for(let i=armLeft; i>=tableLeft; i--) {
+      $arm.css("left", i + 4 + "em");
+      $block.css("left", i + "em");
+      await timer(50);
+    }
   }
   $arm.css("left", tableLeft + 4 + "em");
   $block.css("left", tableLeft + "em");
@@ -307,7 +351,8 @@ function myMessageHandler(event) {
   console.log(`Message: ${event.data}`);
   let action = $.parseJSON(event.data);
   console.log(action);
-  if (action.action == "pickUp") {
+  if (action.init) initScene();
+  else if (action.action == "pickUp") {
     pickUpBlock(action);
   } else if (action.action == "stack") {
     stackBlock(action);

@@ -47,7 +47,8 @@ app.post('/pickUp', (req, res) => {
   let wssMessage = JSON.parse(req.body);
   let action = createAction(wssMessage, "pickUp");
   action.blockX = getActionSubject(wssMessage, "http://www.ajan.de/ajan-ns#Table");
-  action.asyncResponse = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n PREFIX ajan: <http://www.ajan.de/ajan-ns#> \n PREFIX actn: <http://www.ajan.de/actn#> \n PREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n \n <" + action.blockX + "> strips:is ajan:Holding.";
+  action.asyncResponse = " PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n PREFIX ajan: <http://www.ajan.de/ajan-ns#> \n PREFIX actn: <http://www.ajan.de/actn#> \n PREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n \n <" + action.blockX + "> strips:is ajan:Holding.";
+  action.request = wssMessage;
   let actionRequest = JSON.stringify(action);
   wss.clients.forEach(client => {
     client.send(actionRequest);
@@ -62,7 +63,8 @@ app.post('/stack', (req, res) => {
   let action = createAction(wssMessage, "stack");
   action.blockX = getActionSubject(wssMessage, "http://www.ajan.de/ajan-ns#Holding");
   action.blockY = getActionSubject(wssMessage, "http://www.ajan.de/ajan-ns#Clear");
-  action.asyncResponse = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n PREFIX ajan: <http://www.ajan.de/ajan-ns#> \n PREFIX actn: <http://www.ajan.de/actn#> \n PREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n  \n ajan:Arm strips:is ajan:Empty . <" + action.blockX + "> strips:is ajan:Clear . \n <" + action.blockX + "> ajan:on <" + action.blockY + "> .";
+  action.asyncResponse = " PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n PREFIX ajan: <http://www.ajan.de/ajan-ns#> \n PREFIX actn: <http://www.ajan.de/actn#> \n PREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n  \n ajan:Arm strips:is ajan:Empty . <" + action.blockX + "> strips:is ajan:Clear . \n <" + action.blockX + "> ajan:on <" + action.blockY + "> .";
+  action.request = wssMessage;
   let actionRequest = JSON.stringify(action);
   wss.clients.forEach(client => {
     client.send(actionRequest);
@@ -77,7 +79,8 @@ app.post('/unStack', (req, res) => {
   let action = createAction(wssMessage, "unStack");
   action.blockX = getActionSubject(wssMessage, "http://www.ajan.de/ajan-ns#Clear");
   action.blockY = getActionObject(wssMessage, "http://www.ajan.de/ajan-ns#on");
-  action.asyncResponse = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n PREFIX ajan: <http://www.ajan.de/ajan-ns#> \n PREFIX actn: <http://www.ajan.de/actn#> \n PREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n  \n <" + action.blockX + "> strips:is ajan:Holding . \n <" + action.blockY + "> strips:is ajan:Clear .";
+  action.asyncResponse = " PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n PREFIX ajan: <http://www.ajan.de/ajan-ns#> \n PREFIX actn: <http://www.ajan.de/actn#> \n PREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n  \n <" + action.blockX + "> strips:is ajan:Holding . \n <" + action.blockY + "> strips:is ajan:Clear .";
+  action.request = wssMessage;
   let actionRequest = JSON.stringify(action);
   wss.clients.forEach(client => {
     client.send(actionRequest);
@@ -91,7 +94,8 @@ app.post('/putDown', (req, res) => {
   let wssMessage = JSON.parse(req.body);
   let action = createAction(wssMessage, "putDown");
   action.blockX = getActionSubject(wssMessage, "http://www.ajan.de/ajan-ns#Holding");
-  action.asyncResponse = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n PREFIX ajan: <http://www.ajan.de/ajan-ns#> \n PREFIX actn: <http://www.ajan.de/actn#> \n PREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n  \n ajan:Arm strips:is ajan:Empty . \n <" + action.blockX + "> strips:is ajan:Table . \n <" + action.blockX + ">  strips:is ajan:Clear .";
+  action.asyncResponse = " PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n PREFIX ajan: <http://www.ajan.de/ajan-ns#> \n PREFIX actn: <http://www.ajan.de/actn#> \n PREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n  \n ajan:Arm strips:is ajan:Empty . \n <" + action.blockX + "> strips:is ajan:Table . \n <" + action.blockX + ">  strips:is ajan:Clear .";
+  action.request = wssMessage;
   let actionRequest = JSON.stringify(action);
   wss.clients.forEach(client => {
     client.send(actionRequest);

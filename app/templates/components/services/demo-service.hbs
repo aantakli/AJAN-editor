@@ -30,10 +30,13 @@
 				</h1>
 			</header>
 
+			<h4>Action: <b>{{actionType}}</b> (Block <i class="icon stop actionType"></i>)</h4>
+
 			<div id="demo-service-content">
-				<p>
-					lorem ipsum dolor ....
-				</p>
+				<div id="requestMsg">
+					<h6><i class="arrow alternate circle blue right icon"></i>Async Request <span>Content-Type: application/ld+json</span></h6>
+					<textarea class="demoMsg" rows="31">{{requestMsg}}</textarea>
+				</div>
 				<div id="demo-playground">
 					<div id="demo-table"></div>
 					<div id="demo-blocks">
@@ -43,6 +46,10 @@
 						<div id="demo-block-blue" class="demo-block"><p>blue</p></div>
 						<div id="demo-block-green" class="demo-block"><p>green</p></div>
 					</div>
+				</div>
+				<div id="responseMsg">
+					<h6><i class="arrow alternate circle green left icon"></i>Response <span>Content-Type: text/turtle</span></h6>
+					<textarea class="demoMsg" rows="31">{{responseMsg}}</textarea>
 				</div>
 			</div>
 			<div local-class="clearfix"></div>

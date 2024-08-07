@@ -30,8 +30,9 @@
 
 :global(#demo-playground) {
   padding-top: 0px;
-  width: 100%;
+  width: 50%;
   height: 30em;
+  float: left;
 }
 
 :global(#demo-arm) {
@@ -154,9 +155,44 @@
   border-radius: 0px !important;
 }
 
-/* clearfix */
-.clearfix::before,
-.clearfix::after {
+:global(#requestMsg),
+:global(#responseMsg) {
+  float: left;
+  width: 25%;
+}
+
+:global(#requestMsg h6 span),
+:global(#responseMsg h6 span) {
+  font-size: 9px;
+  font-style: italic;
+  font-size: 10px;
+}
+
+:global(.actionType) {
+  padding: 0px;
+}
+
+:global(#requestMsg textarea),
+:global(#responseMsg textarea) {
+  width: 90%;
+  min-height: 1.5rem;
+  font-size: 9px;
+  resize: vertical;
+  border: 0px;
+  padding: 10px;
+  box-shadow: inset 0px 0px 5px #cccccc;
+  font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
+  background-color: rgb(24, 25, 64);
+  color: #ffffff;
+}
+
+:global(#responseMsg textarea),
+:global(#responseMsg h6) {
+  margin-left: 10%;
+}
+
+  /* clearfix */
+  .clearfix::before, .clearfix::after {
   content: " ";
   display: table;
 }

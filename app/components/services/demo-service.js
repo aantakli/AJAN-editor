@@ -38,12 +38,15 @@ export default Ember.Component.extend({
   response: "",
   px2em: 16,
   grabbed: "",
+  requestMsg: "",
+  responseMsg: "",
+  actionType: "",
 
   arm: { "id": "demo-arm", "closed": true, "x": 4, "y": -23 },
-  purple: { "id": "demo-block-purple", "name": "purple", "d1": 0, "d2": 0 },
-  orange: { "id": "demo-block-orange", "name": "orange", "d1": 0, "d2": 1 },
-  blue: { "id": "demo-block-blue", "name": "blue", "d1": 0, "d2": 2 },
-  green: { "id": "demo-block-green", "name": "green", "d1": 0, "d2": 3 },
+  purple: { "id": "demo-block-purple", "name": "purple", "d1": 0, "d2": 0, "color": "#EA5B97" },
+  orange: { "id": "demo-block-orange", "name": "orange", "d1": 0, "d2": 1, "color": "#FBBD08" },
+  blue: { "id": "demo-block-blue", "name": "blue", "d1": 0, "d2": 2, "color": "#1B3284" },
+  green: { "id": "demo-block-green", "name": "green", "d1": 0, "d2": 3, "color": "#8EC8B1" },
   table: { "id": "demo-table", "name": "table", "purple": 0, "orange": 1, "blue": 2, "green": 3 },
 
   didInsertElement() {
@@ -352,15 +355,23 @@ function myOpenHandler(event) {
 function myMessageHandler(event) {
   console.log(`Message: ${event.data}`);
   let action = $.parseJSON(event.data);
+  console.log(action.request);
+  that.set("requestMsg", JSON.stringify(action.request, null, 2));
+  console.log(action.asyncResponse);
+  that.set("responseMsg", action.asyncResponse);
   console.log(action);
   if (action.init) initScene();
   else if (action.action == "pickUp") {
+    setActionHeader(action);
     pickUpBlock(action);
   } else if (action.action == "stack") {
+    setActionHeader(action);
     stackBlock(action);
   } else if (action.action == "unStack") {
+    setActionHeader(action);
     unStackBlock(action);
   } else if (action.action == "putDown") {
+    setActionHeader(action);
     putDownBlock(action);
   }
 }
@@ -387,5 +398,11 @@ function sendResponse(action) {
   }).catch (function (error) {
     console.log(error);
   });
+}
+
+function setActionHeader(action) {
+  that.set("actionType", action.action);
+  let block = getDemoObject(action.blockX);
+  $(".actionType").css("color", block.color);
 }
 

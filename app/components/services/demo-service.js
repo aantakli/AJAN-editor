@@ -346,6 +346,7 @@ async function putDownBlock(action) {
 function myOpenHandler(event) {
   console.log(`On open event has been called: ${event}`);
   that.set("wssConnection", true);
+  that.set("connectionError", false);
 }
 
 function myMessageHandler(event) {

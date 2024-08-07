@@ -29,6 +29,7 @@ export default Ember.Component.extend({
   socketRef: null,
   response: "",
   wssMessage: {},
+  connectionError: false,
 
   didInsertElement() {
     this._super(...arguments);
@@ -36,6 +37,7 @@ export default Ember.Component.extend({
     setTriplestoreField();
     this.set("wssMessage.body", "Here you can see the output of the TestService (testService.js) that it received via an HTTP/POST (Content-Type: text/turtle; Request-URI: http://localhost:4201/post) message.");
     getResponseMessage();
+    this.actions.connect();
   },
 
   willDestroyElement() {
@@ -87,6 +89,7 @@ export default Ember.Component.extend({
 function myOpenHandler(event) {
   console.log(`On open event has been called: ${event}`);
   that.set("wssConnection", true);
+  that.set("connectionError", false);
 }
 
 function myMessageHandler(event) {
@@ -98,6 +101,7 @@ function myCloseHandler(event) {
   console.log(`On close event has been called: ${event}`);
   that.get('websockets').closeSocketFor("ws://" + document.location.hostname + ":4201");
   that.set("wssConnection", false);
+  that.set("connectionError", true);
 }
 
 function setTriplestoreField() {

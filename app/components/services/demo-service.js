@@ -33,6 +33,7 @@ let grid = [[{ "x": 0, "y": 0 }, { "x": 9, "y": 0 }, { "x": 18, "y": 0 }, { "x":
 export default Ember.Component.extend({
   websockets: Ember.inject.service(),
   wssConnection: false,
+  connectionError: false,
   socketRef: null,
   response: "",
   px2em: 16,
@@ -50,6 +51,7 @@ export default Ember.Component.extend({
     that = this;
     setTriplestoreField();
     setPX2EM();
+    this.actions.connect();
   },
 
   willDestroyElement() {
@@ -201,29 +203,28 @@ async function stackBlock(action) {
   let dest = getDemoObject(action.blockY);
   let $arm = $("#" + that.get("arm.id") + "");
   let $block = $("#" + block.id + "");
+  let $dest = $("#" + dest.id + "");
 
   let armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
   let armLeft = parseInt($arm.css("left"), 10) / that.get("px2em");
-  let blockTop = grid[block.d1][block.d2].y;
-  let blockLeft = grid[block.d1][block.d2].x + 4;
-  let destTop = grid[dest.d1 + 1][dest.d2].y;
-  let destLeft = grid[dest.d1][dest.d2].x + 4;
+  let destTop = parseInt($dest.css("top"), 10) / that.get("px2em") - 4;
+  let destLeft = parseInt($dest.css("left"), 10) / that.get("px2em");
 
   if(armLeft <= destLeft) {
     for(let i=armLeft; i<=destLeft; i++) {
-      $arm.css("left", i + "em");
-      $block.css("left", i - 4 + "em");
+      $arm.css("left", i + 4 + "em");
+      $block.css("left", i + "em");
       await timer(50);
     }
   } else {
     for(let i=armLeft; i>=destLeft; i--) {
-      $arm.css("left", i + "em");
-      $block.css("left", i - 4 + "em");
+      $arm.css("left", i + 4 + "em");
+      $block.css("left", i + "em");
       await timer(50);
     }
   }
-  $arm.css("left", destLeft + "em");
-  $block.css("left", destLeft - 4 + "em");
+  $arm.css("left", destLeft + 4 + "em");
+  $block.css("left", destLeft + "em");
 
   armTop = parseInt($arm.css("top"), 10) / that.get("px2em");
   for(let i=armTop; i<destTop+1; i++) {
@@ -367,6 +368,7 @@ function myCloseHandler(event) {
   console.log(`On close event has been called: ${event}`);
   that.get('websockets').closeSocketFor("ws://" + document.location.hostname + ":4203");
   that.set("wssConnection", false);
+  that.set("connectionError", true);
 }
 
 function setTriplestoreField() {

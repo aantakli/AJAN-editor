@@ -12,8 +12,8 @@ const port = 4203;
 const server = http.createServer(app);
 let running = null;
 
-let response = "<http://localhost:4203/post> <http://localhost:4203/ajan-demo-ns#message>  <http://localhost:4203/ajan-demo-ns#Received> .";
-let blocked = "<http://localhost:4203/post> <http://localhost:4203/ajan-demo-ns#message>  <http://localhost:4203/ajan-demo-ns#Blocked> .";
+let response = [{"@id":"http://localhost:4203/ajan-demo-ns#Received"},{"@id":"http://localhost:4203/post","http://localhost:4203/ajan-demo-ns#message":[{"@id":"http://localhost:4203/ajan-demo-ns#Received"}]}];
+let blocked = [{"@id":"http://localhost:4203/ajan-demo-ns#Blocked"},{"@id":"http://localhost:4203/post","http://localhost:4203/ajan-demo-ns#message":[{"@id":"http://localhost:4203/ajan-demo-ns#Blocked"}]}];
 const wss = new WebSocket.Server({ server });
 
 app.use(bodyParser.text({ type: 'text/plain', limit: '50mb' }));
@@ -38,8 +38,8 @@ app.get('/initScene', (req, res) => {
   wss.clients.forEach(client => {
     client.send('{ "init": "true" }');
   });
-  res.set('Content-Type', 'text/turtle');
-  res.send("<http://www.ajan.de/ajan-ns#Scene> <http://www.ajan.de/ajan-ns#init> true .");
+  res.set('Content-Type', 'application/ld+json');
+  res.send([{"@id":"http://www.ajan.de/ajan-ns#Scene","http://www.ajan.de/ajan-ns#init":[{"@value":true}]}]);
 });
 
 app.post('/pickUp', (req, res) => {
@@ -47,13 +47,13 @@ app.post('/pickUp', (req, res) => {
   let wssMessage = JSON.parse(req.body);
   let action = createAction(wssMessage, "pickUp");
   action.blockX = getActionSubject(wssMessage, "http://www.ajan.de/ajan-ns#Table");
-  action.asyncResponse = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \nPREFIX ajan: <http://www.ajan.de/ajan-ns#> \nPREFIX actn: <http://www.ajan.de/actn#> \nPREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n \n<" + action.blockX + "> strips:is ajan:Holding.";
+  action.asyncResponse = [{"@id": action.blockX,"http://www.ajan.de/behavior/strips-ns#is":[{"@id":"http://www.ajan.de/ajan-ns#Holding"}]},{"@id":"http://www.ajan.de/ajan-ns#Holding"}];
   action.request = wssMessage;
   let actionRequest = JSON.stringify(action);
   wss.clients.forEach(client => {
     client.send(actionRequest);
   });
-  res.set('Content-Type', 'text/turtle');
+  res.set('Content-Type', 'application/ld+json');
   res.send(response);
 });
 
@@ -63,13 +63,13 @@ app.post('/stack', (req, res) => {
   let action = createAction(wssMessage, "stack");
   action.blockX = getActionSubject(wssMessage, "http://www.ajan.de/ajan-ns#Holding");
   action.blockY = getActionSubject(wssMessage, "http://www.ajan.de/ajan-ns#Clear");
-  action.asyncResponse = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \nPREFIX ajan: <http://www.ajan.de/ajan-ns#> \nPREFIX actn: <http://www.ajan.de/actn#> \nPREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n \najan:Arm strips:is ajan:Empty . <" + action.blockX + "> strips:is ajan:Clear . \n<" + action.blockX + "> ajan:on <" + action.blockY + "> .";
+  action.asyncResponse = [{"@id":"http://www.ajan.de/ajan-ns#Arm","http://www.ajan.de/behavior/strips-ns#is":[{"@id":"http://www.ajan.de/ajan-ns#Empty"}]},{"@id": action.blockX,"http://www.ajan.de/ajan-ns#on":[{"@id": action.blockY}]},{"@id": action.blockY},{"@id":"http://www.ajan.de/ajan-ns#Clear"},{"@id":"http://www.ajan.de/ajan-ns#Empty"},{"@id": action.blockX,"http://www.ajan.de/behavior/strips-ns#is":[{"@id":"http://www.ajan.de/ajan-ns#Clear"}]}];
   action.request = wssMessage;
   let actionRequest = JSON.stringify(action);
   wss.clients.forEach(client => {
     client.send(actionRequest);
   });
-  res.set('Content-Type', 'text/turtle');
+  res.set('Content-Type', 'application/ld+json');
   res.send(response);
 });
 
@@ -79,13 +79,13 @@ app.post('/unStack', (req, res) => {
   let action = createAction(wssMessage, "unStack");
   action.blockX = getActionSubject(wssMessage, "http://www.ajan.de/ajan-ns#Clear");
   action.blockY = getActionObject(wssMessage, "http://www.ajan.de/ajan-ns#on");
-  action.asyncResponse = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \nPREFIX ajan: <http://www.ajan.de/ajan-ns#> \nPREFIX actn: <http://www.ajan.de/actn#> \nPREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n \n<" + action.blockX + "> strips:is ajan:Holding . \n<" + action.blockY + "> strips:is ajan:Clear .";
+  action.asyncResponse = [{"@id": action.blockX,"http://www.ajan.de/behavior/strips-ns#is":[{"@id":"http://www.ajan.de/ajan-ns#Holding"}]},{"@id": action.blockY,"http://www.ajan.de/behavior/strips-ns#is":[{"@id":"http://www.ajan.de/ajan-ns#Clear"}]},{"@id":"http://www.ajan.de/ajan-ns#Clear"},{"@id":"http://www.ajan.de/ajan-ns#Holding"}];
   action.request = wssMessage;
   let actionRequest = JSON.stringify(action);
   wss.clients.forEach(client => {
     client.send(actionRequest);
   });
-  res.set('Content-Type', 'text/turtle');
+  res.set('Content-Type', 'application/ld+json');
   res.send(response);
 });
 
@@ -94,13 +94,13 @@ app.post('/putDown', (req, res) => {
   let wssMessage = JSON.parse(req.body);
   let action = createAction(wssMessage, "putDown");
   action.blockX = getActionSubject(wssMessage, "http://www.ajan.de/ajan-ns#Holding");
-  action.asyncResponse = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \nPREFIX ajan: <http://www.ajan.de/ajan-ns#> \nPREFIX actn: <http://www.ajan.de/actn#> \nPREFIX strips: <http://www.ajan.de/behavior/strips-ns#> \n \najan:Arm strips:is ajan:Empty . \n<" + action.blockX + "> strips:is ajan:Table . \n<" + action.blockX + ">  strips:is ajan:Clear .";
+  action.asyncResponse = [{"@id":"http://www.ajan.de/ajan-ns#Arm","http://www.ajan.de/behavior/strips-ns#is":[{"@id":"http://www.ajan.de/ajan-ns#Empty"}]},{"@id": action.blockX,"http://www.ajan.de/behavior/strips-ns#is":[{"@id":"http://www.ajan.de/ajan-ns#Table"},{"@id":"http://www.ajan.de/ajan-ns#Clear"}]},{"@id":"http://www.ajan.de/ajan-ns#Clear"},{"@id":"http://www.ajan.de/ajan-ns#Empty"},{"@id":"http://www.ajan.de/ajan-ns#Table"}];
   action.request = wssMessage;
   let actionRequest = JSON.stringify(action);
   wss.clients.forEach(client => {
     client.send(actionRequest);
   });
-  res.set('Content-Type', 'text/turtle');
+  res.set('Content-Type', 'application/ld+json');
   res.send(response);
 });
 

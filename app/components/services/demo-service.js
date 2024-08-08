@@ -358,7 +358,7 @@ function myMessageHandler(event) {
   console.log(action.request);
   that.set("requestMsg", JSON.stringify(action.request, null, 2));
   console.log(action.asyncResponse);
-  that.set("responseMsg", action.asyncResponse);
+  that.set("responseMsg", JSON.stringify(action.asyncResponse, null, 2));
   console.log(action);
   if (action.init) initScene();
   else if (action.action == "pickUp") {
@@ -388,13 +388,13 @@ function setTriplestoreField() {
 }
 
 function sendResponse(action) {
-  console.log(action.asyncResponse);
+  console.log(JSON.stringify(action.asyncResponse));
   console.log(action.requestURI);
   return $.ajax({
     url: action.requestURI,
     type: "POST",
-    contentType: "text/turtle",
-    data: action.asyncResponse,
+    contentType: "application/ld+json",
+    data: JSON.stringify(action.asyncResponse),
   }).catch (function (error) {
     console.log(error);
   });

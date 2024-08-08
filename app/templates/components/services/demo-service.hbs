@@ -1,0 +1,59 @@
+<div id="demo">
+
+	<div id="services-action-bar">
+		{{services/action-bar}}
+	</div>
+
+	<div id='demo-service'>
+		<!-- Menu -->
+		<div id="demo-service-wrapper">
+			<header class="entry-header">
+				<h1>
+					AJAN Demo
+					{{#if wssConnection}}
+					<button local-class="disconnect-button" class="ui right icon button" onclick={{action "disconnect"}}>
+						Disconnect <i class="icon red bell slash no-side-margins"></i>
+					</button>
+					{{/if}}
+					{{#unless wssConnection}}
+					<button local-class="connect-button" class="ui right icon button" onclick={{action "connect"}}>
+						Connect <i class="icon green bell no-side-margins"></i>
+					</button>
+					{{#if connectionError}}
+					<p style="color: red; font-size: 12px; text-align: right; padding-top: 5px;">
+						<i class="icon red exclamation triangle"></i>
+						reportService.js on Port 4202 might not be accessible.
+						<i class="icon red exclamation triangle"></i>
+					</p>
+					{{/if}}
+					{{/unless}}
+				</h1>
+			</header>
+
+			<h4>Action: <b>{{actionType}}</b> (Block <i class="icon stop actionType"></i>)</h4>
+
+			<div id="demo-service-content">
+				<div id="requestMsg">
+					<h6><i class="arrow alternate circle blue down icon"></i>Request <span>Content-Type: application/ld+json</span></h6>
+					<textarea class="demoMsg" rows="31">{{requestMsg}}</textarea>
+				</div>
+				<div id="demo-playground">
+					<div id="demo-table"></div>
+					<div id="demo-blocks">
+						<div id="demo-arm" class="open"></div>
+						<div id="demo-block-purple" class="demo-block"><p>purple</p></div>
+						<div id="demo-block-orange" class="demo-block"><p>orange</p></div>
+						<div id="demo-block-blue" class="demo-block"><p>blue</p></div>
+						<div id="demo-block-green" class="demo-block"><p>green</p></div>
+					</div>
+				</div>
+				<div id="responseMsg">
+					<h6><i class="arrow alternate circle green up icon"></i>Response <span>Content-Type: application/ld+json</span></h6>
+					<textarea class="demoMsg" rows="31">{{responseMsg}}</textarea>
+				</div>
+			</div>
+			<div local-class="clearfix"></div>
+		</div>
+	</div>
+</div>
+

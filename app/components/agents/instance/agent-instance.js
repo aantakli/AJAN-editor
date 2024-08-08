@@ -39,11 +39,13 @@ export default Ember.Component.extend({
   agentMessage: "<http://test/Test1> <http://test/test> <http://test/Test> .",
   messageError: {},
   wssConnection: false,
+  connectionError: false,
   wssMessage: "",
   btView: "",
   debugReport: null,
   selectedCapability: null,
   selectedEndpoint: null,
+
 
   prefixes: {
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#": "rdf:",
@@ -61,6 +63,7 @@ export default Ember.Component.extend({
     this._super(...arguments);
     that = this;
     this.get("activeInstance").actions = new Array();
+    this.actions.connect();
   },
 
   didReceiveAttrs() {
@@ -162,14 +165,14 @@ export default Ember.Component.extend({
     },
 
     connect() {
-      console.log("connect");
-      console.log("ws://" + document.location.hostname + ":4202");
-      var socket = that.get('websockets').socketFor("ws://" + document.location.hostname + ":4202");
-      console.log(socket);
-      socket.on('open', myOpenHandler, that);
-      socket.on('message', myMessageHandler, that);
-      socket.on('close', myCloseHandler, that);
-      that.set('socketRef', socket);
+        console.log("connect");
+        console.log("ws://" + document.location.hostname + ":4202");
+        var socket = that.get('websockets').socketFor("ws://" + document.location.hostname + ":4202");
+        console.log(socket);
+        socket.on('open', myOpenHandler, that);
+        socket.on('message', myMessageHandler, that);
+        socket.on('close', myCloseHandler, that);
+        that.set('socketRef', socket);
     },
 
     disconnect() {
@@ -245,6 +248,7 @@ function myOpenHandler(event) {
   that.set("wssMessage", "");
   emptyLogs();
   setBTView(that);
+  that.set("connectionError", false);
 }
 
 function myMessageHandler(event) {
@@ -393,9 +397,11 @@ function createEditorMessage($textarea, result, report) {
 }
 
 function myCloseHandler(event) {
+  console.log(event);
   console.log(`On close event has been called: ${event}`);
   closeSocket();
   setBTView(that);
+  that.set("connectionError", true);
 }
 
 function closeSocket() {

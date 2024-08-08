@@ -1,0 +1,206 @@
+:global(#demo-service) {
+  width: 100%;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+:global(#demo-service-wrapper) {
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 30px 30px 50px 30px;
+  box-shadow: 0px 5px 10px #d1d1e0;
+}
+
+:global(#demo-service-wrapper h1) {
+  padding-left: 15px;
+  height: 45px;
+  font-size: 35px;
+  margin-bottom: 20px;
+  width: 100% !important;
+  background: linear-gradient(to right, #1E1B55, #1E1B55, #1E1B55, #1B3284, #EA5B97, #F5A399);
+  color: #FFF;
+}
+
+:global(#demo-service-content) {
+  padding-top: 0px;
+  position: relative;
+  width: 100%;
+}
+
+:global(#demo-playground) {
+  padding-top: 0px;
+  width: 50%;
+  height: 30em;
+  float: left;
+}
+
+:global(#demo-arm) {
+  width: 1em;
+  height: 1em;
+  overflow: hidden;
+  position: absolute;
+  top: -23em;
+  left: 4em;
+}
+
+:global(#demo-arm.open) {
+  box-shadow:
+      -0em -2em 0 0 black,
+      -0em -3em 0 0 black,
+      -0em -1em 0 0 black,
+      -1em -1em 0 0 black,
+      1em -1em 0 0 black,
+      -3em -1em 0 0 black,
+      -2em -1em 0 0 black,
+      2em -1em 0 0 black,
+      3em -1em 0 0 black,
+      -4em -1em 0 0 black,
+      4em -1em 0 0 black,
+      -5em 0em 0 0 black,
+      -4em 0em 0 0 black,
+      4em 0em 0 0 black,
+      5em 0em 0 0 black,
+      -5em 1em 0 0 black,
+      5em 1em 0 0 black;
+}
+
+:global(#demo-arm.closed) {
+  box-shadow:
+      -0em -2em 0 0 black,
+      -0em -3em 0 0 black,
+      -0em -1em 0 0 black,
+      -1em -1em 0 0 black,
+      1em -1em 0 0 black,
+      -3em -1em 0 0 black,
+      -2em -1em 0 0 black,
+      2em -1em 0 0 black,
+      3em -1em 0 0 black,
+      -4em -1em 0 0 black,
+      4em -1em 0 0 black,
+      -4em 0em 0 0 black,
+      4em 0em 0 0 black,
+      -4em 1em 0 0 black,
+      4em 1em 0 0 black,
+      4em 1em 0 0 black,
+      -4em 1em 0 0 black,
+      4em 2em 0 0 black,
+      -4em 2em 0 0 black;
+}
+
+:global(#demo-blocks) {
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 1em;
+  width: 36em;
+  position: relative;
+  top: 24em;
+}
+
+:global(#demo-table) {
+  background: black;
+  height: 1em;
+  width: 36em;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  top: 29em;
+}
+
+:global(.demo-block) {
+  width: 7em;
+  height: 4em;
+  overflow: hidden;
+  margin: 0 1em;
+  position: absolute;
+}
+
+:global(.demo-block p) {
+  font-weight: bold;
+  color: #FFFFFF;
+  background: rgba(0,0,0,0.5);
+  padding-left: 0.5em;
+}
+
+:global(#demo-block-purple) {
+  background: #EA5B97;
+  top: 0em;
+  left: 0em;
+}
+
+:global(#demo-block-orange) {
+  background: #FBBD08;
+  top: 0em;
+  left: 9em;
+}
+
+:global(#demo-block-blue) {
+  background: #1B3284;
+  top: 0em;
+  left: 18em;
+}
+
+:global(#demo-block-green) {
+  background: #8EC8B1;
+  top: 0em;
+  left: 27em;
+}
+
+.connect-button,
+.disconnect-button {
+  height: 45px;
+  float: right;
+  margin-right: 0px !important;
+  position: relative;
+  border-radius: 0px !important;
+}
+
+:global(#requestMsg),
+:global(#responseMsg) {
+  float: left;
+  width: 25%;
+}
+
+:global(#requestMsg h6 span),
+:global(#responseMsg h6 span) {
+  font-size: 9px;
+  font-style: italic;
+  font-size: 10px;
+}
+
+:global(.actionType) {
+  padding: 0px;
+}
+
+:global(#requestMsg textarea),
+:global(#responseMsg textarea) {
+  width: 90%;
+  min-height: 1.5rem;
+  font-size: 9px;
+  resize: vertical;
+  border: 0px;
+  padding: 10px;
+  box-shadow: inset 0px 0px 5px #cccccc;
+  font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
+  background-color: rgb(24, 25, 64);
+  color: #ffffff;
+}
+
+:global(#responseMsg textarea),
+:global(#responseMsg h6) {
+  margin-left: 10%;
+}
+
+  /* clearfix */
+  .clearfix::before, .clearfix::after {
+  content: " ";
+  display: table;
+}
+
+.clearfix::after {
+  clear: both;
+}
+
+.clearfix {
+  *zoom: 1; /* Für den IE6 und IE7 */
+}

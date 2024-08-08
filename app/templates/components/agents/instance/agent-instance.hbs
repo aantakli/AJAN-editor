@@ -121,6 +121,13 @@
     <button class="ui right icon button" onclick={{action "connect"}}>
       Connect <i class="icon green bell no-side-margins"></i>
     </button>
+    {{#if connectionError}}
+      <p style="color: red; font-size: 12px;">
+        <i class="icon red exclamation triangle"></i>
+        reportService.js on Port 4202 might not be accessible. 
+        <i class="icon red exclamation triangle"></i>
+      </p>
+    {{/if}}
     {{/unless}}
   </h3>
 </div>

@@ -28,6 +28,7 @@ export default Ember.Component.extend({
   wssConnection: false,
   socketRef: null,
   response: "",
+  asyncResponse: "",
   wssMessage: {},
   connectionError: false,
 
@@ -36,7 +37,6 @@ export default Ember.Component.extend({
     that = this;
     setTriplestoreField();
     this.set("wssMessage.body", "Here you can see the output of the TestService (testService.js) that it received via an HTTP/POST (Content-Type: text/turtle; Request-URI: http://localhost:4201/post) message.");
-    getResponseMessage();
     this.actions.connect();
   },
 
@@ -52,6 +52,7 @@ export default Ember.Component.extend({
       socket.on('message', myMessageHandler, that);
       socket.on('close', myCloseHandler, that);
       that.set('socketRef', socket);
+      getResponseMessage();
     },
 
     disconnect() {
@@ -77,8 +78,9 @@ export default Ember.Component.extend({
             .then(function () {
               $("#send-message").trigger("showToast");
               that.set("messageError", "");
-            });
+            })
         })
+        
         .catch(function (error) {
           that.set("messageError", uri);
         });
@@ -116,10 +118,28 @@ function getResponseMessage() {
   }).then(function (data) {
     console.log(data);
     that.set("response", data);
+  })
+  .then(function () {
+      getAsyncResponseMessage();
+  })
+  .catch(function (error) {
+    alert("No TestServiceAction Service is running on http://" + document.location.hostname + ":4201");
+  });
+}
+
+function getAsyncResponseMessage() {
+  return $.ajax({
+    url: "http://localhost:4201/getAsyncResponse",
+    type: "GET",
+    headers: { Accept: "text/plain" }
+  }).then(function (data) {
+    console.log(data);
+    that.set("asyncResponse", data);
   }).catch(function (error) {
     alert("No TestServiceAction Service is running on http://" + document.location.hostname + ":4201");
   });
 }
+
 
 function sendResponseMessage(content) {
   return $.ajax({
@@ -131,6 +151,20 @@ function sendResponseMessage(content) {
     $("#send-message").trigger("showToast");
     getResponseMessage();
   }).catch (function (error) {
+    console.log(error);
+  });
+}
+
+function sendResponseMessage(content) {
+  return $.ajax({
+    url: "http://" + document.location.hostname + ":4201/asyncResponse",
+    type: "POST",
+    contentType: "text/plain",
+    data: content,
+  }).then(function (data) {
+    $("#send-message").trigger("showToast");
+    getResponseMessage();
+  }).catch(function (error) {
     console.log(error);
   });
 }

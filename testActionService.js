@@ -4,6 +4,10 @@ const http = require('http');
 const WebSocket = require('ws');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const rdf = require('rdf-ext');
+const n3 = require('rdf-parser-n3');
+const stringToStream = require('string-to-stream');
+const XMLHttpRequest = require('xmlhttprequest-ssl');
 
 const app = express();
 const port = 4201;
@@ -11,15 +15,10 @@ const port = 4201;
 //initialize a simple http server
 const server = http.createServer(app);
 
-let start;
-let startAll;
-let endAll;
-let performance = "";
-let iterations = 1000;
-let iteration = 0;
-let data = "";
 let body = "";
-let response = "<http://localhost:4201/post> <http://localhost:4201/test-service-ns#message>  <http://localhost:4201/test-service-ns#Received> .";
+let requestURI = "";
+let response = "<http://localhost:4201/post> <http://localhost:4201/test-service-ns#message> <http://localhost:4201/test-service-ns#Received> .";
+let asyncResponse = "<http://localhost:4201/post> <http://localhost:4201/test-service-ns#message> <http://localhost:4201/test-service-ns#AsynchronousResponse> .";
 const wss = new WebSocket.Server({ server });
 
 app.use(bodyParser.text({ type: 'text/plain', limit: '50mb' }));
@@ -39,76 +38,6 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-app.get('/performance', (req, res) => {
-  let total = endAll - startAll - (1000 * iterations) ;
-  let average = total / iterations;
-  res.send(performance + " --> " + total + "ms" + ", 1 cycle = " + average + "ms");
-});
-
-app.get('/start', (req, res) => {
-  res.send('start');
-  iteration = iterations;
-  performance = "";
-  startAll = Date.now();
-  /*try {
-    data = fs.readFileSync('/Projects/AJAN/github/AJAN-editor/test_rdf.txt', 'utf8');
-    console.log(data);
-  } catch (err) {
-    console.error(err);
-  }*/
-  sendRequest();
-});
-
-function sendRequest() {
-  const options = {
-    hostname: 'localhost',
-    port: 8080,
-    path: '/ajan/agents/test?capability=execute',
-    method: 'POST',
-    headers: {
-      'Content-Type': 'text/turtle',
-      'Content-Length': data.length
-    }
-  }
-
-  const reqTest = http.request(options, res => {
-    console.log(`statusCode: ${res.statusCode}`)
-    res.on('data', d => {
-      process.stdout.write(d)
-    });
-  });
-
-  reqTest.on('error', error => {
-    console.error(error)
-  });
-  start = Date.now();
-  reqTest.write(data);
-  reqTest.end();
-}
-
-app.post('/end', (req, res) => {
-  console.log("\r-------------------------------");
-  console.log(req.body);
-  let end = Date.now() - start;
-  console.log("\r-------------------------------");
-  console.log("performance time:" + end);
-  console.log("-------------------------------");
-  console.log(req.body);
-  console.log("-------------------------------");
-  res.send("");
-  iteration -= 1;
-  performance += (iterations - iteration) + ": " + end + "ms; ";
-  console.log(iteration);
-  if (iteration > 0) {
-	var waitTill = new Date(new Date().getTime() + 1 * 1000);
-	while(waitTill > new Date()){}
-    sendRequest();
-	console.log("sent!");
-  } else {
-    endAll = Date.now();
-  }
-});
-
 app.get('/getResponse', (req, res) => {
   res.send(response);
 });
@@ -116,6 +45,16 @@ app.get('/getResponse', (req, res) => {
 app.post('/response', (req, res) => {
   console.log(req.body);
   response = req.body;
+  res.send("");
+});
+
+app.get('/getAsyncResponse', (req, res) => {
+  res.send(asyncResponse);
+});
+
+app.post('/asycResponse', (req, res) => {
+  console.log(req.body);
+  asyncResponse = req.body;
   res.send("");
 });
 
@@ -129,8 +68,7 @@ app.post('/post', (req, res) => {
 	  body = wssMessage;
     client.send(JSON.stringify(wssMessage));
   });
-  res.set('Content-Type', 'text/turtle');
-  res.send(response);
+  sendResponse(res, req.body);
 });
 
 wss.on('connection', function connection(ws) {
@@ -148,7 +86,7 @@ wss.on('connection', function connection(ws) {
 });
 
 server.listen(port, () => {
-    console.log(`Server started on port ${server.address().port} :)`);
+  console.log(`Server started on port ${server.address().port} :)`);
 });
 
 function getHeaders(headers) {
@@ -175,4 +113,30 @@ function sendConnectMessage(ws) {
   }
   ws.send(JSON.stringify(body));
   console.log("send!");
+}
+
+function sendResponse(res, msg) {
+  res.set('Content-Type', 'text/turtle');
+  res.send(response);
+
+  requestURI = "";
+  const parser = new n3();
+  const quadStream = parser.import(stringToStream(msg));
+  const graph = Promise.resolve(rdf.dataset().import(quadStream));
+  graph.then((value) => {
+    value.forEach((quad) => {
+      if (quad.predicate.value == "http://www.ajan.de/actn#asyncRequestURI") {
+        requestURI = quad.object.value;
+        console.log(requestURI);
+      }
+    });
+    if (requestURI != "") {
+      setTimeout(function () {
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", requestURI, true);
+        xhr.setRequestHeader("Content-Type", "text/turtle");
+        xhr.send(asyncResponse);
+      }, 2000);
+    }
+  });
 }

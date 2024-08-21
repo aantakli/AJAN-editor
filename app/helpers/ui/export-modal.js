@@ -298,11 +298,16 @@ function downloadFile(info, agents, behaviors, actions, domain, definitions) {
   zipBlob(new Blob([infotxt]), new Blob([agents]), new Blob([behaviors]), new Blob([actions]), new Blob([domain]), new Blob([definitions]), function (zip) {
     var a = window.document.createElement('a');
     a.href = URL.createObjectURL(new Blob([zip]));
-    console.log(info.package);
-    if (info.package == "")
-      a.download = 'ajanPackage.ajan';
-    else
-      a.download = info.package + '.ajan';
+    console.log(info);
+    let name = "ajanPackage";
+    if(info.package !== ""){
+      name = info.package;
+    }
+    let version = "";
+    if(info.version !== ""){
+      version = "_" + info.version;
+    }
+    a.download = name + version + '.ajan';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

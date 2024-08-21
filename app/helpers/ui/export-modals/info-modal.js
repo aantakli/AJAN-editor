@@ -41,6 +41,10 @@ function getInfoHTML($body, info) {
   info.version = createInputField($info, "Version");
   info.comment = createInputField($info, "Comment");
 
+  let $selectAll = $("<button class='selection-toggle rightmost' data-toggleTarget='all' data-toggle='true'>Select All</button>")
+  $info.append($selectAll);
+  $selectAll.on('click', {event}, selectAll);
+
   let $infoDiv = createModelsDiv($header, $info);
   // Append to modal body
   $body.append($infoDiv);
@@ -124,10 +128,13 @@ function getAgentModels($body, model) {
 }
 
 function createTemplates($info, model) {
+  let $selectAll = $("<button class='selection-toggle rightmost' data-toggle='true'>Select All</button>")
+  $info.append($selectAll);
   $info.append($("<h3>Agent Templates</h3>"));
   model.defs.templates.forEach(function (entry) {
     entry.field = createSelectField($info, entry);
   });
+  $selectAll.on('click', {event}, selectAll);
 }
 
 function createBehaviors($info, model) {
@@ -214,10 +221,13 @@ function getBehaviorModels($body, model) {
 }
 
 function createBTs($info, model) {
+  let $selectAll = $("<button class='selection-toggle rightmost' data-toggle='true'>Select All</button>")
+  $info.append($selectAll);
   $info.append($("<h3>Behavior Trees</h3>"));
   model.defs.forEach(function (entry) {
     entry.field = createSelectField($info, entry);
   });
+  $selectAll.on('click', {event}, selectAll);
 }
 
 // ---------------------------------
@@ -234,11 +244,14 @@ function getActionModels($body, model) {
 }
 
 function createActions($info, model) {
+  let $selectAll = $("<button class='selection-toggle rightmost' data-toggle='true'>Select All</button>")
+  $info.append($selectAll);
   console.log(model);
   $info.append($("<h3>Service Actions</h3>"));
   model.defs.services.forEach(function (entry) {
     entry.field = createSelectField($info, entry);
   });
+  $selectAll.on('click', {event}, selectAll);
 }
 
 // ---------------------------------
@@ -257,10 +270,13 @@ function getDomain($body, model) {
 }
 
 function createDomains($info, model) {
+  let $selectAll = $("<button class='selection-toggle rightmost' data-toggle='true'>Select All</button>")
+  $info.append($selectAll);
   $info.append($("<h3>Domain Information</h3>"));
   model.defs.forEach(function (entry) {
     entry.field = createSelectField($info, entry);
   });
+  $selectAll.on('click', {event}, selectAll);
 }
 
 // ---------------------------------
@@ -279,8 +295,37 @@ function getDefinitions($body, model) {
 }
 
 function createDefinitions($info, model) {
+  let $selectAll = $("<button class='selection-toggle rightmost' data-toggle='true'>Select All</button>")
+  $info.append($selectAll);
   $info.append($("<h3>Editor Definitions</h3>"));
   model.defs.forEach(function (entry) {
     entry.field = createSelectField($info, entry);
   });
+  $selectAll.on('click', {event}, selectAll);
+}
+
+// ---------------------------------
+// Bulk Selection
+// ---------------------------------
+
+function selectAll(event){
+  let target = event.currentTarget;
+  let value = target.attributes["data-toggle"].value;
+  let modalCheckboxs;
+  if(target.attributes["data-toggletarget"]){
+    modalCheckboxs = document.getElementsByClassName("modal-checkbox");
+    let toggleButtons = document.getElementsByClassName("selection-toggle");
+    for (let i = 0; i < toggleButtons.length; i++) {
+      let toggleButton = toggleButtons[i];
+      toggleButton.attributes["data-toggle"].value = value === "true" ? "false" : "true";
+      toggleButton.innerHTML = value === "false" ? "Select All" : "Deselect All";
+    }
+  } else {
+    modalCheckboxs = target.parentElement.getElementsByClassName("modal-checkbox");
+  }
+  for (let i = 0; i < modalCheckboxs.length; i++) {
+    modalCheckboxs[i].checked = value.toLowerCase() === "true";
+  }
+  target.innerHTML = value === "false" ? "Select All" : "Deselect All";
+  target.attributes["data-toggle"].value = value === "true" ? "false" : "true";
 }

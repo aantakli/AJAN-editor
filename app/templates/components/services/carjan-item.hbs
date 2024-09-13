@@ -2,6 +2,22 @@
   <div id="services-action-bar">
     {{services/action-bar}}
   </div>
-  <h2>Car Status</h2>
-  <p>{{status}}</p>
+  <div class="viewport">
+    <div class="room">
+      <canvas id="gridCanvas" width="600" height="600"></canvas>
+    </div>
+  </div>
+
+  <!-- Sticky Save Button mit Icon -->
+  <button id="saveButton" class="ui primary button sticky-save">
+    <i class="save icon"></i>
+    Save & Reset
+  </button>
+
+  <!-- Lade-Indikation -->
+  <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+    <i class="spinner loading icon"></i>
+    Speichern...
+  </div>
+
 </div>

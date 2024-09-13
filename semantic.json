@@ -1,0 +1,7 @@
+{
+  "base": "material",
+  "themes": {
+    "site": "my-theme",
+    "default": "material"
+  }
+}

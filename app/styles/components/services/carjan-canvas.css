@@ -1,0 +1,51 @@
+.viewport {
+  position: relative;
+  width: 700px;
+  height: 700px;
+  overflow: hidden;
+  border: 1px solid #000;
+}
+
+.room {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 600px;
+  height: 600px;
+  background: #ccc;
+  cursor: grab;
+}
+
+canvas {
+  display: block;
+}
+
+.sticky-save {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.toast {
+  visibility: hidden;
+  max-width: 50%;
+  margin: 0 auto;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 5px;
+  padding: 10px;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.5s, visibility 0.5s;
+}
+
+.show-toast {
+  visibility: visible;
+  opacity: 1;
+}

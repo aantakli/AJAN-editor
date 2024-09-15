@@ -83,7 +83,7 @@
     "rdf-store-sparql": "^2.0.0",
     "simplerdf": "^0.2.14",
     "sparqljs": "^2.2.3",
-    "split.js": "^1.3.5",
+    "split.js": "^1.6.5",
     "string-to-stream": "^1.1.1",
     "zip-js-webpack": "^1.0.0"
   }

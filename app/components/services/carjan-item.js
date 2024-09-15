@@ -1,4 +1,5 @@
 import Component from "@ember/component";
+import Split from "npm:split.js";
 
 export default Component.extend({
   scale: 1.0, // Startwert für den Zoom-Faktor
@@ -12,9 +13,46 @@ export default Component.extend({
 
   didInsertElement() {
     this._super(...arguments);
+    this.setupSplitPanes();
     this.setupCanvas();
     this.setupPanningAndZoom();
     this.setupSaveButton();
+    this.setupDropdown();
+  },
+
+  setupDropdown() {
+    const dropdown = this.element.querySelector(".ui.dropdown");
+    if (dropdown) {
+      $(dropdown).dropdown();
+    }
+  },
+
+  setupSplitPanes() {
+    // Initialisierung der Split-Panes
+    Split(["#split-left", "#split-middle", "#split-right"], {
+      sizes: [20, 60, 20], // Passe die Größen nach Bedarf an
+      minSize: [200, 300, 200], // Mindestgrößen der Panes
+      gutterSize: 5, // Größe des Zwischenraums
+      onDragEnd: () => {
+        // Aktionen, die nach dem Ändern der Größe durchgeführt werden sollen
+        const canvas = this.element.querySelector("#gridCanvas");
+        if (canvas) {
+          canvas.width = canvas.parentElement.clientWidth;
+          canvas.height = canvas.parentElement.clientHeight;
+          this.setupCanvas(); // Canvas neu zeichnen
+          this.applyTransform(); // Transformation erneut anwenden
+        }
+      },
+    });
+  },
+
+  willDestroyElement() {
+    this._super(...arguments);
+    // Entferne Event Listener, um Speicherlecks zu vermeiden
+    this.viewport.removeEventListener("mousedown", this._onMouseDown);
+    this.viewport.removeEventListener("mouseup", this._onMouseUp);
+    this.viewport.removeEventListener("mousemove", this._onMouseMove);
+    this.viewport.removeEventListener("wheel", this._onWheel);
   },
 
   setupCanvas() {
@@ -64,92 +102,110 @@ export default Component.extend({
 
   applyTransform() {
     const room = this.element.querySelector(".room");
-    room.style.transform = `translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale})`;
+    room.style.transform = `translate(${this.get("translateX")}px, ${this.get(
+      "translateY"
+    )}px) scale(${this.get("scale")})`;
   },
 
   setupPanningAndZoom() {
-    const room = this.element.querySelector(".room");
+    const viewport = this.element.querySelector(".viewport");
     const drag = this.get("drag");
 
-    // Panning mit linker Maustaste (Mouse 1)
-    document.addEventListener("mousedown", (e) => {
-      if (e.which === 1) {
-        // Linke Maustaste
-        drag.state = true;
-        drag.x = e.pageX; // Starte das Tracking der Mausposition
-        drag.y = e.pageY;
-      }
-    });
+    // Methoden für Event Listener definieren
+    this._onMouseDown = this.onMouseDown.bind(this);
+    this._onMouseUp = this.onMouseUp.bind(this);
+    this._onMouseMove = this.onMouseMove.bind(this);
+    this._onWheel = this.onWheel.bind(this);
 
-    // Beende das Panning bei mouseup
-    document.addEventListener("mouseup", () => {
-      drag.state = false;
-    });
+    // Event Listener hinzufügen
+    this.viewport = viewport; // Speichere das Element für späteres Entfernen der Listener
+    viewport.addEventListener("mousedown", this._onMouseDown);
+    viewport.addEventListener("mouseup", this._onMouseUp);
+    viewport.addEventListener("mousemove", this._onMouseMove);
+    viewport.addEventListener("wheel", this._onWheel);
 
-    // Mausbewegungen verfolgen für Panning
-    document.addEventListener("mousemove", (e) => {
-      if (drag.state) {
-        // Delta-Werte für die Verschiebung
-        const deltaX = e.pageX - drag.x;
-        const deltaY = e.pageY - drag.y;
-
-        // Aktualisiere die Panning-Werte
-        this.set("translateX", this.get("translateX") + deltaX);
-        this.set("translateY", this.get("translateY") + deltaY);
-
-        // Wende die Transformation an
-        this.applyTransform();
-
-        // Setze die neue Mausposition für die nächste Bewegung
-        drag.x = e.pageX;
-        drag.y = e.pageY;
-      }
-    });
-
-    // Zoomen mit dem Scrollrad
-    document.addEventListener("wheel", (e) => {
-      e.preventDefault();
-
-      const prevScale = this.get("scale");
-      let newScale = prevScale;
-
-      // Zoom in oder out je nach Scrollrichtung
-      if (e.deltaY < 0) {
-        newScale *= 1.1; // Zoom in
-      } else {
-        newScale *= 0.9; // Zoom out
-      }
-
-      // Begrenze den Zoom-Faktor (Minimum 0.5, Maximum 2)
-      newScale = Math.min(Math.max(newScale, 0.5), 2); // Maximaler Wert reduziert auf 2
-      this.set("scale", newScale);
-
-      // Berechne die Mitte des Containers
-      const roomRect = room.getBoundingClientRect();
-      const roomCenterX = roomRect.left + roomRect.width / 2;
-      const roomCenterY = roomRect.top + roomRect.height / 2;
-
-      // Berechne den Abstand des Mauszeigers vom Zentrum
-      const mouseX = e.clientX;
-      const mouseY = e.clientY;
-      const offsetX = mouseX - roomCenterX;
-      const offsetY = mouseY - roomCenterY;
-
-      // Skaliere den Offset basierend auf dem neuen Zoom-Faktor
-      this.set(
-        "translateX",
-        this.get("translateX") - offsetX * (newScale - prevScale)
-      );
-      this.set(
-        "translateY",
-        this.get("translateY") - offsetY * (newScale - prevScale)
-      );
-
-      // Wende die Transformation (Panning + Zoom) an
-      this.applyTransform();
-    });
+    // Cursor-Stil anpassen
+    viewport.style.cursor = "grab";
   },
 
+  onMouseDown(e) {
+    if (e.button === 0) {
+      // Linke Maustaste
+      const drag = this.get("drag");
+      drag.state = true;
+      drag.x = e.pageX;
+      drag.y = e.pageY;
+      e.currentTarget.style.cursor = "grabbing";
+    }
+  },
+
+  onMouseUp(e) {
+    const drag = this.get("drag");
+    drag.state = false;
+    e.currentTarget.style.cursor = "grab";
+  },
+
+  onMouseMove(e) {
+    const drag = this.get("drag");
+    if (drag.state) {
+      const deltaX = e.pageX - drag.x;
+      const deltaY = e.pageY - drag.y;
+
+      this.set("translateX", this.get("translateX") + deltaX);
+      this.set("translateY", this.get("translateY") + deltaY);
+
+      this.applyTransform();
+
+      drag.x = e.pageX;
+      drag.y = e.pageY;
+    }
+  },
+
+  onWheel(e) {
+    e.preventDefault();
+
+    const { clientX, clientY } = e;
+    const viewportRect = this.viewport.getBoundingClientRect();
+
+    const prevScale = this.get("scale");
+    let newScale = prevScale * (e.deltaY < 0 ? 1.1 : 0.9);
+
+    // Begrenze den Zoom-Faktor (Minimum 0.5, Maximum 2)
+    newScale = Math.min(Math.max(newScale, 0.5), 2);
+
+    const scaleChange = newScale / prevScale;
+
+    // Mausposition relativ zum Viewport
+    const mouseX = clientX - viewportRect.left;
+    const mouseY = clientY - viewportRect.top;
+
+    // Aktuelle Translation
+    const translateX = this.get("translateX");
+    const translateY = this.get("translateY");
+
+    // Größe des .room-Elements
+    const room = this.element.querySelector(".room");
+    const roomRect = room.getBoundingClientRect();
+
+    // Mittelpunkt des .room-Elements
+    const roomCenterX = translateX + roomRect.width / 2;
+    const roomCenterY = translateY + roomRect.height / 2;
+
+    // Abstand zwischen Mauszeiger und Mittelpunkt des .room-Elements
+    const offsetX = mouseX - roomCenterX;
+    const offsetY = mouseY - roomCenterY;
+
+    // Neue Translation berechnen
+    const newTranslateX = translateX - offsetX * (scaleChange - 1);
+    const newTranslateY = translateY - offsetY * (scaleChange - 1);
+
+    // Aktualisierung der Werte
+    this.set("scale", newScale);
+    this.set("translateX", newTranslateX);
+    this.set("translateY", newTranslateY);
+
+    this.applyTransform();
+  },
   setupSaveButton() {
     const saveButton = this.element.querySelector("#saveButton");
     const loadingIndicator = this.element.querySelector("#loadingIndicator");

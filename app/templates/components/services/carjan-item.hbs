@@ -1,47 +1,5 @@
-<div id="services">
-  <div id="split-container">
-    <!-- Linke Pane für die Dropdown-Komponente -->
-    <div id="split-left">
-      <!-- Hier fügen wir die Dropdown-Komponente ein -->
-      {{! Deine Dropdown-Komponente }}
-      <div class="ui dropdown">
-        <input type="hidden" name="dropdown" />
-        <div class="default text">Select Option</div>
-        <div class="menu">
-          <div class="item" data-value="1">Option 1</div>
-          <div class="item" data-value="2">Option 2</div>
-          <div class="item" data-value="3">Option 3</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Mittlere Pane für das Canvas -->
-    <div id="split-middle">
-      <div id="services-action-bar">
-        {{services/action-bar}}
-      </div>
-      <div class="viewport">
-        <div class="room">
-          <canvas id="gridCanvas" width="600" height="600"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Rechte Pane (falls benötigt, ansonsten kann dieser Bereich weggelassen werden) -->
-    <div id="split-right">
-      <!-- Möglicher Inhalt für die rechte Seite -->
-    </div>
-  </div>
-
-  <!-- Sticky Save Button mit Icon -->
-  <button id="saveButton" class="ui primary button sticky-save">
-    <i class="save icon"></i>
-    Save & Reset
-  </button>
-
-  <!-- Lade-Indikation -->
-  <div id="loadingIndicator" class="loading-indicator" style="display: none;">
-    <i class="spinner loading icon"></i>
-    Speichern...
+<div class="viewport">
+  <div class="room">
+    <canvas id="gridCanvas" width="600" height="600"></canvas>
   </div>
 </div>

@@ -1,0 +1,15 @@
+{{#ui-accordion exclusive=false}}
+  <div class="title behavior-tree-selection">
+    <i class="dropdown icon"></i>
+    <b><font size="3">Map selection</font></b>
+  </div>
+  <div id="BehaviorTree" class="content">
+    <ul>
+      {{#each maps as |map|}}
+        <li>
+          <a href="#" {{action "selectMap" map.name}}>{{map.name}}</a>
+        </li>
+      {{/each}}
+    </ul>
+  </div>
+{{/ui-accordion}}

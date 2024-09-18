@@ -1,0 +1,43 @@
+<div id="services">
+  <div id="services-action-bar">
+    {{services/action-bar}}
+  </div>
+  <div class="flex-body">
+    <div id="behaviors-body" class="flex-content" local-class="behaviors-body">
+      <div
+        id="split-container"
+        style="display: flex; flex-direction: row; height: 100%;"
+      >
+        <div id="split-left" class="split content split-horizontal">
+          <div local-class="intro">
+            <h4>CARJAN Scenario Editor</h4>
+          </div>
+          {{services/carjan-heading}}
+          {{services/carjan-accordeon}}
+          {{services/carjan-map-selection}}
+        </div>
+
+        <div id="split-middle" class="split content split-horizontal">
+          {{services/carjan-item}}
+        </div>
+
+        <div id="split-right" class="split content split-horizontal">
+        </div>
+      </div>
+
+      <button id="saveButton" class="ui primary button sticky-save">
+        <i class="save icon"></i>
+        Save & Reset
+      </button>
+
+      <div
+        id="loadingIndicator"
+        class="loading-indicator"
+        style="display: none;"
+      >
+        <i class="spinner loading icon"></i>
+        Saving...
+      </div>
+    </div>
+  </div>
+</div>

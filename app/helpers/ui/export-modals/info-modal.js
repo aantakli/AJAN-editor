@@ -41,8 +41,12 @@ function getInfoHTML($body, info) {
   info.version = createInputField($info, "Version");
   info.comment = createInputField($info, "Comment");
 
-  let $selectAll = $("<button class='selection-toggle rightmost' data-toggleTarget='all' data-toggle='true'>Select All</button>")
-  $info.append($selectAll);
+  let $selectionfield = $("<div>", {style: "display: flex; align-items: baseline;"});
+  $info.append($selectionfield);
+  let $selection = $("<p>De/-Select All</p>");
+  $selectionfield.append($selection);
+  let $selectAll = $("<button style='margin-left: 5px' class='selection-toggle ui yellow icon button' data-toggleTarget='all' data-toggle='true'><i class='square outline icon no-side-margins'></i></button>")
+  $selectionfield.append($selectAll);
   $selectAll.on('click', {event}, selectAll);
 
   let $infoDiv = createModelsDiv($header, $info);
@@ -50,10 +54,16 @@ function getInfoHTML($body, info) {
   $body.append($infoDiv);
 }
 
-function createHeader(text, active) {
+function createHeader(text, active = "", selection = false) {
   let $header = $("<div>", { class: "modal-models-header title " + active })
   $header.append($("<i>", { class: "dropdown icon" }))
   $header.append($("<span>", {}).text(text));
+  if (selection) {
+    let $selectAll = $("<button class='selection-toggle add-optional ui yellow icon button' data-toggle='true'></button>")
+      .append($("<i class='square outline icon no-side-margins'></i>"));
+    $header.append($selectAll);
+    $selectAll.on('click', {event}, selectAll);
+  }
   return $header;
 }
 
@@ -70,7 +80,7 @@ function createModelsDiv($header, $info) {
 
 function getOptionals($body, info) {
   let $header = createHeader("Add Optionals");
-  let $add = $("<button>", { class: "add-optional ui yellow icon button rightmost" })
+  let $add = $("<button>", { class: "add-optional ui yellow icon button  " })
     .append($("<i class='add icon no-side-margins'></i>"));
   $header.append($add);
   let $info = $("<div>", { class: "modal-models-overview" });
@@ -87,7 +97,7 @@ function addOptional(event) {
   let $optional = $("<div>", { class: "modal-models-optional" });
   let fields = { "id": utility.generateUUID(), "name": createInputField($optional, "Name"), "value": createInputField($optional, "Value") };
   //remove Button
-  let $remove = $("<button>", { class: "remove-optional ui red icon button rightmost" })
+  let $remove = $("<button>", { class: "remove-optional ui red icon button  " })
     .append($("<i class='remove icon no-side-margins'></i>"));
   $remove.on('click', { optional_info: info, optional_fields: fields }, removeOptional);
   $optional.append($remove);
@@ -114,7 +124,7 @@ function removeOptional(event) {
 // ---------------------------------
 
 function getAgentModels($body, model) {
-  let $header = createHeader("Add Agent Models");
+  let $header = createHeader("Add Agent Models", "", true);
   let $info = $("<div>", { class: "modal-models-overview" });
   createTemplates($info, model);
   createBehaviors($info, model);
@@ -128,13 +138,10 @@ function getAgentModels($body, model) {
 }
 
 function createTemplates($info, model) {
-  let $selectAll = $("<button class='selection-toggle rightmost' data-toggle='true'>Select All</button>")
-  $info.append($selectAll);
   $info.append($("<h3>Agent Templates</h3>"));
   model.defs.templates.forEach(function (entry) {
     entry.field = createSelectField($info, entry);
   });
-  $selectAll.on('click', {event}, selectAll);
 }
 
 function createBehaviors($info, model) {
@@ -211,7 +218,7 @@ function createSelectField($info, object) {
 // ---------------------------------
 
 function getBehaviorModels($body, model) {
-  let $header = createHeader("Add Behavior Models");
+  let $header = createHeader("Add Behavior Models", "", true);
   let $info = $("<div>", { class: "modal-models-overview" });
   createBTs($info, model);
 
@@ -221,13 +228,10 @@ function getBehaviorModels($body, model) {
 }
 
 function createBTs($info, model) {
-  let $selectAll = $("<button class='selection-toggle rightmost' data-toggle='true'>Select All</button>")
-  $info.append($selectAll);
   $info.append($("<h3>Behavior Trees</h3>"));
   model.defs.forEach(function (entry) {
     entry.field = createSelectField($info, entry);
   });
-  $selectAll.on('click', {event}, selectAll);
 }
 
 // ---------------------------------
@@ -235,7 +239,7 @@ function createBTs($info, model) {
 // ---------------------------------
 
 function getActionModels($body, model) {
-  let $header = createHeader("Add Action Models");
+  let $header = createHeader("Add Action Models", "", true);
   let $info = $("<div>", { class: "modal-models-overview" });
   createActions($info, model);
   let $infoDiv = createModelsDiv($header, $info);
@@ -244,14 +248,10 @@ function getActionModels($body, model) {
 }
 
 function createActions($info, model) {
-  let $selectAll = $("<button class='selection-toggle rightmost' data-toggle='true'>Select All</button>")
-  $info.append($selectAll);
-  console.log(model);
   $info.append($("<h3>Service Actions</h3>"));
   model.defs.services.forEach(function (entry) {
     entry.field = createSelectField($info, entry);
   });
-  $selectAll.on('click', {event}, selectAll);
 }
 
 // ---------------------------------
@@ -259,24 +259,19 @@ function createActions($info, model) {
 // ---------------------------------
 
 function getDomain($body, model) {
-  let $header = createHeader("Add Domain information");
+  let $header = createHeader("Add Domain information", "", true);
   let $info = $("<div>", { class: "modal-models-overview" });
   createDomains($info, model);
-  console.log($body);
-  console.log(model);
   let $infoDiv = createModelsDiv($header, $info);
   // Append to modal body
   $body.append($infoDiv);
 }
 
 function createDomains($info, model) {
-  let $selectAll = $("<button class='selection-toggle rightmost' data-toggle='true'>Select All</button>")
-  $info.append($selectAll);
   $info.append($("<h3>Domain Information</h3>"));
   model.defs.forEach(function (entry) {
     entry.field = createSelectField($info, entry);
   });
-  $selectAll.on('click', {event}, selectAll);
 }
 
 // ---------------------------------
@@ -284,24 +279,19 @@ function createDomains($info, model) {
 // ---------------------------------
 
 function getDefinitions($body, model) {
-  let $header = createHeader("Add Editor Definitions");
+  let $header = createHeader("Add Editor Definitions", "", true);
   let $info = $("<div>", { class: "modal-models-overview" });
   createDefinitions($info, model);
-  console.log($body);
-  console.log(model);
   let $infoDiv = createModelsDiv($header, $info);
   // Append to modal body
   $body.append($infoDiv);
 }
 
 function createDefinitions($info, model) {
-  let $selectAll = $("<button class='selection-toggle rightmost' data-toggle='true'>Select All</button>")
-  $info.append($selectAll);
   $info.append($("<h3>Editor Definitions</h3>"));
   model.defs.forEach(function (entry) {
     entry.field = createSelectField($info, entry);
   });
-  $selectAll.on('click', {event}, selectAll);
 }
 
 // ---------------------------------
@@ -318,14 +308,14 @@ function selectAll(event){
     for (let i = 0; i < toggleButtons.length; i++) {
       let toggleButton = toggleButtons[i];
       toggleButton.attributes["data-toggle"].value = value === "true" ? "false" : "true";
-      toggleButton.innerHTML = value === "false" ? "Select All" : "Deselect All";
+      toggleButton.innerHTML = value === "false" ? "<i class='square outline icon no-side-margins'></i>" : "<i class='check square outline icon no-side-margins'></i>";
     }
   } else {
-    modalCheckboxs = target.parentElement.getElementsByClassName("modal-checkbox");
+    modalCheckboxs = target.parentElement.parentElement.getElementsByClassName("modal-checkbox");
   }
   for (let i = 0; i < modalCheckboxs.length; i++) {
     modalCheckboxs[i].checked = value.toLowerCase() === "true";
   }
-  target.innerHTML = value === "false" ? "Select All" : "Deselect All";
+  target.innerHTML = value === "false" ? "<i class='square outline icon no-side-margins'></i>" : "<i class='check square outline icon no-side-margins'></i>";
   target.attributes["data-toggle"].value = value === "true" ? "false" : "true";
 }

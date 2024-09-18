@@ -137,10 +137,3 @@
 :global(#modal-load) {
   z-index: 9;
 }
-
-:global(.selection-toggle) {
-  background-color: #FBBD08;
-  border: 0;
-  padding: 7px;
-  border-radius: 10px;
-}

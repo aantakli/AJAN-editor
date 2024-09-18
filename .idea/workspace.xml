@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="0d184157-912c-4576-b7f7-f73b4493558b" name="Default Changelist" comment="Added Dockerfile">
+    <list default="true" id="0d184157-912c-4576-b7f7-f73b4493558b" name="Default Changelist" comment="Updated Download Modal to include select all Buttons as well as including version-number in filename of downloaded file">
+      <change beforePath="$PROJECT_DIR$/.idea/ajan-editor.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ajan-editor.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/components/behaviors/action-bar.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/components/behaviors/action-bar.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/components/ui/buttons/create-button.css" beforeDir="false" afterPath="$PROJECT_DIR$/app/styles/components/ui/buttons/create-button.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/templates/components/behaviors/action-bar.hbs" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/components/behaviors/action-bar.hbs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/helpers/ui/export-modals/info-modal.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/helpers/ui/export-modals/info-modal.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/styles/_globals/modal.css" beforeDir="false" afterPath="$PROJECT_DIR$/app/styles/_globals/modal.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,6 +83,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;YannicHock&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:aantakli/AJAN-editor.git&quot;,
+    &quot;accountId&quot;: &quot;d960d26e-9041-4fcd-9a72-da64ef3c5e99&quot;
+  }
+}</component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
@@ -140,13 +155,19 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
+  <component name="PackageJsonUpdateNotifier">
+    <dismissed value="$PROJECT_DIR$/tmp/funnel-input_base_path-yx4RZwNu.tmp/package.json" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
   <component name="ProjectFrameBounds">
     <option name="y" value="33" />
     <option name="width" value="1184" />
     <option name="height" value="773" />
   </component>
   <component name="ProjectId" id="26dl8NHBbJ1MDZyPUiV9ds4gQAo" />
-  <component name="ProjectLevelVcsManager">
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectView">
@@ -322,16 +343,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "/home/arch/projects/work/ajan/AJAN-editor/app",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/download&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/yanni/Documents/Projects/AJAN-editor&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;npm.build.executor&quot;: &quot;Run&quot;,
+    &quot;npm.serve.executor&quot;: &quot;Run&quot;,
+    &quot;npm.start.executor&quot;: &quot;Run&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/app/styles/components" />
@@ -341,8 +371,8 @@
       <recent name="$PROJECT_DIR$/app/helpers/agents/actions" />
     </key>
   </component>
-  <component name="RunManager">
-    <configuration name="Build" type="docker-deploy" factoryName="dockerfile" server-name="local">
+  <component name="RunManager" selected="npm.start">
+    <configuration name="Build" type="docker-deploy" factoryName="dockerfile">
       <deployment type="dockerfile">
         <settings>
           <option name="imageTag" value="ajan-editor:latest" />
@@ -360,6 +390,49 @@
       </deployment>
       <method v="2" />
     </configuration>
+    <configuration name="build" type="js.build_tools.npm" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="build" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="serve" type="js.build_tools.npm" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="serve" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="start" type="js.build_tools.npm" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="start" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Docker.Build" />
+      <item itemvalue="npm.build" />
+      <item itemvalue="npm.serve" />
+      <item itemvalue="npm.start" />
+    </list>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-7c0b70fcd90d-JavaScript-WS-242.21829.149" />
+      </set>
+    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
@@ -427,6 +500,12 @@
       <workItem from="1647851839839" duration="267000" />
       <workItem from="1648573764861" duration="3516000" />
       <workItem from="1678548669618" duration="5439000" />
+      <workItem from="1724241500573" duration="1466000" />
+      <workItem from="1724243088424" duration="7409000" />
+      <workItem from="1724418363940" duration="1959000" />
+      <workItem from="1725374516812" duration="13000" />
+      <workItem from="1725907590544" duration="702000" />
+      <workItem from="1725908337642" duration="8864000" />
     </task>
     <task id="LOCAL-00001" summary="Added Dockerfile">
       <created>1647763371190</created>
@@ -435,7 +514,15 @@
       <option name="project" value="LOCAL" />
       <updated>1647763371191</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Updated Download Modal to include select all Buttons as well as including version-number in filename of downloaded file">
+      <option name="closed" value="true" />
+      <created>1724249900784</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1724249900784</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
@@ -507,7 +594,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Added Dockerfile" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added Dockerfile" />
+    <MESSAGE value="Updated Download Modal to include select all Buttons as well as including version-number in filename of downloaded file" />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated Download Modal to include select all Buttons as well as including version-number in filename of downloaded file" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/app/templates/components/ui/delimiter-horizontal.hbs">

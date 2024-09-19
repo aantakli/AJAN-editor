@@ -104,6 +104,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       -
+        uses: actions/checkout@v2
+      -
+        name: Overwrite file
+        uses: "DamianReeves/write-file-action@master"
+        with:
+          path: .env
+          write-mode: overwrite
+          contents: |
+            ${{ steps.meta.outputs.tags }}
+      -
         name: Setup docker metadata
         id: meta
         uses: docker/metadata-action@v3
@@ -125,13 +135,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
-        name: Overwrite file
-        uses: "DamianReeves/write-file-action@master"
-        with:
-          path: .env
-          write-mode: overwrite
-          contents: |
-            ${{ steps.meta.outputs.tags }}
+        name: Get commit Hash
+        id: commit
+        uses: pr-mpt/actions-commit-hash@v1
       -
         name: Build and push
         uses: docker/build-push-action@v2

@@ -9,26 +9,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - 
+      -
         name: Get commit Hash
         id: commit
         uses: pr-mpt/actions-commit-hash@v1
       -
         name: Checkout
         uses: actions/checkout@v2
-      - 
+      -
         name: Use Node.js v8.6
         uses: actions/setup-node@v3
         with:
           node-version: '8.6'
           cache: 'npm'
-      - 
+      -
         name: Install dependencies
         run: npm install
-      - 
+      -
         name: Use zip
         uses: montudor/action-zip@v1
-      - 
+      -
         name: Zip node_modules
         run: zip -qq -r modules.zip node_modules
       -
@@ -42,7 +42,7 @@ jobs:
     needs: [build]
     name: Create Release
     steps:
-      - 
+      -
         name: Get commit Hash
         id: commit
         uses: pr-mpt/actions-commit-hash@v1
@@ -55,20 +55,28 @@ jobs:
         with:
           name: dependencies
           path: .
-      - 
+      -
         uses: montudor/action-zip@v1
         name: Unzip node_modules
         with:
           args: unzip -qq modules.zip -d .
-      - 
+      -
         name: Remove Zipped modules
         uses: JesseTG/rm@v1.0.3
         with:
           path: node_modules.zip
-      - 
+      -
+        name: Overwrite file
+        uses: "DamianReeves/write-file-action@master"
+        with:
+          path: .env
+          write-mode: overwrite
+          contents: |
+            ${{ steps.commit.outputs.short }}
+      -
         name: Zip Release
-        run: zip -qq -r ajaneditor-${{ steps.commit.outputs.short }}.zip .     
-      - 
+        run: zip -qq -r ajaneditor-${{ steps.commit.outputs.short }}.zip .
+      -
         name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -90,7 +98,7 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./ajaneditor-${{ steps.commit.outputs.short }}.zip
           asset_name: ajaneditor-${{ steps.commit.outputs.short }}.zip
-          asset_content_type: application/zip  
+          asset_content_type: application/zip
   docker:
     name: Create Dockerimage
     runs-on: ubuntu-latest
@@ -116,6 +124,14 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Overwrite file
+        uses: "DamianReeves/write-file-action@master"
+        with:
+          path: .env
+          write-mode: overwrite
+          contents: |
+            ${{ steps.meta.outputs.tags }}
       -
         name: Build and push
         uses: docker/build-push-action@v2

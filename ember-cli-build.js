@@ -2,12 +2,17 @@
 'use strict';
 
 const EmberApp = require('ember-cli/lib/broccoli/ember-app');
+const dotenv = require('dotenv');
 
 module.exports = function(defaults) {
+  dotenv.config();
   let app = new EmberApp(defaults, {
     nodeModulesToVendor: [
       'node_modules/ace-builds/'
     ],
+    dotEnv: {
+      clientAllowedKeys: ['VERSION']
+    },
     ace: {
       themes: ['ambiance', 'chaos'],
       modes: ['sparql', 'turtle'],

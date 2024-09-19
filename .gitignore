@@ -22,5 +22,15 @@ testem.log
 bower.json.ember-try
 package.json.ember-try
 
+# IDEs and editors
+.idea
+.vscode
+.vs
+app/vscode
+app/.vs
+
 .idea/*
-.idea/
+.vscode/*
+.vs/*
+app/vscode/*
+app/.vs/*

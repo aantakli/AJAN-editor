@@ -1,0 +1,10 @@
+<div>
+  <button {{action "uploadFile"}}>Upload Turtle File</button>
+  <input
+    type="file"
+    accept=".ttl"
+    id="fileInput"
+    style="display:none"
+    onchange={{action "handleFile"}}
+  />
+</div>

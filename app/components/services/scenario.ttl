@@ -1,0 +1,17 @@
+@prefix ex: <http://example.com/carla-scenario#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+ex:Scenario1 a ex:Scenario ;
+    ex:hasEntity ex:Pedestrian1, ex:Vehicle1, ex:AutonomousVehicle1 .
+
+ex:Pedestrian1 a ex:Pedestrian ;
+    ex:spawnPointX 1 ;
+    ex:spawnPointY 2 .
+
+ex:Vehicle1 a ex:Vehicle ;
+    ex:spawnPointX 3 ;
+    ex:spawnPointY 4 .
+
+ex:AutonomousVehicle1 a ex:AutonomousVehicle ;
+    ex:spawnPointX 5 ;
+    ex:spawnPointY 6 .

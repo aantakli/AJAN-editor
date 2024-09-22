@@ -1,5 +1,5 @@
 import Component from "@ember/component";
-import rdf from "npm:rdf-ext"; // Verwende rdf-ext für die RDF-Operationen
+import rdf from "npm:rdf-ext";
 import N3Parser from "npm:rdf-parser-n3";
 import stringToStream from "npm:string-to-stream";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
@@ -97,6 +97,12 @@ export default Component.extend({
     const scenarioURI = rdf.namedNode(
       `http://example.com/carla-scenario#${scenarioName.split("#")[1]}`
     );
+
+    // Überprüfe, ob rdfGraph korrekt initialisiert wurde
+    if (!rdfGraph || !rdfGraph.add) {
+      console.error("rdfGraph is not properly initialized.");
+      return;
+    }
 
     rdfGraph.add(
       rdf.quad(

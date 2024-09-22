@@ -239,4 +239,15 @@ let AGENTS = {
   reportURI: "http://www.ajan.de/ajan-ns#agentReportURI"
 };
 
-export {BT, EDITOR, ACTN, ND, RDF, RDFS, DCT, STRIPS, XSD, HTTP, SPIN, AGENTS};
+let CARJAN = {
+  Scenario: "http://example.com/carla-scenario#Scenario",
+  Entity: "http://example.com/carla-scenario#Entity",
+  hasEntity: "http://example.com/carla-scenario#hasEntity",
+  spawnPoint: "http://example.com/carla-scenario#spawnPoint",
+  x: "http://example.com/carla-scenario#x",
+  y: "http://example.com/carla-scenario#y",
+};
+
+
+
+export {BT, EDITOR, ACTN, ND, RDF, RDFS, DCT, STRIPS, XSD, HTTP, SPIN, AGENTS, CARJAN};

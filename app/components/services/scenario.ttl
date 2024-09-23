@@ -5,7 +5,7 @@ ex:Scenario1 a ex:Scenario ;
     ex:hasEntity ex:Pedestrian1, ex:Vehicle1, ex:AutonomousVehicle1 .
 
 ex:Pedestrian1 a ex:Pedestrian ;
-    ex:spawnPointX 1 ;
+    ex:spawnPointX 100 ;
     ex:spawnPointY 2 .
 
 ex:Vehicle1 a ex:Vehicle ;

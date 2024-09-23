@@ -106,17 +106,18 @@ function createRepository(ajax, tripleStoreRepository, token) {
 function updateCarjanRepo(token, ajax, tripleStoreRepository, event, onEnd) {
   console.log("Saving to triple store: ", tripleStoreRepository);
 
-  const postDestination = `${tripleStoreRepository}/statements`; // Speichern in das Repository
-  const rdfString = rdfGraph.toString(); // RDF-Daten als String
-  const query = SparqlQueries.update(rdfString); // SPARQL-Update-Query
-  const dataString = $.param({ update: query }); // URL-kodierte Daten
+  const postDestination = `${tripleStoreRepository}/statements`;
+  const rdfString = rdfGraph.toString(); // Konvertiert die RDF-Daten in einen String
+  const query = `INSERT DATA { ${rdfString} }`; // Generiert ein INSERT DATA SPARQL-Query
+
+  console.log("SPARQL Query to be sent:", query);
 
   // Daten an den Triple-Store senden
   return ajax
     .post(postDestination, {
-      contentType: "application/x-www-form-urlencoded; charset=utf-8",
+      contentType: "application/sparql-update; charset=utf-8", // Der richtige Content-Type für SPARQL-Updates
       headers: getHeaders(token),
-      data: dataString,
+      data: query, // Der SPARQL-Query wird hier als Datenparameter übergeben
     })
     .then(() => {
       console.log('RDF data added to repository "carjan".');
@@ -131,6 +132,7 @@ function updateCarjanRepo(token, ajax, tripleStoreRepository, event, onEnd) {
       console.error("Error updating repository:", error);
     });
 }
+
 
 function getHeaders(token) {
   if (token) {

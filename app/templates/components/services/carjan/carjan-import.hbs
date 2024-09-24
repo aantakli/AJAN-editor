@@ -1,5 +1,4 @@
 <div>
-  <button {{action "uploadFile"}}>Upload Turtle File</button>
   <input
     type="file"
     accept=".ttl"
@@ -7,4 +6,20 @@
     style="display:none"
     onchange={{action "handleFile"}}
   />
+  <div class="button-container">
+    <button
+      class="ui primary button"
+      style="margin-bottom: 32px"
+      {{action "uploadFile"}}
+    >Upload Turtle File</button>
+    <!-- make some space -->
+    <button class="ui primary button" {{action "saveAndReset"}}>Save & Reset</button>
+  </div>
+
+  <!-- Toast-Nachricht -->
+  <div id="toast" class="toast" style="display: none;">
+    <i class="spinner loading icon"></i>
+    Speichern...
+  </div>
+
 </div>

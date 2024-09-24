@@ -9,14 +9,13 @@ import globals from "ajan-editor/helpers/global-parameters";
 let self;
 
 export default Component.extend({
-  dataBus: Ember.inject.service('data-bus'),
+  dataBus: Ember.inject.service("data-bus"),
   ajax: Ember.inject.service(),
 
   init() {
     this._super(...arguments);
     self = this;
     rdfGraph.set(rdf.dataset());
-
   },
 
   actions: {
@@ -24,8 +23,29 @@ export default Component.extend({
       document.getElementById("fileInput").click();
     },
 
+    async saveAndReset() {
+      // Zeige Toast an
+      $("#toast").fadeIn();
+
+      // 1 Sekunde warten
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // RDF Daten speichern (kann an deine Logik angepasst werden)
+      this.saveScenarioToRepo();
+
+      // Toast ausblenden
+      $("#toast").fadeOut();
+
+      // Szenario aus dem Triplestore farblich darstellen
+      this.colorScenarioFromRepo();
+    },
     handleFile(event) {
-      if (!event || !event.target || !event.target.files || event.target.files.length === 0) {
+      if (
+        !event ||
+        !event.target ||
+        !event.target.files ||
+        event.target.files.length === 0
+      ) {
         return;
       }
 
@@ -54,7 +74,10 @@ export default Component.extend({
       const entities = {};
 
       quads.forEach((quad) => {
-        if (quad.predicate.value.includes("type") && quad.object.value.includes("Scenario")) {
+        if (
+          quad.predicate.value.includes("type") &&
+          quad.object.value.includes("Scenario")
+        ) {
           scenarioName = quad.subject.value;
         }
 
@@ -76,46 +99,65 @@ export default Component.extend({
       console.log("Entities:", Object.keys(entities));
 
       Object.entries(entities).forEach(([entity, spawn]) => {
-        console.log(`Entity: ${entity}, Spawnpoint: [x: ${spawn.x}, y: ${spawn.y}]`);
+        console.log(
+          `Entity: ${entity}, Spawnpoint: [x: ${spawn.x}, y: ${spawn.y}]`
+        );
       });
 
       // Nachdem das Turtle-File geparst wurde, speichere es ins RDF4J-Repository
       this.addRDFStatements(scenarioName, entities);
-
     } catch (error) {
       console.error("Error parsing Turtle file:", error);
     }
   },
 
   async addRDFStatements(scenarioName, entities) {
-    const scenarioURI = rdf.namedNode(`http://example.com/carla-scenario#${scenarioName.split('#')[1]}`);
+    const scenarioURI = rdf.namedNode(
+      `http://example.com/carla-scenario#${scenarioName.split("#")[1]}`
+    );
 
-    rdfGraph.add(rdf.quad(
-      scenarioURI,
-      rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-      rdf.namedNode("http://example.com/carla-scenario#Scenario")
-    ));
+    rdfGraph.add(
+      rdf.quad(
+        scenarioURI,
+        rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+        rdf.namedNode("http://example.com/carla-scenario#Scenario")
+      )
+    );
 
     Object.entries(entities).forEach(([entity, spawn]) => {
-      const entityURI = rdf.namedNode(`http://example.com/carla-scenario#${entity.split('#')[1]}`);
+      const entityURI = rdf.namedNode(
+        `http://example.com/carla-scenario#${entity.split("#")[1]}`
+      );
 
-      rdfGraph.add(rdf.quad(
-        entityURI,
-        rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-        rdf.namedNode("http://example.com/carla-scenario#Entity")
-      ));
+      rdfGraph.add(
+        rdf.quad(
+          entityURI,
+          rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+          rdf.namedNode("http://example.com/carla-scenario#Entity")
+        )
+      );
 
-      rdfGraph.add(rdf.quad(
-        entityURI,
-        rdf.namedNode("http://example.com/carla-scenario#spawnPointX"),
-        rdf.literal(spawn.x, rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer"))
-      ));
+      rdfGraph.add(
+        rdf.quad(
+          entityURI,
+          rdf.namedNode("http://example.com/carla-scenario#spawnPointX"),
+          rdf.literal(
+            spawn.x,
+            rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
+          )
+        )
+      );
 
-      rdfGraph.add(rdf.quad(
-        entityURI,
-        rdf.namedNode("http://example.com/carla-scenario#spawnPointY"),
-        rdf.literal(spawn.y, rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer"))
-      ));
+      rdfGraph.add(
+        rdf.quad(
+          entityURI,
+          rdf.namedNode("http://example.com/carla-scenario#spawnPointY"),
+          rdf.literal(
+            spawn.y,
+            rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
+          )
+        )
+      );
     });
 
     // Aktualisiere das Repository
@@ -123,23 +165,74 @@ export default Component.extend({
   },
 
   async updateRepo() {
-    const repo = (localStorage.currentStore || "http://localhost:8090/rdf4j/repositories/") + "carjan";
+    const repo =
+      (localStorage.currentStore ||
+        "http://localhost:8090/rdf4j/repositories/") + "carjan";
     const ajax = this.ajax;
 
     // Definiere eine Callback-Funktion für das Ende des Prozesses
     const onEnd = (error) => {
       if (error) {
-        console.error('Error adding RDF data to repository:', error);
+        console.error("Error adding RDF data to repository:", error);
       } else {
         console.log('RDF data successfully added to repository "carjan".');
       }
     };
 
     try {
-      actions.saveAgentGraph(ajax, repo, self.dataBus, onEnd);  // Nutze die onEnd-Callback-Funktion
+      actions.saveAgentGraph(ajax, repo, self.dataBus, onEnd); // Nutze die onEnd-Callback-Funktion
     } catch (error) {
-      console.error('Error updating repository:', error);
+      console.error("Error updating repository:", error);
     }
-  }
+  },
 
+  saveScenarioToRepo() {
+    console.log("TODO: Save scenario to repository");
+  },
+
+  async colorScenarioFromRepo() {
+    try {
+      const response = await fetch("/assets/carjan-maps/maps.json");
+      const maps = await response.json();
+
+      const map = maps.map01;
+
+      console.log(map);
+
+      const canvas = document.querySelector("#gridCanvas");
+      if (!canvas) {
+        throw new Error("Canvas element not found.");
+      }
+      const ctx = canvas.getContext("2d");
+      const cellSize = 50;
+
+      const rootStyles = getComputedStyle(document.documentElement);
+      const colors = {
+        r: rootStyles.getPropertyValue("--color-primary").trim(),
+        p: rootStyles.getPropertyValue("--color-primary-2").trim(),
+      };
+
+      map.forEach((row, rowIndex) => {
+        row.forEach((cell, colIndex) => {
+          ctx.fillStyle = colors[cell];
+          ctx.fillRect(
+            colIndex * cellSize,
+            rowIndex * cellSize,
+            cellSize,
+            cellSize
+          );
+          ctx.strokeRect(
+            colIndex * cellSize,
+            rowIndex * cellSize,
+            cellSize,
+            cellSize
+          );
+        });
+      });
+
+      console.log("Map loaded and drawn from maps.json.");
+    } catch (error) {
+      console.error("Error loading or drawing the map:", error);
+    }
+  },
 });

@@ -243,9 +243,8 @@ let CARJAN = {
   Scenario: "http://example.com/carla-scenario#Scenario",
   Entity: "http://example.com/carla-scenario#Entity",
   hasEntity: "http://example.com/carla-scenario#hasEntity",
-  spawnPoint: "http://example.com/carla-scenario#spawnPoint",
-  x: "http://example.com/carla-scenario#x",
-  y: "http://example.com/carla-scenario#y",
+  spawnPointX: "http://example.com/carla-scenario#spawnPointX", 
+  spawnPointY: "http://example.com/carla-scenario#spawnPointY", 
 };
 
 

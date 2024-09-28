@@ -1,11 +1,9 @@
 import Component from "@ember/component";
-import rdf from "npm:rdf-ext"; // Verwende rdf-ext für die RDF-Operationen
+import rdf from "npm:rdf-ext";
 import N3Parser from "npm:rdf-parser-n3";
 import stringToStream from "npm:string-to-stream";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
-import actions from "ajan-editor/helpers/agents/actions";
-import { CARJAN } from "ajan-editor/helpers/RDFServices/vocabulary";
-import globals from "ajan-editor/helpers/global-parameters";
+import actions from "ajan-editor/helpers/carjan/actions";
 
 let self;
 
@@ -25,19 +23,14 @@ export default Component.extend({
     },
 
     async saveAndReset() {
-      // Zeige Toast an
       $("#toast").fadeIn();
 
-      // 1 Sekunde warten
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // RDF Daten speichern (kann an deine Logik angepasst werden)
       this.saveScenarioToRepo();
 
-      // Toast ausblenden
       $("#toast").fadeOut();
 
-      // Szenario aus dem Triplestore farblich darstellen
       this.colorScenarioFromRepo();
     },
     handleFile(event) {
@@ -180,7 +173,7 @@ export default Component.extend({
     };
 
     try {
-      actions.saveAgentGraph(ajax, repo, self.dataBus, onEnd); // Nutze die onEnd-Callback-Funktion
+      actions.saveAgentGraph(ajax, repo, self.dataBus, onEnd);
     } catch (error) {
       console.error("Error updating repository:", error);
     }

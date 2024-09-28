@@ -19,15 +19,18 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Ember from "ember";
+import { inject as service } from "@ember/service";
 
 export default Ember.Controller.extend({
-	// Hide navbar in the home route
+  carjanService: service("carjan/carjan-service"),
 
+  init() {
+    this._super(...arguments);
+    this.carjanService.startEventListener();
+  },
 
-  //
-	hideNav: Ember.computed.equal("currentRouteName", "home"),
-	// Check whether we are in the definitions tab
-	inDefinitionsRoute: Ember.computed("currentRouteName", function() {
-		return this.get("currentRouteName").startsWith("editor.definitions");
-	})
+  hideNav: Ember.computed.equal("currentRouteName", "home"),
+  inDefinitionsRoute: Ember.computed("currentRouteName", function () {
+    return this.get("currentRouteName").startsWith("editor.definitions");
+  }),
 });

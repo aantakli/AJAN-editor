@@ -1,126 +1,157 @@
+import agentsHlp from "ajan-editor/helpers/RDFServices/agentsRDFConsumer";
+import behaviorsHlp from "ajan-editor/helpers/RDFServices/behaviorsRDFConsumer";
+import endpointsHlp from "ajan-editor/helpers/RDFServices/endpointsRDFConsumer";
+import eventsHlp from "ajan-editor/helpers/RDFServices/eventsRDFConsumer";
+import goalsHlp from "ajan-editor/helpers/RDFServices/goalsRDFConsumer";
+import Ember from "ember";
+import { isServerError } from "ember-ajax/errors";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import SparqlQueries from "ajan-editor/helpers/RDFServices/queries";
 import tokenizer from "ajan-editor/helpers/token";
 
+let $ = Ember.$;
+let agents = undefined;
+let behaviors = undefined;
+let endpoints = undefined;
+let events = undefined;
+let goals = undefined;
+
 export default {
+  getAgents: function () {
+    return agents;
+  },
+
+  getBehaviors: function () {
+    return behaviors;
+  },
+
+  getEndpoints: function () {
+    return endpoints;
+  },
+
+  getEvents: function () {
+    return events;
+  },
+
+  getGoals: function () {
+    return goals;
+  },
+
+  // Gets entire graph from server
+  getFromServer: function (ajax, tripleStoreRepository) {
+    let result = Promise.resolve(
+      tokenizer.resolveToken(ajax, localStorage.currentStore)
+    ).then((token) => loadAgentsRepo(ajax, tripleStoreRepository, token));
+    return Promise.resolve(result);
+  },
+
+  // save to repository
   saveGraph: function (ajax, tripleStoreRepository, event, onEnd) {
-    return Promise.resolve(
+    Promise.resolve(
       tokenizer.resolveToken(ajax, localStorage.currentStore)
     ).then((token) =>
-      checkAndCreateRepository(token, ajax, tripleStoreRepository, event, onEnd)
+      updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd)
     );
+  },
+
+  createRepository: function (ajax, tripleStoreRepository, rdfData) {
+    Promise.resolve(
+      tokenizer.resolveToken(ajax, localStorage.currentStore)
+    ).then((token) => {
+      postRDFDataToRepo(ajax, tripleStoreRepository, rdfData, token);
+    });
   },
 };
 
-// Funktion zur Überprüfung, ob das Repository existiert
-function checkAndCreateRepository(
-  token,
-  ajax,
-  tripleStoreRepository,
-  event,
-  onEnd
-) {
-  return checkRepositoryExists(ajax, tripleStoreRepository, token)
-    .then((exists) => {
-      if (!exists) {
-        console.log(
-          "Repository does not exist, creating repository:",
-          tripleStoreRepository
-        );
-        return createRepository(ajax, tripleStoreRepository, token).then(() =>
-          updateCarjanRepo(token, ajax, tripleStoreRepository, event, onEnd)
-        );
-      } else {
-        return updateCarjanRepo(
-          token,
-          ajax,
-          tripleStoreRepository,
-          event,
-          onEnd
-        );
-      }
-    })
-    .catch((error) => {
-      console.error("Error checking/creating repository:", error);
-    });
+function getHeaders(token) {
+  if (token) {
+    return {
+      Authorization: "Bearer " + token,
+      Accept: "application/ld+json",
+    };
+  } else {
+    return {
+      Accept: "application/ld+json",
+    };
+  }
 }
 
-function checkRepositoryExists(ajax, tripleStoreRepository, token) {
-  // Überprüfen, ob das Repository existiert
-  return ajax
-    .request(tripleStoreRepository, {
-      method: "GET",
+function loadAgentsRepo(ajax, tripleStoreRepository, token) {
+  let ajaxPromise = ajax
+    .request(tripleStoreRepository + "/statements", {
+      accept: "application/ld+json; charset=utf-8",
       headers: getHeaders(token),
     })
-    .then(() => true)
-    .catch((error) => {
-      if (error.status === 404) {
-        return false;
-      } else {
-        throw error;
-      }
+    .catch(function (error) {
+      tokenizer.removeToken(localStorage.currentStore);
+      $("#error-message").trigger("showToast", [
+        "Error while accessing selected repository! Check if repository is accessible, secured or credentials are right!",
+      ]);
     });
+
+  return ajaxPromise.then(function (data) {
+    // read agents
+    let agentsGraph = agentsHlp.getAgentsGraph(data);
+    let agentsPromise = Promise.resolve(agentsGraph);
+    return agentsPromise.then(function (agentsResolved) {
+      agents = agentsResolved[0];
+
+      // read behaviors
+      let behaviorsGraph = behaviorsHlp.getBehaviorsGraph(data);
+      let behaviorsPromise = Promise.resolve(behaviorsGraph);
+      return behaviorsPromise.then(function (behaviorsResolved) {
+        behaviors = behaviorsResolved[0];
+
+        // read endpoints
+        let EndpointsGraph = endpointsHlp.getEndpointsGraph(data);
+        let endpointsPromise = Promise.resolve(EndpointsGraph);
+        return endpointsPromise.then(function (endpointsResolved) {
+          endpoints = endpointsResolved[0];
+
+          // read events
+          let eventsGraph = eventsHlp.getEventsGraph(data);
+          let eventsPromise = Promise.resolve(eventsGraph);
+          return eventsPromise.then(function (eventsResolved) {
+            events = eventsResolved[0];
+
+            // read goals
+            let GoalsGraph = goalsHlp.getGoalsGraph(data);
+            let goalsPromise = Promise.resolve(GoalsGraph);
+            return goalsPromise.then(function (goalsResolved) {
+              goals = goalsResolved[0];
+              let rdfGraph = goalsResolved[1];
+              return rdfGraph;
+            });
+          });
+        });
+      });
+    });
+  });
 }
 
-// Funktion zur Erstellung des Repositories
-function createRepository(ajax, tripleStoreRepository, token) {
-  const repoCreationEndpoint =
-    "http://localhost:8090/rdf4j-server/repositories"; // Hier wird das Repository erstellt
-  const repoConfig = `
-    @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
-    @prefix rep: <http://www.openrdf.org/config/repository#>.
-    @prefix sr: <http://www.openrdf.org/config/repository/sail#>.
-    @prefix sail: <http://www.openrdf.org/config/sail#>.
-    @prefix mm: <http://example.com/mynamespace#> .
-
-    [] a rep:Repository ;
-       rep:repositoryID "carjan" ;
-       rdfs:label "CARJAN repository" ;
-       rep:repositoryImpl [
-         rep:repositoryType "openrdf:SailRepository" ;
-         sr:sailImpl [
-           sail:sailType "openrdf:NativeStore" ;
-           sail:params [
-             sail:parameterName "tripleIndexes";
-             sail:parameterValue "spoc,posc";
-           ]
-         ]
-       ].
-  `;
-
-  // Sende die Konfiguration zur Erstellung des Repositories
-  return ajax
-    .post(repoCreationEndpoint, {
-      contentType: "text/turtle; charset=utf-8",
-      headers: getHeaders(token),
-      data: repoConfig,
-    })
-    .then(() => {
-      console.log("Repository created successfully.");
-    })
-    .catch((error) => {
-      console.error("Error creating repository:", error);
-    });
-}
-
-function updateCarjanRepo(token, ajax, tripleStoreRepository, event, onEnd) {
+function updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd) {
   console.log("Saving to triple store: ", tripleStoreRepository);
 
-  const postDestination = `${tripleStoreRepository}/statements`;
-  const rdfString = rdfGraph.toString(); // Konvertiert die RDF-Daten in einen String
-  const query = `INSERT DATA { ${rdfString} }`; // Generiert ein INSERT DATA SPARQL-Query
+  let postDestination = tripleStoreRepository + "/statements";
+  let rdfString = rdfGraph.toString();
+  let query = SparqlQueries.update(rdfString);
+  let dataString = $.param({ update: query });
 
-  console.log("SPARQL Query to be sent:", query);
+  // Keep local copy of saved stuff
+  localStorage.setItem(
+    "rdf_graph_saved_T-2",
+    localStorage.getItem("rdf_graph_saved_T-1")
+  );
+  localStorage.setItem("rdf_graph_saved_T-1", dataString);
 
-  // Daten an den Triple-Store senden
-  return ajax
+  ajax
     .post(postDestination, {
-      contentType: "application/sparql-update; charset=utf-8", // Der richtige Content-Type für SPARQL-Updates
+      contentType: "application/x-www-form-urlencoded; charset=utf-8",
       headers: getHeaders(token),
-      data: query, // Der SPARQL-Query wird hier als Datenparameter übergeben
+      // SPARQL query
+      data: dataString,
     })
-    .then(() => {
-      console.log('RDF data added to repository "carjan".');
+    .then(function () {
       if (event) {
         event.updatedAG();
       }
@@ -128,23 +159,43 @@ function updateCarjanRepo(token, ajax, tripleStoreRepository, event, onEnd) {
         onEnd();
       }
     })
-    .catch((error) => {
-      console.error("Error updating repository:", error);
+    .catch(function (error) {
+      if (isServerError(error)) {
+        // handle 5XX errors
+
+        let restoreID = "rdf_graph_saved_T-2";
+        let restoredItem = localStorage.getItem(restoreID);
+        ajax
+          .post(postDestination, {
+            contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            headers: getHeaders(token),
+            // SPARQL query
+            data: restoredItem,
+          })
+          .then(
+            function (data) {
+              // On accept
+              console.log("Request success", data);
+            },
+            function (jqXHR) {
+              // On reject
+              console.log("Request failed", jqXHR);
+            }
+          );
+        alert("Reloading previous save");
+        location.reload();
+
+        return;
+      } else {
+        tokenizer.removeToken(localStorage.currentStore);
+        Promise.resolve(
+          tokenizer.resolveToken(ajax, localStorage.currentStore)
+        ).then((token) =>
+          updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd)
+        );
+      }
+      throw error;
     });
-}
 
-
-function getHeaders(token) {
-  if (token) {
-    return {
-      Authorization: "Bearer " + token,
-      Accept: "application/sparql-update; charset=utf-8",
-      "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-    };
-  } else {
-    return {
-      Accept: "application/sparql-update; charset=utf-8",
-      "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-    };
-  }
+  rdfGraph.unsavedChanges = false;
 }

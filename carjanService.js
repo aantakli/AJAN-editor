@@ -3,9 +3,12 @@ const http = require("http");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const { spawn } = require("child_process");
+const {
+  initializeCarjanRepository,
+} = require("./app/services/carjan/carjan-repository");
 
 const app = express();
-const port = 4204; // Wähle einen geeigneten Port
+const port = 4204;
 
 // Initialize HTTP server
 const server = http.createServer(app);
@@ -25,6 +28,15 @@ function startFlaskService() {
 }
 
 app.use(cors());
+
+app.post("/api/init-carjan-repo", async (req, res) => {
+  try {
+    const result = await initializeCarjanRepository();
+    res.json({ message: result });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 app.options("/api/carla", (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");

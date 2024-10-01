@@ -5,15 +5,16 @@ const bodyParser = require("body-parser");
 const { spawn } = require("child_process");
 const {
   initializeCarjanRepository,
+  deleteCarjanRepository,
+  deleteStatements,
+  checkIfRepositoryExists,
 } = require("./app/services/carjan/carjan-repository");
 
 const app = express();
 const port = 4204;
 
-// Initialize HTTP server
 const server = http.createServer(app);
 
-// Start the Flask service
 function startFlaskService() {
   const flaskProcess = spawn(
     "python",
@@ -33,6 +34,34 @@ app.post("/api/init-carjan-repo", async (req, res) => {
   try {
     const result = await initializeCarjanRepository();
     res.json({ message: result });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/delete-statements", async (req, res) => {
+  try {
+    const result = await deleteStatements();
+    res.json({ message: result });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/delete-carjan-repo", async (req, res) => {
+  try {
+    const result = await deleteStatements();
+    res.json({ message: result });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/check-repository", async (req, res) => {
+  try {
+    const result = await checkIfRepositoryExists();
+    res.json({ message: result });
+    return result;
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

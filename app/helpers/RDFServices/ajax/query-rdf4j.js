@@ -22,97 +22,111 @@
 import token from "ajan-editor/helpers/token";
 import Ember from "ember";
 
-function sendQuery(ajax, repository, query, contentType = "application/ld+json") {
+function sendQuery(
+  ajax,
+  repository,
+  query,
+  contentType = "application/ld+json"
+) {
   if (!query) throw "Empty query";
 
-  let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
-    .then((token) => {
-      return Ember.$.ajax({
-        url: repository,
-        type: "POST",
-        contentType: "application/sparql-query; charset=utf-8",
-        headers: getHeaders(token, contentType),
-        data: query.toString()
-      })
-        .then(handleAjaxReturn)
-        .catch(function (error) {
-          console.warn("Error while loading intermediate query results", error);
-        });
-    });
+  let result = Promise.resolve(
+    token.resolveToken(ajax, localStorage.currentStore)
+  ).then((token) => {
+    return Ember.$.ajax({
+      url: repository,
+      type: "POST",
+      contentType: "application/sparql-query; charset=utf-8",
+      headers: getHeaders(token, contentType),
+      data: query.toString(),
+    })
+      .then(handleAjaxReturn)
+      .catch(function (error) {
+        console.warn("Error while loading intermediate query results", error);
+      });
+  });
   return Promise.resolve(result);
 }
 
 function sendFile(ajax, repository, content) {
   if (!content) throw "No content";
-  let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
-    .then((token) => {
-      return Ember.$.ajax({
-        url: repository + "/statements",
-        type: "POST",
-        headers: getHeaders(token, "application/trig; charset=utf-8"),
-        contentType: "application/trig",
-        data: content
-      })
-        .then(handleAjaxFileReturn)
-        .catch(function (error) {
-          console.warn("Error while loading intermediate query results", error);
+  let result = Promise.resolve(
+    token.resolveToken(ajax, localStorage.currentStore)
+  ).then((token) => {
+    return Ember.$.ajax({
+      url: repository + "/statements",
+      type: "POST",
+      headers: getHeaders(token, "application/trig; charset=utf-8"),
+      contentType: "application/trig",
+      data: content,
+    })
+      .then(handleAjaxFileReturn)
+      .catch(function (error) {
+        console.warn("Error while loading intermediate query results", error);
       });
-    });
+  });
   return Promise.resolve(result);
 }
 
 function deleteRepo(ajax, repository, query) {
-  let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
-    .then((token) => {
-      return Ember.$.ajax({
-        url: repository + "/statements",
-        type: "POST",
-        headers: getHeaders(token, "application/x-www-form-urlencoded; charset=utf-8"),
-        contentType: "application/x-www-form-urlencoded",
-        data: "update=" + query.toString()
-      })
-        .then(handleAjaxFileReturn)
-        .catch(function (error) {
-          console.warn("Error while loading intermediate query results", error);
-        });
-    });
+  let result = Promise.resolve(
+    token.resolveToken(ajax, localStorage.currentStore)
+  ).then((token) => {
+    return Ember.$.ajax({
+      url: repository + "/statements",
+      type: "POST",
+      headers: getHeaders(
+        token,
+        "application/x-www-form-urlencoded; charset=utf-8"
+      ),
+      contentType: "application/x-www-form-urlencoded",
+      data: "update=" + query.toString(),
+    })
+      .then(handleAjaxFileReturn)
+      .catch(function (error) {
+        console.warn("Error while loading intermediate query results", error);
+      });
+  });
   return Promise.resolve(result);
 }
 
 function sendSelectQuery(ajax, repository, query) {
   if (!query) throw "Empty query";
-  let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
-    .then((token) => {
-      return Ember.$.ajax({
-        url: repository,
-        type: "POST",
-        contentType: "application/sparql-query; charset=utf-8",
-        headers: getHeaders(token, "text/csv; charset=utf-8"),
-        data: query.toString()
-      }).then(handleAjaxSelectReturn)
-        .catch(function (error) {
-          console.warn("Error while loading intermediate query results", error);
-        });
-    });
+  let result = Promise.resolve(
+    token.resolveToken(ajax, localStorage.currentStore)
+  ).then((token) => {
+    return Ember.$.ajax({
+      url: repository,
+      type: "POST",
+      contentType: "application/sparql-query; charset=utf-8",
+      headers: getHeaders(token, "text/csv; charset=utf-8"),
+      data: query.toString(),
+    })
+      .then(handleAjaxSelectReturn)
+      .catch(function (error) {
+        console.warn("Error while loading intermediate query results", error);
+      });
+  });
   return Promise.resolve(result);
 }
 
 function sendAskQuery(ajax, repository, query) {
-	if (!query) throw "Empty query";
-  let result = Promise.resolve(token.resolveToken(ajax, localStorage.currentStore))
-    .then((token) => {
-      return Ember.$.ajax({
-		    url: repository,
-		    type: "POST",
-		    contentType: "application/sparql-query; charset=utf-8",
-        headers: getHeaders(token, "text/boolean"),
-		    data: query.toString()
-	    })
-		    .then(handleAjaxAskReturn)
-		    .catch(function(error) {
-			    console.warn("Error while loading intermediate query results", error);
-        });
-    });
+  if (!query) throw "Empty query";
+  let result = Promise.resolve(
+    token.resolveToken(ajax, localStorage.currentStore)
+  ).then((token) => {
+    return Ember.$.ajax({
+      url: repository,
+      type: "POST",
+      contentType: "application/sparql-query; charset=utf-8",
+      headers: getHeaders(token, "text/boolean"),
+      data: query.toString(),
+    })
+      .then(handleAjaxAskReturn)
+      .catch(function (error) {
+        console.warn("Error while loading intermediate query results", error);
+      });
+  });
   return Promise.resolve(result);
 }
 
@@ -121,11 +135,11 @@ function getHeaders(token, accept) {
     return {
       Authorization: "Bearer " + token,
       Accept: accept,
-    }
+    };
   } else {
     return {
       Accept: accept,
-    }
+    };
   }
 }
 
@@ -134,7 +148,7 @@ function handleAjaxReturn(result) {
 }
 
 function handleAjaxAskReturn(result) {
-	return result;
+  return result;
 }
 
 function handleAjaxFileReturn(result) {
@@ -145,4 +159,4 @@ function handleAjaxSelectReturn(result) {
   return result;
 }
 
-export { sendAskQuery, sendSelectQuery, sendQuery, sendFile, deleteRepo};
+export { sendAskQuery, sendSelectQuery, sendQuery, sendFile, deleteRepo };

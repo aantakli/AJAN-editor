@@ -27,7 +27,7 @@ export default Component.extend({
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      this.saveScenarioToRepo();
+      this.saveEditorToRepo();
 
       $("#toast").fadeOut();
 
@@ -50,12 +50,32 @@ export default Component.extend({
 
         reader.onload = (e) => {
           const turtleContent = e.target.result;
-          this.parseTurtle(turtleContent);
+          this.parseTurtle(turtleContent).then((result) => {
+            this.updateCarjanRepo(result);
+          });
         };
 
         reader.readAsText(file);
       }
     },
+  },
+
+  async updateCarjanRepo(statements) {
+    this.checkRepository().then(() => {
+      this.deleteStatements().then(() => {
+        const scenarioName = statements.scenarioName;
+        const entities = Object.entries(statements.entities).map(
+          ([entity, spawn]) => {
+            return { entity, spawn };
+          }
+        );
+        this.addRDFStatements(scenarioName, entities);
+        this.updateRepo().then(() => {
+          rdfGraph.set(rdf.dataset());
+        });
+        this.colorScenarioFromRepo();
+      });
+    });
   },
 
   async parseTurtle(turtleContent) {
@@ -89,27 +109,16 @@ export default Component.extend({
         }
       });
 
-      console.log("Szenario Name:", scenarioName);
-      console.log("Entities:", Object.keys(entities));
-
-      Object.entries(entities).forEach(([entity, spawn]) => {
-        console.log(
-          `Entity: ${entity}, Spawnpoint: [x: ${spawn.x}, y: ${spawn.y}]`
-        );
-      });
-
-      // Nachdem das Turtle-File geparst wurde, speichere es ins RDF4J-Repository
-      this.addRDFStatements(scenarioName, entities);
+      return { scenarioName, entities };
     } catch (error) {
       console.error("Error parsing Turtle file:", error);
     }
   },
 
   async addRDFStatements(scenarioName, entities) {
-    const scenarioURI = rdf.namedNode(
-      `http://example.com/carla-scenario#${scenarioName.split("#")[1]}`
-    );
+    const scenarioURI = rdf.namedNode(scenarioName);
 
+    // Scenario-Statement hinzufügen
     rdfGraph.add(
       rdf.quad(
         scenarioURI,
@@ -118,11 +127,11 @@ export default Component.extend({
       )
     );
 
-    Object.entries(entities).forEach(([entity, spawn]) => {
-      const entityURI = rdf.namedNode(
-        `http://example.com/carla-scenario#${entity.split("#")[1]}`
-      );
+    // Durch alle Entities iterieren und deren Spawnpunkte hinzufügen
+    entities.forEach(({ entity, spawn }) => {
+      const entityURI = rdf.namedNode(entity);
 
+      // Entity-Statement hinzufügen
       rdfGraph.add(
         rdf.quad(
           entityURI,
@@ -131,6 +140,7 @@ export default Component.extend({
         )
       );
 
+      // SpawnPointX hinzufügen
       rdfGraph.add(
         rdf.quad(
           entityURI,
@@ -142,6 +152,7 @@ export default Component.extend({
         )
       );
 
+      // SpawnPointY hinzufügen
       rdfGraph.add(
         rdf.quad(
           entityURI,
@@ -153,22 +164,18 @@ export default Component.extend({
         )
       );
     });
-
-    // Aktualisiere das Repository
-    this.updateRepo();
   },
+
   async updateRepo() {
     const repo =
       (localStorage.currentStore ||
         "http://localhost:8090/rdf4j/repositories/") + "carjan";
     const ajax = this.ajax;
 
-    // Definiere eine Callback-Funktion für das Ende des Prozesses
     const onEnd = (error) => {
       if (error) {
         console.error("Error adding RDF data to repository:", error);
-      } else {
-        console.log('RDF data successfully added to repository "carjan".');
+        return;
       }
     };
 
@@ -179,7 +186,7 @@ export default Component.extend({
     }
   },
 
-  saveScenarioToRepo() {
+  saveEditorToRepo() {
     console.log("TODO: Save scenario to repository");
   },
 
@@ -223,10 +230,6 @@ export default Component.extend({
 
       const agents = await this.fetchAgentDataFromRepo();
       this.colorAgents(agents, ctx, cellSize);
-
-      console.log(
-        "Map and agents loaded and drawn from maps.json and Triplestore."
-      );
     } catch (error) {
       console.error("Error loading or drawing the map:", error);
     }
@@ -248,9 +251,7 @@ export default Component.extend({
 
       const data = await response.json();
 
-      const agents = this.extractAgentsData(data);
-      console.log("Extracted Agents Data:", agents);
-      return agents;
+      return this.extractAgentsData(data);
     } catch (error) {
       console.error("Error fetching agent data from Triplestore:", error);
     }
@@ -259,15 +260,13 @@ export default Component.extend({
   extractAgentsData(data) {
     const agents = [];
 
-    // Durchsuche alle Items in den JSON-LD-Daten
     data.forEach((item) => {
       const id = item["@id"];
 
-      // Überprüfe, ob der Agententyp vorhanden ist und `Entity` enthält
       if (
-        item["http://www.w3.org/1999/02/22-rdf-syntax-ns#type"] &&
-        item["http://www.w3.org/1999/02/22-rdf-syntax-ns#type"].some(
-          (type) => type["@id"] === "http://example.com/carla-scenario#Entity"
+        item["@type"] &&
+        item["@type"].some(
+          (type) => type === "http://example.com/carla-scenario#Entity"
         )
       ) {
         const x =
@@ -282,7 +281,7 @@ export default Component.extend({
             ? item["http://example.com/carla-scenario#spawnPointY"][0]["@value"]
             : null;
 
-        if (x && y) {
+        if (x !== null && y !== null) {
           agents.push({
             entity: id,
             x: parseInt(x, 10),
@@ -294,6 +293,7 @@ export default Component.extend({
 
     return agents;
   },
+
   colorAgents(agents, ctx, cellSize) {
     const rootStyles = getComputedStyle(document.documentElement);
     const colors = {
@@ -326,5 +326,87 @@ export default Component.extend({
         cellSize
       );
     });
+  },
+
+  async deleteRepository() {
+    try {
+      const response = await fetch(
+        "http://localhost:4204/api/delete-carjan-repo",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Error deleting CARJAN repository:", error);
+    }
+  },
+
+  async deleteStatements() {
+    try {
+      const response = await fetch(
+        "http://localhost:4204/api/delete-statements",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Error deleting CARJAN repository:", error);
+    }
+  },
+
+  async checkRepository() {
+    try {
+      const response = await fetch(
+        "http://localhost:4204/api/check-repository",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (!result.message) {
+        this.initializeCarjanRepo();
+      }
+    } catch (error) {
+      console.error("Repository is not available. Initializing repository...");
+      await this.initializeCarjanRepo();
+    }
+  },
+
+  async initializeCarjanRepo() {
+    try {
+      const response = await this.get("ajax").post(
+        "http://localhost:4204/api/init-carjan-repo",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error initializing CARJAN repository:", error);
+    }
   },
 });

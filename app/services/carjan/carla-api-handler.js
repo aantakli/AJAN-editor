@@ -2,7 +2,7 @@ import $ from "jquery";
 
 export default {
   async sendDataToCarla(scenarioData) {
-    const apiUrl = "http://localhost:4204/api/carla";
+    const apiUrl = "http://localhost:5000/api/carla";
     return new Promise((resolve, reject) => {
       $.ajax({
         url: apiUrl,

@@ -12,12 +12,19 @@
       style="margin-bottom: 32px"
       {{action "uploadFile"}}
     >
+      <i class="upload icon"></i>
       Upload Scenario
     </button>
-    <!-- make some space -->
-    <button class="ui primary button" {{action "saveAndReset"}}>
-      Save
+
+    <button
+      id="saveButton"
+      class="ui primary button sticky-save"
+      {{action "saveAndReset"}}
+    >
+      <i class="save icon"></i>
+      Save & Reset
     </button>
+
   </div>
 
   <!-- Toast-Nachricht -->

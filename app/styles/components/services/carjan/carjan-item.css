@@ -1,93 +1,46 @@
-:root {
-  --color-primary: #D1D6D8;
-  --color-primary-1: #1E1B55; /* Feste Farbe statt Gradient */
-  --color-primary-2: #8EC8B1; /* Feste Farbe statt Gradient */
-  --color-primary-3: #1E1B55;
-  --color-primary-4: #1B3284;
-  --color-primary-5: #EA5B97;
-  --color-primary-6: #f5f5f7;
-  --color-primary-7: #EA5B97;
-  --color-primary-8: #8EC8B1;
-  --color-secondary: #383a94;
-  --color-tertiary: #6b6dc7;
-}
-
-.cell-primary {
-  background-color: var(--color-primary);
-}
-
-.cell-primary-1 {
-  background-color: var(--color-primary-1);
-}
-
-.cell-primary-2 {
-  background-color: var(--color-primary-2);
-}
-
-/* Weitere Klassen für die anderen Farben */
-
-
-
-
-.viewport {
-  position: relative;
-  width: 700px;
-  height: 700px;
+:global(#viewport) {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   overflow: hidden;
-  border: 1px solid #000;
-  cursor: grab; /* Cursor-Stil für Panning */
 }
 
-.room {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 600px;
-  height: 600px;
-  background: #ccc;
+:global(#room) {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
 }
 
-canvas {
-  display: block;
+:global(#gridContainer) {
+  display: grid;
+  grid-template-columns: repeat(12, 50px);
+  grid-template-rows: repeat(12, 50px);
+  gap: 1px;
+}
+:global(.grid-cell) {
+  width: 50px;
+  height: 50px;
+  border: 1px solid black;
+  position: relative;
+  background-color: lightgray;
+  outline: 1px solid transparent;
 }
 
-.sticky-save {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
+:global(.grid-cell:hover) {
+  outline: 3px solid rgba(0, 0, 0, 0.1);
 }
 
-.loading-indicator {
-  position: fixed;
-  top: 70px;
-  right: 20px;
-  z-index: 1001;
-  background: rgba(0, 0, 0, 0.7);
-  color: #fff;
-  padding: 10px;
-  border-radius: 5px;
+:global(.cell-hover-allowed) {
+  background-color: rgba(255, 255, 255, 0.3);
+  outline: 2px dashed green;
 }
 
-.toast {
-  visibility: hidden;
-  max-width: 50%;
-  margin: 0 auto;
-  background-color: #333;
-  color: #fff;
-  text-align: center;
-  border-radius: 5px;
-  padding: 10px;
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1001;
-  opacity: 0;
-  transition: opacity 0.5s, visibility 0.5s;
-}
-
-.show-toast {
-  visibility: visible;
-  opacity: 1;
+:global(.cell-hover-not-allowed) {
+  background-color: rgba(255, 0, 0, 0.3);
+  outline: 2px dashed red;
 }

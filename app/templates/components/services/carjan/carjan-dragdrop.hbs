@@ -1,0 +1,16 @@
+{{#ui-accordion exclusive=false}}
+  <!--div class="active title" style="background-color:#ECECFF"-->
+  <div class="active title composite-selection">
+    <i class="dropdown icon"></i><b><font size="3">Entities</font></b>
+  </div>
+  <div>
+    <ul>
+      <li draggable="true" id="pedestrian" ondragstart={{action "onDragStart"}}>
+        Pedestrian
+      </li>
+      <li draggable="true" id="vehicle" ondragstart={{action "onDragStart"}}>
+        Vehicle
+      </li>
+    </ul>
+  </div>
+{{/ui-accordion}}

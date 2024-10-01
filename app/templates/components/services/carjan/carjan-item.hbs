@@ -1,5 +1,18 @@
-<div class="viewport">
-  <div class="room">
-    <canvas id="gridCanvas" width="600" height="600"></canvas>
+<div id="viewport">
+  <div id="room">
+    <div id="gridContainer">
+      {{#each gridCells as |cell|}}
+        <div
+          class="grid-cell"
+          data-row={{cell.row}}
+          data-col={{cell.col}}
+          draggable="true"
+          ondrop={{action "dropOnCell"}}
+          ondragover={{action "allowDrop"}}
+          ondragleave={{action "dragLeave"}}
+          ondragstart={{action "dragStart"}}
+        />
+      {{/each}}
+    </div>
   </div>
 </div>

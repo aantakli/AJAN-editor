@@ -1,7 +1,10 @@
 import Component from "@ember/component";
-import { set } from "@ember/object";
+import { inject as service } from "@ember/service";
+import { set, observer } from "@ember/object";
+import { run } from "@ember/runloop";
 
 export default Component.extend({
+  carjanState: service(),
   gridSize: 12,
   cellSize: 50,
   gridCells: null,
@@ -14,32 +17,100 @@ export default Component.extend({
     x: 0,
     y: 0,
   },
-
-  init() {
-    this._super(...arguments);
-    this.setupGrid();
-    this.draggingEntityType = null;
-  },
-
-  setupGrid() {
-    let cells = [];
-    let status = {};
-    for (let row = 0; row < this.gridSize; row++) {
-      for (let col = 0; col < this.gridSize; col++) {
-        cells.push({ row, col });
-
-        status[`${row},${col}`] = { occupied: false, active: false };
-      }
-    }
-
-    set(this, "gridCells", cells);
-    set(this, "gridStatus", status);
-  },
+  mapData: null,
+  agentData: null,
 
   didInsertElement() {
     this._super(...arguments);
+    this.draggingEntityType = null;
     this.setupPanningAndZoom();
     this.applyTransform();
+    this.setupGrid(this.carjanState.mapData, this.carjanState.agentData);
+  },
+
+  mapDataObserver: observer(
+    "carjanState.mapData",
+    "carjanState.agentData",
+    function () {
+      const map = this.carjanState.mapData;
+      const agents = this.carjanState.agentData;
+
+      if (map && agents) {
+        this.setupGrid(map, agents);
+      }
+    }
+  ),
+
+  setupGrid(map = null, agents = null) {
+    console.log("map and agents", map, agents);
+
+    let cells = [];
+    let status = {};
+
+    for (let row = 0; row < this.gridSize; row++) {
+      for (let col = 0; col < this.gridSize; col++) {
+        let color = "lightgray"; // Standardfarbe für leere Zellen
+
+        // Falls die Map existiert und eine Farbe für die Zelle definiert ist
+        if (map && map[row] && map[row][col]) {
+          const cellType = map[row][col];
+          if (cellType === "r") {
+            color = "gray"; // Straße
+          } else if (cellType === "p") {
+            color = "green"; // Wiese
+          }
+        }
+        if (row === 0 && col === 0) {
+          console.log(color);
+        }
+        // Initialisiere gridStatus mit `occupied`, `active` und `color`
+        status[`${row},${col}`] = {
+          occupied: false,
+          active: false,
+          entityType: null,
+          color: color,
+        };
+
+        cells.push({ row, col });
+
+        // Setze die Hintergrundfarbe des DOM-Elements (falls es existiert)
+        const gridElement = this.element.querySelector(
+          `.grid-cell[data-row="${row}"][data-col="${col}"]`
+        );
+        if (gridElement) {
+          gridElement.style.backgroundColor = color;
+        }
+      }
+    }
+
+    // Füge die Agents zu den entsprechenden Zellen hinzu
+    if (agents) {
+      agents.forEach((agent) => {
+        this.addEntityToGrid(agent.type, agent.y, agent.x);
+      });
+    }
+
+    // Setze gridCells und gridStatus
+    set(this, "gridCells", cells);
+    set(this, "gridStatus", status);
+    console.log("gridStatus", this.gridStatus);
+  },
+
+  refreshGrid(map, agents) {
+    console.log("this refreshGrid", this);
+
+    set(this, "mapData", map);
+    set(this, "agentData", agents);
+
+    if (this.element) {
+      this.setupGrid(map, agents);
+    } else {
+      console.log(
+        "DOM ist noch nicht bereit, setupGrid wird in didInsertElement aufgerufen."
+      );
+
+      console.log("this refreshGrid", this);
+    }
   },
 
   actions: {
@@ -74,20 +145,17 @@ export default Component.extend({
       const row = event.target.dataset.row;
       const col = event.target.dataset.col;
 
-      // Verhindere Überschreiben, wenn bereits eine Entity vorhanden ist
       const targetCellStatus = this.gridStatus[`${row},${col}`];
       if (targetCellStatus.occupied) {
-        this.recoverEntity(); // Falls Drop fehlschlägt, stelle die ursprüngliche Entity wieder her
+        this.recoverEntity();
         return;
       }
 
-      // Holen den Entity-Typ entweder vom Dragging oder vom DataTransfer
       const entityType = this.draggingEntityType
         ? this.draggingEntityType
         : event.dataTransfer.getData("text");
       this.draggingEntityType = null;
 
-      // Platziere das neue Entity, wenn kein anderes vorhanden ist
       this.addEntityToGrid(entityType, row, col);
     },
 
@@ -121,23 +189,37 @@ export default Component.extend({
   },
 
   addEntityToGrid(entityType, row, col) {
-    const gridElement = this.element.querySelector(
-      `.grid-cell[data-row="${row}"][data-col="${col}"]`
-    );
-    if (gridElement) {
-      gridElement.style.backgroundColor =
-        entityType === "pedestrian" ? "blue" : "red";
+    run.scheduleOnce("afterRender", this, function () {
+      const gridElement = this.element.querySelector(
+        `.grid-cell[data-row="${row}"][data-col="${col}"]`
+      );
 
-      gridElement.setAttribute("data-occupied", "true");
-      gridElement.setAttribute("data-active", "true");
-      gridElement.setAttribute("draggable", "true");
+      if (gridElement) {
+        let color;
+        if (entityType === "pedestrian") {
+          color = "blue";
+        } else if (entityType === "vehicle") {
+          color = "red";
+        } else if (entityType === "autonomousVehicle") {
+          color = "green";
+        }
 
-      this.gridStatus[`${row},${col}`] = {
-        occupied: true,
-        active: true,
-        entityType: entityType,
-      };
-    }
+        gridElement.style.backgroundColor = color;
+
+        gridElement.setAttribute("data-occupied", "true");
+        gridElement.setAttribute("data-active", "true");
+        gridElement.setAttribute("draggable", "true");
+
+        // Aktualisiere gridStatus mit den richtigen Informationen
+        this.gridStatus[`${row},${col}`] = {
+          occupied: true,
+          active: true,
+          entityType: entityType,
+          color: gridElement.style.backgroundColor,
+        };
+        console.log("====gridStatus", this.gridStatus[`${row},${col}`]);
+      }
+    });
   },
 
   removeEntityFromGrid(row, col) {
@@ -145,15 +227,20 @@ export default Component.extend({
       `.grid-cell[data-row="${row}"][data-col="${col}"]`
     );
     if (gridElement) {
-      gridElement.style.backgroundColor = "lightgray";
+      const originalColor = this.gridStatus[`${row},${col}`].color;
+      gridElement.style.backgroundColor = originalColor;
+
       gridElement.removeAttribute("data-occupied");
       gridElement.setAttribute("data-active", "false");
       gridElement.removeAttribute("draggable");
 
-      this.gridStatus[`${row},${col}`] = { occupied: false, active: false };
+      this.gridStatus[`${row},${col}`] = {
+        occupied: false,
+        active: false,
+        color: originalColor,
+      };
     }
   },
-
   applyTransform() {
     const gridContainer = this.element.querySelector("#gridContainer");
 
@@ -192,9 +279,8 @@ export default Component.extend({
 
     if (e.button === 0) {
       if (isEntityCell && isCellActive) {
-        // Speichere den Typ und die Position der Entity
         this.draggingEntityType = this.gridStatus[`${row},${col}`].entityType;
-        this.draggingEntityPosition = [row, col]; // Speichere die Position
+        this.draggingEntityPosition = [row, col];
 
         drag.state = true;
         drag.x = e.pageX;

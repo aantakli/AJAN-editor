@@ -4,17 +4,31 @@ import N3Parser from "npm:rdf-parser-n3";
 import stringToStream from "npm:string-to-stream";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import actions from "ajan-editor/helpers/carjan/actions";
+import { inject as service } from "@ember/service";
+import { getOwner } from "@ember/application";
 
 let self;
 
 export default Component.extend({
-  dataBus: Ember.inject.service("data-bus"),
-  ajax: Ember.inject.service(),
+  dataBus: service("data-bus"),
+  ajax: service(),
+  store: service(),
+  carjanState: service(),
 
   init() {
     this._super(...arguments);
     self = this;
     rdfGraph.set(rdf.dataset());
+  },
+
+  async getMap() {
+    const response = await fetch("/assets/carjan-maps/maps.json");
+    const maps = await response.json();
+    return maps.map01;
+  },
+
+  didInsertElement() {
+    this.loadMapAndAgents();
   },
 
   actions: {
@@ -58,6 +72,20 @@ export default Component.extend({
         reader.readAsText(file);
       }
     },
+  },
+
+  async loadMapAndAgents() {
+    try {
+      const map = await this.getMap(); // Map laden
+      const agents = await this.fetchAgentDataFromRepo();
+
+      this.carjanState.setMapData(map);
+      this.carjanState.setAgentData(agents);
+
+      console.log("Map und Agents erfolgreich geladen:", map, agents);
+    } catch (error) {
+      console.error("Fehler beim Laden der Map und Agents:", error);
+    }
   },
 
   async updateCarjanRepo(statements) {
@@ -200,9 +228,101 @@ export default Component.extend({
   },
 
   saveEditorToRepo() {
-    console.log("TODO: Save scenario to repository");
-  },
+    console.log("Saving scenario to repository...");
 
+    const gridContainer = document.querySelector("#gridContainer");
+    if (!gridContainer) {
+      console.error("GridContainer not found");
+      return;
+    }
+
+    const scenarioURI = rdf.namedNode(
+      "http://example.com/carla-scenario#CurrentScenario"
+    );
+
+    rdfGraph.add(
+      rdf.quad(
+        scenarioURI,
+        rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+        rdf.namedNode("http://example.com/carla-scenario#Scenario")
+      )
+    );
+
+    // Gehe durch alle Zellen im Grid
+    const cells = gridContainer.querySelectorAll(".grid-cell");
+    cells.forEach((cell) => {
+      const row = cell.dataset.row;
+      const col = cell.dataset.col;
+      console.log("cell", cell);
+      const isOccupied = cell.getAttribute("data-occupied") === "true";
+      const entityType = cell.getAttribute("data-entity-type"); // Entity-Type aus den Datenattributen
+      console.log("Entity-Type:", entityType);
+      if (isOccupied) {
+        const entityURI = rdf.namedNode(
+          `http://example.com/carla-scenario#Entity${row}${col}`
+        );
+
+        rdfGraph.add(
+          rdf.quad(
+            scenarioURI,
+            rdf.namedNode("http://example.com/carla-scenario#hasEntity"),
+            entityURI
+          )
+        );
+
+        let entityTypeURI;
+        if (entityType === "pedestrian") {
+          entityTypeURI = rdf.namedNode(
+            "http://example.com/carla-scenario#Pedestrian"
+          );
+        } else if (entityType === "vehicle") {
+          entityTypeURI = rdf.namedNode(
+            "http://example.com/carla-scenario#Vehicle"
+          );
+        } else if (entityType === "autonomousVehicle") {
+          entityTypeURI = rdf.namedNode(
+            "http://example.com/carla-scenario#AutonomousVehicle"
+          );
+        }
+
+        if (entityTypeURI) {
+          rdfGraph.add(
+            rdf.quad(
+              entityURI,
+              rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+              entityTypeURI
+            )
+          );
+        }
+
+        // SpawnPointX und SpawnPointY hinzufügen
+        rdfGraph.add(
+          rdf.quad(
+            entityURI,
+            rdf.namedNode("http://example.com/carla-scenario#spawnPointX"),
+            rdf.literal(
+              col,
+              rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
+            )
+          )
+        );
+
+        rdfGraph.add(
+          rdf.quad(
+            entityURI,
+            rdf.namedNode("http://example.com/carla-scenario#spawnPointY"),
+            rdf.literal(
+              row,
+              rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
+            )
+          )
+        );
+      }
+    });
+
+    console.log("Scenario successfully saved to RDF Graph:", rdfGraph);
+    this.updateRepo();
+  },
   async colorScenarioFromRepo() {
     try {
       // Fetch the map data from JSON
@@ -243,9 +363,11 @@ export default Component.extend({
       console.error("Error loading or drawing the map:", error);
     }
   },
-  // Color agents on the grid based on their type
+
   colorAgentsOnGrid(agents) {
     const gridContainer = document.querySelector("#gridContainer");
+
+    // Zugriff auf die CarjanItem-Komponente
 
     agents.forEach((agent) => {
       const gridCell = gridContainer.querySelector(
@@ -254,17 +376,19 @@ export default Component.extend({
 
       if (gridCell) {
         let agentColor;
-        // Ordne Farben den Typen zu
         if (agent.type === "pedestrian") {
-          agentColor = "blue"; // Fußgänger
+          agentColor = "blue";
         } else if (agent.type === "vehicle") {
-          agentColor = "red"; // Fahrzeug
+          agentColor = "red";
         } else if (agent.type === "autonomousVehicle") {
-          agentColor = "green"; // Autonomes Fahrzeug
+          agentColor = "green";
         }
 
         gridCell.style.backgroundColor = agentColor;
-        gridCell.setAttribute("data-occupied", "true"); // Markiere die Zelle als besetzt
+        gridCell.setAttribute("data-occupied", "true");
+        gridCell.setAttribute("data-active", "true");
+        gridCell.setAttribute("draggable", "true");
+        gridCell.setAttribute("data-entity-type", agent.type);
       }
     });
   },

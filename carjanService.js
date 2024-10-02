@@ -83,7 +83,6 @@ app.get("/", (req, res) => {
 
 app.post("/api/carla", (req, res) => {
   const scenarioData = req.body;
-  console.log("Received scenario data:", scenarioData);
 
   forwardToFlask(scenarioData)
     .then((response) => {

@@ -21,57 +21,50 @@
 // Contains SPAQRL queries
 
 export default {
-	constructGraph: `CONSTRUCT {?s ?p ?o}
+  constructGraph: `CONSTRUCT {?s ?p ?o}
 WHERE {?s ?p ?o}`,
 
   deleteAll: function () {
-    return (
-      `DELETE%20{?s%20?p%20?o}%20WHERE%20{?s%20?p%20?o}`
-    );
+    return `DELETE%20{?s%20?p%20?o}%20WHERE%20{?s%20?p%20?o}`;
   },
 
   insert: function (str) {
+    return `INSERT DATA{` + str + `}`;
+  },
+
+  update: function (str) {
     return (
-    `INSERT DATA{` +
+      `DELETE { ?s ?p ?o } WHERE { ?s ?p ?o };
+INSERT DATA{` +
       str +
       `}`
     );
   },
 
-  update: function (str) {
-    console.log(str);
-		return (
-			`DELETE { ?s ?p ?o } WHERE { ?s ?p ?o };
-INSERT DATA{` +
-			str +
-			`}`
-		);
-	},
+  createNamedGraph: function (graph) {
+    return `CREATE SILENT GRAPH <${graph}>`;
+  },
 
-	createNamedGraph: function(graph) {
-		return `CREATE SILENT GRAPH <${graph}>`;
-	},
-
-	constructNamedGraph: function(graph) {
-		return `CONSTRUCT {?s ?p ?o}
+  constructNamedGraph: function (graph) {
+    return `CONSTRUCT {?s ?p ?o}
 WHERE {
   GRAPH  <${graph}> {
     ?s ?p ?o
   }
 }`;
-	},
+  },
 
-	insertInGraph: function(graph, triples) {
-		return `INSERT DATA {
+  insertInGraph: function (graph, triples) {
+    return `INSERT DATA {
 	GRAPH  <${graph}> {
 		${triples}
 	}
 }
 		`;
-	},
+  },
 
-	deleteInsertInGraph: function(graph, deleteTriples, insertTriples) {
-		return `DELETE {
+  deleteInsertInGraph: function (graph, deleteTriples, insertTriples) {
+    return `DELETE {
 	GRAPH  <${graph}> {
 		${deleteTriples}
 	}
@@ -87,10 +80,10 @@ INSERT DATA {
 	}
 }
 		`;
-	},
+  },
 
-	deleteInGraph: function(graph, deleteTriples) {
-		return `DELETE {
+  deleteInGraph: function (graph, deleteTriples) {
+    return `DELETE {
 	GRAPH  <${graph}> {
 		${deleteTriples}
 	}
@@ -102,16 +95,16 @@ WHERE {
 }`;
   },
 
-  getAllServiceActions: `PREFIX ajan: <http://www.ajan.de/ajan-ns#> 
+  getAllServiceActions: `PREFIX ajan: <http://www.ajan.de/ajan-ns#>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
-            PREFIX actn: <http://www.ajan.de/actn#> 
-            DESCRIBE ?s ?b ?a 
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX actn: <http://www.ajan.de/actn#>
+            DESCRIBE ?s ?b ?a
             WHERE {
-              ?s rdf:type actn:ServiceAction. 
-              ?s actn:runBinding ?b. 
+              ?s rdf:type actn:ServiceAction.
+              ?s actn:runBinding ?b.
               OPTIONAL {
-                  ?s actn:abortBinding ?a. 
-              } 
-            } `
-}
+                  ?s actn:abortBinding ?a.
+              }
+            } `,
+};

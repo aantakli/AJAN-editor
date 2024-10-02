@@ -130,8 +130,6 @@ function loadAgentsRepo(ajax, tripleStoreRepository, token) {
 }
 
 function updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd) {
-  console.log("Saving to triple store: ", tripleStoreRepository);
-
   let postDestination = tripleStoreRepository + "/statements";
   let rdfString = rdfGraph.toString();
   let query = SparqlQueries.update(rdfString);

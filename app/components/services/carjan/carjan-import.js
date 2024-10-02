@@ -64,11 +64,13 @@ export default Component.extend({
     this.checkRepository().then(() => {
       this.deleteStatements().then(() => {
         const scenarioName = statements.scenarioName;
+
         const entities = Object.entries(statements.entities).map(
-          ([entity, spawn]) => {
-            return { entity, spawn };
+          ([entity, { x, y, type }]) => {
+            return { entity, spawn: { x, y }, type }; // Den Typ mit übergeben
           }
         );
+
         this.addRDFStatements(scenarioName, entities);
         this.updateRepo().then(() => {
           rdfGraph.set(rdf.dataset());
@@ -95,9 +97,20 @@ export default Component.extend({
           scenarioName = quad.subject.value;
         }
 
-        if (quad.predicate.value.includes("hasEntity")) {
-          const entity = quad.object.value;
-          entities[entity] = { x: undefined, y: undefined };
+        // Erfasse die Entitäten und deren Typen
+        if (
+          quad.predicate.value.includes("type") &&
+          (quad.object.value.includes("Pedestrian") ||
+            quad.object.value.includes("Vehicle") ||
+            quad.object.value.includes("AutonomousVehicle"))
+        ) {
+          const entityType = quad.object.value.split("#")[1]; // Extrahiere den Typ
+          const entity = quad.subject.value;
+
+          // Speichere Entität und Typ
+          if (!entities[entity]) {
+            entities[entity] = { type: entityType, x: undefined, y: undefined };
+          }
         }
 
         if (quad.predicate.value.includes("spawnPointX")) {
@@ -127,16 +140,16 @@ export default Component.extend({
       )
     );
 
-    // Durch alle Entities iterieren und deren Spawnpunkte hinzufügen
-    entities.forEach(({ entity, spawn }) => {
+    // Durch alle Entities iterieren und deren spezifischen Typ sowie Spawnpunkte hinzufügen
+    entities.forEach(({ entity, spawn, type }) => {
       const entityURI = rdf.namedNode(entity);
 
-      // Entity-Statement hinzufügen
+      // Spezifischen Typ hinzufügen (pedestrian, vehicle, autonomousVehicle)
       rdfGraph.add(
         rdf.quad(
           entityURI,
           rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-          rdf.namedNode("http://example.com/carla-scenario#Entity")
+          rdf.namedNode(`http://example.com/carla-scenario#${type}`)
         )
       );
 
@@ -192,18 +205,19 @@ export default Component.extend({
 
   async colorScenarioFromRepo() {
     try {
+      // Fetch the map data from JSON
       const response = await fetch("/assets/carjan-maps/maps.json");
       const maps = await response.json();
 
+      // Select the correct map (example: map01)
       const map = maps.map01;
 
-      const canvas = document.querySelector("#gridCanvas");
-      if (!canvas) {
-        throw new Error("Canvas element not found.");
+      const gridContainer = document.querySelector("#gridContainer");
+      if (!gridContainer) {
+        throw new Error("GridContainer element not found.");
       }
-      const ctx = canvas.getContext("2d");
-      const cellSize = 50;
 
+      // Retrieve color values from CSS
       const rootStyles = getComputedStyle(document.documentElement);
       const colors = {
         r: rootStyles.getPropertyValue("--color-primary").trim(),
@@ -212,29 +226,48 @@ export default Component.extend({
 
       map.forEach((row, rowIndex) => {
         row.forEach((cell, colIndex) => {
-          ctx.fillStyle = colors[cell];
-          ctx.fillRect(
-            colIndex * cellSize,
-            rowIndex * cellSize,
-            cellSize,
-            cellSize
+          const gridCell = gridContainer.querySelector(
+            `.grid-cell[data-row="${rowIndex}"][data-col="${colIndex}"]`
           );
-          ctx.strokeRect(
-            colIndex * cellSize,
-            rowIndex * cellSize,
-            cellSize,
-            cellSize
-          );
+
+          if (gridCell) {
+            gridCell.style.backgroundColor = colors[cell]; // Verwende die richtigen Farben
+          }
         });
       });
 
+      // Fetch agents from the repository and color them on the grid
       const agents = await this.fetchAgentDataFromRepo();
-      this.colorAgents(agents, ctx, cellSize);
+      this.colorAgentsOnGrid(agents);
     } catch (error) {
       console.error("Error loading or drawing the map:", error);
     }
   },
+  // Color agents on the grid based on their type
+  colorAgentsOnGrid(agents) {
+    const gridContainer = document.querySelector("#gridContainer");
 
+    agents.forEach((agent) => {
+      const gridCell = gridContainer.querySelector(
+        `.grid-cell[data-row="${agent.y}"][data-col="${agent.x}"]`
+      );
+
+      if (gridCell) {
+        let agentColor;
+        // Ordne Farben den Typen zu
+        if (agent.type === "pedestrian") {
+          agentColor = "blue"; // Fußgänger
+        } else if (agent.type === "vehicle") {
+          agentColor = "red"; // Fahrzeug
+        } else if (agent.type === "autonomousVehicle") {
+          agentColor = "green"; // Autonomes Fahrzeug
+        }
+
+        gridCell.style.backgroundColor = agentColor;
+        gridCell.setAttribute("data-occupied", "true"); // Markiere die Zelle als besetzt
+      }
+    });
+  },
   async fetchAgentDataFromRepo() {
     const repoURL =
       "http://localhost:8090/rdf4j/repositories/carjan/statements";
@@ -263,10 +296,15 @@ export default Component.extend({
     data.forEach((item) => {
       const id = item["@id"];
 
+      // Prüfe, ob das Item eine Entität ist
       if (
         item["@type"] &&
         item["@type"].some(
-          (type) => type === "http://example.com/carla-scenario#Entity"
+          (type) =>
+            type === "http://example.com/carla-scenario#Entity" ||
+            type === "http://example.com/carla-scenario#Pedestrian" ||
+            type === "http://example.com/carla-scenario#Vehicle" ||
+            type === "http://example.com/carla-scenario#AutonomousVehicle"
         )
       ) {
         const x =
@@ -281,11 +319,36 @@ export default Component.extend({
             ? item["http://example.com/carla-scenario#spawnPointY"][0]["@value"]
             : null;
 
+        // Bestimme den genauen Typ
+        let entityType = "unknown";
+        if (
+          item["@type"].some(
+            (type) => type === "http://example.com/carla-scenario#Pedestrian"
+          )
+        ) {
+          entityType = "pedestrian";
+        } else if (
+          item["@type"].some(
+            (type) => type === "http://example.com/carla-scenario#Vehicle"
+          )
+        ) {
+          entityType = "vehicle";
+        } else if (
+          item["@type"].some(
+            (type) =>
+              type === "http://example.com/carla-scenario#AutonomousVehicle"
+          )
+        ) {
+          entityType = "autonomousVehicle";
+        }
+
+        // Wenn x und y vorhanden sind, füge die Entität zu agents hinzu
         if (x !== null && y !== null) {
           agents.push({
             entity: id,
             x: parseInt(x, 10),
             y: parseInt(y, 10),
+            type: entityType, // Typ hinzufügen
           });
         }
       }
@@ -293,7 +356,6 @@ export default Component.extend({
 
     return agents;
   },
-
   colorAgents(agents, ctx, cellSize) {
     const rootStyles = getComputedStyle(document.documentElement);
     const colors = {

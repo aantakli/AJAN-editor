@@ -5,7 +5,6 @@ import stringToStream from "npm:string-to-stream";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import actions from "ajan-editor/helpers/carjan/actions";
 import { inject as service } from "@ember/service";
-import { getOwner } from "@ember/application";
 
 let self;
 
@@ -28,7 +27,7 @@ export default Component.extend({
   },
 
   didInsertElement() {
-    this.loadMapAndAgents();
+    this.loadGrid();
   },
 
   actions: {
@@ -74,9 +73,15 @@ export default Component.extend({
     },
   },
 
+  async loadGrid() {
+    this.checkRepository().then(() => {
+      this.loadMapAndAgents();
+    });
+  },
+
   async loadMapAndAgents() {
     try {
-      const map = await this.getMap(); // Map laden
+      const map = await this.getMap();
       const agents = await this.fetchAgentDataFromRepo();
 
       this.carjanState.setMapData(map);

@@ -86,8 +86,6 @@ export default Component.extend({
 
       this.carjanState.setMapData(map);
       this.carjanState.setAgentData(agents);
-
-      console.log("Map und Agents erfolgreich geladen:", map, agents);
     } catch (error) {
       console.error("Fehler beim Laden der Map und Agents:", error);
     }

@@ -98,7 +98,7 @@ export default Component.extend({
 
         const entities = Object.entries(statements.entities).map(
           ([entity, { x, y, type }]) => {
-            return { entity, spawn: { x, y }, type }; // Den Typ mit übergeben
+            return { entity, spawn: { x, y }, type };
           }
         );
 
@@ -128,17 +128,15 @@ export default Component.extend({
           scenarioName = quad.subject.value;
         }
 
-        // Erfasse die Entitäten und deren Typen
         if (
           quad.predicate.value.includes("type") &&
           (quad.object.value.includes("Pedestrian") ||
             quad.object.value.includes("Vehicle") ||
             quad.object.value.includes("AutonomousVehicle"))
         ) {
-          const entityType = quad.object.value.split("#")[1]; // Extrahiere den Typ
+          const entityType = quad.object.value.split("#")[1];
           const entity = quad.subject.value;
 
-          // Speichere Entität und Typ
           if (!entities[entity]) {
             entities[entity] = { type: entityType, x: undefined, y: undefined };
           }
@@ -162,7 +160,6 @@ export default Component.extend({
   async addRDFStatements(scenarioName, entities) {
     const scenarioURI = rdf.namedNode(scenarioName);
 
-    // Scenario-Statement hinzufügen
     rdfGraph.add(
       rdf.quad(
         scenarioURI,
@@ -171,11 +168,9 @@ export default Component.extend({
       )
     );
 
-    // Durch alle Entities iterieren und deren spezifischen Typ sowie Spawnpunkte hinzufügen
     entities.forEach(({ entity, spawn, type }) => {
       const entityURI = rdf.namedNode(entity);
 
-      // Spezifischen Typ hinzufügen (pedestrian, vehicle, autonomousVehicle)
       rdfGraph.add(
         rdf.quad(
           entityURI,
@@ -184,7 +179,6 @@ export default Component.extend({
         )
       );
 
-      // SpawnPointX hinzufügen
       rdfGraph.add(
         rdf.quad(
           entityURI,
@@ -196,7 +190,6 @@ export default Component.extend({
         )
       );
 
-      // SpawnPointY hinzufügen
       rdfGraph.add(
         rdf.quad(
           entityURI,
@@ -251,14 +244,13 @@ export default Component.extend({
       )
     );
 
-    // Gehe durch alle Zellen im Grid
     const cells = gridContainer.querySelectorAll(".grid-cell");
     cells.forEach((cell) => {
       const row = cell.dataset.row;
       const col = cell.dataset.col;
       console.log("cell", cell);
       const isOccupied = cell.getAttribute("data-occupied") === "true";
-      const entityType = cell.getAttribute("data-entity-type"); // Entity-Type aus den Datenattributen
+      const entityType = cell.getAttribute("data-entity-type");
       console.log("Entity-Type:", entityType);
       if (isOccupied) {
         const entityURI = rdf.namedNode(
@@ -298,7 +290,6 @@ export default Component.extend({
           );
         }
 
-        // SpawnPointX und SpawnPointY hinzufügen
         rdfGraph.add(
           rdf.quad(
             entityURI,
@@ -328,11 +319,9 @@ export default Component.extend({
   },
   async colorScenarioFromRepo() {
     try {
-      // Fetch the map data from JSON
       const response = await fetch("/assets/carjan-maps/maps.json");
       const maps = await response.json();
 
-      // Select the correct map (example: map01)
       const map = maps.map01;
 
       const gridContainer = document.querySelector("#gridContainer");
@@ -340,7 +329,6 @@ export default Component.extend({
         throw new Error("GridContainer element not found.");
       }
 
-      // Retrieve color values from CSS
       const rootStyles = getComputedStyle(document.documentElement);
       const colors = {
         r: rootStyles.getPropertyValue("--color-primary").trim(),
@@ -354,12 +342,11 @@ export default Component.extend({
           );
 
           if (gridCell) {
-            gridCell.style.backgroundColor = colors[cell]; // Verwende die richtigen Farben
+            gridCell.style.backgroundColor = colors[cell];
           }
         });
       });
 
-      // Fetch agents from the repository and color them on the grid
       const agents = await this.fetchAgentDataFromRepo();
       this.colorAgentsOnGrid(agents);
     } catch (error) {
@@ -369,8 +356,6 @@ export default Component.extend({
 
   colorAgentsOnGrid(agents) {
     const gridContainer = document.querySelector("#gridContainer");
-
-    // Zugriff auf die CarjanItem-Komponente
 
     agents.forEach((agent) => {
       const gridCell = gridContainer.querySelector(
@@ -423,7 +408,6 @@ export default Component.extend({
     data.forEach((item) => {
       const id = item["@id"];
 
-      // Prüfe, ob das Item eine Entität ist
       if (
         item["@type"] &&
         item["@type"].some(
@@ -446,7 +430,6 @@ export default Component.extend({
             ? item["http://example.com/carla-scenario#spawnPointY"][0]["@value"]
             : null;
 
-        // Bestimme den genauen Typ
         let entityType = "unknown";
         if (
           item["@type"].some(
@@ -469,13 +452,12 @@ export default Component.extend({
           entityType = "autonomousVehicle";
         }
 
-        // Wenn x und y vorhanden sind, füge die Entität zu agents hinzu
         if (x !== null && y !== null) {
           agents.push({
             entity: id,
             x: parseInt(x, 10),
             y: parseInt(y, 10),
-            type: entityType, // Typ hinzufügen
+            type: entityType,
           });
         }
       }

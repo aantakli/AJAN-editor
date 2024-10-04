@@ -10,7 +10,6 @@
 @value color-odd-bg: color-primary-6;
 @value color-font: #000000;
 
-
 .behaviors-body {
   height: 100%;
   position: relative;
@@ -75,13 +74,13 @@ div.button-group {
   overflow-x: hidden;
 }
 
-  .node-container::-webkit-scrollbar {
-    display: none;
-  }
+.node-container::-webkit-scrollbar {
+  display: none;
+}
 
-  .node-container:hover {
-    overflow-y: auto;
-  }
+.node-container:hover {
+  overflow-y: auto;
+}
 
 .node-container :global(div.content) {
   padding: 0 !important;
@@ -93,14 +92,6 @@ div.button-group {
   margin-bottom: 0px !important;
   background: color-title-bg;
   color: color-h-font;
-  font-family: "Segoe UI", monospace, Arial,sans-serif;
-  font-size: 16px;
-  padding: 10px 15px;
-}
-
-:global(#searchInput) {
-  height: 2.5em;
-  margin-bottom: 0px !important;
   font-family: "Segoe UI", monospace, Arial, sans-serif;
   font-size: 16px;
   padding: 10px 15px;
@@ -117,7 +108,7 @@ div.button-group {
 :global(.ui.accordion .title.decorator-selection),
 :global(.ui.accordion .title.leaf-selection),
 :global(.ui.accordion .title.behavior-tree-selection) {
-  font-family: "Segoe UI", monospace, Arial,sans-serif;
+  font-family: "Segoe UI", monospace, Arial, sans-serif;
   font-size: 16px;
   padding: 5px 10px;
 }
@@ -148,7 +139,7 @@ div.button-group {
 :global(.ui.selection.dropdown.bt-selection.active.visible .text),
 :global(.ui.selection.dropdown.bt-selection .dropdown),
 :global(.ui.selection.dropdown.bt-selection.active.visible .dropdown) {
-  color: #FFF;
+  color: #fff;
 }
 
 .bt-select {

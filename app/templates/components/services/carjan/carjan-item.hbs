@@ -1,6 +1,10 @@
 <div id="viewport">
   <div id="room">
-    <div id="gridContainer">
+    <div
+      id="gridContainer"
+      ondrop={{action "dropOnBackground"}}
+      ondragover={{action "allowDrop"}}
+    >
       {{#each gridCells as |cell|}}
         <div
           class="grid-cell"

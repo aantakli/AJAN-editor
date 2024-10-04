@@ -27,6 +27,118 @@ export default Component.extend({
     this.applyTransform();
     this.setupGrid(this.carjanState.mapData, this.carjanState.agentData);
   },
+  actions: {
+    allowDrop(event) {
+      event.preventDefault();
+
+      const row = event.target.dataset.row;
+      const col = event.target.dataset.col;
+
+      const targetCellStatus = this.gridStatus[`${row},${col}`]
+        ? this.gridStatus[`${row},${col}`]
+        : {};
+      if (
+        this.draggingEntityPosition &&
+        (row !== this.draggingEntityPosition[0] ||
+          col !== this.draggingEntityPosition[1])
+      ) {
+        this.resetColor();
+      }
+      if (targetCellStatus.size !== 0) {
+        if (targetCellStatus.occupied && this.isDragging) {
+          event.target.classList.add("cell-hover-not-allowed");
+          event.target.classList.remove("cell-hover-allowed");
+          event.target.style.cursor = "not-allowed";
+        } else if (this.isDragging) {
+          event.target.classList.add("cell-hover-allowed");
+          event.target.classList.remove("cell-hover-not-allowed");
+          event.target.style.cursor = "grab";
+        }
+      }
+    },
+
+    removeBorder(event) {
+      event.target.classList.remove("cell-hover-allowed");
+      event.target.classList.remove("cell-hover-not-allowed");
+      event.target.style.cursor = "grab";
+    },
+
+    dropOnCell(event) {
+      event.preventDefault();
+      this.isDragging = false;
+      const row = event.target.dataset.row;
+      const col = event.target.dataset.col;
+      let targetCellStatus;
+      if (this.gridStatus) {
+        targetCellStatus = this.gridStatus[`${row},${col}`];
+      } else {
+        targetCellStatus = {};
+      }
+      if (targetCellStatus.occupied) {
+        this.recoverEntity();
+        return;
+      }
+
+      const entityType = this.draggingEntityType
+        ? this.draggingEntityType
+        : event.dataTransfer.getData("text");
+      this.draggingEntityType = null;
+
+      if (row && col) {
+        this.addEntityToGrid(entityType, row, col);
+      }
+    },
+
+    dropOnBackground(event) {
+      event.preventDefault();
+      const mouseX = event.clientX;
+      const mouseY = event.clientY;
+      const row = event.target.dataset.row;
+      const col = event.target.dataset.col;
+      if (row && col) {
+        return;
+      }
+
+      this.send("removeBorder", event);
+
+      const closestCell = this.findNearestCell(mouseX, mouseY);
+
+      if (
+        closestCell &&
+        !this.gridStatus[`${closestCell.row},${closestCell.col}`].occupied
+      ) {
+        const { row, col } = closestCell;
+        const entityType = this.draggingEntityType
+          ? this.draggingEntityType
+          : event.dataTransfer.getData("text");
+        this.draggingEntityType = null;
+
+        this.addEntityToGrid(entityType, row, col);
+      } else {
+        this.recoverEntity();
+      }
+    },
+
+    dragLeave(event) {
+      event.target.classList.remove("cell-hover-allowed");
+      event.target.classList.remove("cell-hover-not-allowed");
+      event.target.style.cursor = "grab";
+    },
+
+    dragStart(event) {
+      const row = event.target.dataset.row;
+      const col = event.target.dataset.col;
+
+      const cellStatus = this.gridStatus[`${row},${col}`];
+      if (cellStatus && cellStatus.occupied) {
+        this.draggingEntityType = cellStatus.entityType;
+        event.dataTransfer.setData("text", this.draggingEntityType);
+        this.removeEntityFromGrid(row, col);
+      } else {
+        event.preventDefault();
+      }
+    },
+  },
 
   mapDataObserver: observer(
     "carjanState.mapData",
@@ -96,78 +208,6 @@ export default Component.extend({
     set(this, "agentData", agents);
 
     this.setupGrid(map, agents);
-  },
-
-  actions: {
-    allowDrop(event) {
-      event.preventDefault();
-
-      const row = event.target.dataset.row;
-      const col = event.target.dataset.col;
-
-      const targetCellStatus = this.gridStatus[`${row},${col}`];
-      if (
-        row !== this.draggingEntityPosition[0] ||
-        col !== this.draggingEntityPosition[1]
-      ) {
-        this.resetColor();
-      }
-      if (targetCellStatus.occupied && this.isDragging) {
-        event.target.classList.add("cell-hover-not-allowed");
-        event.target.classList.remove("cell-hover-allowed");
-        event.target.style.cursor = "not-allowed";
-      } else if (this.isDragging) {
-        event.target.classList.add("cell-hover-allowed");
-        event.target.classList.remove("cell-hover-not-allowed");
-        event.target.style.cursor = "grab";
-      }
-    },
-
-    removeBorder(event) {
-      event.target.classList.remove("cell-hover-allowed");
-      event.target.classList.remove("cell-hover-not-allowed");
-      event.target.style.cursor = "grab";
-    },
-
-    dropOnCell(event) {
-      event.preventDefault();
-      this.isDragging = false;
-      const row = event.target.dataset.row;
-      const col = event.target.dataset.col;
-
-      const targetCellStatus = this.gridStatus[`${row},${col}`];
-      if (targetCellStatus.occupied) {
-        this.recoverEntity();
-        return;
-      }
-
-      const entityType = this.draggingEntityType
-        ? this.draggingEntityType
-        : event.dataTransfer.getData("text");
-      this.draggingEntityType = null;
-
-      this.addEntityToGrid(entityType, row, col);
-    },
-
-    dragLeave(event) {
-      event.target.classList.remove("cell-hover-allowed");
-      event.target.classList.remove("cell-hover-not-allowed");
-      event.target.style.cursor = "grab";
-    },
-
-    dragStart(event) {
-      const row = event.target.dataset.row;
-      const col = event.target.dataset.col;
-
-      const cellStatus = this.gridStatus[`${row},${col}`];
-      if (cellStatus && cellStatus.occupied) {
-        this.draggingEntityType = cellStatus.entityType;
-        event.dataTransfer.setData("text", this.draggingEntityType);
-        this.removeEntityFromGrid(row, col);
-      } else {
-        event.preventDefault();
-      }
-    },
   },
 
   recoverEntity() {
@@ -269,6 +309,37 @@ export default Component.extend({
         gridElement.style.backgroundColor = cellStatus.originalColor;
       }
     });
+  },
+
+  findNearestCell(mouseX, mouseY) {
+    let closestCell = null;
+    let minDistance = Infinity;
+
+    this.gridCells.forEach((cell) => {
+      const row = cell.row;
+      const col = cell.col;
+
+      const gridElement = this.element.querySelector(
+        `.grid-cell[data-row="${row}"][data-col="${col}"]`
+      );
+
+      if (gridElement) {
+        const rect = gridElement.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const distance = Math.sqrt(
+          Math.pow(centerX - mouseX, 2) + Math.pow(centerY - mouseY, 2)
+        );
+
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestCell = { row, col };
+        }
+      }
+    });
+
+    return closestCell;
   },
 
   onMouseDown(e) {

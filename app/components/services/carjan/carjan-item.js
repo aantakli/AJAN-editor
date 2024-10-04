@@ -136,7 +136,7 @@ export default Component.extend({
         const iconMap = {
           pedestrian: "#pedestrian-icon",
           vehicle: "#car-icon",
-          autonomousVehicle: "#map-icon",
+          autonomousVehicle: "#autonomous-icon",
         };
 
         const dragIconSelector =

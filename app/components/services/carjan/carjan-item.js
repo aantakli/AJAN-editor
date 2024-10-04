@@ -122,7 +122,7 @@ export default Component.extend({
     dragLeave(event) {
       event.target.classList.remove("cell-hover-allowed");
       event.target.classList.remove("cell-hover-not-allowed");
-      event.target.style.cursor = "grab";
+      event.target.style.cursor = "move";
     },
 
     dragStart(event) {
@@ -133,6 +133,18 @@ export default Component.extend({
       if (cellStatus && cellStatus.occupied) {
         this.draggingEntityType = cellStatus.entityType;
         event.dataTransfer.setData("text", this.draggingEntityType);
+        const iconMap = {
+          pedestrian: "#pedestrian-icon",
+          vehicle: "#car-icon",
+          autonomousVehicle: "#map-icon",
+        };
+
+        const dragIconSelector =
+          iconMap[this.draggingEntityType] || "#map-icon";
+        const dragIcon = this.element.querySelector(dragIconSelector);
+
+        event.dataTransfer.setDragImage(dragIcon, 10, 10);
+
         this.removeEntityFromGrid(row, col);
       } else {
         event.preventDefault();
@@ -294,7 +306,7 @@ export default Component.extend({
     viewport.addEventListener("mousemove", this._onMouseMove);
     viewport.addEventListener("wheel", this._onWheel);
 
-    viewport.style.cursor = "grab";
+    viewport.style.cursor = "move";
   },
 
   resetColor() {
@@ -375,7 +387,7 @@ export default Component.extend({
   onMouseUp(e) {
     const drag = this.get("drag");
     drag.state = false;
-    e.currentTarget.style.cursor = "grab";
+    e.currentTarget.style.cursor = "default";
     this.isPanning = false;
     this.isDragging = false;
     this.actions.removeBorder(e);

@@ -23,6 +23,14 @@
   gap: 1px;
 }
 
+:global(#car-icon i),
+:global(#pedestrian-icon i),
+:global(#autonomous-icon i),
+:global(#obstacle-icon i),
+:global(#map-icon i) {
+  font-size: 20px;
+}
+
 :global(.grid-gap) {
   width: 10px;
   height: 50px;

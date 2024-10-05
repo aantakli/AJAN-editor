@@ -20,10 +20,14 @@ export default Component.extend({
     rdfGraph.set(rdf.dataset());
   },
 
-  async getMap() {
+  async getMap(mapName) {
     const response = await fetch("/assets/carjan-maps/maps.json");
     const maps = await response.json();
-    return maps.map01;
+    return maps[mapName] || maps.map01;
+  },
+
+  async getDefaultMap() {
+    return await this.getMap("map01");
   },
 
   didInsertElement() {
@@ -43,8 +47,6 @@ export default Component.extend({
       this.saveEditorToRepo();
 
       $("#toast").fadeOut();
-
-      this.colorScenarioFromRepo();
     },
     handleFile(event) {
       if (
@@ -64,7 +66,10 @@ export default Component.extend({
         reader.onload = (e) => {
           const turtleContent = e.target.result;
           this.parseTurtle(turtleContent).then((result) => {
-            this.updateCarjanRepo(result);
+            console.log("Parsed Turtle:", result);
+            this.updateCarjanRepo(result).then(() => {
+              this.loadGrid();
+            });
           });
         };
 
@@ -75,14 +80,21 @@ export default Component.extend({
 
   async loadGrid() {
     this.checkRepository().then(() => {
-      this.loadMapAndAgents();
+      setTimeout(() => {
+        this.loadMapAndAgents();
+      }, 200);
     });
   },
 
   async loadMapAndAgents() {
     try {
-      const map = await this.getMap();
-      const agents = await this.fetchAgentDataFromRepo();
+      const turtleContent = await this.fetchAgentDataFromRepo();
+      console.log("Turtle Content loaded from Repository:", turtleContent);
+      const agents = turtleContent.agents;
+      const scenarioMap = turtleContent.map;
+      const map = scenarioMap
+        ? await this.getMap(scenarioMap)
+        : await this.getDefaultMap();
 
       this.carjanState.setMapData(map);
       this.carjanState.setAgentData(agents);
@@ -102,11 +114,13 @@ export default Component.extend({
           }
         );
 
-        this.addRDFStatements(scenarioName, entities);
+        const map = statements.scenarioMap;
+
+        this.addRDFStatements(scenarioName, entities, map);
         this.updateRepo().then(() => {
           rdfGraph.set(rdf.dataset());
+          return;
         });
-        this.colorScenarioFromRepo();
       });
     });
   },
@@ -118,6 +132,7 @@ export default Component.extend({
       const quads = await rdf.dataset().import(parser.import(turtleStream));
 
       let scenarioName = "";
+      let scenarioMap = "map01";
       const entities = {};
 
       quads.forEach((quad) => {
@@ -149,15 +164,20 @@ export default Component.extend({
         if (quad.predicate.value.includes("spawnPointY")) {
           entities[quad.subject.value].y = quad.object.value;
         }
-      });
 
-      return { scenarioName, entities };
+        if (quad.predicate.value.includes("hasMap")) {
+          scenarioMap = quad.object.value.split("#")[1];
+        }
+      });
+      console.log("scenarioMap", scenarioMap);
+
+      return { scenarioName, entities, scenarioMap };
     } catch (error) {
       console.error("Error parsing Turtle file:", error);
     }
   },
 
-  async addRDFStatements(scenarioName, entities) {
+  async addRDFStatements(scenarioName, entities, map) {
     const scenarioURI = rdf.namedNode(scenarioName);
 
     rdfGraph.add(
@@ -201,6 +221,14 @@ export default Component.extend({
         )
       );
     });
+
+    rdfGraph.add(
+      rdf.quad(
+        scenarioURI,
+        rdf.namedNode("http://example.com/carla-scenario#hasMap"),
+        rdf.namedNode(`http://example.com/carla-scenario#${map}`)
+      )
+    );
   },
 
   async updateRepo() {
@@ -317,69 +345,7 @@ export default Component.extend({
     console.log("Scenario successfully saved to RDF Graph:", rdfGraph);
     this.updateRepo();
   },
-  async colorScenarioFromRepo() {
-    try {
-      const response = await fetch("/assets/carjan-maps/maps.json");
-      const maps = await response.json();
 
-      const map = maps.map01;
-
-      const gridContainer = document.querySelector("#gridContainer");
-      if (!gridContainer) {
-        throw new Error("GridContainer element not found.");
-      }
-
-      const rootStyles = getComputedStyle(document.documentElement);
-      const colors = {
-        r: rootStyles.getPropertyValue("--color-primary").trim(),
-        p: rootStyles.getPropertyValue("--color-primary-2").trim(),
-      };
-
-      map.forEach((row, rowIndex) => {
-        row.forEach((cell, colIndex) => {
-          const gridCell = gridContainer.querySelector(
-            `.grid-cell[data-row="${rowIndex}"][data-col="${colIndex}"]`
-          );
-
-          if (gridCell) {
-            gridCell.style.backgroundColor = colors[cell];
-          }
-        });
-      });
-
-      const agents = await this.fetchAgentDataFromRepo();
-      this.colorAgentsOnGrid(agents);
-    } catch (error) {
-      console.error("Error loading or drawing the map:", error);
-    }
-  },
-
-  colorAgentsOnGrid(agents) {
-    const gridContainer = document.querySelector("#gridContainer");
-
-    agents.forEach((agent) => {
-      const gridCell = gridContainer.querySelector(
-        `.grid-cell[data-row="${agent.y}"][data-col="${agent.x}"]`
-      );
-
-      if (gridCell) {
-        let agentColor;
-        if (agent.type === "pedestrian") {
-          agentColor = "blue";
-        } else if (agent.type === "vehicle") {
-          agentColor = "red";
-        } else if (agent.type === "autonomous") {
-          agentColor = "green";
-        }
-
-        gridCell.style.backgroundColor = agentColor;
-        gridCell.setAttribute("data-occupied", "true");
-        gridCell.setAttribute("data-active", "true");
-        gridCell.setAttribute("draggable", "true");
-        gridCell.setAttribute("data-entity-type", agent.type);
-      }
-    });
-  },
   async fetchAgentDataFromRepo() {
     const repoURL =
       "http://localhost:8090/rdf4j/repositories/carjan/statements";
@@ -396,10 +362,37 @@ export default Component.extend({
 
       const data = await response.json();
 
-      return this.extractAgentsData(data);
+      const result = { agents: this.extractAgentsData(data) };
+      result.map = this.extractMapData(data);
+
+      return result;
     } catch (error) {
       console.error("Error fetching agent data from Triplestore:", error);
     }
+  },
+
+  extractMapData(data) {
+    let mapName = null;
+
+    data.forEach((item) => {
+      const id = item["@id"];
+
+      if (
+        item["@type"] &&
+        item["@type"].some(
+          (type) => type === "http://example.com/carla-scenario#Scenario"
+        )
+      ) {
+        if (item["http://example.com/carla-scenario#hasMap"]) {
+          mapName =
+            item["http://example.com/carla-scenario#hasMap"][0]["@id"].split(
+              "#"
+            )[1];
+        }
+      }
+    });
+
+    return mapName;
   },
 
   extractAgentsData(data) {
@@ -464,37 +457,6 @@ export default Component.extend({
     });
 
     return agents;
-  },
-  colorAgents(agents, ctx, cellSize) {
-    const rootStyles = getComputedStyle(document.documentElement);
-    const colors = {
-      pedestrian: rootStyles.getPropertyValue("--color-primary-3").trim(),
-      vehicle: rootStyles.getPropertyValue("--color-primary-4").trim(),
-      autonomous: rootStyles.getPropertyValue("--color-primary-5").trim(),
-    };
-
-    agents.forEach((agent) => {
-      let fillColor;
-      if (agent.entity.includes("Pedestrian")) {
-        fillColor = colors.pedestrian;
-      } else if (
-        agent.entity.includes("Vehicle") &&
-        !agent.entity.includes("AutonomousVehicle")
-      ) {
-        fillColor = colors.vehicle;
-      } else if (agent.entity.includes("AutonomousVehicle")) {
-        fillColor = colors.autonomous;
-      }
-
-      ctx.fillStyle = fillColor;
-      ctx.fillRect(agent.x * cellSize, agent.y * cellSize, cellSize, cellSize);
-      ctx.strokeRect(
-        agent.x * cellSize,
-        agent.y * cellSize,
-        cellSize,
-        cellSize
-      );
-    });
   },
 
   async deleteRepository() {

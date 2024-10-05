@@ -169,15 +169,25 @@ export default Component.extend({
       const agents = this.carjanState.agentData;
 
       if (map && agents) {
+        this.deleteAllEntites();
         this.setupGrid(map, agents);
       }
     }
   ),
 
+  deleteAllEntites() {
+    this.gridCells.forEach((cell) => {
+      const row = cell.row;
+      const col = cell.col;
+      this.removeEntityFromGrid(row, col);
+    });
+  },
+
   setupGrid(map = null, agents = null) {
     let cells = [];
     let status = {};
     let colors = [];
+
     for (let row = 0; row < this.gridSize; row++) {
       for (let col = 0; col < this.gridSize; col++) {
         let color = this.colors.road;

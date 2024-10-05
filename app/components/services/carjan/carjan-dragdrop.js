@@ -12,10 +12,9 @@ export default Component.extend({
         vehicle: "#car-icon",
         autonomous: "#autonomous-icon",
         obstacle: "#obstacle-icon",
-        map: "#map-icon",
       };
 
-      const dragIconSelector = iconMap[event.target.id] || "#map-icon";
+      const dragIconSelector = iconMap[event.target.id] || "#obstacle-icon";
       const dragIcon = document.querySelector(dragIconSelector);
 
       if (dragIcon) {

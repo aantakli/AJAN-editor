@@ -6,45 +6,21 @@
   <div>
     <ul>
       <li draggable="true" id="pedestrian" ondragstart={{action "onDragStart"}}>
+        <i id="pedestrian-icon" class="icon user" />
         Pedestrian
       </li>
       <li draggable="true" id="vehicle" ondragstart={{action "onDragStart"}}>
+        <i id="car-icon" class="icon car" />
         Vehicle
       </li>
-      <li
-        draggable="true"
-        id="autonomous-vehicle"
-        ondragstart={{action "onDragStart"}}
-      >
+      <li draggable="true" id="autonomous" ondragstart={{action "onDragStart"}}>
+        <i id="autonomous-icon" class="icon taxi" />
         Autonomous Vehicle
       </li>
-      <li
-        draggable="true"
-        id="autonomous-vehicle"
-        ondragstart={{action "onDragStart"}}
-      >
+      <li draggable="true" id="obstacle" ondragstart={{action "onDragStart"}}>
+        <i id="obstacle-icon" class="icon tree" />
         Obstacle
       </li>
     </ul>
   </div>
 {{/ui-accordion}}
-
-<div id="car-icon">
-  <i class="icon car"></i>
-</div>
-
-<div id="pedestrian-icon">
-  <i class="icon user"></i>
-</div>
-
-<div id="autonomous-icon">
-  <i class="icon taxi"></i>
-</div>
-
-<div id="obstacle-icon">
-  <i class="icon tree"></i>
-</div>
-
-<div id="map-icon">
-  <i class="icon map marker alternate"></i>
-</div>

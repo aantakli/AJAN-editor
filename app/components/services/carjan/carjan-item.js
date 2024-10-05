@@ -4,6 +4,7 @@ import { set, observer } from "@ember/object";
 import { run } from "@ember/runloop";
 
 export default Component.extend({
+  rs: getComputedStyle(document.documentElement),
   carjanState: service(),
   gridSize: 12,
   cellSize: 50,
@@ -19,7 +20,14 @@ export default Component.extend({
   },
   mapData: null,
   agentData: null,
-
+  colors: {
+    road: getComputedStyle(document.documentElement)
+      .getPropertyValue("--color-primary")
+      .trim(),
+    path: getComputedStyle(document.documentElement)
+      .getPropertyValue("--color-primary-2")
+      .trim(),
+  },
   didInsertElement() {
     this._super(...arguments);
     this.draggingEntityType = null;
@@ -37,13 +45,7 @@ export default Component.extend({
       const targetCellStatus = this.gridStatus[`${row},${col}`]
         ? this.gridStatus[`${row},${col}`]
         : {};
-      if (
-        this.draggingEntityPosition &&
-        (row !== this.draggingEntityPosition[0] ||
-          col !== this.draggingEntityPosition[1])
-      ) {
-        this.resetColor();
-      }
+
       if (targetCellStatus.size !== 0) {
         if (targetCellStatus.occupied && this.isDragging) {
           event.target.classList.add("cell-hover-not-allowed");
@@ -133,17 +135,24 @@ export default Component.extend({
       if (cellStatus && cellStatus.occupied) {
         this.draggingEntityType = cellStatus.entityType;
         event.dataTransfer.setData("text", this.draggingEntityType);
+
         const iconMap = {
           pedestrian: "#pedestrian-icon",
           vehicle: "#car-icon",
-          autonomousVehicle: "#autonomous-icon",
+          autonomous: "#autonomous-icon",
+          obstacle: "#obstacle-icon",
         };
 
         const dragIconSelector =
           iconMap[this.draggingEntityType] || "#map-icon";
         const dragIcon = this.element.querySelector(dragIconSelector);
 
-        event.dataTransfer.setDragImage(dragIcon, 10, 10);
+        if (dragIcon) {
+          dragIcon.style.width = "20px";
+          dragIcon.style.height = "20px";
+          dragIcon.style.display = "inline-block";
+          event.dataTransfer.setDragImage(dragIcon, 12, 12);
+        }
 
         this.removeEntityFromGrid(row, col);
       } else {
@@ -168,25 +177,25 @@ export default Component.extend({
   setupGrid(map = null, agents = null) {
     let cells = [];
     let status = {};
-
+    let colors = [];
     for (let row = 0; row < this.gridSize; row++) {
       for (let col = 0; col < this.gridSize; col++) {
-        let color = "lightgray";
+        let color = this.colors.road;
 
         if (map && map[row] && map[row][col]) {
           const cellType = map[row][col];
           if (cellType === "r") {
-            color = "lightgray";
+            color = this.colors.road;
           } else if (cellType === "p") {
-            color = "lightgreen";
+            color = this.colors.path;
           }
         }
 
+        colors[`${row},${col}`] = color;
+
         status[`${row},${col}`] = {
           occupied: false,
-          active: false,
-          color: color,
-          originalColor: color,
+          entityType: null,
         };
 
         cells.push({ row, col });
@@ -199,7 +208,7 @@ export default Component.extend({
             `.grid-cell[data-row="${row}"][data-col="${col}"]`
           );
           if (gridElement) {
-            gridElement.style.backgroundColor = status[`${row},${col}`].color;
+            gridElement.style.backgroundColor = colors[`${row},${col}`];
           }
         }
       }
@@ -234,29 +243,37 @@ export default Component.extend({
         `.grid-cell[data-row="${row}"][data-col="${col}"]`
       );
       if (gridElement) {
-        let color;
-        if (entityType === "pedestrian") {
-          color = "blue";
-        } else if (entityType === "vehicle") {
-          color = "red";
-        } else if (entityType === "autonomousVehicle") {
-          color = "green";
-        } else {
-          color = "lightgray";
-        }
+        const iconMap = {
+          pedestrian: "user",
+          vehicle: "car",
+          autonomous: "taxi",
+          obstacle: "tree",
+          default: "map marker alternate",
+        };
 
-        gridElement.style.backgroundColor = color;
+        const iconClass = iconMap[entityType] || iconMap.default;
+
+        gridElement.innerHTML = "";
+
+        const iconElement = document.createElement("i");
+        iconElement.classList.add("icon", iconClass);
+        iconElement.style.fontSize = "24px";
+        iconElement.style.display = "flex";
+        iconElement.style.alignItems = "center";
+        iconElement.style.justifyContent = "center";
+        iconElement.style.height = "100%";
+        iconElement.style.width = "100%";
+        iconElement.style.pointerEvents = "none";
+
+        gridElement.appendChild(iconElement);
 
         gridElement.setAttribute("data-occupied", "true");
-        gridElement.setAttribute("data-active", "true");
+        gridElement.setAttribute("data-entityType", "true");
         gridElement.setAttribute("draggable", "true");
-        const originalColor = this.gridStatus[`${row},${col}`].originalColor;
+
         this.gridStatus[`${row},${col}`] = {
           occupied: true,
-          active: true,
           entityType: entityType,
-          color: gridElement.style.backgroundColor,
-          originalColor: originalColor,
         };
       }
     });
@@ -268,22 +285,19 @@ export default Component.extend({
         `.grid-cell[data-row="${row}"][data-col="${col}"]`
       );
       if (gridElement) {
-        const originalColor = this.gridStatus[`${row},${col}`].originalColor;
-        gridElement.style.backgroundColor = originalColor;
-
+        gridElement.innerHTML = "";
         gridElement.removeAttribute("data-occupied");
-        gridElement.setAttribute("data-active", "false");
+        gridElement.setAttribute("data-entityType", "false");
         gridElement.removeAttribute("draggable");
 
         this.gridStatus[`${row},${col}`] = {
           occupied: false,
-          active: false,
-          color: originalColor,
-          originalColor: originalColor,
+          entityType: null,
         };
       }
     });
   },
+
   applyTransform() {
     const gridContainer = this.element.querySelector("#gridContainer");
 
@@ -307,20 +321,6 @@ export default Component.extend({
     viewport.addEventListener("wheel", this._onWheel);
 
     viewport.style.cursor = "move";
-  },
-
-  resetColor() {
-    const [row, col] = this.draggingEntityPosition;
-    const cellStatus = this.gridStatus[`${row},${col}`];
-
-    run.scheduleOnce("afterRender", this, function () {
-      const gridElement = this.element.querySelector(
-        `.grid-cell[data-row="${row}"][data-col="${col}"]`
-      );
-      if (gridElement) {
-        gridElement.style.backgroundColor = cellStatus.originalColor;
-      }
-    });
   },
 
   findNearestCell(mouseX, mouseY) {
@@ -363,10 +363,9 @@ export default Component.extend({
 
     const cellStatus = this.gridStatus[`${row},${col}`];
     const isEntityCell = cellStatus && cellStatus.occupied;
-    const isCellActive = cellStatus && cellStatus.active;
 
     if (e.button === 0) {
-      if (isEntityCell && isCellActive) {
+      if (isEntityCell) {
         this.draggingEntityType = this.gridStatus[`${row},${col}`].entityType;
         this.draggingEntityPosition = [row, col];
         drag.state = true;

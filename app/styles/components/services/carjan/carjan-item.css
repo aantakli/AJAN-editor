@@ -23,12 +23,13 @@
   gap: 1px;
 }
 
-:global(#car-icon i),
-:global(#pedestrian-icon i),
-:global(#autonomous-icon i),
-:global(#obstacle-icon i),
-:global(#map-icon i) {
+#icons i.icon {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  text-align: center;
   font-size: 20px;
+  line-height: 20px; /* Vertikale Zentrierung */
 }
 
 :global(.grid-gap) {

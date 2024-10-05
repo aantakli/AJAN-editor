@@ -274,7 +274,7 @@ export default Component.extend({
           entityTypeURI = rdf.namedNode(
             "http://example.com/carla-scenario#Vehicle"
           );
-        } else if (entityType === "autonomousVehicle") {
+        } else if (entityType === "autonomous") {
           entityTypeURI = rdf.namedNode(
             "http://example.com/carla-scenario#AutonomousVehicle"
           );
@@ -368,7 +368,7 @@ export default Component.extend({
           agentColor = "blue";
         } else if (agent.type === "vehicle") {
           agentColor = "red";
-        } else if (agent.type === "autonomousVehicle") {
+        } else if (agent.type === "autonomous") {
           agentColor = "green";
         }
 
@@ -449,7 +449,7 @@ export default Component.extend({
               type === "http://example.com/carla-scenario#AutonomousVehicle"
           )
         ) {
-          entityType = "autonomousVehicle";
+          entityType = "autonomous";
         }
 
         if (x !== null && y !== null) {
@@ -470,9 +470,7 @@ export default Component.extend({
     const colors = {
       pedestrian: rootStyles.getPropertyValue("--color-primary-3").trim(),
       vehicle: rootStyles.getPropertyValue("--color-primary-4").trim(),
-      autonomousVehicle: rootStyles
-        .getPropertyValue("--color-primary-5")
-        .trim(),
+      autonomous: rootStyles.getPropertyValue("--color-primary-5").trim(),
     };
 
     agents.forEach((agent) => {
@@ -485,7 +483,7 @@ export default Component.extend({
       ) {
         fillColor = colors.vehicle;
       } else if (agent.entity.includes("AutonomousVehicle")) {
-        fillColor = colors.autonomousVehicle;
+        fillColor = colors.autonomous;
       }
 
       ctx.fillStyle = fillColor;

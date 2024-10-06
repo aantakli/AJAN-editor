@@ -1,4 +1,7 @@
 const http = require("http");
+const fetch = require("node-fetch");
+const fs = require("fs");
+const path = require("path");
 
 const repositoryConfig = `
       @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -155,9 +158,44 @@ function checkIfRepositoryExists() {
   });
 }
 
+function downloadRepository() {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: "localhost",
+      port: 8090,
+      path: "/rdf4j/repositories/carjan/statements",
+      method: "GET",
+    };
+
+    const req = http.request(options, (res) => {
+      let data = "";
+
+      res.on("data", (chunk) => {
+        data += chunk;
+      });
+
+      res.on("end", () => {
+        console.log(data);
+        const rows = data.split("\n");
+
+        resolve(true);
+      });
+    });
+
+    req.on("error", (e) => {
+      reject(e);
+    });
+
+    req.end();
+  });
+}
+
+downloadRepository();
+
 module.exports = {
   initializeCarjanRepository,
   deleteStatements,
   deleteCarjanRepository,
   checkIfRepositoryExists,
+  downloadRepository,
 };

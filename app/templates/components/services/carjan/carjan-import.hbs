@@ -17,12 +17,16 @@
     </button>
 
     <button
-      id="saveButton"
       class="ui primary button sticky-save"
-      {{action "saveAndReset"}}
+      {{action "triggerSaveScenario"}}
     >
-      <i class="save icon"></i>
-      Save & Reset
+      <i class="save icon" />
+      Save Scenario & Reset
+    </button>
+
+    <button class="ui primary button sticky-save" {{action "downloadFile"}}>
+      <i class="download icon" />
+      Download
     </button>
 
   </div>

@@ -5,6 +5,8 @@ import stringToStream from "npm:string-to-stream";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import actions from "ajan-editor/helpers/carjan/actions";
 import { inject as service } from "@ember/service";
+import { observer } from "@ember/object";
+import $ from "jquery";
 
 let self;
 
@@ -19,6 +21,15 @@ export default Component.extend({
     self = this;
     rdfGraph.set(rdf.dataset());
   },
+
+  updateObserver: observer("carjanState.updateStatements", function () {
+    const statements = this.carjanState.updateStatements;
+    console.log("1", rdfGraph);
+    rdfGraph.set(rdf.dataset());
+    rdfGraph.set(statements);
+    console.log("2", rdfGraph);
+    this.updateRepo();
+  }),
 
   async getMap(mapName) {
     const response = await fetch("/assets/carjan-maps/maps.json");
@@ -39,6 +50,23 @@ export default Component.extend({
       document.getElementById("fileInput").click();
     },
 
+    downloadFile() {
+      const link = document.createElement("a");
+      link.href = "http://localhost:8090/rdf4j/repositories/carjan/statements";
+      link.download = "scenario-statements.ttl";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
+
+    triggerSaveScenario() {
+      this.carjanState.saveRequest();
+    },
+
+    download() {
+      this.downloadScenario();
+    },
+
     async saveAndReset() {
       $("#toast").fadeIn();
 
@@ -48,6 +76,7 @@ export default Component.extend({
 
       $("#toast").fadeOut();
     },
+
     handleFile(event) {
       if (
         !event ||
@@ -66,7 +95,7 @@ export default Component.extend({
         reader.onload = (e) => {
           const turtleContent = e.target.result;
           this.parseTurtle(turtleContent).then((result) => {
-            console.log("Parsed Turtle:", result);
+            console.log("parseresult", result);
             this.updateCarjanRepo(result).then(() => {
               this.loadGrid();
             });
@@ -86,10 +115,33 @@ export default Component.extend({
     });
   },
 
+  async downloadScenario() {
+    console.log("downloading scenario...");
+    try {
+      const response = await fetch(
+        "http://localhost:4204/api/download-repository",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log(result);
+    } catch (error) {
+      console.error("Error downloading scenario:", error);
+    }
+  },
+
   async loadMapAndAgents() {
     try {
       const turtleContent = await this.fetchAgentDataFromRepo();
-      console.log("Turtle Content loaded from Repository:", turtleContent);
       const agents = turtleContent.agents;
       const scenarioMap = turtleContent.map;
       const map = scenarioMap
@@ -106,22 +158,26 @@ export default Component.extend({
   async updateCarjanRepo(statements) {
     this.checkRepository().then(() => {
       this.deleteStatements().then(() => {
-        const scenarioName = statements.scenarioName;
-
-        const entities = Object.entries(statements.entities).map(
-          ([entity, { x, y, type }]) => {
-            return { entity, spawn: { x, y }, type };
-          }
-        );
-
-        const map = statements.scenarioMap;
-
-        this.addRDFStatements(scenarioName, entities, map);
-        this.updateRepo().then(() => {
-          rdfGraph.set(rdf.dataset());
-          return;
-        });
+        this.updateWithStatements(statements);
       });
+    });
+  },
+
+  async updateWithStatements(statements) {
+    const scenarioName = statements.scenarioName;
+
+    const entities = Object.entries(statements.entities).map(
+      ([entity, { x, y, type }]) => {
+        return { entity, spawn: { x, y }, type };
+      }
+    );
+
+    const map = statements.scenarioMap;
+    this.addRDFStatements(scenarioName, entities, map);
+    console.log("RDFGraph:", rdfGraph);
+    this.updateRepo().then(() => {
+      rdfGraph.set(rdf.dataset());
+      return;
     });
   },
 
@@ -169,7 +225,6 @@ export default Component.extend({
           scenarioMap = quad.object.value.split("#")[1];
         }
       });
-      console.log("scenarioMap", scenarioMap);
 
       return { scenarioName, entities, scenarioMap };
     } catch (error) {
@@ -229,6 +284,8 @@ export default Component.extend({
         rdf.namedNode(`http://example.com/carla-scenario#${map}`)
       )
     );
+
+    console.log("carjan import", rdfGraph);
   },
 
   async updateRepo() {
@@ -273,18 +330,42 @@ export default Component.extend({
     );
 
     const cells = gridContainer.querySelectorAll(".grid-cell");
+    let entityCount = 1;
+
     cells.forEach((cell) => {
       const row = cell.dataset.row;
       const col = cell.dataset.col;
-      console.log("cell", cell);
+
       const isOccupied = cell.getAttribute("data-occupied") === "true";
       const entityType = cell.getAttribute("data-entity-type");
-      console.log("Entity-Type:", entityType);
-      if (isOccupied) {
-        const entityURI = rdf.namedNode(
-          `http://example.com/carla-scenario#Entity${row}${col}`
-        );
+      if (entityType) {
+        console.log("Entity-Type:", entityType);
+      }
 
+      if (isOccupied) {
+        const paddedEntityNumber = String(entityCount).padStart(4, "0"); // Vierstellige Nummer
+        let entityURI;
+
+        // Basierend auf dem Typ die Entitäts-URI erstellen
+        if (entityType === "pedestrian") {
+          entityURI = rdf.namedNode(
+            `http://example.com/carla-scenario#Pedestrian${paddedEntityNumber}`
+          );
+        } else if (entityType === "vehicle") {
+          entityURI = rdf.namedNode(
+            `http://example.com/carla-scenario#Vehicle${paddedEntityNumber}`
+          );
+        } else if (entityType === "autonomous") {
+          entityURI = rdf.namedNode(
+            `http://example.com/carla-scenario#AutonomousVehicle${paddedEntityNumber}`
+          );
+        } else {
+          entityURI = rdf.namedNode(
+            `http://example.com/carla-scenario#Entity${paddedEntityNumber}`
+          ); // Generischer Fall
+        }
+
+        // Entity zum Scenario hinzufügen
         rdfGraph.add(
           rdf.quad(
             scenarioURI,
@@ -293,6 +374,7 @@ export default Component.extend({
           )
         );
 
+        // Typ der Entität festlegen
         let entityTypeURI;
         if (entityType === "pedestrian") {
           entityTypeURI = rdf.namedNode(
@@ -318,6 +400,7 @@ export default Component.extend({
           );
         }
 
+        // SpawnPointX hinzufügen
         rdfGraph.add(
           rdf.quad(
             entityURI,
@@ -329,6 +412,7 @@ export default Component.extend({
           )
         );
 
+        // SpawnPointY hinzufügen
         rdfGraph.add(
           rdf.quad(
             entityURI,
@@ -339,6 +423,8 @@ export default Component.extend({
             )
           )
         );
+
+        entityCount++; // Zähler für die nächste Entität erhöhen
       }
     });
 

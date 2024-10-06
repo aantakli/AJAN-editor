@@ -196,7 +196,6 @@ export default Component.extend({
   },
 
   saveEditorToRepo() {
-    console.log("RDF Graph before", rdfGraph);
     const rdfGraph = rdf.dataset();
 
     const gridContainer = this.element.querySelector("#gridContainer");
@@ -244,7 +243,6 @@ export default Component.extend({
         );
 
         let entityTypeURI;
-        console.log("entityType", entityType);
         if (entityType === "pedestrian") {
           entityTypeURI = rdf.namedNode(
             "http://example.com/carla-scenario#Pedestrian"
@@ -300,7 +298,6 @@ export default Component.extend({
       }
     });
 
-    console.log("RDF Graph carjanitem", rdfGraph);
     this.carjanState.setUpdateStatements(rdfGraph);
   },
 

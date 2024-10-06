@@ -7,6 +7,7 @@ import requests
 import threading
 from rdflib import Graph, URIRef, Literal, Namespace, RDF
 import rdflib
+import logging
 
 
 app = Flask(__name__)
@@ -20,39 +21,10 @@ world = client.get_world()
 blueprint_library = world.get_blueprint_library()
 current_map = world.get_map()
 
-spawn_transforms = current_map.get_spawn_points()
-
 seen_actors = set()
 
-waypoint1 = carla.Location(x=220.374664, y=51.549622, z=1.792728)
-waypoint2 = carla.Location(x=210.185577, y=63.183430, z=1.438360)
-waypoint3 = carla.Location(x=217.374664, y=51.549622, z=1.792728)
-waypoint_bus = carla.Location(x=220.184448, y=62.572109, z=1.571815)
-waypoint_checkpoint = carla.Location(x=217.023117, y=57.627243, z=0.805400)
-
-bus_stop = spawn_transforms[7]
-bus_stop.location.x -= 6
-bus_stop.location.y += 30
-
-crosswalk = spawn_transforms[6]
-crosswalk.location.y -= 20
-crosswalk.location.x += 12
-crosswalk.location.z += 1
-
-crosswalk2 = spawn_transforms[5]
-crosswalk2.location.y += 55
-crosswalk2.location.x -= 12
-crosswalk2.location.z += 1
-
-# Globale Variable, um die asynchrone URI zu speichern
 global_async_uri = None
 
-# create a waypoint exactly at the bus stop
-bus_stop_waypoint = current_map.get_waypoint(bus_stop.location)
-
-# spawn_transforms wird eine Liste von carla.Transform-Objekten sein
-spawn_transforms = current_map.get_spawn_points()
-waypoints = spawn_transforms[:3]
 
 VEHICLE = Namespace("http://carla.org/vehicle/")
 PEDESTRIAN = Namespace("http://carla.org/pedestrian/")
@@ -109,6 +81,168 @@ def getInformation(request):
     vehicle = world.get_actor(vehicle_id)
 
     return pedestrian, vehicle, async_request_uri
+
+def set_spectator_view(world, location, rotation):
+    spectator = world.get_spectator()
+    transform = carla.Transform(location, rotation)
+    spectator.set_transform(transform)
+    print(f"Spectator set at position {location} with rotation {rotation}")
+
+
+def load_grid(center_x=248, center_y=50, grid_size=10, cell_size=5):
+    try:
+        client = carla.Client("localhost", 2000)
+        client.set_timeout(10.0)
+        world = client.get_world()
+        print(world)
+        # Blaupause für die Linien
+        debug = world.debug
+        print(debug)
+        # Farben
+        grid_color = carla.Color(0, 255, 0)  # Grün
+
+        # Das Zentrum des Rasters
+        center_location = carla.Location(x=center_x, y=center_y, z=0.1)
+
+        # Rastergröße und Zellenanzahl
+        half_grid_size = grid_size // 2
+
+        # Zeichne vertikale Linien
+        for i in range(-half_grid_size, half_grid_size + 1):
+            start_x = center_location.x + i * cell_size
+            start_location = carla.Location(x=start_x, y=center_location.y - half_grid_size * cell_size, z=center_location.z)
+            end_location = carla.Location(x=start_x, y=center_location.y + half_grid_size * cell_size, z=center_location.z)
+
+            debug.draw_line(start_location, end_location, thickness=0.1, color=grid_color, life_time=0)
+
+        # Zeichne horizontale Linien
+        for i in range(-half_grid_size, half_grid_size + 1):
+            start_y = center_location.y + i * cell_size
+            start_location = carla.Location(x=center_location.x - half_grid_size * cell_size, y=start_y, z=center_location.z)
+            end_location = carla.Location(x=center_location.x + half_grid_size * cell_size, y=start_y, z=center_location.z)
+
+            debug.draw_line(start_location, end_location, thickness=0.1, color=grid_color, life_time=0)
+
+        print("Grid drawn successfully at center (248, 50)")
+        return {"status": "Grid drawn successfully"}
+
+    except Exception as e:
+        print(f"Error in load_grid: {str(e)}")
+        return {"error": str(e)}
+
+
+
+def load_world(entities):
+    try:
+        client = carla.Client("localhost", 2000)
+        client.set_timeout(10.0)
+        world = client.load_world('Town01_Opt')
+        log_path = "C:/Users/leona/Documents/carla_simulation.log"
+        print(f"Recording will be saved at: {log_path}")
+        client.start_recorder(log_path)
+
+        blueprint_library = world.get_blueprint_library()
+
+        unload_stuff(client)
+
+        # Filtern der Wegpunkte (z.B. nur Wegpunkte auf einer bestimmten Straße)
+        waypoints = client.get_world().get_map().generate_waypoints(distance=1.0)
+        filtered_waypoints = [waypoint for waypoint in waypoints if waypoint.road_id == 5]
+
+        # Spawnpunkte abrufen
+        spawn_transforms = world.get_map().get_spawn_points()
+
+        # Scenario mit den Entities spawnen
+        for entity in entities:
+            if entity["type"] == "Pedestrian":
+                spawn_point_pedestrian = spawn_transforms[6]
+                spawn_point_pedestrian.location.x += float(entity["spawnPointX"])
+                spawn_point_pedestrian.location.y -= float(entity["spawnPointY"])
+                spawn_point_pedestrian.location.z += 10.0
+
+                pedestrian_blueprint = blueprint_library.find('walker.pedestrian.0001')
+                world.try_spawn_actor(pedestrian_blueprint, spawn_point_pedestrian)
+                print(f"Pedestrian spawned at: {spawn_point_pedestrian.location}")
+
+            elif entity["type"] == "Vehicle":
+                spawn_point_vehicle = spawn_transforms[3]
+                spawn_point_vehicle.location.x += float(entity["spawnPointX"])
+                spawn_point_vehicle.location.y -= float(entity["spawnPointY"])
+                spawn_point_vehicle.location.z += 10.0
+
+                vehicle_blueprint = blueprint_library.find('vehicle.audi.a2')
+                world.try_spawn_actor(vehicle_blueprint, spawn_point_vehicle)
+                print(f"Vehicle spawned at: {spawn_point_vehicle.location}")
+
+            elif entity["type"] == "AutonomousVehicle":
+                spawn_point_autonomous = spawn_transforms[5]
+                spawn_point_autonomous.location.x += float(entity["spawnPointX"])
+                spawn_point_autonomous.location.y -= float(entity["spawnPointY"])
+                spawn_point_autonomous.location.z += 10.0
+
+                autonomous_blueprint = blueprint_library.find('vehicle.tesla.model3')
+                world.try_spawn_actor(autonomous_blueprint, spawn_point_autonomous)
+                print(f"Autonomous vehicle spawned at: {spawn_point_autonomous.location}")
+
+
+        set_spectator_view(world, carla.Location(x=248, y=56.5, z=15), carla.Rotation(pitch=-30, yaw=-180, roll=0))
+        return {"status": "Entities spawned successfully"}
+
+    except Exception as e:
+        print(f"Error in load_world: {str(e)}")
+        return {"error": str(e)}
+
+def unload_stuff(client):
+    world = client.get_world()
+    unloadList = [
+            carla.MapLayer.NONE,
+            carla.MapLayer.Buildings,
+            carla.MapLayer.Decals,
+            carla.MapLayer.Foliage,
+            carla.MapLayer.Ground,
+            carla.MapLayer.ParkedVehicles,
+            carla.MapLayer.Particles,
+            carla.MapLayer.StreetLights,
+            carla.MapLayer.Walls,
+        ]
+
+    print("Unloading map layers...")
+
+    for layer in unloadList:
+        world.unload_map_layer(layer)
+        print(f"Unloaded map layer {layer}")
+
+    def disable_specific_objects(client):
+        world = client.get_world()
+
+        # Deaktivieren der entsprechenden Objektkategorien
+        object_labels = [
+            carla.CityObjectLabel.Other,  # Dies könnte Bushaltestellen, Mülleimer, usw. umfassen
+            carla.CityObjectLabel.Static,  # Statische Objekte, die nicht spezifiziert sind
+            carla.CityObjectLabel.Vegetation,  # Bäume, Sträucher, etc.
+            carla.CityObjectLabel.Fences, # Zäune
+            carla.CityObjectLabel.RoadLines,  # Straßenmarkierungen
+            carla.CityObjectLabel.Poles,  # Laternenpfähle, Verkehrsschilder, etc.
+            carla.CityObjectLabel.TrafficSigns,  # Verkehrsschilder,
+            carla.CityObjectLabel.Dynamic,  # Dynamische Objekte wie Fahrzeuge und Fußgänger,
+        ]
+
+        for label in object_labels:
+            env_objs = world.get_environment_objects(label)
+            env_obj_ids = [obj.id for obj in env_objs]
+            try:
+                world.enable_environment_objects(env_obj_ids, False)
+                print(f"Disabled {len(env_obj_ids)} objects of type {label}")
+            except RuntimeError as e:
+                print(f"Error disabling objects of type {label}: {e}")
+
+    disable_specific_objects(client)
+
+    # Set roads to gray color
+    for blueprint in world.get_blueprint_library().filter('static.prop.street.*'):
+        print(f"Setting road texture to gray for {blueprint.id}")
+        world.get_blueprint_library().find(blueprint.id).set_attribute('texture', 'none')
+
 
 def send_async_request(async_request_uri):
     print(f"Sending async request to {async_request_uri}")
@@ -572,7 +706,6 @@ def load_scenario():
     rdf_url = "http://localhost:8090/rdf4j/repositories/carjan/statements"
 
     try:
-        # RDF-Daten aus dem Repository laden
         response = requests.get(rdf_url)
         if response.status_code == 200:
             rdf_data = response.text
@@ -582,11 +715,9 @@ def load_scenario():
         print("RDF data loaded successfully")
         print(rdf_data)
 
-        # RDF-Daten parsen
         g = Graph()
         g.parse(data=rdf_data)
 
-        # Beispielhafte Extraktion der Entities
         scenario = URIRef("http://example.com/carla-scenario#CurrentScenario")
         entities = []
 
@@ -595,17 +726,14 @@ def load_scenario():
             spawn_x = None
             spawn_y = None
 
-            # Typ der Entity extrahieren
             for _, _, entity_type_uri in g.triples((o, URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), None)):
                 entity_type = str(entity_type_uri).split("#")[-1]
 
-            # SpawnPoint X und Y extrahieren
             for _, _, x in g.triples((o, URIRef("http://example.com/carla-scenario#spawnPointX"), None)):
                 spawn_x = str(x)
             for _, _, y in g.triples((o, URIRef("http://example.com/carla-scenario#spawnPointY"), None)):
                 spawn_y = str(y)
 
-            # Entity zu Liste hinzufügen
             entities.append({
                 "entity": str(o).split("#")[-1],
                 "type": entity_type,
@@ -613,6 +741,8 @@ def load_scenario():
                 "spawnPointY": spawn_y
             })
 
+        load_world(entities)
+        load_grid()
         return jsonify({"status": "success", "entities": entities}), 200
 
     except Exception as e:

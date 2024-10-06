@@ -1,0 +1,45 @@
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+DEBUG:urllib3.connectionpool:Starting new HTTP connection (1): localhost:8090
+DEBUG:urllib3.connectionpool:http://localhost:8090 "GET /rdf4j/repositories/carjan/statements HTTP/1.1" 200 None
+INFO:werkzeug:127.0.0.1 - - [06/Oct/2024 19:44:25] "GET /load_scenario HTTP/1.1" 200 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+DEBUG:urllib3.connectionpool:Starting new HTTP connection (1): localhost:8090
+DEBUG:urllib3.connectionpool:http://localhost:8090 "GET /rdf4j/repositories/carjan/statements HTTP/1.1" 200 None
+DEBUG:urllib3.connectionpool:Starting new HTTP connection (1): localhost:8090
+DEBUG:urllib3.connectionpool:http://localhost:8090 "GET /rdf4j/repositories/carjan/statements HTTP/1.1" 200 None
+INFO:werkzeug:127.0.0.1 - - [06/Oct/2024 19:47:40] "GET /load_scenario HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [06/Oct/2024 19:47:40] "GET /load_scenario HTTP/1.1" 200 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+DEBUG:urllib3.connectionpool:Starting new HTTP connection (1): localhost:8090
+DEBUG:urllib3.connectionpool:http://localhost:8090 "GET /rdf4j/repositories/carjan/statements HTTP/1.1" 200 None
+INFO:werkzeug:127.0.0.1 - - [06/Oct/2024 19:51:00] "GET /load_scenario HTTP/1.1" 200 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+DEBUG:urllib3.connectionpool:Starting new HTTP connection (1): localhost:8090
+DEBUG:urllib3.connectionpool:http://localhost:8090 "GET /rdf4j/repositories/carjan/statements HTTP/1.1" 200 None
+INFO:werkzeug:127.0.0.1 - - [06/Oct/2024 19:56:24] "GET /load_scenario HTTP/1.1" 200 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+DEBUG:urllib3.connectionpool:Starting new HTTP connection (1): localhost:8090
+DEBUG:urllib3.connectionpool:http://localhost:8090 "GET /rdf4j/repositories/carjan/statements HTTP/1.1" 200 None
+INFO:werkzeug:127.0.0.1 - - [06/Oct/2024 19:57:35] "GET /load_scenario HTTP/1.1" 200 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+DEBUG:urllib3.connectionpool:Starting new HTTP connection (1): localhost:8090
+DEBUG:urllib3.connectionpool:http://localhost:8090 "GET /rdf4j/repositories/carjan/statements HTTP/1.1" 200 None
+INFO:werkzeug:127.0.0.1 - - [06/Oct/2024 19:58:21] "GET /load_scenario HTTP/1.1" 200 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m

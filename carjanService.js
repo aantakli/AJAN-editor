@@ -116,7 +116,6 @@ app.get("/", (req, res) => {
 
 app.post("/api/carla-scenario", async (req, res) => {
   try {
-    console.log("/carlascenario");
     const flaskResponse = await forwardToFlask();
 
     // Debug: Die erhaltene Antwort anzeigen

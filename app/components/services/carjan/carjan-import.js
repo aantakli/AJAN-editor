@@ -24,10 +24,8 @@ export default Component.extend({
 
   updateObserver: observer("carjanState.updateStatements", function () {
     const statements = this.carjanState.updateStatements;
-    console.log("1", rdfGraph);
     rdfGraph.set(rdf.dataset());
     rdfGraph.set(statements);
-    console.log("2", rdfGraph);
     this.updateRepo();
   }),
 
@@ -51,20 +49,20 @@ export default Component.extend({
     },
 
     downloadFile() {
-      const link = document.createElement("a");
-      link.href = "http://localhost:8090/rdf4j/repositories/carjan/statements";
-      link.download = "scenario-statements.ttl";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      this.carjanState.saveRequest();
+      setTimeout(() => {
+        const link = document.createElement("a");
+        link.href =
+          "http://localhost:8090/rdf4j/repositories/carjan/statements";
+        link.download = "scenario-statements.ttl";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }, 500);
     },
 
     triggerSaveScenario() {
       this.carjanState.saveRequest();
-    },
-
-    download() {
-      this.downloadScenario();
     },
 
     async saveAndReset() {
@@ -95,7 +93,6 @@ export default Component.extend({
         reader.onload = (e) => {
           const turtleContent = e.target.result;
           this.parseTurtle(turtleContent).then((result) => {
-            console.log("parseresult", result);
             this.updateCarjanRepo(result).then(() => {
               this.loadGrid();
             });
@@ -113,30 +110,6 @@ export default Component.extend({
         this.loadMapAndAgents();
       }, 200);
     });
-  },
-
-  async downloadScenario() {
-    console.log("downloading scenario...");
-    try {
-      const response = await fetch(
-        "http://localhost:4204/api/download-repository",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log(result);
-    } catch (error) {
-      console.error("Error downloading scenario:", error);
-    }
   },
 
   async loadMapAndAgents() {
@@ -174,7 +147,6 @@ export default Component.extend({
 
     const map = statements.scenarioMap;
     this.addRDFStatements(scenarioName, entities, map);
-    console.log("RDFGraph:", rdfGraph);
     this.updateRepo().then(() => {
       rdfGraph.set(rdf.dataset());
       return;
@@ -284,8 +256,6 @@ export default Component.extend({
         rdf.namedNode(`http://example.com/carla-scenario#${map}`)
       )
     );
-
-    console.log("carjan import", rdfGraph);
   },
 
   async updateRepo() {
@@ -309,8 +279,6 @@ export default Component.extend({
   },
 
   saveEditorToRepo() {
-    console.log("Saving scenario to repository...");
-
     const gridContainer = document.querySelector("#gridContainer");
     if (!gridContainer) {
       console.error("GridContainer not found");
@@ -338,9 +306,6 @@ export default Component.extend({
 
       const isOccupied = cell.getAttribute("data-occupied") === "true";
       const entityType = cell.getAttribute("data-entity-type");
-      if (entityType) {
-        console.log("Entity-Type:", entityType);
-      }
 
       if (isOccupied) {
         const paddedEntityNumber = String(entityCount).padStart(4, "0"); // Vierstellige Nummer
@@ -428,7 +393,6 @@ export default Component.extend({
       }
     });
 
-    console.log("Scenario successfully saved to RDF Graph:", rdfGraph);
     this.updateRepo();
   },
 

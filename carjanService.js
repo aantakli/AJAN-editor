@@ -8,6 +8,7 @@ const {
   deleteCarjanRepository,
   deleteStatements,
   checkIfRepositoryExists,
+  downloadRepository,
 } = require("./app/services/carjan/carjan-repository");
 
 const app = express();
@@ -60,6 +61,16 @@ app.post("/api/delete-carjan-repo", async (req, res) => {
 app.post("/api/check-repository", async (req, res) => {
   try {
     const result = await checkIfRepositoryExists();
+    res.json({ message: result });
+    return result;
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/download-repository", async (req, res) => {
+  try {
+    const result = await downloadRepository();
     res.json({ message: result });
     return result;
   } catch (error) {

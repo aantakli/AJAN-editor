@@ -12,4 +12,15 @@ export default Service.extend({
   setAgentData(agents) {
     set(this, "agentData", agents);
   },
+
+  saveRequest() {
+    set(this, "isSaveRequest", true);
+    setTimeout(() => {
+      set(this, "isSaveRequest", false);
+    }, 100);
+  },
+
+  setUpdateStatements(rdfgraph) {
+    set(this, "updateStatements", rdfgraph);
+  },
 });

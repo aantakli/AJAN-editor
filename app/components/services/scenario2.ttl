@@ -2,8 +2,8 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 ex:Scenario1 a ex:Scenario ;
-    ex:hasEntity ex:Pedestrian1, ex:Vehicle1, ex:AutonomousVehicle1 ;
-    ex:hasMap ex:map02 .
+    ex:hasEntity ex:Pedestrian1, ex:Vehicle1, ex:AutonomousVehicle1 .
+
 
 ex:Pedestrian1 a ex:Pedestrian ;
     ex:spawnPointX 0  ;
@@ -17,6 +17,4 @@ ex:AutonomousVehicle1 a ex:AutonomousVehicle ;
     ex:spawnPointX 2 ;
     ex:spawnPointY 2 .
 
-ex:map01 a ex:Map ;
-  ex:mapName "map01" .
 

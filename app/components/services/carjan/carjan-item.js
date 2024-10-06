@@ -2,6 +2,8 @@ import Component from "@ember/component";
 import { inject as service } from "@ember/service";
 import { set, observer } from "@ember/object";
 import { run } from "@ember/runloop";
+import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
+import rdf from "npm:rdf-ext";
 
 export default Component.extend({
   rs: getComputedStyle(document.documentElement),
@@ -30,6 +32,7 @@ export default Component.extend({
   },
   didInsertElement() {
     this._super(...arguments);
+    rdfGraph.set(rdf.dataset());
     this.draggingEntityType = null;
     this.setupPanningAndZoom();
     this.applyTransform();
@@ -159,6 +162,9 @@ export default Component.extend({
         event.preventDefault();
       }
     },
+    saveScenario() {
+      this.saveEditorToRepo();
+    },
   },
 
   mapDataObserver: observer(
@@ -175,12 +181,127 @@ export default Component.extend({
     }
   ),
 
+  saveObserver: observer("carjanState.isSaveRequest", function () {
+    if (this.carjanState.isSaveRequest) {
+      this.saveEditorToRepo();
+    }
+  }),
+
   deleteAllEntites() {
     this.gridCells.forEach((cell) => {
       const row = cell.row;
       const col = cell.col;
       this.removeEntityFromGrid(row, col);
     });
+  },
+
+  saveEditorToRepo() {
+    console.log("RDF Graph before", rdfGraph);
+    const rdfGraph = rdf.dataset();
+
+    const gridContainer = this.element.querySelector("#gridContainer");
+    if (!gridContainer) {
+      console.error("GridContainer not found");
+      return;
+    }
+
+    const scenarioURI = rdf.namedNode(
+      "http://example.com/carla-scenario#CurrentScenario"
+    );
+
+    // Füge das Szenario in den RDF-Graphen ein
+    rdfGraph.add(
+      rdf.quad(
+        scenarioURI,
+        rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+        rdf.namedNode("http://example.com/carla-scenario#Scenario")
+      )
+    );
+
+    const cells = gridContainer.querySelectorAll(".grid-cell");
+    let entityCounter = 1;
+
+    cells.forEach((cell) => {
+      const row = cell.dataset.row;
+      const col = cell.dataset.col;
+
+      const isOccupied = cell.getAttribute("data-occupied") === "true";
+      const entityType = this.gridStatus[`${row},${col}`].entityType;
+
+      if (isOccupied) {
+        const entityId =
+          String(row).padStart(2, "0") + String(col).padStart(2, "0");
+        const entityURI = rdf.namedNode(
+          `http://example.com/carla-scenario#Entity${entityId}`
+        );
+
+        rdfGraph.add(
+          rdf.quad(
+            scenarioURI,
+            rdf.namedNode("http://example.com/carla-scenario#hasEntity"),
+            entityURI
+          )
+        );
+
+        let entityTypeURI;
+        console.log("entityType", entityType);
+        if (entityType === "pedestrian") {
+          entityTypeURI = rdf.namedNode(
+            "http://example.com/carla-scenario#Pedestrian"
+          );
+        } else if (entityType === "vehicle") {
+          entityTypeURI = rdf.namedNode(
+            "http://example.com/carla-scenario#Vehicle"
+          );
+        } else if (entityType === "autonomous") {
+          entityTypeURI = rdf.namedNode(
+            "http://example.com/carla-scenario#AutonomousVehicle"
+          );
+        } else {
+          entityTypeURI = rdf.namedNode(
+            "http://example.com/carla-scenario#Obstacle"
+          );
+        }
+
+        if (entityTypeURI) {
+          rdfGraph.add(
+            rdf.quad(
+              entityURI,
+              rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+              entityTypeURI
+            )
+          );
+        }
+
+        // Füge die Position (SpawnPoint) hinzu
+        rdfGraph.add(
+          rdf.quad(
+            entityURI,
+            rdf.namedNode("http://example.com/carla-scenario#spawnPointX"),
+            rdf.literal(
+              col,
+              rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
+            )
+          )
+        );
+
+        rdfGraph.add(
+          rdf.quad(
+            entityURI,
+            rdf.namedNode("http://example.com/carla-scenario#spawnPointY"),
+            rdf.literal(
+              row,
+              rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
+            )
+          )
+        );
+
+        entityCounter++;
+      }
+    });
+
+    console.log("RDF Graph carjanitem", rdfGraph);
+    this.carjanState.setUpdateStatements(rdfGraph);
   },
 
   setupGrid(map = null, agents = null) {

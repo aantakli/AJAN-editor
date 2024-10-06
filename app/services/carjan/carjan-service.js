@@ -24,8 +24,7 @@ export default Service.extend({
 
   async handlePreviewEvent() {
     try {
-      const scenarioData = await RepositoryHandler.fetchScenarioData();
-      await CarlaApiHandler.sendDataToCarla(scenarioData);
+      await CarlaApiHandler.sendDataToCarla();
     } catch (error) {
       console.error("Error handling preview event:", error);
     }

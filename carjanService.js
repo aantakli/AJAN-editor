@@ -19,7 +19,7 @@ let flaskPid = null;
 function startFlaskService() {
   const flaskProcess = spawn(
     "python",
-    ["app/services/carjan/server/carla-connection.py"],
+    ["app/services/carjan/server/flask_carjan.py"],
     {
       detached: true,
       stdio: "pipe",
@@ -27,11 +27,11 @@ function startFlaskService() {
   );
 
   flaskProcess.stdout.on("data", (data) => {
-    console.log(`Flask stdout: ${data}`);
+    console.log(`=== Carjan Service === \n ${data}`);
   });
 
   flaskProcess.stderr.on("data", (data) => {
-    console.error(`Flask stderr: ${data}`);
+    console.error(`=== Carla Connection === \n ${data}`);
   });
 
   flaskProcess.on("close", (code) => {
@@ -40,7 +40,6 @@ function startFlaskService() {
 
   flaskProcess.unref();
   flaskPid = flaskProcess.pid;
-  console.log(`Flask service started with PID: ${flaskPid}`);
   flaskProcess.on("exit", (code, signal) => {
     console.log(`Flask process exited with code ${code} and signal ${signal}`);
     flaskProcess = null;
@@ -49,14 +48,11 @@ function startFlaskService() {
 
 function stopFlaskService() {
   if (flaskProcess) {
-    console.log("Stopping Flask service with process object...");
     flaskProcess.kill();
-    console.log("Flask service stopped");
   } else if (flaskPid) {
-    console.log(`Stopping Flask service using saved PID: ${flaskPid}...`);
     try {
       process.kill(flaskPid);
-      console.log("Flask service stopped using PID");
+      console.log("Flask service stopped.");
     } catch (err) {
       console.error(`Error stopping Flask process with PID ${flaskPid}:`, err);
     }

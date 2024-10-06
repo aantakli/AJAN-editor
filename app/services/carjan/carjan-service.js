@@ -16,7 +16,6 @@ export default Service.extend({
   startEventListener() {
     EventListener.listen((eventData) => {
       if (eventData.action === "previewInCarjan") {
-        console.log("Hello from Carjan Service");
         this.handlePreviewEvent();
       }
     });

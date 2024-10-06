@@ -569,7 +569,6 @@ def hi():
 
 @app.route('/load_scenario', methods=['GET'])
 def load_scenario():
-    # URL des RDF4J-Repositories
     rdf_url = "http://localhost:8090/rdf4j/repositories/carjan/statements"
 
     try:
@@ -580,6 +579,9 @@ def load_scenario():
         else:
             return jsonify({"error": "Failed to load scenario data"}), 500
 
+        print("RDF data loaded successfully")
+        print(rdf_data)
+
         # RDF-Daten parsen
         g = Graph()
         g.parse(data=rdf_data)
@@ -587,6 +589,7 @@ def load_scenario():
         # Beispielhafte Extraktion der Entities
         scenario = URIRef("http://example.com/carla-scenario#CurrentScenario")
         entities = []
+
         for s, p, o in g.triples((scenario, URIRef("http://example.com/carla-scenario#hasEntity"), None)):
             entity_type = None
             spawn_x = None
@@ -594,17 +597,17 @@ def load_scenario():
 
             # Typ der Entity extrahieren
             for _, _, entity_type_uri in g.triples((o, URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), None)):
-                entity_type = entity_type_uri.split("#")[-1]
+                entity_type = str(entity_type_uri).split("#")[-1]
 
             # SpawnPoint X und Y extrahieren
             for _, _, x in g.triples((o, URIRef("http://example.com/carla-scenario#spawnPointX"), None)):
-                spawn_x = x
+                spawn_x = str(x)
             for _, _, y in g.triples((o, URIRef("http://example.com/carla-scenario#spawnPointY"), None)):
-                spawn_y = y
+                spawn_y = str(y)
 
             # Entity zu Liste hinzufügen
             entities.append({
-                "entity": o.split("#")[-1],
+                "entity": str(o).split("#")[-1],
                 "type": entity_type,
                 "spawnPointX": spawn_x,
                 "spawnPointY": spawn_y

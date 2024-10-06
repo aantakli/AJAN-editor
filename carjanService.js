@@ -13,6 +13,8 @@ const app = express();
 const port = 4204;
 
 const server = http.createServer(app);
+let flaskProcess = null;
+let flaskPid = null;
 
 function startFlaskService() {
   const flaskProcess = spawn(
@@ -20,11 +22,47 @@ function startFlaskService() {
     ["app/services/carjan/server/carla-connection.py"],
     {
       detached: true,
-      stdio: "ignore",
+      stdio: "pipe",
     }
   );
+
+  flaskProcess.stdout.on("data", (data) => {
+    console.log(`Flask stdout: ${data}`);
+  });
+
+  flaskProcess.stderr.on("data", (data) => {
+    console.error(`Flask stderr: ${data}`);
+  });
+
+  flaskProcess.on("close", (code) => {
+    console.log(`Flask process exited with code ${code}`);
+  });
+
   flaskProcess.unref();
-  console.log("Flask service started");
+  flaskPid = flaskProcess.pid;
+  console.log(`Flask service started with PID: ${flaskPid}`);
+  flaskProcess.on("exit", (code, signal) => {
+    console.log(`Flask process exited with code ${code} and signal ${signal}`);
+    flaskProcess = null;
+  });
+}
+
+function stopFlaskService() {
+  if (flaskProcess) {
+    console.log("Stopping Flask service with process object...");
+    flaskProcess.kill();
+    console.log("Flask service stopped");
+  } else if (flaskPid) {
+    console.log(`Stopping Flask service using saved PID: ${flaskPid}...`);
+    try {
+      process.kill(flaskPid);
+      console.log("Flask service stopped using PID");
+    } catch (err) {
+      console.error(`Error stopping Flask process with PID ${flaskPid}:`, err);
+    }
+  } else {
+    console.log("No Flask process to stop.");
+  }
 }
 
 app.use(cors());
@@ -80,52 +118,86 @@ app.get("/", (req, res) => {
   res.send("Yes! Carjan Service is running.");
 });
 
-app.post("/api/carla", (req, res) => {
-  const scenarioData = req.body;
+app.post("/api/carla-scenario", async (req, res) => {
+  try {
+    console.log("/carlascenario");
+    const flaskResponse = await forwardToFlask();
 
-  forwardToFlask(scenarioData)
-    .then((response) => {
-      res.json({ status: "CARLA scenario processed", flaskResponse: response });
-    })
-    .catch((error) => {
-      res.status(500).json({ error: "Failed to process scenario" });
+    // Debug: Die erhaltene Antwort anzeigen
+    console.log("Flask response:", flaskResponse);
+
+    // Antwort an das Frontend senden
+    res.json({
+      status: "Scenario loaded from Flask",
+      scenario: flaskResponse,
     });
+  } catch (error) {
+    console.error("Error forwarding to Flask:", error);
+    res.status(500).json({ error: "Failed to load scenario" });
+  }
 });
 
-// Function to forward data to Flask
-function forwardToFlask(scenarioData) {
+app.get("/shutdown", (req, res) => {
+  res.send("Shutting down server...");
+  stopFlaskService();
+  process.exit();
+});
+
+process.on("SIGINT", () => {
+  console.log("Received SIGINT. Shutting down...");
+  stopFlaskService();
+  server.close(() => {
+    console.log("Server closed.");
+    process.exit(0);
+  });
+});
+
+function forwardToFlask() {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: "localhost",
       port: 5000,
-      path: "/api/carla",
-      method: "POST",
+      path: "/load_scenario",
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
     };
 
+    // HTTP-Anfrage an Flask senden
     const req = http.request(options, (res) => {
       let data = "";
+
+      // Daten vom Flask-Server empfangen
       res.on("data", (chunk) => {
         data += chunk;
       });
+
+      // Anfrage abgeschlossen, Daten an das Node.js-Frontend zurückgeben
       res.on("end", () => {
-        resolve(data);
+        try {
+          // Überprüfen, ob die Antwort gültiges JSON ist
+          const jsonData = JSON.parse(data);
+          resolve(jsonData);
+        } catch (error) {
+          console.error("Error parsing JSON from Flask:", error);
+          console.log("Received response:", data); // Debugging
+          reject("Invalid JSON received from Flask");
+        }
       });
     });
 
+    // Fehlerbehandlung bei der Anfrage
     req.on("error", (e) => {
       console.error(`Problem with request: ${e.message}`);
       reject(e);
     });
 
-    req.write(JSON.stringify(scenarioData));
+    // Anfrage beenden
     req.end();
   });
 }
 
-// Start Flask and Node.js services
 startFlaskService();
 server.listen(port, () => {
   console.log(`Carjan Service listening on port ${port} :)`);

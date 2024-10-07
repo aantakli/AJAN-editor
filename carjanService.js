@@ -3,6 +3,7 @@ const http = require("http");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const { spawn } = require("child_process");
+const { parseRDF } = require("./app/services/carjan/parse-rdf");
 const {
   initializeCarjanRepository,
   deleteStatements,
@@ -100,6 +101,16 @@ app.post("/api/check-repository", async (req, res) => {
   }
 });
 
+app.post("/api/parse-rdf", async (req, res) => {
+  try {
+    const result = await parseRDF(req.body.rdf);
+    res.json({ message: result });
+    return result;
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.options("/api/carla", (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
@@ -118,10 +129,8 @@ app.post("/api/carla-scenario", async (req, res) => {
   try {
     const flaskResponse = await forwardToFlask();
 
-    // Debug: Die erhaltene Antwort anzeigen
     console.log("Flask response:", flaskResponse);
 
-    // Antwort an das Frontend senden
     res.json({
       status: "Scenario loaded from Flask",
       scenario: flaskResponse,
@@ -159,41 +168,35 @@ function forwardToFlask() {
       },
     };
 
-    // HTTP-Anfrage an Flask senden
     const req = http.request(options, (res) => {
       let data = "";
 
-      // Daten vom Flask-Server empfangen
       res.on("data", (chunk) => {
         data += chunk;
       });
 
-      // Anfrage abgeschlossen, Daten an das Node.js-Frontend zurückgeben
       res.on("end", () => {
         try {
-          // Überprüfen, ob die Antwort gültiges JSON ist
           const jsonData = JSON.parse(data);
           resolve(jsonData);
         } catch (error) {
           console.error("Error parsing JSON from Flask:", error);
-          console.log("Received response:", data); // Debugging
+          console.log("Received response:", data);
           reject("Invalid JSON received from Flask");
         }
       });
     });
 
-    // Fehlerbehandlung bei der Anfrage
     req.on("error", (e) => {
       console.error(`Problem with request: ${e.message}`);
       reject(e);
     });
 
-    // Anfrage beenden
     req.end();
   });
 }
 
-startFlaskService();
+// startFlaskService();
 server.listen(port, () => {
   console.log(`Carjan Service listening on port ${port} :)`);
 });

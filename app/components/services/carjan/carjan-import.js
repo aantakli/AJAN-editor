@@ -48,16 +48,47 @@ export default Component.extend({
       document.getElementById("fileInput").click();
     },
 
-    downloadFile() {
-      this.carjanState.saveRequest();
+    downloadTurtle() {
+      this.carjanState.saveRequest(); // Setze den Zustand, dass gespeichert werden soll
+
       setTimeout(() => {
-        const link = document.createElement("a");
-        link.href =
+        // Die URL des RDF4J-Endpunkts
+        const url =
           "http://localhost:8090/rdf4j/repositories/carjan/statements";
-        link.download = "scenario-statements.ttl";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+
+        // Die Anfrage zum Herunterladen der Statements im Turtle-Format
+        fetch(url, {
+          headers: {
+            Accept: "text/turtle", // Fordert Turtle-Format an
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Failed to fetch Turtle data");
+            }
+            return response.text();
+          })
+          .then((data) => {
+            // Erstelle einen Blob aus den erhaltenen Turtle-Daten
+            const blob = new Blob([data], { type: "text/turtle" });
+            const link = document.createElement("a");
+
+            // Erstelle eine temporäre URL für den Blob und setze den Download-Name
+            const url = window.URL.createObjectURL(blob);
+            link.href = url;
+            link.download = "scenario-statements.ttl";
+
+            // Simuliere einen Klick auf den Link, um den Download auszulösen
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Lösche die temporäre URL
+            window.URL.revokeObjectURL(url);
+          })
+          .catch((error) => {
+            console.error("Error downloading Turtle data:", error);
+          });
       }, 500);
     },
 

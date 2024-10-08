@@ -4,6 +4,11 @@ import { set } from "@ember/object";
 export default Service.extend({
   mapData: null,
   agentData: null,
+  mapName: null,
+
+  setMapName(mapName) {
+    set(this, "mapName", mapName);
+  },
 
   setMapData(map) {
     set(this, "mapData", map);

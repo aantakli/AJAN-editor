@@ -216,6 +216,18 @@ export default Component.extend({
       )
     );
 
+    // Füge die Map zum Szenario hinzu
+    const currentMap = this.carjanState.get("mapName");
+    if (currentMap) {
+      rdfGraph.add(
+        rdf.quad(
+          scenarioURI,
+          rdf.namedNode("http://example.com/carla-scenario#hasMap"),
+          rdf.namedNode(`http://example.com/carla-scenario#${currentMap}`)
+        )
+      );
+    }
+
     const cells = gridContainer.querySelectorAll(".grid-cell");
     let entityCounter = 1;
 

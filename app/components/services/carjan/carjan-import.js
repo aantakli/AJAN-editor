@@ -476,7 +476,7 @@ export default Component.extend({
         }
       }
     });
-
+    console.log("MapName:", mapName);
     return mapName;
   },
 

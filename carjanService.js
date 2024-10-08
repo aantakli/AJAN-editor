@@ -3,7 +3,6 @@ const http = require("http");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const { spawn } = require("child_process");
-const { parseRDF } = require("./app/services/carjan/parse-rdf");
 const {
   initializeCarjanRepository,
   deleteStatements,
@@ -94,16 +93,6 @@ app.post("/api/delete-carjan-repo", async (req, res) => {
 app.post("/api/check-repository", async (req, res) => {
   try {
     const result = await checkIfRepositoryExists();
-    res.json({ message: result });
-    return result;
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post("/api/parse-rdf", async (req, res) => {
-  try {
-    const result = await parseRDF(req.body.rdf);
     res.json({ message: result });
     return result;
   } catch (error) {

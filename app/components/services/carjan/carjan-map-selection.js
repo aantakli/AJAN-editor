@@ -1,5 +1,6 @@
 import Component from "@ember/component";
 import { inject as service } from "@ember/service";
+import { set } from "@ember/object";
 
 export default Component.extend({
   dataBus: service("data-bus"),
@@ -14,22 +15,18 @@ export default Component.extend({
   },
 
   async getMap(mapName) {
-    const response = await fetch(`/assets/carjan-maps/${mapName}.json`);
-    if (response.ok) {
-      const mapData = await response.json();
-      return mapData;
-    } else {
-      console.error("Map not found:", mapName);
-      return null;
-    }
+    const response = await fetch("/assets/carjan-maps/maps.json");
+    const maps = await response.json();
+    this.carjanState.setMapName(mapName);
+    return maps[mapName] || maps.map01;
   },
   actions: {
-    async selectMap(mapName) {
-      const map = await this.getMap(mapName);
-      if (map) {
-        this.carjanState.setMapData(map);
-        console.log(`Map ${mapName} selected and set.`);
-      }
+    selectMap(mapName) {
+      this.setMap(mapName);
     },
+  },
+  async setMap(mapName) {
+    const map = await this.getMap(mapName);
+    this.carjanState.setMapData(map);
   },
 });

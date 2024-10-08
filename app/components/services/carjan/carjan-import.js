@@ -98,6 +98,10 @@ export default Component.extend({
 
     triggerSaveScenario() {
       this.carjanState.saveRequest();
+      //timeout 1s
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 1000);
     },
 
     async saveAndReset() {
@@ -130,6 +134,9 @@ export default Component.extend({
           this.parseTurtle(turtleContent).then((result) => {
             this.updateCarjanRepo(result).then(() => {
               this.loadGrid();
+              setTimeout(() => {
+                window.location.reload(true);
+              }, 1000);
             });
           });
         };
@@ -166,7 +173,9 @@ export default Component.extend({
   async updateCarjanRepo(statements) {
     this.checkRepository().then(() => {
       this.deleteStatements().then(() => {
-        this.updateWithStatements(statements);
+        setTimeout(() => {
+          this.updateWithStatements(statements);
+        }, 200);
       });
     });
   },

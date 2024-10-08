@@ -264,7 +264,7 @@ export default Component.extend({
       const isOccupied = cell.getAttribute("data-occupied") === "true";
       const entityType = this.gridStatus[`${row},${col}`].entityType;
 
-      if (isOccupied) {
+      if (isOccupied && entityType !== "void") {
         const entityId =
           String(row).padStart(2, "0") + String(col).padStart(2, "0");
         const entityURI = rdf.namedNode(
@@ -403,6 +403,12 @@ export default Component.extend({
         }
       }
     });
+    // Entities hinzufügen, falls vorhanden
+    if (agents) {
+      agents.forEach((agent) => {
+        this.addEntityToGrid(agent.type, agent.y, agent.x);
+      });
+    }
 
     set(this, "gridCells", cells);
     set(this, "gridStatus", status);
@@ -417,6 +423,7 @@ export default Component.extend({
 
         // Verhindere, dass auf Void-Zellen Entities gesetzt werden
         if (currentStatus.occupied && currentStatus.entityType === "void") {
+          console.log(`Cannot place entity on void cell at (${row}, ${col})`);
           return;
         }
 

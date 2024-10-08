@@ -173,7 +173,6 @@ export default Component.extend({
     function () {
       const map = this.carjanState.mapData;
       const agents = this.carjanState.agentData;
-
       if (map && agents) {
         this.deleteAllEntites();
         this.setupGrid(map, agents);

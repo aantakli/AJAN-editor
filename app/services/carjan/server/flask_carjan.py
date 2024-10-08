@@ -97,11 +97,13 @@ def get_anchor_point(mapName):
         return carla.Location(x=240, y=57.5, z=0.1)
 
 
-def load_grid(grid_size=12, cell_size=1.35):
+
+def load_grid(grid_width=12, grid_height=8, cw=4.5, ch=5):
     try:
         client.set_timeout(10.0)
         world = client.get_world()
-
+        cell_width = cw*0.8
+        cell_height = ch*0.8
         # Farben
         grid_color = carla.Color(50, 200, 50)  # Dunkleres Grün
 
@@ -119,27 +121,28 @@ def load_grid(grid_size=12, cell_size=1.35):
         else:
             raise ValueError("Anchor point not found for the given map name.")
 
+        # Vertauschte Achsen und kleinere Zellen
+        for i in range(grid_height + 1):
+            # Vertikale Linien (auf der Y-Achse)
+            start_y = center_y + i * cell_height - (grid_height * cell_height / 2)
+            start_x = center_x - (grid_width * cell_width / 2)
+            end_x = center_x + (grid_width * cell_width / 2)
 
-        # Zeichne das 12x12 Grid
-        for i in range(grid_size + 1):
-            # Vertikale Linien
-            start_x = center_x + i * cell_size - (grid_size * cell_size / 2)
-            start_y = center_y - (grid_size * cell_size / 2)
-            end_y = center_y + (grid_size * cell_size / 2)
+            start_loc = carla.Location(start_x, start_y, center_z)
+            end_loc = carla.Location(end_x, start_y, center_z)
+            world.debug.draw_line(start_loc, end_loc, thickness=0.02, color=grid_color)
+
+        for j in range(grid_width + 1):
+            # Horizontale Linien (auf der X-Achse)
+            start_x = center_x + j * cell_width - (grid_width * cell_width / 2)
+            start_y = center_y - (grid_height * cell_height / 2)
+            end_y = center_y + (grid_height * cell_height / 2)
 
             start_loc = carla.Location(start_x, start_y, center_z)
             end_loc = carla.Location(start_x, end_y, center_z)
             world.debug.draw_line(start_loc, end_loc, thickness=0.02, color=grid_color)
 
-            # Horizontale Linien
-            start_x = center_x - (grid_size * cell_size / 2)
-            end_x = center_x + (grid_size * cell_size / 2)
-            start_loc = carla.Location(start_x, start_y + i * cell_size, center_z)
-            end_loc = carla.Location(end_x, start_y + i * cell_size, center_z)
-            world.debug.draw_line(start_loc, end_loc, thickness=0.02, color=grid_color)
-
-
-        return {"status": "Grid drawn successfully with origin marker"}
+        return {"status": "Grid drawn successfully with 5:6 ratio, adjusted size and corrected axes"}
 
     except Exception as e:
         print(f"Error in load_grid: {str(e)}")
@@ -153,22 +156,23 @@ def load_world(entities, map_name):
         world = client.load_world('Town01_Opt')
 
         blueprint_library = world.get_blueprint_library()
-
         unload_stuff(client)
 
-        # Den Ankerpunkt basierend auf der Map abrufen
+        scale_x = 3.6
+        scale_y = 4.2
+
+
         anchor_point = get_anchor_point(map_name)
-        anchor = carla.Location(x=anchor_point.x - 5, y=anchor_point.y + 5, z=0.1)
+        anchor = carla.Location(x=anchor_point.x - (5*scale_x) - (scale_x/2), y=anchor_point.y + (3.5*scale_y), z=0.1)
 
-        # Spawnpunkte abrufen (falls nötig)
-        spawn_transforms = world.get_map().get_spawn_points()
-
-        # Scenario mit den Entities spawnen
         for entity in entities:
+            new_x = float(entity["spawnPointY"]) * scale_x #vertikal
+            new_y = float(entity["spawnPointX"]) * scale_y #horizontal
+            print(f"New X: {new_x}, New Y: {new_y}")
             spawn_location = carla.Location(
-                x=anchor.x + float(entity["spawnPointY"]),
-                y=anchor.y - float(entity["spawnPointX"]),
-                z=anchor.z + 2  # Kleine Erhöhung in der Z-Koordinate
+                x=anchor.x + new_x,
+                y=anchor.y - new_y,
+                z=anchor.z + 2
             )
 
             if entity["type"] == "Pedestrian":
@@ -203,11 +207,11 @@ def load_world(entities, map_name):
 def unload_stuff(client):
     world = client.get_world()
     unloadList = [
-            carla.MapLayer.NONE,
+            #carla.MapLayer.NONE,
             carla.MapLayer.Buildings,
             carla.MapLayer.Decals,
-            carla.MapLayer.Foliage,
-            carla.MapLayer.Ground,
+            #carla.MapLayer.Foliage,
+            #carla.MapLayer.Ground,
             carla.MapLayer.ParkedVehicles,
             carla.MapLayer.Particles,
             carla.MapLayer.StreetLights,
@@ -763,6 +767,7 @@ def load_scenario():
     except Exception as e:
         print(f"Error in load_scenario: {str(e)}", flush=True)
         return jsonify({"error": str(e)}), 500
+
 
 @app.route('/reset-carla', methods=['POST'])
 def reset_carla():

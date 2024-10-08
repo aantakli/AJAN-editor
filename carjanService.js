@@ -17,21 +17,23 @@ let flaskProcess = null;
 let flaskPid = null;
 
 function startFlaskService() {
-  const flaskProcess = spawn(
+  flaskProcess = spawn(
     "python",
     ["app/services/carjan/server/flask_carjan.py"],
     {
       detached: true,
-      stdio: "pipe",
+      stdio: ["pipe", "pipe", "pipe"],
     }
   );
 
+  // Erhalte die Ausgabe von stdout (normale Logs)
   flaskProcess.stdout.on("data", (data) => {
-    console.log(`=== Carjan Service === \n ${data}`);
+    console.log(`=== Carjan Service ===\n${data.toString()}`);
   });
 
+  // Erhalte die Ausgabe von stderr (Fehlerprotokolle)
   flaskProcess.stderr.on("data", (data) => {
-    console.error(`=== Carla Connection === \n ${data}`);
+    console.error(`=== Carla Connection ===\n${data.toString()}`);
   });
 
   flaskProcess.on("close", (code) => {
@@ -130,6 +132,22 @@ app.post("/api/carla-scenario", async (req, res) => {
   }
 });
 
+app.post("/api/reset-carla", async (req, res) => {
+  try {
+    const flaskResponse = await forwardToFlask();
+
+    console.log("Flask response:", flaskResponse);
+
+    res.json({
+      status: "Scenario loaded from Flask",
+      scenario: flaskResponse,
+    });
+  } catch (error) {
+    console.error("Error forwarding to Flask:", error);
+    res.status(500).json({ error: "Failed to load scenario" });
+  }
+});
+
 app.get("/shutdown", (req, res) => {
   res.send("Shutting down server...");
   stopFlaskService();
@@ -185,7 +203,7 @@ function forwardToFlask() {
   });
 }
 
-// startFlaskService();
+startFlaskService();
 server.listen(port, () => {
   console.log(`Carjan Service listening on port ${port} :)`);
 });

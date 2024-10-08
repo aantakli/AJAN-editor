@@ -18,7 +18,7 @@
 
 :global(#gridContainer) {
   display: grid;
-  grid-template-columns: repeat(12, 50px);
+  grid-template-columns: repeat(8, 60px);
   grid-template-rows: repeat(12, 50px);
   gap: 1px;
 }
@@ -41,7 +41,7 @@
 }
 
 :global(.grid-cell) {
-  width: 50px;
+  width: 75px;
   height: 50px;
   border: 1px solid black;
   position: relative;

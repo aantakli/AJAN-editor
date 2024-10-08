@@ -7,7 +7,10 @@
     <ul>
       {{#each maps as |map|}}
         <li>
-          <a href="#" {{action "selectMap" map.name}}>{{map.name}}</a>
+          <a
+            href="#"
+            {{on "click" (fn this.selectMap map.name)}}
+          >{{map.name}}</a>
         </li>
       {{/each}}
     </ul>

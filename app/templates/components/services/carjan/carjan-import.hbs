@@ -29,6 +29,36 @@
       Download
     </button>
 
+    {{#ui-dropdown
+      class="fluid search selection bt-selection"
+      allowAdditions=true
+      fullTextSearch=true
+      sortSelected=true
+      selected=selectedValueName
+      onChange=(action (mut selectedValue))
+    }}
+      <div class="default text">Select Scenario Map</div>
+      <i class="dropdown icon" />
+      <div class="menu" id="bt-select">
+
+        <button
+          class="ui primary button sticky-save"
+          {{action "switchMap" "map01"}}
+        >
+          <i class="download icon" />
+          Map 01
+        </button>
+
+        <button
+          class="ui primary button sticky-save"
+          {{action "switchMap" "map02"}}
+        >
+          <i class="download icon" />
+          Map 02
+        </button>
+      </div>
+    {{/ui-dropdown}}
+
   </div>
 
   <!-- Toast-Nachricht -->

@@ -48,6 +48,10 @@ export default Component.extend({
       document.getElementById("fileInput").click();
     },
 
+    switchMap(mapName) {
+      this.setMap(mapName);
+    },
+
     downloadTurtle() {
       this.carjanState.saveRequest(); // Setze den Zustand, dass gespeichert werden soll
 

@@ -8,8 +8,10 @@ import rdf from "npm:rdf-ext";
 export default Component.extend({
   rs: getComputedStyle(document.documentElement),
   carjanState: service(),
-  gridSize: 12,
-  cellSize: 50,
+  gridRows: 12,
+  gridCols: 8,
+  cellHeight: 50,
+  cellWidth: 60,
   gridCells: null,
   scale: 1.0,
   translateX: 0,
@@ -20,6 +22,7 @@ export default Component.extend({
     x: 0,
     y: 0,
   },
+  dragFlag: false,
   mapData: null,
   agentData: null,
   colors: {
@@ -29,6 +32,8 @@ export default Component.extend({
     path: getComputedStyle(document.documentElement)
       .getPropertyValue("--color-primary-2")
       .trim(),
+    //mittel aber dunkles grau für void
+    void: "#333333",
   },
   didInsertElement() {
     this._super(...arguments);
@@ -36,7 +41,10 @@ export default Component.extend({
     this.draggingEntityType = null;
     this.setupPanningAndZoom();
     this.applyTransform();
-    this.setupGrid(this.carjanState.mapData, this.carjanState.agentData);
+
+    if (this.carjanState.mapData && this.carjanState.agentData) {
+      this.setupGrid(this.carjanState.mapData, this.carjanState.agentData);
+    }
   },
   actions: {
     allowDrop(event) {
@@ -80,7 +88,12 @@ export default Component.extend({
         targetCellStatus = {};
       }
       if (targetCellStatus.occupied) {
+        if (!this.dragFlag) {
+          return;
+        }
         this.recoverEntity();
+        this.dragFlag = false;
+
         return;
       }
 
@@ -134,8 +147,14 @@ export default Component.extend({
       const row = event.target.dataset.row;
       const col = event.target.dataset.col;
 
+      this.dragFlag = true;
+
       const cellStatus = this.gridStatus[`${row},${col}`];
-      if (cellStatus && cellStatus.occupied) {
+      if (
+        cellStatus &&
+        cellStatus.occupied &&
+        cellStatus.entityType !== "void"
+      ) {
         this.draggingEntityType = cellStatus.entityType;
         event.dataTransfer.setData("text", this.draggingEntityType);
 
@@ -171,11 +190,17 @@ export default Component.extend({
     "carjanState.mapData",
     "carjanState.agentData",
     function () {
-      const map = this.carjanState.mapData;
-      const agents = this.carjanState.agentData;
-      if (map && agents) {
+      const currentMap = this.carjanState.mapData;
+      const currentAgents = this.carjanState.agentData;
+
+      if (
+        this.previousMap !== currentMap ||
+        this.previousAgents !== currentAgents
+      ) {
         this.deleteAllEntites();
-        this.setupGrid(map, agents);
+        this.setupGrid(currentMap, currentAgents);
+        this.previousMap = currentMap;
+        this.previousAgents = currentAgents;
       }
     }
   ),
@@ -187,11 +212,13 @@ export default Component.extend({
   }),
 
   deleteAllEntites() {
-    this.gridCells.forEach((cell) => {
-      const row = cell.row;
-      const col = cell.col;
-      this.removeEntityFromGrid(row, col);
-    });
+    if (this.gridCells) {
+      this.gridCells.forEach((cell) => {
+        const row = cell.row;
+        const col = cell.col;
+        this.removeEntityFromGrid(row, col);
+      });
+    }
   },
 
   saveEditorToRepo() {
@@ -199,7 +226,6 @@ export default Component.extend({
 
     const gridContainer = this.element.querySelector("#gridContainer");
     if (!gridContainer) {
-      console.error("GridContainer not found");
       return;
     }
 
@@ -313,13 +339,16 @@ export default Component.extend({
   },
 
   setupGrid(map = null, agents = null) {
+    if (!map || !agents) {
+      return;
+    }
     let cells = [];
     let status = {};
     let colors = [];
 
-    for (let row = 0; row < this.gridSize; row++) {
-      for (let col = 0; col < this.gridSize; col++) {
-        let color = this.colors.road;
+    for (let row = 0; row < this.gridRows; row++) {
+      for (let col = 0; col < this.gridCols; col++) {
+        let color = this.colors.void; // Standardfarbe Void
 
         if (map && map[row] && map[row][col]) {
           const cellType = map[row][col];
@@ -332,56 +361,66 @@ export default Component.extend({
 
         colors[`${row},${col}`] = color;
 
-        status[`${row},${col}`] = {
-          occupied: false,
-          entityType: null,
-        };
+        // Wenn die Zelle Void ist, setze sie als belegt
+        if (color === this.colors.void) {
+          status[`${row},${col}`] = {
+            occupied: true, // Void Zellen sind immer belegt
+            entityType: "void",
+          };
+        } else {
+          status[`${row},${col}`] = {
+            occupied: false,
+            entityType: null,
+          };
+        }
 
         cells.push({ row, col });
       }
     }
+
+    // Vor `afterRender` den Status korrekt setzen
+    this.gridStatus = status;
+
     run.scheduleOnce("afterRender", this, function () {
-      for (let row = 0; row < this.gridSize; row++) {
-        for (let col = 0; col < this.gridSize; col++) {
+      for (let row = 0; row < this.gridRows; row++) {
+        for (let col = 0; col < this.gridCols; col++) {
           const gridElement = this.element.querySelector(
             `.grid-cell[data-row="${row}"][data-col="${col}"]`
           );
           if (gridElement) {
             gridElement.style.backgroundColor = colors[`${row},${col}`];
+            gridElement.style.height = `${this.cellHeight}px`;
+            gridElement.style.width = `${this.cellWidth}px`;
+
+            const currentStatus = this.gridStatus[`${row},${col}`];
+
+            gridElement.setAttribute("data-occupied", currentStatus.occupied);
+            gridElement.setAttribute(
+              "data-entityType",
+              currentStatus.entityType
+            );
           }
         }
       }
     });
 
-    if (agents) {
-      agents.forEach((agent) => {
-        this.addEntityToGrid(agent.type, agent.y, agent.x);
-      });
-    }
-
     set(this, "gridCells", cells);
     set(this, "gridStatus", status);
   },
-
-  refreshGrid(map, agents) {
-    set(this, "mapData", map);
-    set(this, "agentData", agents);
-
-    this.setupGrid(map, agents);
-  },
-
-  recoverEntity() {
-    const [originalRow, originalCol] = this.draggingEntityPosition;
-    this.addEntityToGrid(this.draggingEntityType, originalRow, originalCol);
-    this.draggingEntityType = null;
-  },
-
   addEntityToGrid(entityType, row, col) {
     run.scheduleOnce("afterRender", this, function () {
       const gridElement = this.element.querySelector(
         `.grid-cell[data-row="${row}"][data-col="${col}"]`
       );
       if (gridElement) {
+        const currentStatus = this.gridStatus[`${row},${col}`];
+
+        // Verhindere, dass auf Void-Zellen Entities gesetzt werden
+        if (currentStatus.occupied && currentStatus.entityType === "void") {
+          return;
+        }
+
+        // Setze das Icon für die Entität
         const iconMap = {
           pedestrian: "user",
           vehicle: "car",
@@ -406,10 +445,12 @@ export default Component.extend({
 
         gridElement.appendChild(iconElement);
 
+        // Aktualisiere den Grid-Status
         gridElement.setAttribute("data-occupied", "true");
-        gridElement.setAttribute("data-entityType", "true");
+        gridElement.setAttribute("data-entityType", entityType);
         gridElement.setAttribute("draggable", "true");
 
+        // Der Status für nicht-void Zellen wird aktualisiert
         this.gridStatus[`${row},${col}`] = {
           occupied: true,
           entityType: entityType,
@@ -435,6 +476,18 @@ export default Component.extend({
         };
       }
     });
+  },
+  refreshGrid(map, agents) {
+    set(this, "mapData", map);
+    set(this, "agentData", agents);
+
+    this.setupGrid(map, agents);
+  },
+
+  recoverEntity() {
+    const [originalRow, originalCol] = this.draggingEntityPosition;
+    this.addEntityToGrid(this.draggingEntityType, originalRow, originalCol);
+    this.draggingEntityType = null;
   },
 
   applyTransform() {
@@ -502,9 +555,8 @@ export default Component.extend({
 
     const cellStatus = this.gridStatus[`${row},${col}`];
     const isEntityCell = cellStatus && cellStatus.occupied;
-
     if (e.button === 0) {
-      if (isEntityCell) {
+      if (isEntityCell && cellStatus.entityType !== "void") {
         this.draggingEntityType = this.gridStatus[`${row},${col}`].entityType;
         this.draggingEntityPosition = [row, col];
         drag.state = true;

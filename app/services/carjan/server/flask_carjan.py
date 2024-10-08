@@ -1,3 +1,7 @@
+import sys
+
+sys.stdout = open(sys.stdout.fileno(), 'w', buffering=1)
+
 from flask import Flask, Response, jsonify, request
 import carla
 import logging
@@ -88,109 +92,113 @@ def set_spectator_view(world, location, rotation):
     spectator.set_transform(transform)
     print(f"Spectator set at position {location} with rotation {rotation}")
 
+def get_anchor_point(mapName):
+    if mapName == "map01":
+        return carla.Location(x=240, y=57.5, z=0.1)
 
-def load_grid(center_x=248, center_y=50, grid_size=10, cell_size=5):
+
+def load_grid(grid_size=12, cell_size=1.35):
     try:
-        client = carla.Client("localhost", 2000)
         client.set_timeout(10.0)
         world = client.get_world()
-        print(world)
-        # Blaupause für die Linien
-        debug = world.debug
-        print(debug)
+
         # Farben
-        grid_color = carla.Color(0, 255, 0)  # Grün
+        grid_color = carla.Color(50, 200, 50)  # Dunkleres Grün
 
-        # Das Zentrum des Rasters
-        center_location = carla.Location(x=center_x, y=center_y, z=0.1)
+        # Erhalte die aktuelle Position der Kamera
+        spectator = world.get_spectator()
+        camera_transform = spectator.get_transform()
+        camera_location = camera_transform.location
 
-        # Rastergröße und Zellenanzahl
-        half_grid_size = grid_size // 2
+        anchor_point = get_anchor_point("map01")
 
-        # Zeichne vertikale Linien
-        for i in range(-half_grid_size, half_grid_size + 1):
-            start_x = center_location.x + i * cell_size
-            start_location = carla.Location(x=start_x, y=center_location.y - half_grid_size * cell_size, z=center_location.z)
-            end_location = carla.Location(x=start_x, y=center_location.y + half_grid_size * cell_size, z=center_location.z)
+        if anchor_point:
+            center_x = anchor_point.x
+            center_y = anchor_point.y
+            center_z = 0.2  # Setze das Grid knapp über den Boden
+        else:
+            raise ValueError("Anchor point not found for the given map name.")
 
-            debug.draw_line(start_location, end_location, thickness=0.1, color=grid_color, life_time=0)
 
-        # Zeichne horizontale Linien
-        for i in range(-half_grid_size, half_grid_size + 1):
-            start_y = center_location.y + i * cell_size
-            start_location = carla.Location(x=center_location.x - half_grid_size * cell_size, y=start_y, z=center_location.z)
-            end_location = carla.Location(x=center_location.x + half_grid_size * cell_size, y=start_y, z=center_location.z)
+        # Zeichne das 12x12 Grid
+        for i in range(grid_size + 1):
+            # Vertikale Linien
+            start_x = center_x + i * cell_size - (grid_size * cell_size / 2)
+            start_y = center_y - (grid_size * cell_size / 2)
+            end_y = center_y + (grid_size * cell_size / 2)
 
-            debug.draw_line(start_location, end_location, thickness=0.1, color=grid_color, life_time=0)
+            start_loc = carla.Location(start_x, start_y, center_z)
+            end_loc = carla.Location(start_x, end_y, center_z)
+            world.debug.draw_line(start_loc, end_loc, thickness=0.02, color=grid_color)
 
-        print("Grid drawn successfully at center (248, 50)")
-        return {"status": "Grid drawn successfully"}
+            # Horizontale Linien
+            start_x = center_x - (grid_size * cell_size / 2)
+            end_x = center_x + (grid_size * cell_size / 2)
+            start_loc = carla.Location(start_x, start_y + i * cell_size, center_z)
+            end_loc = carla.Location(end_x, start_y + i * cell_size, center_z)
+            world.debug.draw_line(start_loc, end_loc, thickness=0.02, color=grid_color)
+
+
+        return {"status": "Grid drawn successfully with origin marker"}
 
     except Exception as e:
         print(f"Error in load_grid: {str(e)}")
         return {"error": str(e)}
 
 
-
-def load_world(entities):
+def load_world(entities, map_name):
     try:
         client = carla.Client("localhost", 2000)
         client.set_timeout(10.0)
         world = client.load_world('Town01_Opt')
-        log_path = "C:/Users/leona/Documents/carla_simulation.log"
-        print(f"Recording will be saved at: {log_path}")
-        client.start_recorder(log_path)
 
         blueprint_library = world.get_blueprint_library()
 
         unload_stuff(client)
 
-        # Filtern der Wegpunkte (z.B. nur Wegpunkte auf einer bestimmten Straße)
-        waypoints = client.get_world().get_map().generate_waypoints(distance=1.0)
-        filtered_waypoints = [waypoint for waypoint in waypoints if waypoint.road_id == 5]
+        # Den Ankerpunkt basierend auf der Map abrufen
+        anchor_point = get_anchor_point(map_name)
+        anchor = carla.Location(x=anchor_point.x - 5, y=anchor_point.y + 5, z=0.1)
 
-        # Spawnpunkte abrufen
+        # Spawnpunkte abrufen (falls nötig)
         spawn_transforms = world.get_map().get_spawn_points()
 
         # Scenario mit den Entities spawnen
         for entity in entities:
-            if entity["type"] == "Pedestrian":
-                spawn_point_pedestrian = spawn_transforms[6]
-                spawn_point_pedestrian.location.x += float(entity["spawnPointX"])
-                spawn_point_pedestrian.location.y -= float(entity["spawnPointY"])
-                spawn_point_pedestrian.location.z += 10.0
+            spawn_location = carla.Location(
+                x=anchor.x + float(entity["spawnPointY"]),
+                y=anchor.y - float(entity["spawnPointX"]),
+                z=anchor.z + 2  # Kleine Erhöhung in der Z-Koordinate
+            )
 
+            if entity["type"] == "Pedestrian":
                 pedestrian_blueprint = blueprint_library.find('walker.pedestrian.0001')
-                world.try_spawn_actor(pedestrian_blueprint, spawn_point_pedestrian)
-                print(f"Pedestrian spawned at: {spawn_point_pedestrian.location}")
+                pedestrian_transform = carla.Transform(spawn_location)
+                world.try_spawn_actor(pedestrian_blueprint, pedestrian_transform)
+                print(f"Pedestrian spawned at: {spawn_location}")
 
             elif entity["type"] == "Vehicle":
-                spawn_point_vehicle = spawn_transforms[3]
-                spawn_point_vehicle.location.x += float(entity["spawnPointX"])
-                spawn_point_vehicle.location.y -= float(entity["spawnPointY"])
-                spawn_point_vehicle.location.z += 10.0
-
                 vehicle_blueprint = blueprint_library.find('vehicle.audi.a2')
-                world.try_spawn_actor(vehicle_blueprint, spawn_point_vehicle)
-                print(f"Vehicle spawned at: {spawn_point_vehicle.location}")
+                vehicle_transform = carla.Transform(spawn_location)
+                world.try_spawn_actor(vehicle_blueprint, vehicle_transform)
+                print(f"Vehicle spawned at: {spawn_location}")
 
             elif entity["type"] == "AutonomousVehicle":
-                spawn_point_autonomous = spawn_transforms[5]
-                spawn_point_autonomous.location.x += float(entity["spawnPointX"])
-                spawn_point_autonomous.location.y -= float(entity["spawnPointY"])
-                spawn_point_autonomous.location.z += 10.0
-
                 autonomous_blueprint = blueprint_library.find('vehicle.tesla.model3')
-                world.try_spawn_actor(autonomous_blueprint, spawn_point_autonomous)
-                print(f"Autonomous vehicle spawned at: {spawn_point_autonomous.location}")
+                autonomous_transform = carla.Transform(spawn_location)
+                world.try_spawn_actor(autonomous_blueprint, autonomous_transform)
+                print(f"Autonomous vehicle spawned at: {spawn_location}")
 
+        # Set the spectator view
+        set_spectator_view(world, carla.Location(x=anchor_point.x + 20, y=anchor_point.y, z=15), carla.Rotation(pitch=-30, yaw=-180, roll=0))
 
-        set_spectator_view(world, carla.Location(x=248, y=56.5, z=15), carla.Rotation(pitch=-30, yaw=-180, roll=0))
         return {"status": "Entities spawned successfully"}
 
     except Exception as e:
         print(f"Error in load_world: {str(e)}")
         return {"error": str(e)}
+
+
 
 def unload_stuff(client):
     world = client.get_world()
@@ -210,7 +218,6 @@ def unload_stuff(client):
 
     for layer in unloadList:
         world.unload_map_layer(layer)
-        print(f"Unloaded map layer {layer}")
 
     def disable_specific_objects(client):
         world = client.get_world()
@@ -232,7 +239,6 @@ def unload_stuff(client):
             env_obj_ids = [obj.id for obj in env_objs]
             try:
                 world.enable_environment_objects(env_obj_ids, False)
-                print(f"Disabled {len(env_obj_ids)} objects of type {label}")
             except RuntimeError as e:
                 print(f"Error disabling objects of type {label}: {e}")
 
@@ -712,38 +718,77 @@ def load_scenario():
         else:
             return jsonify({"error": "Failed to load scenario data"}), 500
 
-        print("RDF data loaded successfully")
-        print(rdf_data)
+        print("RDF data loaded successfully", flush=True)
+        print(rdf_data, flush=True)
 
         g = Graph()
         g.parse(data=rdf_data)
 
         scenario = URIRef("http://example.com/carla-scenario#CurrentScenario")
         entities = []
+        scenario_map = None
 
-        for s, p, o in g.triples((scenario, URIRef("http://example.com/carla-scenario#hasEntity"), None)):
-            entity_type = None
-            spawn_x = None
-            spawn_y = None
+        # Extrahiere die Map-Informationen
+        for s, p, o in g.triples((scenario, URIRef("http://example.com/carla-scenario#hasMap"), None)):
+            scenario_map = str(o).split("#")[-1]
+            print(f"Map found: {scenario_map}", flush=True)
 
-            for _, _, entity_type_uri in g.triples((o, URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), None)):
-                entity_type = str(entity_type_uri).split("#")[-1]
+        # Suche nach allen Entitäten-Typen (Vehicle, Pedestrian, etc.)
+        for entity_type in ["Vehicle", "AutonomousVehicle", "Pedestrian"]:
+            for entity_uri in g.subjects(predicate=URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), object=URIRef(f"http://example.com/carla-scenario#{entity_type}")):
+                spawn_x = None
+                spawn_y = None
 
-            for _, _, x in g.triples((o, URIRef("http://example.com/carla-scenario#spawnPointX"), None)):
-                spawn_x = str(x)
-            for _, _, y in g.triples((o, URIRef("http://example.com/carla-scenario#spawnPointY"), None)):
-                spawn_y = str(y)
+                for _, _, x in g.triples((entity_uri, URIRef("http://example.com/carla-scenario#spawnPointX"), None)):
+                    spawn_x = str(x)
+                for _, _, y in g.triples((entity_uri, URIRef("http://example.com/carla-scenario#spawnPointY"), None)):
+                    spawn_y = str(y)
 
-            entities.append({
-                "entity": str(o).split("#")[-1],
-                "type": entity_type,
-                "spawnPointX": spawn_x,
-                "spawnPointY": spawn_y
-            })
+                if spawn_x and spawn_y:
+                    entities.append({
+                        "entity": str(entity_uri).split("#")[-1],
+                        "type": entity_type,
+                        "spawnPointX": spawn_x,
+                        "spawnPointY": spawn_y
+                    })
 
-        load_world(entities)
+        print(f"Entities found: {entities}", flush=True)
+
+        # Welt und Gitter basierend auf den extrahierten Daten laden
+        load_world(entities, scenario_map)
         load_grid()
-        return jsonify({"status": "success", "entities": entities}), 200
+
+        return jsonify({"status": "success", "map": scenario_map, "entities": entities}), 200
+
+    except Exception as e:
+        print(f"Error in load_scenario: {str(e)}", flush=True)
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/reset-carla', methods=['POST'])
+def reset_carla():
+    try:
+        world = client.reload_world()
+
+        # Setze die Karte zurück (lädt die Standardkarte)
+        map_name = "Town01"  # Du kannst hier eine andere Standardkarte festlegen, falls nötig
+        client.load_world(map_name)
+
+        # Setze das Wetter zurück (auf klare Bedingungen)
+        weather = carla.WeatherParameters.ClearNoon
+        world.set_weather(weather)
+
+        # Entferne alle vorhandenen Entities (Fahrzeuge und Fußgänger)
+        actors = world.get_actors()
+        for actor in actors:
+            if actor.type_id.startswith('vehicle') or actor.type_id.startswith('walker.pedestrian'):
+                actor.destroy()
+
+        # Setze die Kamera zurück (auf eine Standardposition über dem Ursprung)
+        spectator = world.get_spectator()
+        transform = carla.Transform(carla.Location(x=0, y=0, z=50), carla.Rotation(pitch=-90))
+        spectator.set_transform(transform)
+
+        return jsonify({"status": "Carla environment reset to default settings"})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

@@ -1,14 +1,22 @@
-<button {{action "loadScenario"}} class="ui secondary button sticky-save">
-  <i class="eye icon"></i>
-  Preview in CARLA
-</button>
+{{#ui-accordion exclusive=false}}
+  <div class="active title composite-selection">
+    <i class="dropdown icon" />
+    <i class="play circle outline icon" /><b><font size="3">CARLA</font></b>
+  </div>
+  <div local-class="button-container">
+    <button {{action "loadScenario"}} class="ui secondary button sticky-save">
+      <i class="eye icon"></i>
+      Preview in CARLA
+    </button>
 
-<button {{action "resetCarla"}} class="ui primary button sticky-save">
-  <i class="undo icon"></i>
-  Reset CARLA
-</button>
+    <button {{action "resetCarla"}} class="ui primary button sticky-save">
+      <i class="undo icon"></i>
+      Reset CARLA
+    </button>
 
-<button {{action "ajanAgent"}} class="ui primary button sticky-save">
-  <i class="user icon"></i>
-  Generate AJAN Agent
-</button>
+    <button {{action "ajanAgent"}} class="ui primary button sticky-save">
+      <i class="user icon"></i>
+      Generate AJAN Agent
+    </button>
+  </div>
+{{/ui-accordion}}

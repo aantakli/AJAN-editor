@@ -4,8 +4,14 @@
     <i class="play circle outline icon" /><b><font size="3">CARLA</font></b>
   </div>
   <div local-class="button-container">
-    <button {{action "loadScenario"}} class="ui secondary button sticky-save">
-      <i class="eye icon"></i>
+
+    <button {{action "startFlask"}} class="ui secondary button sticky-save">
+      <i class="cogs icon"></i>
+      Start Flask
+    </button>
+
+    <button {{action "loadScenario"}} class="ui primary button sticky-save">
+      <i class="play icon"></i>
       Preview in CARLA
     </button>
 
@@ -14,9 +20,5 @@
       Reset CARLA
     </button>
 
-    <button {{action "ajanAgent"}} class="ui primary button sticky-save">
-      <i class="user icon"></i>
-      Generate AJAN Agent
-    </button>
   </div>
 {{/ui-accordion}}

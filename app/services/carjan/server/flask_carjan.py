@@ -26,6 +26,7 @@ world = client.get_world()
 blueprint_library = world.get_blueprint_library()
 current_map = world.get_map()
 
+entityList = []
 seen_actors = set()
 
 global_async_uri = None
@@ -37,56 +38,40 @@ LOCATION = Namespace("http://carla.org/location/")
 BASE = Namespace("http://carla.org/")
 
 def getInformation(request):
-    pedestrian_id = None
-    vehicle_id = None
-    async_request_uri = None
+  pedestrian_id = None
+  async_request_uri = None
 
-    request_data = request.data.decode('utf-8')
+  request_data = request.data.decode('utf-8')
 
-    # Parsen der RDF-Daten mit rdflib
-    g = rdflib.Graph()
-    g.parse(data=request_data, format='turtle')
+  # Parsen der RDF-Daten mit rdflib
+  g = rdflib.Graph()
+  g.parse(data=request_data, format='turtle')
 
-    # Extrahieren der asynchronen Request URI
-    query_uri = """
-    PREFIX actn: <http://www.ajan.de/actn#>
-    SELECT ?requestURI WHERE {
-        ?action actn:asyncRequestURI ?requestURI .
-    }
-    """
-    uri_result = g.query(query_uri)
-    for row in uri_result:
-        async_request_uri = row.requestURI
-        print(f"Async Request URI: {async_request_uri}")
-    # Extrahieren der Pedestrian ID
-    query_id = """
-    PREFIX carla: <http://carla.org/>
-    SELECT ?id WHERE {
-        carla:Pedestrian carla:id ?id .
-    }
-    """
-    id_result = g.query(query_id)
-    for row in id_result:
-        pedestrian_id = int(row.id)
-        print(f"Pedestrian ID: {pedestrian_id}")
+  # Extrahieren der asynchronen Request URI
+  query_uri = """
+  PREFIX actn: <http://www.ajan.de/actn#>
+  SELECT ?requestURI WHERE {
+      ?action actn:asyncRequestURI ?requestURI .
+  }
+  """
+  uri_result = g.query(query_uri)
+  for row in uri_result:
+      async_request_uri = row.requestURI
+      print(f"Async Request URI: {async_request_uri}")
+  # Extrahieren der Pedestrian ID
+  query_id = """
+  PREFIX ajan: <http://www.ajan.de/ajan-ns#>
+  SELECT ?id WHERE {
+      ?s ajan:agentId ?id
+  }
+  """
+  id_result = g.query(query_id)
+  pedestrian_id = None
+  for row in id_result:
+      pedestrian_id = str(row.id)
+      print(f"Pedestrian ID: {pedestrian_id}")
 
-    # Extrahieren der Vehicle ID
-    query_id2 = """
-    PREFIX carla: <http://carla.org/>
-    SELECT ?id WHERE {
-        carla:Vehicle carla:id ?id .
-    }
-    """
-    id_result2 = g.query(query_id2)
-    for row in id_result2:
-        vehicle_id = int(row.id)
-        print(f"Vehicle ID: {vehicle_id}")
-
-    #pedestrian = world.get_actor(pedestrian_id)
-    #vehicle = world.get_actor(vehicle_id)
-
-    #return pedestrian, vehicle, async_request_uri
-    return
+  return pedestrian_id, async_request_uri
 
 def set_spectator_view(world, location, rotation):
     spectator = world.get_spectator()
@@ -520,7 +505,9 @@ def execute_main():
 
 @app.route('/walk_to_waypoint', methods=['POST'])
 def walk_to_waypoint():
-    #pedestrian, vehicle, async_request_uri = getInformation(request)
+  pedestrian, async_request_uri = getInformation(request)
+  print(pedestrian)
+
    # if pedestrian and vehicle and async_request_uri:
     #    print("Walking to waypoint")
         # Starten der Aktion in einem separaten Thread
@@ -528,8 +515,9 @@ def walk_to_waypoint():
     #    action_thread.start()
     #else:
     #    print("Not walking to waypoint")
-    print("Walking to waypoint PLACEHOLDER")
-    return Response('<http://carla.org> <http://walk> <http://toWaypoint> .', mimetype='text/turtle', status=200)
+
+  print("Walking to waypoint PLACEHOLDER")
+  return Response('<http://carla.org> <http://walk> <http://toWaypoint> .', mimetype='text/turtle', status=200)
 
 @app.route('/cross', methods=['POST'])
 def cross():
@@ -752,7 +740,7 @@ def load_scenario():
                     })
 
         print(f"Entities found: {entities}", flush=True)
-
+        entityList = entities
         # Welt und Gitter basierend auf den extrahierten Daten laden
         load_world(entities, scenario_map)
         for entity in entities:
@@ -805,6 +793,43 @@ def reset_carla():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/start_agent', methods=['POST'])
+def start_agent():
+    try:
+        data = request.json
+        entity_id = data.get('id')
+
+        if not entity_id:
+            return jsonify({"status": "error", "message": "No entity ID provided"}), 400
+
+        print(f"Sending data to AJAN agent for entity: {entity_id}")
+
+        # Beispiel-Daten, die an AJAN gesendet werden sollen
+        example_data = {
+            "id": entity_id,
+            "type": "pedestrian",
+            "timestamp": "2024-10-09T10:00:00Z",
+            "location": {
+                "x": 1.5,
+                "y": 2.5,
+                "z": 0.0
+            }
+        }
+
+        send_data(example_data)  # Nutzt die `send_data`-Funktion aus requestAJAN.py
+
+        return jsonify({"status": "success", "message": f"Data sent for {entity_id}"})
+    except Exception as e:
+        print(f"Error in send_data: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/destroy_actors', methods=['GET'])
+def destroy():
+    for entity in entityList:
+            if entity["type"] == "Pedestrian":
+              print("Removing AI controller for pedestrian with ID: ", entity["entity"])
+              destroy_actor(entity["entity"])
 
 if __name__ == '__main__':
     app.run(host="127.0.0.1", port=5000)

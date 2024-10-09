@@ -43,5 +43,24 @@ export default Component.extend({
         console.error("Repository is not available.", error);
       }
     },
+    async ajanAgent() {
+      try {
+        const response = await fetch("http://localhost:4204/api/send_data", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log(result);
+      } catch (error) {
+        console.error("Repository is not available.", error);
+      }
+    },
   },
 });

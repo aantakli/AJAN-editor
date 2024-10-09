@@ -118,7 +118,24 @@ app.get("/", (req, res) => {
 
 app.post("/api/carla-scenario", async (req, res) => {
   try {
-    const flaskResponse = await forwardToFlask();
+    const flaskResponse = await forwardToFlask("/load_scenario");
+
+    console.log("Flask response:", flaskResponse);
+
+    res.json({
+      status: "Scenario loaded from Flask",
+      scenario: flaskResponse,
+    });
+  } catch (error) {
+    console.error("Error forwarding to Flask:", error);
+    res.status(500).json({ error: "Failed to load scenario" });
+  }
+});
+
+app.post("/api/send_data", async (req, res) => {
+  try {
+    console.log("Sending data to AJAN agent...");
+    const flaskResponse = await forwardToFlask("/send_data");
 
     console.log("Flask response:", flaskResponse);
 
@@ -134,7 +151,7 @@ app.post("/api/carla-scenario", async (req, res) => {
 
 app.post("/api/reset-carla", async (req, res) => {
   try {
-    const flaskResponse = await forwardToFlask();
+    const flaskResponse = await forwardToFlask("/reset_carla");
 
     console.log("Flask response:", flaskResponse);
 
@@ -163,12 +180,12 @@ process.on("SIGINT", () => {
   });
 });
 
-function forwardToFlask() {
+function forwardToFlask(endpoint) {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: "localhost",
       port: 5000,
-      path: "/load_scenario",
+      path: endpoint,
       method: "GET",
       headers: {
         "Content-Type": "application/json",

@@ -22,41 +22,51 @@ import Ember from "ember";
 import rdf from "npm:rdf-ext";
 import JsonLdParser from "npm:rdf-parser-jsonld";
 import stringToStream from "npm:string-to-stream";
-import { RDF, RDFS, ACTN, AGENTS } from "ajan-editor/helpers/RDFServices/vocabulary";
 import {
-	/*isAjaxError, isForbiddenError,*/ isNotFoundError, isServerError
+  RDF,
+  RDFS,
+  ACTN,
+  AGENTS,
+} from "ajan-editor/helpers/RDFServices/vocabulary";
+import {
+  /*isAjaxError, isForbiddenError,*/ isNotFoundError,
+  isServerError,
 } from "ember-ajax/errors";
 
 let $ = Ember.$;
 let parser = new JsonLdParser();
 
 export default {
-
   getAllAgents: function (endpoint, templates) {
     let obj = $.ajax({
       url: endpoint,
       type: "GET",
-      headers: { Accept: "application/ld+json" }
-    }).then(function (data) {
-      return getGraph(data);
-    }).then(function (graph) {
-      return getAgents(graph, templates);
-    });
+      headers: { Accept: "application/ld+json" },
+    })
+      .then(function (data) {
+        return getGraph(data);
+      })
+      .then(function (graph) {
+        return getAgents(graph, templates);
+      });
     return obj;
   },
 
   createAgent: function (endpoint, content) {
+    console.log("content:", content);
+    console.log("endpoint: ", endpoint);
     return $.ajax({
       url: endpoint,
       type: "POST",
       contentType: "application/trig",
-      data: content
+      data: content,
     }).catch(function (error) {
-      let message = "Agent could not be created! Please check the used Agent Template.";
+      let message =
+        "Agent could not be created! Please check the used Agent Template.";
       if (isServerError(error)) {
-        message = message + " Internal Server ERROR: 5XX"
+        message = message + " Internal Server ERROR: 5XX";
       } else if (isNotFoundError(error)) {
-        message = message + " Not Found ERROR: 4XX"
+        message = message + " Not Found ERROR: 4XX";
       }
       $("#error-message").trigger("showToast", [message]);
     });
@@ -68,7 +78,7 @@ export default {
       type: "POST",
       contentType: type,
       data: content,
-      headers: { Accept: "application/ld+json" }
+      headers: { Accept: "application/ld+json" },
     }).catch(function (error) {
       console.log(error);
     });
@@ -78,11 +88,13 @@ export default {
     return $.ajax({
       url: endpoint,
       type: "DELETE",
-    }).then(function (data) {
-      console.log(endpoint + " deleted!");
-    }).catch(function (error) {
-      console.log(error);
-    });
+    })
+      .then(function (data) {
+        console.log(endpoint + " deleted!");
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
   },
 };
 
@@ -98,16 +110,16 @@ function getGraph(data) {
 }
 
 function getAgents(graph, templates) {
-    let agents = new Array();
-    graph.forEach(quad => {
-      if (
-        quad.predicate.value === RDF.type
-        && quad.object.value === AGENTS.Agent
-      ) {
-        agents.push(getAgentInstance(graph, quad.subject.value, templates));
-      }
-    });
-    return agents;
+  let agents = new Array();
+  graph.forEach((quad) => {
+    if (
+      quad.predicate.value === RDF.type &&
+      quad.object.value === AGENTS.Agent
+    ) {
+      agents.push(getAgentInstance(graph, quad.subject.value, templates));
+    }
+  });
+  return agents;
 }
 
 function getAgentInstance(graph, uri, templates) {
@@ -115,7 +127,7 @@ function getAgentInstance(graph, uri, templates) {
   let actions = new Array();
   agent.uri = uri;
   agent.behaviors = new Array();
-  graph.forEach(quad => {
+  graph.forEach((quad) => {
     if (quad.subject.value === uri) {
       if (quad.predicate.value === AGENTS.agentId) {
         agent.id = quad.object.value;
@@ -132,7 +144,7 @@ function getAgentInstance(graph, uri, templates) {
       if (quad.predicate.value === AGENTS.behavior) {
         let behavior = {};
         behavior.uri = quad.object.value;
-        graph.forEach(innerquad => {
+        graph.forEach((innerquad) => {
           if (innerquad.subject.value === behavior.uri) {
             if (innerquad.predicate.value === RDFS.label)
               behavior.name = innerquad.object.value;
@@ -148,16 +160,24 @@ function getAgentInstance(graph, uri, templates) {
         action.agentMessage = "";
         action.label = "";
         action.capability = quad.object.value.split("capability=")[1];
-        action.contentTypes = ["application/trig", "application/json", "text/xml", "text/csv", "text/plain"];
+        action.contentTypes = [
+          "application/trig",
+          "application/json",
+          "text/xml",
+          "text/csv",
+          "text/plain",
+        ];
         action.selectedType = "application/trig";
         actions.push(action);
       }
     }
   });
-  let template = templates.filter(tmpl => tmpl.uri === agent.template)[0];
+  let template = templates.filter((tmpl) => tmpl.uri === agent.template)[0];
   if (template) {
-    actions.forEach(actn => {
-      let endpoint = template.endpoints.filter(endp => endp.capability === actn.capability)[0];
+    actions.forEach((actn) => {
+      let endpoint = template.endpoints.filter(
+        (endp) => endp.capability === actn.capability
+      )[0];
       actn.label = endpoint.label;
     });
   }

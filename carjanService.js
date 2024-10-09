@@ -171,6 +171,18 @@ app.get("/shutdown", (req, res) => {
   process.exit();
 });
 
+app.post("/api/start_flask", async (req, res) => {
+  try {
+    startFlaskService();
+    res.json({
+      status: "Flask started",
+    });
+  } catch (error) {
+    console.error("Error starting Flask:", error);
+    res.status(500).json({ error: "Failed to load scenario" });
+  }
+});
+
 process.on("SIGINT", () => {
   console.log("Received SIGINT. Shutting down...");
   stopFlaskService();
@@ -220,7 +232,6 @@ function forwardToFlask(endpoint) {
   });
 }
 
-startFlaskService();
 server.listen(port, () => {
   console.log(`Carjan Service listening on port ${port} :)`);
 });

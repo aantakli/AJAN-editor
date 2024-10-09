@@ -1,4 +1,8 @@
 <div>
+  <p class="node-adder-class title-behaviors">
+    <i class="cog icon"></i>
+    Properties
+  </p>
   <input
     type="file"
     accept=".ttl"
@@ -6,35 +10,32 @@
     style="display:none"
     onchange={{action "handleFile"}}
   />
-  <div class="button-container">
-    <button
-      class="ui primary button"
-      style="margin-bottom: 32px"
-      {{action "uploadFile"}}
-    >
-      <i class="upload icon"></i>
-      Upload Scenario
-    </button>
+  {{#ui-accordion exclusive=false}}
+    <div class="active title composite-selection">
+      <i class="dropdown icon" />
+      <i class="save icon" /><b><font size="3">File Management</font></b>
+    </div>
+    <div local-class="button-container">
+      <button class="ui primary button" {{action "uploadFile"}}>
+        <i class="upload icon"></i>
+        Upload Scenario
+      </button>
 
-    <button
-      class="ui primary button sticky-save"
-      {{action "triggerSaveScenario"}}
-    >
-      <i class="save icon" />
-      Save Scenario & Reset
-    </button>
+      <button
+        class="ui primary button sticky-save"
+        {{action "triggerSaveScenario"}}
+      >
+        <i class="save icon" />
+        Save Scenario & Reset
+      </button>
 
-    <button class="ui primary button sticky-save" {{action "downloadTurtle"}}>
-      <i class="download icon" />
-      Download
-    </button>
+      <button class="ui primary button sticky-save" {{action "downloadTurtle"}}>
+        <i class="download icon" />
+        Download
+      </button>
 
-  </div>
+    </div>
 
-  <!-- Toast-Nachricht -->
-  <div id="toast" class="toast" style="display: none;">
-    <i class="spinner loading icon"></i>
-    Speichern...
-  </div>
+  {{/ui-accordion}}
 
 </div>

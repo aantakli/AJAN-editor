@@ -52,10 +52,11 @@ def generate_actor(name):
     _:initAgent rdf:type ajan:AgentInitialisation ;
         ajan:agentId "{name}" ;
         rdfs:label "{name}" ;  # Label hinzufügen
-        ajan:agentTemplate <http://localhost:8090/rdf4j/repositories/agents#AG_15066899-807e-4d59-a52b-78f815c4c93e> ;
+        ajan:agentTemplate <http://localhost:8090/rdf4j/repositories/agents#AG_HelloWorld_BT_30275863-0113-4c7c-9ed9-b0502c643fa6> ;
         ajan:agentInitKnowledge [
             ajan:agentReportURI "http://localhost:4202/report"^^xsd:anyURI ;
-            <carla:atBusStop> "False"
+            <carla:atBusStop> "False" ;
+            ajan:agentId "{name}"
         ] . '''
 
     headers = {'Content-Type': 'application/trig'}
@@ -77,8 +78,9 @@ def generate_actor(name):
 
 
 # Deletes the agent
-def destroy_actor():
-    url = 'http://localhost:8080/ajan/agents/Carla'
+def destroy_actor(eid):
+    url = 'http://localhost:8080/ajan/agents/'
+    url += eid
     response = requests.delete(url)
 
     if response.status_code == 200:

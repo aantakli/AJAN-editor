@@ -48,7 +48,20 @@ function startFlaskService() {
   });
 }
 
-function stopFlaskService() {
+async function destroyActors() {
+  try {
+    const flaskResponse = await forwardToFlask("/destroy_actors");
+
+    console.log("Flask response:", flaskResponse);
+
+    res.json({});
+  } catch (error) {
+    console.error("Error forwarding to Flask:", error);
+    res.status(500).json({ error: "Failed to load scenario" });
+  }
+}
+
+async function stopFlaskService() {
   if (flaskProcess) {
     flaskProcess.kill();
   } else if (flaskPid) {
@@ -174,6 +187,7 @@ app.get("/shutdown", (req, res) => {
 app.post("/api/start_flask", async (req, res) => {
   try {
     startFlaskService();
+    console.log("Flask started.");
     res.json({
       status: "Flask started",
     });
@@ -182,26 +196,46 @@ app.post("/api/start_flask", async (req, res) => {
     res.status(500).json({ error: "Failed to load scenario" });
   }
 });
+app.post("/api/start_agent", async (req, res) => {
+  const { id } = req.body;
+
+  try {
+    const flaskResponse = await forwardToFlask("/start_agent", id);
+
+    console.log("Flask response:", flaskResponse);
+
+    res.json({
+      status: `Startd Agent with ID ${id}`,
+      scenario: flaskResponse,
+    });
+  } catch (error) {
+    console.error("Error forwarding to Flask:", error);
+    res.status(500).json({ error: "Failed to load scenario" });
+  }
+});
 
 process.on("SIGINT", () => {
   console.log("Received SIGINT. Shutting down...");
-  stopFlaskService();
-  server.close(() => {
-    console.log("Server closed.");
-    process.exit(0);
+  stopFlaskService().then(() => {
+    server.close(() => {
+      console.log("Server closed.");
+      process.exit(0);
+    });
   });
 });
 
-function forwardToFlask(endpoint) {
+function forwardToFlask(endpoint, body = null) {
   return new Promise((resolve, reject) => {
+    m = body ? "POST" : "GET";
     const options = {
       hostname: "localhost",
       port: 5000,
       path: endpoint,
-      method: "GET",
+      method: m,
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify(body),
     };
 
     const req = http.request(options, (res) => {

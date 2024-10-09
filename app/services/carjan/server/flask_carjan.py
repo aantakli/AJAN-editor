@@ -2,15 +2,16 @@ import sys
 
 sys.stdout = open(sys.stdout.fileno(), 'w', buffering=1)
 
+from requestAJAN import destroy_actor, generate_actor, send_data, send_initialKnowledge
 from flask import Flask, Response, jsonify, request
+from rdflib import Graph, URIRef, Literal, Namespace, RDF
+import rdflib
 import carla
 import logging
 import time
 import numpy as np
 import requests
 import threading
-from rdflib import Graph, URIRef, Literal, Namespace, RDF
-import rdflib
 import logging
 
 
@@ -81,10 +82,11 @@ def getInformation(request):
         vehicle_id = int(row.id)
         print(f"Vehicle ID: {vehicle_id}")
 
-    pedestrian = world.get_actor(pedestrian_id)
-    vehicle = world.get_actor(vehicle_id)
+    #pedestrian = world.get_actor(pedestrian_id)
+    #vehicle = world.get_actor(vehicle_id)
 
-    return pedestrian, vehicle, async_request_uri
+    #return pedestrian, vehicle, async_request_uri
+    return
 
 def set_spectator_view(world, location, rotation):
     spectator = world.get_spectator()
@@ -95,8 +97,6 @@ def set_spectator_view(world, location, rotation):
 def get_anchor_point(mapName):
     if mapName == "map01":
         return carla.Location(x=240, y=57.5, z=0.1)
-
-
 
 def load_grid(grid_width=12, grid_height=8, cw=4.5, ch=5):
     try:
@@ -148,12 +148,12 @@ def load_grid(grid_width=12, grid_height=8, cw=4.5, ch=5):
         print(f"Error in load_grid: {str(e)}")
         return {"error": str(e)}
 
-
 def load_world(entities, map_name):
     try:
         client = carla.Client("localhost", 2000)
         client.set_timeout(10.0)
         world = client.load_world('Town01_Opt')
+        world.set_weather(carla.WeatherParameters.CloudySunset)
 
         blueprint_library = world.get_blueprint_library()
         unload_stuff(client)
@@ -172,7 +172,7 @@ def load_world(entities, map_name):
             spawn_location = carla.Location(
                 x=anchor.x + new_x,
                 y=anchor.y - new_y,
-                z=anchor.z + 2
+                z=anchor.z + 0.5
             )
 
             if entity["type"] == "Pedestrian":
@@ -202,16 +202,14 @@ def load_world(entities, map_name):
         print(f"Error in load_world: {str(e)}")
         return {"error": str(e)}
 
-
-
 def unload_stuff(client):
     world = client.get_world()
     unloadList = [
-            #carla.MapLayer.NONE,
+            carla.MapLayer.NONE,
             carla.MapLayer.Buildings,
             carla.MapLayer.Decals,
-            #carla.MapLayer.Foliage,
-            #carla.MapLayer.Ground,
+            carla.MapLayer.Foliage,
+            carla.MapLayer.Ground,
             carla.MapLayer.ParkedVehicles,
             carla.MapLayer.Particles,
             carla.MapLayer.StreetLights,
@@ -253,13 +251,11 @@ def unload_stuff(client):
         print(f"Setting road texture to gray for {blueprint.id}")
         world.get_blueprint_library().find(blueprint.id).set_attribute('texture', 'none')
 
-
 def send_async_request(async_request_uri):
     print(f"Sending async request to {async_request_uri}")
     data = '<http://carla.org/pedestrian> <http://at> <http://waypoint> .'
     headers = {'Content-Type': 'text/turtle'}
     return requests.post(async_request_uri, data=data, headers=headers)
-
 
 def isUnsafe(pedestrian, vehicle, async_request_uri):
 
@@ -295,7 +291,6 @@ def isUnsafe(pedestrian, vehicle, async_request_uri):
             break
         time.sleep(0.1)
     '''
-
 
 def walking(pedestrian_id):
     # walk to crosswalk, then to crosswalk 2 and then the bus stop
@@ -525,15 +520,15 @@ def execute_main():
 
 @app.route('/walk_to_waypoint', methods=['POST'])
 def walk_to_waypoint():
-    pedestrian, vehicle, async_request_uri = getInformation(request)
-    if pedestrian and vehicle and async_request_uri:
-        print("Walking to waypoint")
+    #pedestrian, vehicle, async_request_uri = getInformation(request)
+   # if pedestrian and vehicle and async_request_uri:
+    #    print("Walking to waypoint")
         # Starten der Aktion in einem separaten Thread
-        action_thread = threading.Thread(target=walkToWaypoint, args=(pedestrian, waypoint1, async_request_uri))
-        action_thread.start()
-    else:
-        print("Not walking to waypoint")
-
+     #   action_thread = threading.Thread(target=walkToWaypoint, args=(pedestrian, waypoint1, async_request_uri))
+    #    action_thread.start()
+    #else:
+    #    print("Not walking to waypoint")
+    print("Walking to waypoint PLACEHOLDER")
     return Response('<http://carla.org> <http://walk> <http://toWaypoint> .', mimetype='text/turtle', status=200)
 
 @app.route('/cross', methods=['POST'])
@@ -760,6 +755,10 @@ def load_scenario():
 
         # Welt und Gitter basierend auf den extrahierten Daten laden
         load_world(entities, scenario_map)
+        for entity in entities:
+            if entity["type"] == "Pedestrian":
+              print("Starting AI controller for pedestrian with ID: ", entity["entity"])
+              generate_actor(entity["entity"])
         load_grid()
 
         return jsonify({"status": "success", "map": scenario_map, "entities": entities}), 200
@@ -768,8 +767,17 @@ def load_scenario():
         print(f"Error in load_scenario: {str(e)}", flush=True)
         return jsonify({"error": str(e)}), 500
 
+@app.route('/send_data', methods=['GET'])
+def send_data():
+    result = generate_actor("PeTESTrian")
 
-@app.route('/reset-carla', methods=['POST'])
+    if result["status"] == "success":
+        return jsonify({"status": "success", "message": result["message"]}), 200
+
+    else:
+        return jsonify({"status": "error", "message": result["message"]}), 400
+
+@app.route('/reset_carla', methods=['GET'])
 def reset_carla():
     try:
         world = client.reload_world()

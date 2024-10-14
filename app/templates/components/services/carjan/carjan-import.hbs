@@ -15,6 +15,13 @@
       <i class="dropdown icon" />
       <i class="save icon" /><b><font size="3">File Management</font></b>
     </div>
+    <select onchange={{action "scenarioSelected" value="target.value"}}>
+      <option value="">Select a Scenario</option>
+      {{#each availableScenarios as |scenario|}}
+        <option value="{{scenario}}">{{scenario}}</option>
+      {{/each}}
+    </select>
+
     <div local-class="button-container">
       <button class="ui primary button" {{action "uploadFile"}}>
         <i class="upload icon"></i>

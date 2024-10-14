@@ -5,6 +5,7 @@ export default Service.extend({
   mapData: null,
   agentData: null,
   mapName: null,
+  availableScenarios: null,
 
   setMapName(mapName) {
     set(this, "mapName", mapName);
@@ -16,6 +17,10 @@ export default Service.extend({
 
   setAgentData(agents) {
     set(this, "agentData", agents);
+  },
+
+  setAvailableScenarios(scenarios) {
+    this.set("availableScenarios", scenarios);
   },
 
   saveRequest() {

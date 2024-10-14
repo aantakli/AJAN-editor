@@ -10,13 +10,20 @@
     style="display:none"
     onchange={{action "handleFile"}}
   />
+
+  <input
+    type="file"
+    id="scenarioFileInput"
+    accept=".ttl"
+    onchange={{action "handleScenario"}}
+    style="display: none;"
+  />
   {{#ui-accordion exclusive=false}}
     <div class="active title composite-selection">
       <i class="dropdown icon" />
       <i class="save icon" /><b><font size="3">File Management</font></b>
     </div>
     <select onchange={{action "scenarioSelected" value="target.value"}}>
-      <option value="">Select a Scenario</option>
       {{#each availableScenarios as |scenario|}}
         <option value="{{scenario}}">{{scenario}}</option>
       {{/each}}
@@ -25,7 +32,12 @@
     <div local-class="button-container">
       <button class="ui primary button" {{action "uploadFile"}}>
         <i class="upload icon"></i>
-        Upload Scenario
+        Upload Scenario Repository
+      </button>
+
+      <button class="ui primary button" {{action "uploadScenario"}}>
+        <i class="upload icon"></i>
+        Upload Scenario File
       </button>
 
       <button
@@ -38,7 +50,14 @@
 
       <button class="ui primary button sticky-save" {{action "downloadTurtle"}}>
         <i class="download icon" />
-        Download
+        Download Repository
+      </button>
+
+      <button
+        class="ui primary button sticky-save"
+        {{action "downloadScenario"}}
+      >
+        Download Scenario
       </button>
 
     </div>

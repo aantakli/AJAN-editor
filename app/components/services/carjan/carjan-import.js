@@ -1,12 +1,12 @@
-import Component from "@ember/component";
-import rdf from "npm:rdf-ext";
-import N3Parser from "npm:rdf-parser-n3";
-import stringToStream from "npm:string-to-stream";
-import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
-import actions from "ajan-editor/helpers/carjan/actions";
-import { inject as service } from "@ember/service";
-import { observer } from "@ember/object";
 import $ from "jquery";
+import actions from "ajan-editor/helpers/carjan/actions";
+import Component from "@ember/component";
+import N3Parser from "npm:rdf-parser-n3";
+import { observer } from "@ember/object";
+import { inject as service } from "@ember/service";
+import rdf from "npm:rdf-ext";
+import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
+import stringToStream from "npm:string-to-stream";
 
 let self;
 
@@ -68,13 +68,49 @@ export default Component.extend({
   didInsertElement() {
     this.loadGrid();
     this.fetchAgentDataFromRepo().then(({ scenarios }) => {
-      this.set("availableScenarios", scenarios);
+      if (scenarios && scenarios.length > 0) {
+        const firstScenario = scenarios[0];
+        console.log("First scenario:", firstScenario);
+        this.loadMapAndAgents(firstScenario);
+        this.set("availableScenarios", scenarios);
+      } else {
+        console.error("No scenarios found in repository");
+      }
     });
   },
 
   actions: {
     uploadFile() {
+      this.deleteRepo = true;
       document.getElementById("fileInput").click();
+    },
+
+    uploadScenario() {
+      this.deleteRepo = false;
+      document.getElementById("scenarioFileInput").click();
+    },
+
+    downloadScenario() {
+      const scenarioName = this.selectedScenario;
+      if (!scenarioName) {
+        console.error("Kein Szenario ausgewählt.");
+        return;
+      }
+
+      this.fetchScenarioData(scenarioName)
+        .then((dataset) => {
+          return this.serializeDataset(dataset);
+        })
+        .then((trigContent) => {
+          this.saveFile(
+            trigContent,
+            `${scenarioName}.trig`,
+            "application/trig"
+          );
+        })
+        .catch((error) => {
+          console.error("Fehler beim Herunterladen des Szenarios:", error);
+        });
     },
 
     scenarioSelected(selectedScenario) {
@@ -88,47 +124,42 @@ export default Component.extend({
     },
 
     downloadTurtle() {
-      this.carjanState.saveRequest(); // Setze den Zustand, dass gespeichert werden soll
+      // Die URL des RDF4J-Endpunkts
+      const url = "http://localhost:8090/rdf4j/repositories/carjan/statements";
 
-      setTimeout(() => {
-        // Die URL des RDF4J-Endpunkts
-        const url =
-          "http://localhost:8090/rdf4j/repositories/carjan/statements";
-
-        // Die Anfrage zum Herunterladen der Statements im Turtle-Format
-        fetch(url, {
-          headers: {
-            Accept: "text/turtle", // Fordert Turtle-Format an
-          },
+      // Die Anfrage zum Herunterladen der Statements im Turtle-Format
+      fetch(url, {
+        headers: {
+          Accept: "text/turtle", // Fordert Turtle-Format an
+        },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch Turtle data");
+          }
+          return response.text();
         })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Failed to fetch Turtle data");
-            }
-            return response.text();
-          })
-          .then((data) => {
-            // Erstelle einen Blob aus den erhaltenen Turtle-Daten
-            const blob = new Blob([data], { type: "text/turtle" });
-            const link = document.createElement("a");
+        .then((data) => {
+          // Erstelle einen Blob aus den erhaltenen Turtle-Daten
+          const blob = new Blob([data], { type: "text/turtle" });
+          const link = document.createElement("a");
 
-            // Erstelle eine temporäre URL für den Blob und setze den Download-Name
-            const url = window.URL.createObjectURL(blob);
-            link.href = url;
-            link.download = "scenario-statements.ttl";
+          // Erstelle eine temporäre URL für den Blob und setze den Download-Name
+          const url = window.URL.createObjectURL(blob);
+          link.href = url;
+          link.download = "scenario-statements.ttl";
 
-            // Simuliere einen Klick auf den Link, um den Download auszulösen
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+          // Simuliere einen Klick auf den Link, um den Download auszulösen
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
 
-            // Lösche die temporäre URL
-            window.URL.revokeObjectURL(url);
-          })
-          .catch((error) => {
-            console.error("Error downloading Turtle data:", error);
-          });
-      }, 500);
+          // Lösche die temporäre URL
+          window.URL.revokeObjectURL(url);
+        })
+        .catch((error) => {
+          console.error("Error downloading Turtle data:", error);
+        });
     },
 
     triggerSaveScenario() {
@@ -167,13 +198,33 @@ export default Component.extend({
         reader.onload = (e) => {
           const turtleContent = e.target.result;
           this.parseTurtle(turtleContent).then((result) => {
-            console.log("parseTurtle", result);
-            this.updateCarjanRepo(result).then(() => {
-              this.loadGrid();
-              /*setTimeout(() => {
-                window.location.reload(true);
-              }, 1000);*/
-            });
+            console.log("Parsed Turtle data:", result);
+            this.updateWithResult(result);
+          });
+        };
+
+        reader.readAsText(file);
+      }
+    },
+
+    handleScenario(event) {
+      if (
+        !event ||
+        !event.target ||
+        !event.target.files ||
+        event.target.files.length === 0
+      ) {
+        return;
+      }
+
+      const file = event.target.files[0];
+
+      if (file && file.name.endsWith(".ttl")) {
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+          this.addScenarioToRepository(e.target.result).then((result) => {
+            this.updateWithResult(result);
           });
         };
 
@@ -182,8 +233,113 @@ export default Component.extend({
     },
   },
 
+  async updateWithResult(result) {
+    this.updateCarjanRepo(result).then(() => {
+      this.loadGrid();
+      // setTimeout(() => {
+      //    window.location.reload(true);
+      // }, 1000);
+    });
+  },
+
+  async addScenarioToRepository(newScenarioContent) {
+    const existingRepositoryContent = await this.downloadRepository();
+    const existingDataset = await this.parseTurtle(existingRepositoryContent);
+    const newScenarioDataset = await this.parseTurtle(newScenarioContent);
+    for (const newScenario of newScenarioDataset.scenarios) {
+      existingDataset.scenarios.push(newScenario);
+    }
+    return existingDataset;
+  },
+
+  async downloadRepository() {
+    const repoUrl =
+      "http://localhost:8090/rdf4j/repositories/carjan/statements";
+    const response = await fetch(repoUrl, {
+      method: "GET",
+      headers: {
+        Accept: "application/trig",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Fehler beim Herunterladen des Repositories: ${response.statusText}`
+      );
+    }
+
+    const trigContent = await response.text();
+    return trigContent;
+  },
+
+  async serializeDataset(dataset) {
+    return new Promise((resolve, reject) => {
+      const writer = new N3.Writer({ format: "application/trig" });
+      writer.addQuads([...dataset]);
+      writer.end((error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      });
+    });
+  },
+
+  readFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        resolve(event.target.result);
+      };
+      reader.onerror = function (error) {
+        reject(error);
+      };
+      reader.readAsText(file);
+    });
+  },
+
+  parseTrigContent(content) {
+    // Verwenden Sie rdf-ext und rdf-parser-n3 zum Parsen des TriG-Inhalts
+    const parser = new N3Parser({ format: "application/trig" });
+    const stream = stringToStream(content);
+    return parser.import(stream);
+  },
+
+  uploadDatasetToRepo(dataset) {
+    // Serialisieren des Datasets in TriG
+    const serializer = new N3.Writer({ format: "application/trig" });
+    dataset.toStream().pipe(serializer);
+    return new Promise((resolve, reject) => {
+      serializer.end(async (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          // Upload zum Triplestore
+          const repoUrl =
+            "http://localhost:8090/rdf4j/repositories/carjan/statements";
+          try {
+            const response = await fetch(repoUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/trig",
+              },
+              body: result,
+            });
+            if (!response.ok) {
+              reject(`Error uploading data: ${response.statusText}`);
+            } else {
+              resolve();
+            }
+          } catch (err) {
+            reject(err);
+          }
+        }
+      });
+    });
+  },
+
   namedNode(value) {
-    // Prüfen, ob ein Prefix verwendet wird
     const [prefix, localName] = value.split(":");
     if (prefixes[prefix]) {
       return rdf.namedNode(prefixes[prefix] + localName);
@@ -232,7 +388,10 @@ export default Component.extend({
 
   async updateCarjanRepo(statements) {
     await this.checkRepository();
-    await this.deleteStatements();
+    console.log("deleteRepo", this.deleteRepo);
+    if (this.deleteRepo) {
+      await this.deleteStatements();
+    }
 
     setTimeout(async () => {
       await this.updateWithStatements(statements);
@@ -324,7 +483,10 @@ export default Component.extend({
         const object = quad.object.value;
 
         // Szenario-Erkennung
-        if (predicate.includes("type") && object.includes("Scenario")) {
+        if (
+          predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+          object === "http://example.com/carla-scenario#Scenario"
+        ) {
           if (currentScenario) {
             // Speichere das vorherige Szenario
             scenarios.push(currentScenario);
@@ -344,28 +506,30 @@ export default Component.extend({
 
         // Eigenschaften des aktuellen Szenarios extrahieren
         if (currentScenario && subject === currentScenario.scenarioName) {
-          if (predicate.includes("label")) {
+          if (predicate === "http://example.com/carla-scenario#label") {
             currentScenario.label = object.replace(/^"|"$/g, "");
           }
 
-          if (predicate.includes("category")) {
+          if (predicate === "http://example.com/carla-scenario#category") {
             currentScenario.category = object.split("#")[1];
           }
 
-          if (predicate.includes("map")) {
+          if (predicate === "http://example.com/carla-scenario#map") {
             currentScenario.scenarioMap = object.replace(/^"|"$/g, "");
           }
 
-          if (predicate.includes("weather")) {
+          if (predicate === "http://example.com/carla-scenario#weather") {
             currentScenario.weather = object.replace(/^"|"$/g, "");
           }
 
-          if (predicate.includes("cameraPosition")) {
+          if (
+            predicate === "http://example.com/carla-scenario#cameraPosition"
+          ) {
             currentScenario.cameraPosition = object.replace(/^"|"$/g, "");
           }
 
           // Entitäten dem Szenario hinzufügen
-          if (predicate.includes("hasEntity")) {
+          if (predicate === "http://example.com/carla-scenario#hasEntity") {
             const entityURI = object;
             if (!currentScenario.entities.includes(entityURI)) {
               currentScenario.entities.push(entityURI);
@@ -374,37 +538,44 @@ export default Component.extend({
         }
 
         // Entitäten erfassen
-        if (!entitiesMap[subject]) {
-          entitiesMap[subject] = {
-            entity: subject,
-            type: undefined,
-            label: undefined,
-            x: undefined,
-            y: undefined,
-          };
-        }
+        if (
+          predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+          (object === "http://example.com/carla-scenario#Vehicle" ||
+            object === "http://example.com/carla-scenario#Pedestrian")
+        ) {
+          const entityType = object.split("#")[1];
 
-        // Typ und Label der Entitäten zuweisen
-        if (predicate.includes("type")) {
-          if (object.includes("Vehicle") || object.includes("Pedestrian")) {
-            const entityType = object.split("#")[1];
+          // Initialisieren von entitiesMap[subject] für Entitäten
+          if (!entitiesMap[subject]) {
+            entitiesMap[subject] = {
+              entity: subject,
+              type: entityType,
+              label: undefined,
+              x: undefined,
+              y: undefined,
+            };
+          } else {
             entitiesMap[subject].type = entityType;
           }
         }
 
-        if (predicate.includes("label")) {
+        // Label der Entitäten zuweisen
+        if (
+          entitiesMap[subject] &&
+          predicate === "http://example.com/carla-scenario#label"
+        ) {
           entitiesMap[subject].label = object.replace(/^"|"$/g, "");
         }
 
-        // X- und Y-Koordinaten direkt extrahieren
-        if (predicate.includes("x") || predicate.includes("y")) {
-          if (entitiesMap[subject]) {
-            if (predicate.includes("x")) {
-              entitiesMap[subject].x = object.replace(/^"|"$/g, "");
-            }
-            if (predicate.includes("y")) {
-              entitiesMap[subject].y = object.replace(/^"|"$/g, "");
-            }
+        // X- und Y-Koordinaten der Entitäten zuweisen
+        if (entitiesMap[subject]) {
+          if (predicate === "http://example.com/carla-scenario#x") {
+            console.log(`Assigning x for ${subject}: ${object}`);
+            entitiesMap[subject].x = object.replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#y") {
+            console.log(`Assigning y for ${subject}: ${object}`);
+            entitiesMap[subject].y = object.replace(/^"|"$/g, "");
           }
         }
       });

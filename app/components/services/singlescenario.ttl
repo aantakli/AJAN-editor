@@ -1,0 +1,24 @@
+@prefix : <http://example.com/carla-scenario#> .
+@prefix carjan: <http://example.com/carla-scenario#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:Scenario3 {
+  :Scenario3 rdf:type carjan:Scenario ;
+    carjan:label "Leos Scenario" ;
+    carjan:category carjan:Urban ;
+    carjan:map "map03" ;
+    carjan:hasEntity :Entity0304 , :Entity0708 ;
+    carjan:cameraPosition "down" ;
+    carjan:weather "Stormy" .
+
+  :Entity0304 rdf:type carjan:Vehicle ;
+    carjan:label "Entity0304" ;
+    carjan:x "3"^^xsd:integer ;
+    carjan:y "4"^^xsd:integer .
+
+  :Entity0708 rdf:type carjan:Pedestrian ;
+    carjan:label "Entity0708" ;
+    carjan:x "7"^^xsd:integer ;
+    carjan:y "8"^^xsd:integer .
+}

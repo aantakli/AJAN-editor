@@ -116,7 +116,7 @@ jobs:
           path: .env
           write-mode: overwrite
           contents: |
-            ${{ steps.commit.outputs.short }}
+            VERSION=${{ steps.commit.outputs.short }}
       -
         name: Setup docker metadata
         id: meta

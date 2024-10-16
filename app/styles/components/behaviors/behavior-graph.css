@@ -87,16 +87,24 @@ div.button-group {
   padding: 0 !important;
 }
 
-  .node-container h4 {
-    height: 2.5em;
-    margin-top: 20px !important;
-    margin-bottom: 0px !important;
-    background: color-title-bg;
-    color: color-h-font;
-    font-family: "Segoe UI", monospace, Arial,sans-serif;
-    font-size: 16px;
-    padding: 10px 15px;
-  }
+.node-container h4 {
+  height: 2.5em;
+  margin-top: 20px !important;
+  margin-bottom: 0px !important;
+  background: color-title-bg;
+  color: color-h-font;
+  font-family: "Segoe UI", monospace, Arial,sans-serif;
+  font-size: 16px;
+  padding: 10px 15px;
+}
+
+:global(#searchInput) {
+  height: 2.5em;
+  margin-bottom: 0px !important;
+  font-family: "Segoe UI", monospace, Arial, sans-serif;
+  font-size: 16px;
+  padding: 10px 15px;
+}
 
 :global(.title.composite-selection),
 :global(.title.decorator-selection),

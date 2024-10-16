@@ -72,7 +72,7 @@ jobs:
           path: .env
           write-mode: overwrite
           contents: |
-            ${{ steps.commit.outputs.short }}
+            VERSION="${{ steps.commit.outputs.short }}"
       -
         name: Zip Release
         run: zip -qq -r ajaneditor-${{ steps.commit.outputs.short }}.zip .
@@ -116,7 +116,7 @@ jobs:
           path: .env
           write-mode: overwrite
           contents: |
-            ${{ steps.commit.outputs.short }}
+            VERSION="${{ steps.commit.outputs.short }}"
       -
         name: Setup docker metadata
         id: meta

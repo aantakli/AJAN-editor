@@ -80,7 +80,47 @@ export default Ember.Component.extend({
 	// ******************** Declare actions ********************
 	// actions used in the .hbs file
 	actions: {
-    
+    handleInput(event) {
+      let inputValue = event.target.value;
+
+      let accordions = event.target.parentElement.getElementsByClassName("accordion");
+      for (let i = 0; i < accordions.length; i++) {
+        let accordion = accordions[i];
+        for (let j = 0; j < accordion.children.length; j++) {
+          let child = accordion.children[j];
+          if(inputValue === ""){
+            child.classList.remove('active');
+          } else {
+            child.classList.add('active');
+          }
+        }
+      }
+
+      // Declare variables
+      let filter, container, list, element, i, txtValue;
+      filter = inputValue.toUpperCase();
+      container = event.target.parentElement;
+      list = container.getElementsByClassName("node-name");
+
+      // Loop through all list items, and hide those who don't match the search query
+      for (i = 0; i < list.length; i++) {
+        element = list[i];
+        txtValue = element.textContent || element.innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          element.parentElement.classList.add("visible");
+          let categorietext = element.parentElement.parentElement.parentElement.children[0].children[1].children[0].innerText;
+          if(categorietext === "Default Nodes"){
+            element.parentElement.style.display = "flex !important";
+            console.log(element.parentElement)
+          } else {
+            element.parentElement.style.display = "";
+          }
+        } else {
+          element.parentElement.style.display = "none";
+          element.parentElement.classList.remove("visible");
+        }
+      }
+    }
 	},
 
 	willDestroyElement() {

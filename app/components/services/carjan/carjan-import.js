@@ -47,6 +47,15 @@ export default Component.extend({
     return await this.getMap("map01");
   },
 
+  extractScenarioName(trigContent) {
+    const match = trigContent.match(/<([^>]+)> \{/);
+    if (match && match[1]) {
+      const scenarioURI = match[1];
+      return scenarioURI;
+    }
+    return null;
+  },
+
   extractScenariosList(data) {
     const scenarios = [];
 
@@ -69,6 +78,7 @@ export default Component.extend({
     this.loadGrid();
     this.fetchAgentDataFromRepo().then(({ scenarios }) => {
       if (scenarios && scenarios.length > 0) {
+        console.log("scenarios", scenarios);
         const firstScenario = scenarios[0];
         console.log("First scenario:", firstScenario);
         this.loadMapAndAgents(firstScenario);
@@ -223,6 +233,10 @@ export default Component.extend({
         const reader = new FileReader();
 
         reader.onload = (e) => {
+          this.fetchAgentDataFromRepo().then(({ scenarios }) => {
+            console.log("scenarios", scenarios);
+            //...
+          });
           this.addScenarioToRepository(e.target.result).then((result) => {
             this.updateWithResult(result);
           });

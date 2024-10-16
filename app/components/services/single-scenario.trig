@@ -5,17 +5,17 @@
 
 :Scenario3 {
   :Scenario3 rdf:type carjan:Scenario ;
-    carjan:label "Leos Scenario" ;
+    carjan:label "Scenario3" ;
     carjan:category carjan:Urban ;
     carjan:map "map03" ;
-    carjan:hasEntity :Entity0304 , :Entity0708 ;
+    carjan:hasEntity :Entity0304 , :Entity0708, :Entity0203 ;
     carjan:cameraPosition "down" ;
     carjan:weather "Stormy" .
 
   :Entity0304 rdf:type carjan:Vehicle ;
     carjan:label "Entity0606" ;
-    carjan:x "6"^^xsd:integer ;
-    carjan:y "6"^^xsd:integer .
+    carjan:x "20"^^xsd:integer ;
+    carjan:y "10"^^xsd:integer .
 
   :Entity0708 rdf:type carjan:Pedestrian ;
     carjan:label "Entity0708" ;

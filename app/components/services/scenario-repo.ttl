@@ -15,7 +15,7 @@
 # Szenario 1 mit lokalen Entitäten
 :Scenario1 {
   :Scenario1 rdf:type carjan:Scenario ;
-    carjan:label "City Scenario" ;
+    carjan:label "Scenario1" ;
     carjan:category carjan:Urban ;
     carjan:map "map03" ;
     carjan:hasEntity :Entity0304 , :Entity0708 ;
@@ -36,7 +36,7 @@
 # Szenario 2 mit lokalen Entitäten
 :Scenario2 {
   :Scenario2 rdf:type carjan:Scenario ;
-    carjan:label "Highway Scenario" ;
+    carjan:label "Scenario2" ;
     carjan:category carjan:Heavy ;
     carjan:map "map02" ;
     carjan:hasEntity :Entity0404 ;

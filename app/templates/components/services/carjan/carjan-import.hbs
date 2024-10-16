@@ -1,6 +1,6 @@
 <div>
   <p class="node-adder-class title-behaviors">
-    <i class="cog icon"></i>
+    <i class="cog icon" />
     Properties
   </p>
   <input
@@ -14,29 +14,53 @@
   <input
     type="file"
     id="scenarioFileInput"
-    accept=".ttl"
+    accept=".trig"
     onchange={{action "handleScenario"}}
     style="display: none;"
   />
+
   {{#ui-accordion exclusive=false}}
     <div class="active title composite-selection">
       <i class="dropdown icon" />
       <i class="save icon" /><b><font size="3">File Management</font></b>
     </div>
-    <select onchange={{action "scenarioSelected" value="target.value"}}>
-      {{#each availableScenarios as |scenario|}}
-        <option value="{{scenario}}">{{scenario}}</option>
-      {{/each}}
-    </select>
+
+    {{#ui-dropdown
+      class="fluid search selection bt-selection"
+      allowAdditions=false
+      fullTextSearch=true
+      sortSelected=true
+      onChange=(action "scenarioSelected")
+    }}
+
+      <i class="folder open outline icon" local-class="icon-bright"></i>
+      <div class="default text">Select Scenario</div>
+      <i class="dropdown icon"></i>
+      <div class="menu">
+        {{#each availableScenarios as |scenario|}}
+          <div class="item" data-value="{{scenario}}">{{scenario}}</div>
+        {{/each}}
+      </div>
+    {{/ui-dropdown}}
+
+    <button class="ui secondary button" {{action "openNewScenarioDialog"}}>
+      <i class="plus icon" />
+      New Scenario
+    </button>
+
+    <button class="ui red button" {{action "openDeleteDialog"}}>
+      <i class="trash icon"></i>
+      Delete Scenario
+    </button>
 
     <div local-class="button-container">
       <button class="ui primary button" {{action "uploadFile"}}>
-        <i class="upload icon"></i>
+        <i class="upload icon" />
         Upload Scenario Repository
       </button>
 
       <button class="ui primary button" {{action "uploadScenario"}}>
-        <i class="upload icon"></i>
+        <i class="upload icon" />
         Upload Scenario File
       </button>
 
@@ -57,11 +81,80 @@
         class="ui primary button sticky-save"
         {{action "downloadScenario"}}
       >
+        <i class="download icon"></i>
         Download Scenario
       </button>
-
     </div>
 
   {{/ui-accordion}}
+  {{#if isDialogOpen}}
+    <div class="ui dimmer modals page">
+      <div class="ui small basic modal transition" local-class="center-modal">
 
+        <div class="header"><i class="file outline icon"></i>
+          Create your New Scenario
+        </div>
+        <div class="content">
+          <div class="ui form">
+            <div class="field {{if hasError 'error'}}">
+              <p>
+                <i class="edit icon" />
+                Enter the name of your new Scenario.
+              </p>
+              {{input
+                value=scenarioName
+                placeholder="Scenario Name"
+                key-up=(action "checkScenarioName")
+              }}
+              {{#if hasError}}
+                <div class="ui pointing red basic label">
+                  <i class="exclamation triangle icon" />
+                  {{errorMessage}}
+                </div>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button
+            class="ui green cancel button"
+            {{action "generateNewScenario"}}
+            disabled={{isDisabled}}
+          >
+            <i class="check icon"></i>
+            Confirm
+          </button>
+
+          <button class="ui cancel button" {{action "closeNewScenarioDialog"}}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  {{/if}}
+
+  {{#if isDeleteDialogOpen}}
+    <div class="ui dimmer modals page">
+      <div class="ui small basic modal transition" local-class="center-modal">
+        <div class="header">
+          <i class="trash alternate icon"></i>
+          Confirm Scenario Deletion
+        </div>
+        <div class="content">
+          <p>Are you sure you want to delete the scenario
+            <strong>{{selectedValue}}</strong>? Once it's gone, it's gone
+            "forever" and that's a really long time.</p>
+        </div>
+        <div class="actions">
+          <button class="ui red cancel button" {{action "confirmDelete"}}>
+            <i class="check icon"></i>
+            Confirm
+          </button>
+          <button class="ui cancel button" {{action "cancelDelete"}}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  {{/if}}
 </div>

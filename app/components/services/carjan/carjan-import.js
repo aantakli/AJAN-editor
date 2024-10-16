@@ -2,6 +2,8 @@ import $ from "jquery";
 import actions from "ajan-editor/helpers/carjan/actions";
 import Component from "@ember/component";
 import N3Parser from "npm:rdf-parser-n3";
+import { computed } from "@ember/object";
+import { debounce, next } from "@ember/runloop";
 import { observer } from "@ember/object";
 import { inject as service } from "@ember/service";
 import rdf from "npm:rdf-ext";
@@ -21,6 +23,14 @@ export default Component.extend({
   ajax: service(),
   store: service(),
   carjanState: service(),
+  isDialogOpen: false,
+  isDeleteDialogOpen: false,
+  scenarioName: "",
+  hasError: false,
+  isNameEmpty: true,
+  isDisabled: computed("hasError", "isNameEmpty", function () {
+    return this.hasError || this.isNameEmpty;
+  }),
 
   init() {
     this._super(...arguments);
@@ -36,7 +46,7 @@ export default Component.extend({
   }),
 
   async getMap(mapName) {
-    const response = await fetch("/assets/carjan-maps/maps.json");
+    const response = await fetch("/assets/carjan/carjan-maps/maps.json");
     const maps = await response.json();
     this.carjanState.setMapName(mapName);
     return maps[mapName] || maps.map01;
@@ -75,14 +85,26 @@ export default Component.extend({
   },
 
   didInsertElement() {
+    this._super(...arguments);
     this.loadGrid();
     this.fetchAgentDataFromRepo().then(({ scenarios }) => {
       if (scenarios && scenarios.length > 0) {
-        console.log("scenarios", scenarios);
-        const firstScenario = scenarios[0];
-        console.log("First scenario:", firstScenario);
+        let sortedScenarios = scenarios.sort((a, b) => a.localeCompare(b));
+        const firstScenario = sortedScenarios[0];
+        this.set("selectedValue", firstScenario);
+        this.set("availableScenarios", sortedScenarios);
+
         this.loadMapAndAgents(firstScenario);
-        this.set("availableScenarios", scenarios);
+
+        Ember.run.scheduleOnce("afterRender", this, function () {
+          this.$(".ui.dropdown")
+            .dropdown({
+              onChange: (value) => {
+                this.send("scenarioSelected", value);
+              },
+            })
+            .dropdown("set selected", firstScenario);
+        });
       } else {
         console.error("No scenarios found in repository");
       }
@@ -90,6 +112,147 @@ export default Component.extend({
   },
 
   actions: {
+    scenarioSelected(value) {
+      this.scenarioName = value;
+      this.set("selectedValue", value);
+      if (value) {
+        this.loadMapAndAgents(value);
+      }
+    },
+
+    async downloadScenario() {
+      this.downloadScenarioAsTrig(this.scenarioName);
+    },
+
+    async openDeleteDialog() {
+      this.set("isDeleteDialogOpen", true);
+      next(() => {
+        this.$(".ui.basic.modal")
+          .modal({
+            closable: false,
+            transition: "scale",
+            duration: 500,
+            dimmerSettings: { duration: { show: 500, hide: 500 } },
+          })
+          .modal("show");
+      });
+    },
+
+    confirmDelete() {
+      this.$(".ui.modal").modal("hide");
+      const selectedScenario = this.get("selectedValue");
+      if (selectedScenario) {
+        this.set("isDeleteDialogOpen", false);
+        this.deleteScenarioFromRepository(selectedScenario).then((result) => {
+          this.updateWithResult(result).then(() => {
+            setTimeout(() => {
+              window.location.reload(true);
+            }, 1000);
+          });
+        });
+      }
+    },
+
+    cancelDelete() {
+      this.$(".ui.modal").modal("hide");
+      this.set("isDeleteDialogOpen", false);
+    },
+
+    async openNewScenarioDialog() {
+      this.set("isDialogOpen", true);
+      this.set("scenarioName", "");
+      this.set("hasError", false);
+
+      next(() => {
+        this.$(".ui.basic.modal")
+          .modal({
+            closable: false,
+            transition: "scale",
+            duration: 500,
+            dimmerSettings: { duration: { show: 500, hide: 500 } },
+          })
+          .modal("show");
+      });
+
+      const { scenarios } = await this.fetchAgentDataFromRepo();
+      this.set("existingScenarioNames", scenarios);
+    },
+
+    closeNewScenarioDialog() {
+      this.$(".ui.modal").modal("hide");
+      this.set("isDialogOpen", false);
+      this.set("scenarioName", "");
+      this.set("hasError", false);
+    },
+
+    checkScenarioName() {
+      const scenarioName = this.scenarioName.trim();
+      const isNameEmpty = scenarioName === "";
+      this.set("isNameEmpty", isNameEmpty);
+
+      if (isNameEmpty) {
+        this.set("hasError", false);
+        this.set("errorMessage", "");
+        return;
+      }
+
+      // Validierung des Szenarionamens
+      const isValidName = /^[a-zA-Z0-9_]+$/.test(scenarioName);
+      if (!isValidName) {
+        this.set("hasError", true);
+        this.set(
+          "errorMessage",
+          "Invalid scenario name. Only letters, numbers, and underscores are allowed."
+        );
+        return;
+      }
+
+      const existingScenarioNames = this.existingScenarioNames.map((name) =>
+        name.toLowerCase()
+      );
+      const nameTaken = existingScenarioNames.includes(
+        scenarioName.toLowerCase()
+      );
+
+      if (nameTaken) {
+        this.set("hasError", true);
+        this.set("errorMessage", "Scenario name already taken.");
+      } else {
+        this.set("hasError", false);
+        this.set("errorMessage", "");
+      }
+    },
+
+    async generateNewScenario() {
+      const scenarioName = this.scenarioName.trim();
+
+      if (this.hasError || !scenarioName) {
+        return;
+      }
+
+      const trigContent = `
+        @prefix : <http://example.com/carla-scenario#> .
+        @prefix carjan: <http://example.com/carla-scenario#> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+        :${scenarioName} {
+          :${scenarioName} rdf:type carjan:Scenario ;
+            carjan:label "${scenarioName}" ;
+            carjan:map "map01" ;
+            carjan:cameraPosition "down" ;
+            carjan:weather "Clear" .
+        }
+        `;
+
+      try {
+        const result = await this.addScenarioToRepository(trigContent);
+        this.updateWithResult(result);
+      } catch (error) {
+        console.error("Fehler beim Erstellen des neuen Szenarios:", error);
+      }
+    },
+
     uploadFile() {
       this.deleteRepo = true;
       document.getElementById("fileInput").click();
@@ -98,35 +261,6 @@ export default Component.extend({
     uploadScenario() {
       this.deleteRepo = false;
       document.getElementById("scenarioFileInput").click();
-    },
-
-    downloadScenario() {
-      const scenarioName = this.selectedScenario;
-      if (!scenarioName) {
-        console.error("Kein Szenario ausgewählt.");
-        return;
-      }
-
-      this.fetchScenarioData(scenarioName)
-        .then((dataset) => {
-          return this.serializeDataset(dataset);
-        })
-        .then((trigContent) => {
-          this.saveFile(
-            trigContent,
-            `${scenarioName}.trig`,
-            "application/trig"
-          );
-        })
-        .catch((error) => {
-          console.error("Fehler beim Herunterladen des Szenarios:", error);
-        });
-    },
-
-    scenarioSelected(selectedScenario) {
-      if (selectedScenario) {
-        this.loadMapAndAgents(selectedScenario);
-      }
     },
 
     switchMap(mapName) {
@@ -208,7 +342,6 @@ export default Component.extend({
         reader.onload = (e) => {
           const turtleContent = e.target.result;
           this.parseTurtle(turtleContent).then((result) => {
-            console.log("Parsed Turtle data:", result);
             this.updateWithResult(result);
           });
         };
@@ -229,14 +362,10 @@ export default Component.extend({
 
       const file = event.target.files[0];
 
-      if (file && file.name.endsWith(".ttl")) {
+      if (file && file.name.endsWith(".trig")) {
         const reader = new FileReader();
 
         reader.onload = (e) => {
-          this.fetchAgentDataFromRepo().then(({ scenarios }) => {
-            console.log("scenarios", scenarios);
-            //...
-          });
           this.addScenarioToRepository(e.target.result).then((result) => {
             this.updateWithResult(result);
           });
@@ -250,9 +379,9 @@ export default Component.extend({
   async updateWithResult(result) {
     this.updateCarjanRepo(result).then(() => {
       this.loadGrid();
-      // setTimeout(() => {
-      //    window.location.reload(true);
-      // }, 1000);
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 1000);
     });
   },
 
@@ -260,12 +389,31 @@ export default Component.extend({
     const existingRepositoryContent = await this.downloadRepository();
     const existingDataset = await this.parseTurtle(existingRepositoryContent);
     const newScenarioDataset = await this.parseTurtle(newScenarioContent);
-    for (const newScenario of newScenarioDataset.scenarios) {
-      existingDataset.scenarios.push(newScenario);
-    }
+
+    const newScenarioLabels = newScenarioDataset.scenarios.map(
+      (scenario) => scenario.label
+    );
+
+    existingDataset.scenarios = existingDataset.scenarios.filter(
+      (existingScenario) => !newScenarioLabels.includes(existingScenario.label)
+    );
+
+    existingDataset.scenarios.push(...newScenarioDataset.scenarios);
+
     return existingDataset;
   },
 
+  async deleteScenarioFromRepository(scenarioLabelToDelete) {
+    const existingRepositoryContent = await this.downloadRepository();
+
+    const existingDataset = await this.parseTurtle(existingRepositoryContent);
+
+    existingDataset.scenarios = existingDataset.scenarios.filter(
+      (existingScenario) => existingScenario.label !== scenarioLabelToDelete
+    );
+
+    return existingDataset;
+  },
   async downloadRepository() {
     const repoUrl =
       "http://localhost:8090/rdf4j/repositories/carjan/statements";
@@ -377,14 +525,11 @@ export default Component.extend({
       );
 
       if (!scenarioData) {
-        console.error(`Szenario ${scenarioName} nicht gefunden.`);
         return;
       }
 
       const agents = this.extractAgentsData(scenarioData);
       const scenarioMap = this.extractMapData(scenarioData);
-
-      console.log("Agents", agents);
 
       const map = scenarioMap
         ? await this.getMap(scenarioMap)
@@ -400,9 +545,112 @@ export default Component.extend({
     }
   },
 
+  async downloadScenarioAsTrig(scenarioName) {
+    try {
+      const { scenarioData } = await this.fetchAgentDataFromRepo(scenarioName);
+
+      if (!scenarioData) {
+        return;
+      }
+
+      // Starte den TriG-Text
+      let trigContent = `@prefix : <http://example.com/carla-scenario#> .\r
+    @prefix carjan: <http://example.com/carla-scenario#> .\r
+    @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\r
+    @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\n:${scenarioName} {\n`;
+
+      // Entitäten und Szenario-Daten
+      const scenarioGraph = scenarioData["@graph"];
+
+      // Szenario-Daten hinzufügen
+      scenarioGraph.forEach((item) => {
+        const id = item["@id"].split("#")[1]; // Nur der Identifier nach dem Hash
+
+        if (
+          item["@type"] &&
+          item["@type"].includes("http://example.com/carla-scenario#Scenario")
+        ) {
+          // Füge die Szenario-Eigenschaften hinzu
+          trigContent += `  :${id} rdf:type carjan:Scenario ;\n`;
+
+          if (item["http://example.com/carla-scenario#label"]) {
+            trigContent += `    carjan:label "${item["http://example.com/carla-scenario#label"][0]["@value"]}" ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#category"]) {
+            const category =
+              item["http://example.com/carla-scenario#category"][0][
+                "@id"
+              ].split("#")[1];
+            trigContent += `    carjan:category carjan:${category} ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#map"]) {
+            trigContent += `    carjan:map "${item["http://example.com/carla-scenario#map"][0]["@value"]}" ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#cameraPosition"]) {
+            trigContent += `    carjan:cameraPosition "${item["http://example.com/carla-scenario#cameraPosition"][0]["@value"]}" ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#weather"]) {
+            trigContent += `    carjan:weather "${item["http://example.com/carla-scenario#weather"][0]["@value"]}" ;\n`;
+          }
+
+          // Entitäten hinzufügen
+          if (item["http://example.com/carla-scenario#hasEntity"]) {
+            const entities = item[
+              "http://example.com/carla-scenario#hasEntity"
+            ].map((entity) => `:${entity["@id"].split("#")[1]}`);
+            trigContent += `    carjan:hasEntity ${entities.join(" , ")} ;\n`;
+          }
+
+          trigContent += "  }\n\n";
+        }
+
+        // Füge die Entitäten hinzu
+        if (
+          item["@type"] &&
+          (item["@type"].includes(
+            "http://example.com/carla-scenario#Vehicle"
+          ) ||
+            item["@type"].includes(
+              "http://example.com/carla-scenario#Pedestrian"
+            ))
+        ) {
+          const entityType = item["@type"][0].split("#")[1];
+
+          trigContent += `  :${id} rdf:type carjan:${entityType} ;\n`;
+
+          if (item["http://example.com/carla-scenario#label"]) {
+            trigContent += `    carjan:label "${item["http://example.com/carla-scenario#label"][0]["@value"]}" ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#x"]) {
+            trigContent += `    carjan:x "${item["http://example.com/carla-scenario#x"][0]["@value"]}"^^xsd:integer ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#y"]) {
+            trigContent += `    carjan:y "${item["http://example.com/carla-scenario#y"][0]["@value"]}"^^xsd:integer .\n\n`;
+          }
+        }
+      });
+
+      // Download als .trig-Datei
+      const blob = new Blob([trigContent], { type: "text/plain" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `${scenarioName}.trig`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Fehler beim Laden der Map und Agents:", error);
+    }
+  },
+
   async updateCarjanRepo(statements) {
     await this.checkRepository();
-    console.log("deleteRepo", this.deleteRepo);
     if (this.deleteRepo) {
       await this.deleteStatements();
     }
@@ -483,7 +731,7 @@ export default Component.extend({
   async parseTurtle(turtleContent) {
     try {
       const turtleStream = stringToStream(turtleContent);
-      const parser = new N3Parser();
+      const parser = new N3Parser({ format: "application/trig" });
       const quads = await rdf.dataset().import(parser.import(turtleStream));
 
       const scenarios = [];
@@ -584,11 +832,9 @@ export default Component.extend({
         // X- und Y-Koordinaten der Entitäten zuweisen
         if (entitiesMap[subject]) {
           if (predicate === "http://example.com/carla-scenario#x") {
-            console.log(`Assigning x for ${subject}: ${object}`);
             entitiesMap[subject].x = object.replace(/^"|"$/g, "");
           }
           if (predicate === "http://example.com/carla-scenario#y") {
-            console.log(`Assigning y for ${subject}: ${object}`);
             entitiesMap[subject].y = object.replace(/^"|"$/g, "");
           }
         }
@@ -751,8 +997,6 @@ export default Component.extend({
       if (error) {
         console.error("Error adding RDF data to repository:", error);
         return;
-      } else {
-        console.log("Data successfully uploaded to repository");
       }
     };
 
@@ -898,13 +1142,11 @@ export default Component.extend({
 
       const data = await response.json();
 
-      console.log("data from repo", data);
       const scenarios = this.extractScenariosList(data);
 
       let scenarioData = null;
 
       if (scenarioName) {
-        // Filtere die Daten für das ausgewählte Szenario
         scenarioData = data.find(
           (item) =>
             item["@graph"] &&

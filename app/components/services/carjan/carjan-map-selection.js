@@ -15,7 +15,7 @@ export default Component.extend({
   },
 
   async getMap(mapName) {
-    const response = await fetch("/assets/carjan-maps/maps.json");
+    const response = await fetch("/assets/carjan/carjan-maps/maps.json");
     const maps = await response.json();
     this.carjanState.setMapName(mapName);
     return maps[mapName] || maps.map01;

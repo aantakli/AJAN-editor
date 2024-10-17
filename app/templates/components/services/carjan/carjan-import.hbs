@@ -18,30 +18,29 @@
     onchange={{action "handleScenario"}}
     style="display: none;"
   />
+  {{#ui-dropdown
+    class="fluid search selection bt-selection"
+    allowAdditions=false
+    fullTextSearch=true
+    sortSelected=true
+    onChange=(action "scenarioSelected")
+  }}
+
+    <i class="folder open outline icon" local-class="icon-bright"></i>
+    <div class="default text">Select Scenario</div>
+    <i class="dropdown icon"></i>
+    <div class="menu">
+      {{#each availableScenarios as |scenario|}}
+        <div class="item" data-value="{{scenario}}">{{scenario}}</div>
+      {{/each}}
+    </div>
+  {{/ui-dropdown}}
 
   {{#ui-accordion exclusive=false}}
-    <div class="active title composite-selection">
+    <div class="title composite-selection">
       <i class="dropdown icon" />
       <i class="save icon" /><b><font size="3">File Management</font></b>
     </div>
-
-    {{#ui-dropdown
-      class="fluid search selection bt-selection"
-      allowAdditions=false
-      fullTextSearch=true
-      sortSelected=true
-      onChange=(action "scenarioSelected")
-    }}
-
-      <i class="folder open outline icon" local-class="icon-bright"></i>
-      <div class="default text">Select Scenario</div>
-      <i class="dropdown icon"></i>
-      <div class="menu">
-        {{#each availableScenarios as |scenario|}}
-          <div class="item" data-value="{{scenario}}">{{scenario}}</div>
-        {{/each}}
-      </div>
-    {{/ui-dropdown}}
 
     <button class="ui secondary button" {{action "openNewScenarioDialog"}}>
       <i class="plus icon" />
@@ -141,9 +140,13 @@
           Confirm Scenario Deletion
         </div>
         <div class="content">
-          <p>Are you sure you want to delete the scenario
-            <strong>{{selectedValue}}</strong>? Once it's gone, it's gone
-            "forever" and that's a really long time.</p>
+          <p>
+            Are you sure you want to delete the scenario
+            <strong>"{{selectedValue}}"</strong>?
+          </p>
+          <p>
+            Once it's gone, it's gone forever. That's a really long time.
+          </p>
         </div>
         <div class="actions">
           <button class="ui red cancel button" {{action "confirmDelete"}}>

@@ -6,6 +6,8 @@ import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdf from "npm:rdf-ext";
 
 export default Component.extend({
+  attributeBindings: ["style"],
+  style: "height: 100%;",
   rs: getComputedStyle(document.documentElement),
   carjanState: service(),
   gridRows: 12,
@@ -229,8 +231,11 @@ export default Component.extend({
       return;
     }
 
+    const name = this.carjanState.get("scenarioName");
+    console.log("Selected value: ", name);
+    const scenarioName = name ? name : "CurrentScenario";
     const scenarioURI = rdf.namedNode(
-      "http://example.com/carla-scenario#CurrentScenario"
+      `http://example.com/carla-scenario#${scenarioName}`
     );
 
     // Füge das Szenario in den RDF-Graphen ein
@@ -249,13 +254,42 @@ export default Component.extend({
         rdf.quad(
           scenarioURI,
           rdf.namedNode("http://example.com/carla-scenario#hasMap"),
-          rdf.namedNode(`http://example.com/carla-scenario#${currentMap}`)
+          rdf.literal(currentMap)
         )
       );
     }
 
+    // Temporäre Konstanten für weather, category, cameraPosition
+    const weather = "Clear"; // Konstante für Wetter
+    const category = "Urban"; // Konstante für Kategorie
+    const cameraPosition = "up"; // Konstante für Kameraposition
+
+    // Füge weather, category und cameraPosition hinzu
+    rdfGraph.add(
+      rdf.quad(
+        scenarioURI,
+        rdf.namedNode("http://example.com/carla-scenario#weather"),
+        rdf.literal(weather)
+      )
+    );
+
+    rdfGraph.add(
+      rdf.quad(
+        scenarioURI,
+        rdf.namedNode("http://example.com/carla-scenario#category"),
+        rdf.literal(category)
+      )
+    );
+
+    rdfGraph.add(
+      rdf.quad(
+        scenarioURI,
+        rdf.namedNode("http://example.com/carla-scenario#cameraPosition"),
+        rdf.literal(cameraPosition)
+      )
+    );
+
     const cells = gridContainer.querySelectorAll(".grid-cell");
-    let entityCounter = 1;
 
     cells.forEach((cell) => {
       const row = cell.dataset.row;
@@ -279,63 +313,66 @@ export default Component.extend({
           )
         );
 
-        let entityTypeURI;
-        if (entityType === "pedestrian") {
-          entityTypeURI = rdf.namedNode(
-            "http://example.com/carla-scenario#Pedestrian"
-          );
-        } else if (entityType === "vehicle") {
-          entityTypeURI = rdf.namedNode(
-            "http://example.com/carla-scenario#Vehicle"
-          );
-        } else if (entityType === "autonomous") {
-          entityTypeURI = rdf.namedNode(
-            "http://example.com/carla-scenario#AutonomousVehicle"
-          );
-        } else {
-          entityTypeURI = rdf.namedNode(
-            "http://example.com/carla-scenario#Obstacle"
-          );
-        }
-
-        if (entityTypeURI) {
-          rdfGraph.add(
-            rdf.quad(
-              entityURI,
-              rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-              entityTypeURI
-            )
-          );
-        }
-
-        // Füge die Position (SpawnPoint) hinzu
-        rdfGraph.add(
-          rdf.quad(
-            entityURI,
-            rdf.namedNode("http://example.com/carla-scenario#spawnPointX"),
-            rdf.literal(
-              col,
-              rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
-            )
-          )
-        );
-
-        rdfGraph.add(
-          rdf.quad(
-            entityURI,
-            rdf.namedNode("http://example.com/carla-scenario#spawnPointY"),
-            rdf.literal(
-              row,
-              rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
-            )
-          )
-        );
-
-        entityCounter++;
+        this.addEntityToGraph(rdfGraph, entityURI, entityType, row, col);
       }
     });
 
     this.carjanState.setUpdateStatements(rdfGraph);
+
+    this.carjanState.set("isSaveRequest", false);
+    console.log("Scenario successfully saved to the repository.");
+  },
+
+  addEntityToGraph(rdfGraph, entityURI, entityType, row, col) {
+    let entityTypeURI;
+
+    if (entityType === "pedestrian") {
+      entityTypeURI = rdf.namedNode(
+        "http://example.com/carla-scenario#Pedestrian"
+      );
+    } else if (entityType === "vehicle") {
+      entityTypeURI = rdf.namedNode(
+        "http://example.com/carla-scenario#Vehicle"
+      );
+    } else if (entityType === "autonomous") {
+      entityTypeURI = rdf.namedNode(
+        "http://example.com/carla-scenario#AutonomousVehicle"
+      );
+    } else {
+      entityTypeURI = rdf.namedNode(
+        "http://example.com/carla-scenario#Obstacle"
+      );
+    }
+
+    rdfGraph.add(
+      rdf.quad(
+        entityURI,
+        rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+        entityTypeURI
+      )
+    );
+
+    rdfGraph.add(
+      rdf.quad(
+        entityURI,
+        rdf.namedNode("http://example.com/carla-scenario#spawnPointX"),
+        rdf.literal(
+          col,
+          rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
+        )
+      )
+    );
+
+    rdfGraph.add(
+      rdf.quad(
+        entityURI,
+        rdf.namedNode("http://example.com/carla-scenario#spawnPointY"),
+        rdf.literal(
+          row,
+          rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
+        )
+      )
+    );
   },
 
   setupGrid(map = null, agents = null) {

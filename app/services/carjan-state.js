@@ -6,6 +6,12 @@ export default Service.extend({
   agentData: null,
   mapName: null,
   availableScenarios: null,
+  scenarioName: null,
+  isSaveRequest: false,
+  updateStatements: null,
+  weather: "Clear", // Standardwert für Wetter
+  category: "Urban", // Standardwert für Kategorie
+  cameraPosition: "up", // Standardwert für Kameraposition
 
   setMapName(mapName) {
     set(this, "mapName", mapName);
@@ -21,6 +27,22 @@ export default Service.extend({
 
   setAvailableScenarios(scenarios) {
     this.set("availableScenarios", scenarios);
+  },
+
+  setScenarioName(name) {
+    set(this, "scenarioName", name);
+  },
+
+  setWeather(weather) {
+    set(this, "weather", weather);
+  },
+
+  setCategory(category) {
+    set(this, "category", category);
+  },
+
+  setCameraPosition(cameraPosition) {
+    set(this, "cameraPosition", cameraPosition);
   },
 
   saveRequest() {

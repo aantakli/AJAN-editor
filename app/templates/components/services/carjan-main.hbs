@@ -4,10 +4,7 @@
   </div>
   <div class="flex-body" local-class="main-container">
     <div id="behaviors-body" class="flex-content" local-class="behaviors-body">
-      <div
-        id="split-container"
-        style="display: flex; flex-direction: row; height: 70%;"
-      >
+      <div id="split-container" style="display: flex; flex-direction: row;">
         <div id="split-left" class="split content split-horizontal">
           <div local-class="intro">
 
@@ -21,8 +18,12 @@
           {{services/carjan/carjan-dragdrop}}
         </div>
 
-        <div id="split-middle" class="split content split-horizontal">
-          {{services/carjan/carjan-item}}
+        <div
+          id="split-middle"
+          class="split content split-horizontal"
+          style="height: auto;"
+        >
+          {{services/carjan/carjan-item id="carjan-item"}}
         </div>
 
         <div id="split-right" class="split content split-horizontal">

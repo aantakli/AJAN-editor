@@ -38,13 +38,117 @@ export default Component.extend({
     rdfGraph.set(rdf.dataset());
   },
 
-  updateObserver: observer("carjanState.updateStatements", function () {
-    const statements = this.carjanState.updateStatements;
-    rdfGraph.set(rdf.dataset());
-    rdfGraph.set(statements);
-    this.updateRepo();
+  updateObserver: observer("carjanState.updateStatements", async function () {
+    const statements = this.carjanState.updateStatements._quads;
+    console.log("Statements:", statements);
+    const parsedStatements = this.parseQuadsToScenarios(statements);
+    console.log("Parsed statements:", parsedStatements);
+
+    const existingRepositoryContent = await this.downloadRepository();
+    const existingDataset = await this.parseTurtle(existingRepositoryContent);
+
+    const newScenarioNames = parsedStatements.scenarios.map(
+      (scenario) => scenario.scenarioName
+    );
+
+    existingDataset.scenarios = existingDataset.scenarios.filter(
+      (existingScenario) =>
+        !newScenarioNames.includes(existingScenario.scenarioName)
+    );
+
+    existingDataset.scenarios.push(...parsedStatements.scenarios);
+
+    this.updateWithResult(existingDataset);
   }),
 
+  parseQuadsToScenarios(quads) {
+    const scenarios = {};
+    const entities = {};
+
+    quads.forEach((quad) => {
+      const subject = quad.subject.value;
+      const predicate = quad.predicate.value;
+      const object = quad.object.value;
+
+      // Szenario-Handling
+      if (
+        predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+        object === "http://example.com/carla-scenario#Scenario"
+      ) {
+        if (!scenarios[subject]) {
+          scenarios[subject] = {
+            scenarioName: subject,
+            scenarioMap: null,
+            cameraPosition: null,
+            category: null,
+            weather: null,
+            entities: [],
+          };
+        }
+      }
+
+      // Szenario-Eigenschaften hinzufügen
+      if (scenarios[subject]) {
+        if (predicate === "http://example.com/carla-scenario#hasMap") {
+          scenarios[subject].scenarioMap = object;
+        }
+        if (predicate === "http://example.com/carla-scenario#cameraPosition") {
+          scenarios[subject].cameraPosition = object;
+        }
+        if (predicate === "http://example.com/carla-scenario#category") {
+          scenarios[subject].category = object.split("#")[1]; // Entferne den URI-Teil
+        }
+        if (predicate === "http://example.com/carla-scenario#weather") {
+          scenarios[subject].weather = object;
+        }
+        if (predicate === "http://example.com/carla-scenario#hasEntity") {
+          if (!scenarios[subject].entities.includes(object)) {
+            scenarios[subject].entities.push(object);
+          }
+        }
+      }
+
+      // Entitäts-Handling
+      if (
+        predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+        (object === "http://example.com/carla-scenario#Vehicle" ||
+          object === "http://example.com/carla-scenario#Pedestrian")
+      ) {
+        if (!entities[subject]) {
+          entities[subject] = {
+            entity: subject,
+            type: object.split("#")[1],
+            label: null,
+            x: null,
+            y: null,
+          };
+        }
+      }
+
+      // X- und Y-Koordinaten und Label der Entitäten erfassen
+      if (entities[subject]) {
+        if (predicate === "http://example.com/carla-scenario#label") {
+          entities[subject].label = object;
+        }
+        if (predicate === "http://example.com/carla-scenario#spawnPointX") {
+          entities[subject].x = object;
+        }
+        if (predicate === "http://example.com/carla-scenario#spawnPointY") {
+          entities[subject].y = object;
+        }
+      }
+    });
+
+    // Entitäten den Szenarien zuordnen
+    Object.keys(scenarios).forEach((scenarioKey) => {
+      const scenario = scenarios[scenarioKey];
+      scenario.entities = scenario.entities.map(
+        (entityURI) => entities[entityURI]
+      );
+    });
+
+    return { scenarios: Object.values(scenarios) };
+  },
   async getMap(mapName) {
     const response = await fetch("/assets/carjan/carjan-maps/maps.json");
     const maps = await response.json();
@@ -117,6 +221,7 @@ export default Component.extend({
       this.set("selectedValue", value);
       if (value) {
         this.loadMapAndAgents(value);
+        this.carjanState.setScenarioName(value);
       }
     },
 
@@ -309,9 +414,9 @@ export default Component.extend({
     triggerSaveScenario() {
       this.carjanState.saveRequest();
       //timeout 1s
-      setTimeout(() => {
-        window.location.reload(true);
-      }, 1000);
+      //setTimeout(() => {
+      //   window.location.reload(true);
+      // }, 1000);
     },
 
     async saveAndReset() {
@@ -379,9 +484,9 @@ export default Component.extend({
   async updateWithResult(result) {
     this.updateCarjanRepo(result).then(() => {
       this.loadGrid();
-      setTimeout(() => {
-        window.location.reload(true);
-      }, 1000);
+      // setTimeout(() => {
+      // window.location.reload(true);
+      // }, 1000);
     });
   },
 
@@ -432,20 +537,6 @@ export default Component.extend({
 
     const trigContent = await response.text();
     return trigContent;
-  },
-
-  async serializeDataset(dataset) {
-    return new Promise((resolve, reject) => {
-      const writer = new N3.Writer({ format: "application/trig" });
-      writer.addQuads([...dataset]);
-      writer.end((error, result) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(result);
-        }
-      });
-    });
   },
 
   readFile(file) {
@@ -663,7 +754,7 @@ export default Component.extend({
   async updateWithStatements(statements) {
     // Array zum Sammeln der Szenario-URIs
     const scenarioURIs = [];
-
+    console.log("Statements:", statements);
     // Iterieren über alle Szenarien
     for (const scenario of statements.scenarios) {
       // Fügen Sie die Szenario-URI dem Array hinzu

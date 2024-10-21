@@ -2,6 +2,7 @@
   <i class="map outline icon"></i>
   <b>Map Selection</b>
 </p>
+
 <div class="content">
   <div class="ui items" local-class="map-selection-container">
     {{#each maps as |map|}}
@@ -14,7 +15,7 @@
             />
           </div>
           <div local-class="map-content">
-            <a local-class="map-header">{{map.name}}</a>
+            <div local-class="map-header">{{map.name}}</div>
             <div local-class="map-description">
               <p>{{map.description}}</p>
             </div>

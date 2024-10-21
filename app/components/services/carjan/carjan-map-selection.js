@@ -6,27 +6,21 @@ export default Component.extend({
   carjanState: service(),
   link: "/assets/carjan/carjan-maps/images/",
 
-  init() {
+  async init() {
     this._super(...arguments);
+    await this.loadMaps();
+  },
 
-    // Define maps with preview images and descriptions
-    this.set("maps", [
-      {
-        name: "map01",
-        description: "Urban Area",
-        image: this.link + "map01.png",
-      },
-      {
-        name: "map02",
-        description: "Suburban Area",
-        image: this.link + "map02.png",
-      },
-      {
-        name: "map03",
-        description: "Industrial Zone",
-        image: this.link + "map03.png",
-      },
-    ]);
+  async loadMaps() {
+    try {
+      const response = await fetch(
+        "/assets/carjan/carjan-maps/map_selection.json"
+      );
+      const maps = await response.json();
+      this.set("maps", maps);
+    } catch (error) {
+      console.error("Error loading maps:", error);
+    }
   },
 
   async getMap(mapName) {
@@ -41,6 +35,11 @@ export default Component.extend({
   actions: {
     selectMap(mapName) {
       this.setMap(mapName);
+      this.set("showMapChangeMessage", true);
+      this.set("selectedMap", mapName);
+    },
+    closeMessage() {
+      this.set("showMapChangeMessage", false);
     },
   },
 

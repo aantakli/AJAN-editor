@@ -1,25 +1,26 @@
 <p class="node-adder-class title-behaviors">
-  Map Selection
+  <i class="map outline icon"></i>
+  <b>Map Selection</b>
 </p>
-{{#ui-accordion exclusive=false}}
-  <div class="active title composite-selection">
-    <i class="dropdown icon"></i><b><font size="3">Map selection</font></b>
+<div class="content">
+  <div class="ui items" local-class="map-selection-container">
+    {{#each maps as |map|}}
+      <div local-class="map-panel" {{action "selectMap" map.name}}>
+        <div class="ui items" local-class="map-item">
+          <div local-class="map-image">
+            <img
+              src="/assets/carjan/carjan-maps/images/{{map.name}}.png"
+              alt="{{map.name}} preview"
+            />
+          </div>
+          <div local-class="map-content">
+            <a local-class="map-header">{{map.name}}</a>
+            <div local-class="map-description">
+              <p>{{map.description}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    {{/each}}
   </div>
-  <div>
-    <ul>
-      <li id="map01" {{action "selectMap" "map01"}}>
-        Map 01
-      </li>
-      <li id="map02" {{action "selectMap" "map02"}}>
-        Map 02
-      </li>
-      <li id="map03" {{action "selectMap" "map03"}}>
-        Map 03
-      </li>
-      <li id="map04" {{action "selectMap" "map04"}}>
-        Map 04
-      </li>
-    </ul>
-  </div>
-
-{{/ui-accordion}}
+</div>

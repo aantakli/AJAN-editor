@@ -7,6 +7,7 @@ export default Component.extend({
     this._super(...arguments);
     this.setupSplitPanes();
     this.setupDropdown();
+    this.setupTabs();
   },
   setupDropdown() {
     const dropdown = this.element.querySelector(".ui.dropdown");
@@ -45,6 +46,11 @@ export default Component.extend({
           }
         }
       },
+    });
+  },
+  setupTabs() {
+    $(document).ready(function () {
+      $(".menu .item").tab();
     });
   },
 });

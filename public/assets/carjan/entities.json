@@ -1,0 +1,22 @@
+[
+  {
+    "id": "pedestrian",
+    "name": "Pedestrian",
+    "icon": "user"
+  },
+  {
+    "id": "vehicle",
+    "name": "Vehicle",
+    "icon": "car"
+  },
+  {
+    "id": "autonomous",
+    "name": "Autonomous Vehicle",
+    "icon": "taxi"
+  },
+  {
+    "id": "obstacle",
+    "name": "Obstacle",
+    "icon": "tree"
+  }
+]

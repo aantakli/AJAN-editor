@@ -259,12 +259,10 @@ export default Component.extend({
       );
     }
 
-    // Temporäre Konstanten für weather, category, cameraPosition
-    const weather = "Clear"; // Konstante für Wetter
-    const category = "Urban"; // Konstante für Kategorie
-    const cameraPosition = "up"; // Konstante für Kameraposition
+    const weather = "Clear";
+    const category = "Urban";
+    const cameraPosition = "up";
 
-    // Füge weather, category und cameraPosition hinzu
     rdfGraph.add(
       rdf.quad(
         scenarioURI,
@@ -398,10 +396,9 @@ export default Component.extend({
 
         colors[`${row},${col}`] = color;
 
-        // Wenn die Zelle Void ist, setze sie als belegt
         if (color === this.colors.void) {
           status[`${row},${col}`] = {
-            occupied: true, // Void Zellen sind immer belegt
+            occupied: true,
             entityType: "void",
           };
         } else {
@@ -415,7 +412,6 @@ export default Component.extend({
       }
     }
 
-    // Vor `afterRender` den Status korrekt setzen
     this.gridStatus = status;
 
     run.scheduleOnce("afterRender", this, function () {
@@ -446,10 +442,53 @@ export default Component.extend({
         this.addEntityToGrid(agent.type, agent.y, agent.x);
       });
     }
+    /*
+    const existingCameraIcon = this.element.querySelector(".camera-icon");
+    if (existingCameraIcon) {
+      existingCameraIcon.remove();
+    }
+
+    const cameraIcon = document.createElement("i");
+    cameraIcon.classList.add("camera-icon", "video", "icon");
+    cameraIcon.style.position = "absolute";
+    cameraIcon.style.fontSize = "36px";
+
+    const positions = {
+      up: {
+        top: `${gridRect.top - 50}px`,
+        left: `${gridRect.left + gridRect.width / 2 - 18}px`,
+        rotate: "180deg",
+      },
+      down: {
+        top: `${gridRect.bottom + 10}px`,
+        left: `${gridRect.left + gridRect.width / 2 - 18}px`,
+        rotate: "0deg",
+      },
+      left: {
+        top: `${gridRect.top + gridRect.height / 2 - 18}px`,
+        left: `${gridRect.left - 50}px`,
+        rotate: "90deg",
+      },
+      right: {
+        top: `${gridRect.top + gridRect.height / 2 - 18}px`,
+        left: `${gridRect.right + 10}px`,
+        rotate: "-90deg",
+      },
+    };
+
+    const cameraPosition = this.carjanState.get("cameraPosition") || "up";
+    const { top, left, rotate } = positions[cameraPosition];
+
+    cameraIcon.style.top = top;
+    cameraIcon.style.left = left;
+    cameraIcon.style.transform = `rotate(${rotate})`;
+
+    this.element.appendChild(cameraIcon); */
 
     set(this, "gridCells", cells);
     set(this, "gridStatus", status);
   },
+
   addEntityToGrid(entityType, row, col) {
     run.scheduleOnce("afterRender", this, function () {
       const gridElement = this.element.querySelector(
@@ -536,10 +575,21 @@ export default Component.extend({
 
   applyTransform() {
     const gridContainer = this.element.querySelector("#gridContainer");
+    const cameraIcon = this.element.querySelector(".camera-icon");
 
     gridContainer.style.transform = `translate3d(${this.get(
       "translateX"
     )}px, ${this.get("translateY")}px, 0) scale(${this.get("scale")})`;
+    //this.applyTransformToCameraIcon(cameraIcon);
+  },
+
+  applyTransformToCameraIcon(iconElement) {
+    const gridContainer = this.element.querySelector("#gridContainer");
+    const scale = this.get("scale");
+    const translateX = this.get("translateX");
+    const translateY = this.get("translateY");
+
+    iconElement.style.transform += ` translate(${translateX}px, ${translateY}px) scale(${scale})`;
   },
 
   setupPanningAndZoom() {

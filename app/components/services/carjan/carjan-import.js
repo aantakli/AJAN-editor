@@ -40,9 +40,7 @@ export default Component.extend({
 
   updateObserver: observer("carjanState.updateStatements", async function () {
     const statements = this.carjanState.updateStatements._quads;
-    console.log("Statements:", statements);
     const parsedStatements = this.parseQuadsToScenarios(statements);
-    console.log("Parsed statements:", parsedStatements);
 
     const existingRepositoryContent = await this.downloadRepository();
     const existingDataset = await this.parseTurtle(existingRepositoryContent);
@@ -94,6 +92,7 @@ export default Component.extend({
         }
         if (predicate === "http://example.com/carla-scenario#cameraPosition") {
           scenarios[subject].cameraPosition = object;
+          console.log("Camera position:", object);
         }
         if (predicate === "http://example.com/carla-scenario#category") {
           scenarios[subject].category = object.split("#")[1]; // Entferne den URI-Teil
@@ -250,9 +249,9 @@ export default Component.extend({
         this.set("isDeleteDialogOpen", false);
         this.deleteScenarioFromRepository(selectedScenario).then((result) => {
           this.updateWithResult(result).then(() => {
-            setTimeout(() => {
-              window.location.reload(true);
-            }, 1000);
+            //setTimeout(() => {
+            //   window.location.reload(true);
+            //  }, 1000);
           });
         });
       }
@@ -413,10 +412,9 @@ export default Component.extend({
 
     triggerSaveScenario() {
       this.carjanState.saveRequest();
-      //timeout 1s
       //setTimeout(() => {
-      //   window.location.reload(true);
-      // }, 1000);
+      //  window.location.reload(true);
+      //}, 1000);
     },
 
     async saveAndReset() {
@@ -485,8 +483,8 @@ export default Component.extend({
     this.updateCarjanRepo(result).then(() => {
       this.loadGrid();
       // setTimeout(() => {
-      // window.location.reload(true);
-      // }, 1000);
+      //   window.location.reload(true);
+      //  }, 1000);
     });
   },
 
@@ -620,7 +618,8 @@ export default Component.extend({
       }
 
       const agents = this.extractAgentsData(scenarioData);
-      const scenarioMap = this.extractMapData(scenarioData);
+      const { scenarioMap, cameraPosition } =
+        this.extractScenarioData(scenarioData);
 
       const map = scenarioMap
         ? await this.getMap(scenarioMap)
@@ -754,7 +753,6 @@ export default Component.extend({
   async updateWithStatements(statements) {
     // Array zum Sammeln der Szenario-URIs
     const scenarioURIs = [];
-    console.log("Statements:", statements);
     // Iterieren über alle Szenarien
     for (const scenario of statements.scenarios) {
       // Fügen Sie die Szenario-URI dem Array hinzu
@@ -1252,8 +1250,9 @@ export default Component.extend({
     }
   },
 
-  extractMapData(scenarioData) {
+  extractScenarioData(scenarioData) {
     let mapName = null;
+    let cameraPosition = null;
 
     if (scenarioData && scenarioData["@graph"]) {
       scenarioData["@graph"].forEach((graphItem) => {
@@ -1263,15 +1262,25 @@ export default Component.extend({
             (type) => type === "http://example.com/carla-scenario#Scenario"
           )
         ) {
+          // Extract the map name
           if (graphItem["http://example.com/carla-scenario#map"]) {
             mapName =
               graphItem["http://example.com/carla-scenario#map"][0]["@value"];
+          }
+
+          // Extract the camera position
+          if (graphItem["http://example.com/carla-scenario#cameraPosition"]) {
+            cameraPosition =
+              graphItem["http://example.com/carla-scenario#cameraPosition"][0][
+                "@value"
+              ];
           }
         }
       });
     }
 
-    return mapName;
+    // Return both mapName and cameraPosition
+    return { mapName, cameraPosition };
   },
 
   extractAgentsData(scenarioData) {

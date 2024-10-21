@@ -1,8 +1,4 @@
 <div>
-  <p class="node-adder-class title-behaviors">
-    <i class="cog icon" />
-    Properties
-  </p>
   <input
     type="file"
     accept=".ttl"
@@ -18,6 +14,15 @@
     onchange={{action "handleScenario"}}
     style="display: none;"
   />
+
+  <p class="node-adder-class title-behaviors">
+    <i class="save icon" />
+    <b>File Management</b>
+  </p>
+
+  <div class="title composite-selection">
+  </div>
+
   {{#ui-dropdown
     class="fluid search selection bt-selection"
     allowAdditions=false
@@ -36,56 +41,46 @@
     </div>
   {{/ui-dropdown}}
 
-  {{#ui-accordion exclusive=false}}
-    <div class="title composite-selection">
-      <i class="dropdown icon" />
-      <i class="save icon" /><b><font size="3">File Management</font></b>
-    </div>
-
+  <div local-class="button-container">
     <button class="ui secondary button" {{action "openNewScenarioDialog"}}>
       <i class="plus icon" />
       New Scenario
     </button>
 
     <button class="ui red button" {{action "openDeleteDialog"}}>
-      <i class="trash icon"></i>
+      <i class="trash icon" />
       Delete Scenario
     </button>
 
-    <div local-class="button-container">
-      <button class="ui primary button" {{action "uploadFile"}}>
-        <i class="upload icon" />
-        Upload Scenario Repository
-      </button>
+    <button class="ui primary button" {{action "uploadFile"}}>
+      <i class="upload icon" />
+      Upload Repository
+    </button>
 
-      <button class="ui primary button" {{action "uploadScenario"}}>
-        <i class="upload icon" />
-        Upload Scenario File
-      </button>
+    <button class="ui primary button" {{action "uploadScenario"}}>
+      <i class="upload icon" />
+      Upload Scenario
+    </button>
 
-      <button
-        class="ui primary button sticky-save"
-        {{action "triggerSaveScenario"}}
-      >
-        <i class="save icon" />
-        Save Scenario & Reset
-      </button>
+    <button
+      class="ui primary button sticky-save"
+      {{action "triggerSaveScenario"}}
+    >
+      <i class="save icon" />
+      Save
+    </button>
 
-      <button class="ui primary button sticky-save" {{action "downloadTurtle"}}>
-        <i class="download icon" />
-        Download Repository
-      </button>
+    <button class="ui primary button sticky-save" {{action "downloadTurtle"}}>
+      <i class="download icon" />
+      Download Repository
+    </button>
 
-      <button
-        class="ui primary button sticky-save"
-        {{action "downloadScenario"}}
-      >
-        <i class="download icon"></i>
-        Download Scenario
-      </button>
-    </div>
+    <button class="ui primary button sticky-save" {{action "downloadScenario"}}>
+      <i class="download icon"></i>
+      Download Scenario
+    </button>
+  </div>
 
-  {{/ui-accordion}}
   {{#if isDialogOpen}}
     <div class="ui dimmer modals page">
       <div class="ui small basic modal transition" local-class="center-modal">

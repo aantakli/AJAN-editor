@@ -1,0 +1,99 @@
+.entity-selection-container {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 400px;
+  gap: 20px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.entity-panel {
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+  position: relative;
+}
+
+.entity-panel:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.entity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0px;
+}
+
+.entity-image {
+  width: 70px !important;
+  height: 70px;
+}
+
+.entity-image i {
+  font-size: 48px;
+}
+
+.entity-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  margin-left: 20px;
+}
+
+.entity-header {
+  font-size: 1.2em;
+  font-weight: bold;
+  text-align: left;
+}
+
+.drag-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 99%;
+  height: 99%;
+  cursor: pointer;
+  background-color: rgba(255, 0, 0, 0.1); /* Sichtbar für Debugging */
+}
+
+.debug-visible-icon {
+  position: absolute;
+  pointer-events: none;
+  font-size: 48px;
+  z-index: 1000;
+  opacity: 1;
+}
+
+.follow-mouse-icon {
+  font-size: 48px;
+  color: black;
+  position: absolute;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.follow-mouse-icon.user {
+  font-family: "Icons";
+  content: "\f007"; /* Icon Code für 'user' */
+}
+
+.follow-mouse-icon.car {
+  font-family: "Icons";
+  content: "\f1b9"; /* Icon Code für 'car' */
+}
+
+.follow-mouse-icon.taxi {
+  font-family: "Icons";
+  content: "\f1ba"; /* Icon Code für 'taxi' */
+}
+
+.follow-mouse-icon.tree {
+  font-family: "Icons";
+  content: "\f1bb"; /* Icon Code für 'tree' */
+}

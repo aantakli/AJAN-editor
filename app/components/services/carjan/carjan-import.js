@@ -68,7 +68,6 @@ export default Component.extend({
       const predicate = quad.predicate.value;
       const object = quad.object.value;
 
-      // Szenario-Handling
       if (
         predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
         object === "http://example.com/carla-scenario#Scenario"
@@ -85,7 +84,6 @@ export default Component.extend({
         }
       }
 
-      // Szenario-Eigenschaften hinzufügen
       if (scenarios[subject]) {
         if (predicate === "http://example.com/carla-scenario#hasMap") {
           scenarios[subject].scenarioMap = object;
@@ -107,11 +105,12 @@ export default Component.extend({
         }
       }
 
-      // Entitäts-Handling
       if (
         predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
         (object === "http://example.com/carla-scenario#Vehicle" ||
-          object === "http://example.com/carla-scenario#Pedestrian")
+          object === "http://example.com/carla-scenario#Pedestrian" ||
+          object === "http://example.com/carla-scenario#AutonomousVehicle" ||
+          object === "http://example.com/carla-scenario#Obstacle")
       ) {
         if (!entities[subject]) {
           entities[subject] = {
@@ -249,9 +248,9 @@ export default Component.extend({
         this.set("isDeleteDialogOpen", false);
         this.deleteScenarioFromRepository(selectedScenario).then((result) => {
           this.updateWithResult(result).then(() => {
-            //setTimeout(() => {
-            //   window.location.reload(true);
-            //  }, 1000);
+            setTimeout(() => {
+              window.location.reload(true);
+            }, 1000);
           });
         });
       }
@@ -412,9 +411,9 @@ export default Component.extend({
 
     triggerSaveScenario() {
       this.carjanState.saveRequest();
-      //setTimeout(() => {
-      //  window.location.reload(true);
-      //}, 1000);
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 1000);
     },
 
     async saveAndReset() {
@@ -482,9 +481,9 @@ export default Component.extend({
   async updateWithResult(result) {
     this.updateCarjanRepo(result).then(() => {
       this.loadGrid();
-      // setTimeout(() => {
-      //   window.location.reload(true);
-      //  }, 1000);
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 1000);
     });
   },
 
@@ -751,21 +750,14 @@ export default Component.extend({
   },
 
   async updateWithStatements(statements) {
-    // Array zum Sammeln der Szenario-URIs
     const scenarioURIs = [];
-    // Iterieren über alle Szenarien
     for (const scenario of statements.scenarios) {
-      // Fügen Sie die Szenario-URI dem Array hinzu
       scenarioURIs.push(scenario.scenarioName);
-
-      // Fügen Sie das Szenario dem RDF-Graph hinzu
       await this.addRDFStatements(scenario);
     }
 
-    // Globale Konfiguration hinzufügen
     this.addGlobalConfig(scenarioURIs);
 
-    // Nach dem Hinzufügen aller Szenarien das Repository aktualisieren
     await this.updateRepo();
     rdfGraph.set(rdf.dataset());
   },

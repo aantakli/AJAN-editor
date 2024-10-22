@@ -34,7 +34,6 @@ export default Component.extend({
     path: getComputedStyle(document.documentElement)
       .getPropertyValue("--color-primary-2")
       .trim(),
-    //mittel aber dunkles grau für void
     void: "#333333",
   },
   didInsertElement() {
@@ -213,6 +212,10 @@ export default Component.extend({
     }
   }),
 
+  cameraPositionObserver: observer("carjanState.cameraPosition", function () {
+    this.updateCameraPosition();
+  }),
+
   deleteAllEntites() {
     if (this.gridCells) {
       this.gridCells.forEach((cell) => {
@@ -232,13 +235,11 @@ export default Component.extend({
     }
 
     const name = this.carjanState.get("scenarioName");
-    console.log("Selected value: ", name);
     const scenarioName = name ? name : "CurrentScenario";
     const scenarioURI = rdf.namedNode(
       `http://example.com/carla-scenario#${scenarioName}`
     );
 
-    // Füge das Szenario in den RDF-Graphen ein
     rdfGraph.add(
       rdf.quad(
         scenarioURI,
@@ -247,7 +248,6 @@ export default Component.extend({
       )
     );
 
-    // Füge die Map zum Szenario hinzu
     const currentMap = this.carjanState.get("mapName");
     if (currentMap) {
       rdfGraph.add(
@@ -261,7 +261,7 @@ export default Component.extend({
 
     const weather = "Clear";
     const category = "Urban";
-    const cameraPosition = "up";
+    const cameraPosition = "left";
 
     rdfGraph.add(
       rdf.quad(
@@ -318,7 +318,6 @@ export default Component.extend({
     this.carjanState.setUpdateStatements(rdfGraph);
 
     this.carjanState.set("isSaveRequest", false);
-    console.log("Scenario successfully saved to the repository.");
   },
 
   addEntityToGraph(rdfGraph, entityURI, entityType, row, col) {
@@ -383,7 +382,7 @@ export default Component.extend({
 
     for (let row = 0; row < this.gridRows; row++) {
       for (let col = 0; col < this.gridCols; col++) {
-        let color = this.colors.void; // Standardfarbe Void
+        let color = this.colors.void;
 
         if (map && map[row] && map[row][col]) {
           const cellType = map[row][col];
@@ -436,57 +435,78 @@ export default Component.extend({
         }
       }
     });
-    // Entities hinzufügen, falls vorhanden
     if (agents) {
       agents.forEach((agent) => {
         this.addEntityToGrid(agent.type, agent.y, agent.x);
       });
     }
-    /*
-    const existingCameraIcon = this.element.querySelector(".camera-icon");
-    if (existingCameraIcon) {
-      existingCameraIcon.remove();
-    }
 
-    const cameraIcon = document.createElement("i");
-    cameraIcon.classList.add("camera-icon", "video", "icon");
-    cameraIcon.style.position = "absolute";
-    cameraIcon.style.fontSize = "36px";
-
-    const positions = {
-      up: {
-        top: `${gridRect.top - 50}px`,
-        left: `${gridRect.left + gridRect.width / 2 - 18}px`,
-        rotate: "180deg",
-      },
-      down: {
-        top: `${gridRect.bottom + 10}px`,
-        left: `${gridRect.left + gridRect.width / 2 - 18}px`,
-        rotate: "0deg",
-      },
-      left: {
-        top: `${gridRect.top + gridRect.height / 2 - 18}px`,
-        left: `${gridRect.left - 50}px`,
-        rotate: "90deg",
-      },
-      right: {
-        top: `${gridRect.top + gridRect.height / 2 - 18}px`,
-        left: `${gridRect.right + 10}px`,
-        rotate: "-90deg",
-      },
-    };
-
-    const cameraPosition = this.carjanState.get("cameraPosition") || "up";
-    const { top, left, rotate } = positions[cameraPosition];
-
-    cameraIcon.style.top = top;
-    cameraIcon.style.left = left;
-    cameraIcon.style.transform = `rotate(${rotate})`;
-
-    this.element.appendChild(cameraIcon); */
-
+    this.updateCameraPosition();
     set(this, "gridCells", cells);
     set(this, "gridStatus", status);
+  },
+
+  updateCameraPosition() {
+    const cameraPosition = this.carjanState.get("cameraPosition") || "up";
+    const cameraIcon = document.getElementById("cameraIcon");
+    const gridContainer = document.getElementById("gridContainer");
+
+    if (cameraIcon) {
+      const classesToRemove = [
+        "rotated",
+        "counterclockwise",
+        "clockwise",
+        "flipped",
+        "horizontally",
+      ];
+      classesToRemove.forEach((className) => {
+        if (cameraIcon.classList.contains(className)) {
+          cameraIcon.classList.remove(className);
+        }
+      });
+    }
+
+    const gridWidth = gridContainer.offsetWidth;
+    const gridHeight = gridContainer.offsetHeight;
+
+    const margin = -50;
+
+    let top = 0;
+    let left = 0;
+
+    switch (cameraPosition) {
+      case "up":
+        top = gridHeight - cameraIcon.offsetHeight - margin;
+        left = gridWidth / 2 - cameraIcon.offsetWidth / 2;
+        cameraIcon.classList.add("rotated");
+        cameraIcon.classList.add("counterclockwise");
+        break;
+
+      case "down":
+        top = margin;
+        left = gridWidth / 2 - cameraIcon.offsetWidth / 2;
+        cameraIcon.classList.add("rotated");
+        cameraIcon.classList.add("clockwise");
+        break;
+
+      case "left":
+        top = gridHeight / 2 - cameraIcon.offsetHeight / 2;
+        left = gridWidth - cameraIcon.offsetWidth - margin * 1.5;
+        cameraIcon.classList.add("flipped");
+        cameraIcon.classList.add("horizontally");
+        break;
+
+      case "right":
+        top = gridHeight / 2 - cameraIcon.offsetHeight / 2;
+        left = margin * 1.5;
+        break;
+    }
+
+    cameraIcon.style.lineHeight = "36px";
+    cameraIcon.style.fontSize = "36px";
+    cameraIcon.style.position = "absolute";
+    cameraIcon.style.top = `${top}px`;
+    cameraIcon.style.left = `${left}px`;
   },
 
   addEntityToGrid(entityType, row, col) {
@@ -497,13 +517,11 @@ export default Component.extend({
       if (gridElement) {
         const currentStatus = this.gridStatus[`${row},${col}`];
 
-        // Verhindere, dass auf Void-Zellen Entities gesetzt werden
         if (currentStatus.occupied && currentStatus.entityType === "void") {
           console.log(`Cannot place entity on void cell at (${row}, ${col})`);
           return;
         }
 
-        // Setze das Icon für die Entität
         const iconMap = {
           pedestrian: "user",
           vehicle: "car",
@@ -528,12 +546,10 @@ export default Component.extend({
 
         gridElement.appendChild(iconElement);
 
-        // Aktualisiere den Grid-Status
         gridElement.setAttribute("data-occupied", "true");
         gridElement.setAttribute("data-entityType", entityType);
         gridElement.setAttribute("draggable", "true");
 
-        // Der Status für nicht-void Zellen wird aktualisiert
         this.gridStatus[`${row},${col}`] = {
           occupied: true,
           entityType: entityType,
@@ -580,7 +596,6 @@ export default Component.extend({
     gridContainer.style.transform = `translate3d(${this.get(
       "translateX"
     )}px, ${this.get("translateY")}px, 0) scale(${this.get("scale")})`;
-    //this.applyTransformToCameraIcon(cameraIcon);
   },
 
   applyTransformToCameraIcon(iconElement) {

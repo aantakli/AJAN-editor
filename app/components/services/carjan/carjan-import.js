@@ -90,7 +90,6 @@ export default Component.extend({
         }
         if (predicate === "http://example.com/carla-scenario#cameraPosition") {
           scenarios[subject].cameraPosition = object;
-          console.log("Camera position:", object);
         }
         if (predicate === "http://example.com/carla-scenario#category") {
           scenarios[subject].category = object.split("#")[1]; // Entferne den URI-Teil
@@ -248,9 +247,9 @@ export default Component.extend({
         this.set("isDeleteDialogOpen", false);
         this.deleteScenarioFromRepository(selectedScenario).then((result) => {
           this.updateWithResult(result).then(() => {
-            setTimeout(() => {
-              window.location.reload(true);
-            }, 1000);
+            //setTimeout(() => {
+            //   window.location.reload(true);
+            // }, 1000);
           });
         });
       }
@@ -411,9 +410,9 @@ export default Component.extend({
 
     triggerSaveScenario() {
       this.carjanState.saveRequest();
-      setTimeout(() => {
-        window.location.reload(true);
-      }, 1000);
+      // setTimeout(() => {
+      //   window.location.reload(true);
+      // }, 1000);
     },
 
     async saveAndReset() {
@@ -481,9 +480,9 @@ export default Component.extend({
   async updateWithResult(result) {
     this.updateCarjanRepo(result).then(() => {
       this.loadGrid();
-      setTimeout(() => {
-        window.location.reload(true);
-      }, 1000);
+      // setTimeout(() => {
+      //   window.location.reload(true);
+      //  }, 1000);
     });
   },
 
@@ -626,6 +625,7 @@ export default Component.extend({
 
       this.carjanState.setMapData(map);
       this.carjanState.setAgentData(agents);
+      this.carjanState.setCameraPosition(cameraPosition);
 
       // Optional: Aktualisieren der verfügbaren Szenarien
       this.carjanState.setAvailableScenarios(scenarios);

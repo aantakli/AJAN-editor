@@ -29,6 +29,13 @@
   overflow-x: hidden;
 }
 
+.pad {
+  padding-left: 12px;
+  padding-right: 12px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
 :global(#split-right .ui.button) {
   border-radius: 0px;
   box-shadow: 0px;

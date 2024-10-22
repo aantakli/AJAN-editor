@@ -1,72 +1,76 @@
-<p class="node-adder-class title-behaviors">
-  <i class="cog icon" />
-  Properties
-</p>
-<div class="active title composite-selection">
-  <i class="dropdown icon" /><b><font size="4">Scenario Parameters</font></b>
+<div local-class="intro">
+  <h4>
+    <i class="cog icon" />
+    Properties
+  </h4>
 </div>
+
+<p class="node-adder-class title-behaviors">
+  <i class="user plus icon"></i>
+  <b>Entity Selection</b>
+</p>
+<p class="active title composite-selection">
+  <i class="info circle icon" style="margin-left: 4px"></i>
+  Select global properties for the scenario.
+</p>
 <div class="ui form">
-  <div class="field">
-    <label>Weather</label>
-    <div class="ui selection dropdown" {{action "setWeather" on="change"}}>
-      <input type="hidden" name="weather" />
-      <i class="dropdown icon" />
-      <div class="default text">Select Weather</div>
-      <div class="menu">
-        <div class="item" data-value="Clear">Clear</div>
-        <div class="item" data-value="Rainy">Rainy</div>
-        <div class="item" data-value="Foggy">Foggy</div>
+  <div local-class="pad">
+    <div class="field">
+      <label>Weather</label>
+      <div class="ui selection dropdown" {{action "setWeather" on="change"}}>
+        <input type="hidden" name="weather" />
+        <i class="dropdown icon" />
+        <div class="default text">Select Weather</div>
+        <div class="menu">
+          <div class="item" data-value="Clear">Clear</div>
+          <div class="item" data-value="Rainy">Rainy</div>
+          <div class="item" data-value="Foggy">Foggy</div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="field">
-    <label>Camera Position</label>
-    <div class="ui selection dropdown" onchange={{action "setCameraPosition"}}>
-      <input type="hidden" name="cameraPosition" />
-      <i class="dropdown icon" />
-      <div class="text">
-        {{#if (eq carjanState.cameraPosition "up")}}
-          <i class="video icon rotated counterclockwise" />Up
-        {{else if (eq carjanState.cameraPosition "down")}}
-          <i class="video icon rotated clockwise" />
-          Down
-        {{else if (eq carjanState.cameraPosition "left")}}
-          <i class="video icon flipped horizonally" />
-          Left
-        {{else if (eq carjanState.cameraPosition "right")}}
-          <i class="video icon" />
-          Right
-        {{else}}
-          Select Camera Position
-        {{/if}}
-      </div>
-      <div class="menu">
-        <div class="item" data-value="up"><i
-            class="video icon rotated counterclockwise"
-          />Up</div>
-        <div class="item" data-value="down"><i
-            class="video icon rotated clockwise"
-          />Down</div>
-        <div class="item" data-value="left"><i
-            class="video icon flipped horizontally"
-          />Left</div>
-        <div class="item" data-value="right"><i class="video icon" />Right</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="field">
-    <label>Category</label>
-    <div class="ui selection dropdown" {{action "setCategory" on="change"}}>
-      <input type="hidden" name="category" />
-      <i class="dropdown icon" />
-      <div class="default text">Select Category</div>
-      <div class="menu">
-        <div class="item" data-value="Urban">Urban</div>
-        <div class="item" data-value="Rural">Rural</div>
-        <div class="item" data-value="Industrial">Industrial</div>
+  <div local-class="pad">
+    <div class="field">
+      <label>Camera Position</label>
+      <div
+        class="ui selection dropdown"
+        onchange={{action "setCameraPosition"}}
+      >
+        <input type="hidden" name="cameraPosition" />
+        <i class="dropdown icon" />
+        <div class="text">
+          {{#if (eq carjanState.cameraPosition "up")}}
+            <i class="video icon rotated counterclockwise" />Up
+          {{else if (eq carjanState.cameraPosition "down")}}
+            <i class="video icon rotated clockwise" />
+            Down
+          {{else if (eq carjanState.cameraPosition "left")}}
+            <i class="video icon flipped horizonally" />
+            Left
+          {{else if (eq carjanState.cameraPosition "right")}}
+            <i class="video icon" />
+            Right
+          {{else}}
+            Select Camera Position
+          {{/if}}
+        </div>
+        <div class="menu">
+          <div class="item" data-value="up"><i
+              class="video icon rotated counterclockwise"
+            />Up</div>
+          <div class="item" data-value="down"><i
+              class="video icon rotated clockwise"
+            />Down</div>
+          <div class="item" data-value="left"><i
+              class="video icon flipped horizontally"
+            />Left</div>
+          <div class="item" data-value="right"><i
+              class="video icon"
+            />Right</div>
+        </div>
       </div>
     </div>
   </div>
+  <div style="margin: 20px;"></div>
 </div>

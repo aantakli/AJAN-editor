@@ -9,9 +9,9 @@ export default Service.extend({
   scenarioName: null,
   isSaveRequest: false,
   updateStatements: null,
-  weather: "Clear", // Standardwert für Wetter
-  category: "Urban", // Standardwert für Kategorie
-  cameraPosition: "up", // Standardwert für Kameraposition
+  weather: "Clear",
+  category: "Urban",
+  cameraPosition: "up",
 
   setMapName(mapName) {
     set(this, "mapName", mapName);

@@ -3,14 +3,14 @@
   Properties
 </p>
 <div class="active title composite-selection">
-  <i class="dropdown icon"></i><b><font size="4">Scenario Parameters</font></b>
+  <i class="dropdown icon" /><b><font size="4">Scenario Parameters</font></b>
 </div>
 <div class="ui form">
   <div class="field">
     <label>Weather</label>
     <div class="ui selection dropdown" {{action "setWeather" on="change"}}>
       <input type="hidden" name="weather" />
-      <i class="dropdown icon"></i>
+      <i class="dropdown icon" />
       <div class="default text">Select Weather</div>
       <div class="menu">
         <div class="item" data-value="Clear">Clear</div>
@@ -22,18 +22,36 @@
 
   <div class="field">
     <label>Camera Position</label>
-    <div
-      class="ui selection dropdown"
-      {{action "setCameraPosition" on="change"}}
-    >
+    <div class="ui selection dropdown" onchange={{action "setCameraPosition"}}>
       <input type="hidden" name="cameraPosition" />
-      <i class="dropdown icon"></i>
-      <div class="default text">Select Camera Position</div>
+      <i class="dropdown icon" />
+      <div class="text">
+        {{#if (eq carjanState.cameraPosition "up")}}
+          <i class="video icon rotated counterclockwise" />Up
+        {{else if (eq carjanState.cameraPosition "down")}}
+          <i class="video icon rotated clockwise" />
+          Down
+        {{else if (eq carjanState.cameraPosition "left")}}
+          <i class="video icon flipped horizonally" />
+          Left
+        {{else if (eq carjanState.cameraPosition "right")}}
+          <i class="video icon" />
+          Right
+        {{else}}
+          Select Camera Position
+        {{/if}}
+      </div>
       <div class="menu">
-        <div class="item" data-value="up">Up</div>
-        <div class="item" data-value="down">Down</div>
-        <div class="item" data-value="left">Left</div>
-        <div class="item" data-value="right">Right</div>
+        <div class="item" data-value="up"><i
+            class="video icon rotated counterclockwise"
+          />Up</div>
+        <div class="item" data-value="down"><i
+            class="video icon rotated clockwise"
+          />Down</div>
+        <div class="item" data-value="left"><i
+            class="video icon flipped horizontally"
+          />Left</div>
+        <div class="item" data-value="right"><i class="video icon" />Right</div>
       </div>
     </div>
   </div>
@@ -42,7 +60,7 @@
     <label>Category</label>
     <div class="ui selection dropdown" {{action "setCategory" on="change"}}>
       <input type="hidden" name="category" />
-      <i class="dropdown icon"></i>
+      <i class="dropdown icon" />
       <div class="default text">Select Category</div>
       <div class="menu">
         <div class="item" data-value="Urban">Urban</div>

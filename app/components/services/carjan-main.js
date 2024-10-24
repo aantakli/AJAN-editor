@@ -31,7 +31,7 @@ export default Component.extend({
   },
   setupSplitPanes() {
     Split(["#split-left", "#split-middle", "#split-right"], {
-      sizes: [20, 60, 20],
+      sizes: [30, 50, 20],
       minSize: [200, 300, 200],
       direction: "horizontal", // Wichtig für horizontale Ausrichtung
       gutterSize: 5,

@@ -62,12 +62,15 @@ export default Component.extend({
   parseQuadsToScenarios(quads) {
     const scenarios = {};
     const entities = {};
+    const waypoints = {};
+    const paths = {};
 
     quads.forEach((quad) => {
       const subject = quad.subject.value;
       const predicate = quad.predicate.value;
       const object = quad.object.value;
 
+      // Szenario und Entitäten Parsing
       if (
         predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
         object === "http://example.com/carla-scenario#Scenario"
@@ -80,6 +83,7 @@ export default Component.extend({
             category: null,
             weather: null,
             entities: [],
+            paths: [],
           };
         }
       }
@@ -92,7 +96,7 @@ export default Component.extend({
           scenarios[subject].cameraPosition = object;
         }
         if (predicate === "http://example.com/carla-scenario#category") {
-          scenarios[subject].category = object.split("#")[1]; // Entferne den URI-Teil
+          scenarios[subject].category = object.split("#")[1];
         }
         if (predicate === "http://example.com/carla-scenario#weather") {
           scenarios[subject].weather = object;
@@ -102,31 +106,30 @@ export default Component.extend({
             scenarios[subject].entities.push(object);
           }
         }
+        if (predicate === "http://example.com/carla-scenario#followsPath") {
+          if (!scenarios[subject].paths.includes(object)) {
+            scenarios[subject].paths.push(object);
+          }
+        }
       }
 
+      // Entitäten Parsing
       if (
         predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
         (object === "http://example.com/carla-scenario#Vehicle" ||
-          object === "http://example.com/carla-scenario#Pedestrian" ||
-          object === "http://example.com/carla-scenario#AutonomousVehicle" ||
-          object === "http://example.com/carla-scenario#Obstacle")
+          object === "http://example.com/carla-scenario#Pedestrian")
       ) {
         if (!entities[subject]) {
           entities[subject] = {
             entity: subject,
             type: object.split("#")[1],
-            label: null,
             x: null,
             y: null,
           };
         }
       }
 
-      // X- und Y-Koordinaten und Label der Entitäten erfassen
       if (entities[subject]) {
-        if (predicate === "http://example.com/carla-scenario#label") {
-          entities[subject].label = object;
-        }
         if (predicate === "http://example.com/carla-scenario#spawnPointX") {
           entities[subject].x = object;
         }
@@ -134,18 +137,61 @@ export default Component.extend({
           entities[subject].y = object;
         }
       }
+
+      // Waypoints Parsing
+      if (
+        predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+        object === "http://example.com/carla-scenario#Waypoint"
+      ) {
+        if (!waypoints[subject]) {
+          waypoints[subject] = {
+            waypoint: subject,
+            x: null,
+            y: null,
+            waitTime: null,
+          };
+        }
+      }
+
+      if (waypoints[subject]) {
+        if (predicate === "http://example.com/carla-scenario#x") {
+          waypoints[subject].x = object;
+        }
+        if (predicate === "http://example.com/carla-scenario#y") {
+          waypoints[subject].y = object;
+        }
+        if (predicate === "http://example.com/carla-scenario#waitTime") {
+          waypoints[subject].waitTime = object;
+        }
+      }
+
+      // Paths Parsing
+      if (predicate === "http://example.com/carla-scenario#hasWaypoints") {
+        if (!paths[subject]) {
+          paths[subject] = {
+            path: subject,
+            waypoints: [],
+          };
+        }
+        paths[subject].waypoints.push(object);
+      }
     });
 
-    // Entitäten den Szenarien zuordnen
+    // Entitäten und Waypoints den Szenarien zuordnen
     Object.keys(scenarios).forEach((scenarioKey) => {
       const scenario = scenarios[scenarioKey];
       scenario.entities = scenario.entities.map(
         (entityURI) => entities[entityURI]
       );
+      scenario.paths = scenario.paths.map((pathURI) => paths[pathURI]);
     });
 
-    return { scenarios: Object.values(scenarios) };
+    return {
+      scenarios: Object.values(scenarios),
+      waypoints: Object.values(waypoints),
+    };
   },
+
   async getMap(mapName) {
     const response = await fetch("/assets/carjan/carjan-maps/maps.json");
     const maps = await response.json();
@@ -387,13 +433,13 @@ export default Component.extend({
         })
         .then((data) => {
           // Erstelle einen Blob aus den erhaltenen Turtle-Daten
-          const blob = new Blob([data], { type: "text/turtle" });
+          const blob = new Blob([data], { type: "application/trig" });
           const link = document.createElement("a");
 
           // Erstelle eine temporäre URL für den Blob und setze den Download-Name
           const url = window.URL.createObjectURL(blob);
           link.href = url;
-          link.download = "scenario-statements.ttl";
+          link.download = "scenario-statements.trig";
 
           // Simuliere einen Klick auf den Link, um den Download auszulösen
           document.body.appendChild(link);
@@ -468,6 +514,7 @@ export default Component.extend({
 
         reader.onload = (e) => {
           this.addScenarioToRepository(e.target.result).then((result) => {
+            console.log("Result:", result);
             this.updateWithResult(result);
           });
         };
@@ -487,23 +534,57 @@ export default Component.extend({
   },
 
   async addScenarioToRepository(newScenarioContent) {
-    const existingRepositoryContent = await this.downloadRepository();
-    const existingDataset = await this.parseTurtle(existingRepositoryContent);
-    const newScenarioDataset = await this.parseTurtle(newScenarioContent);
+    try {
+      // Lade vorhandenes Repository-Inhalt
+      let existingRepositoryContent = await this.downloadRepository();
+      existingRepositoryContent = existingRepositoryContent || [];
 
-    const newScenarioLabels = newScenarioDataset.scenarios.map(
-      (scenario) => scenario.label
-    );
+      // Parsen des bestehenden Inhalts und des neuen Szenarios
+      const existingDataset = await this.parseTurtle(existingRepositoryContent);
+      const newScenarioDataset = await this.parseTurtle(newScenarioContent);
 
-    existingDataset.scenarios = existingDataset.scenarios.filter(
-      (existingScenario) => !newScenarioLabels.includes(existingScenario.label)
-    );
+      // Kopiere und logge den initialen Zustand des Datasets
+      console.log(
+        "Initial existingDataset:",
+        JSON.parse(JSON.stringify(existingDataset))
+      );
+      console.log(
+        "New scenario dataset:",
+        JSON.parse(JSON.stringify(newScenarioDataset))
+      );
 
-    existingDataset.scenarios.push(...newScenarioDataset.scenarios);
+      // Extrahiere die Labels der neuen Szenarien
+      const newScenarioLabels = newScenarioDataset.scenarios.map(
+        (scenario) => scenario.scenarioName
+      );
 
-    return existingDataset;
+      // Filtere bestehende Szenarien, die nicht in den neuen Szenarien enthalten sind
+      existingDataset.scenarios = existingDataset.scenarios.filter(
+        (existingScenario) =>
+          !newScenarioLabels.includes(existingScenario.scenarioName)
+      );
+
+      // Logge den Zustand nach dem Filtern
+      console.log(
+        "Filtered existingDataset:",
+        JSON.parse(JSON.stringify(existingDataset))
+      );
+
+      // Füge die neuen Szenarien hinzu
+      existingDataset.scenarios.push(...newScenarioDataset.scenarios);
+
+      // Logge das finale Dataset
+      console.log(
+        "Final dataset after merge:",
+        JSON.parse(JSON.stringify(existingDataset))
+      );
+
+      return existingDataset;
+    } catch (error) {
+      console.error("Error in addScenarioToRepository:", error);
+      throw error;
+    }
   },
-
   async deleteScenarioFromRepository(scenarioLabelToDelete) {
     const existingRepositoryContent = await this.downloadRepository();
 
@@ -516,25 +597,122 @@ export default Component.extend({
     return existingDataset;
   },
   async downloadRepository() {
-    const repoUrl =
-      "http://localhost:8090/rdf4j/repositories/carjan/statements";
-    const response = await fetch(repoUrl, {
-      method: "GET",
-      headers: {
-        Accept: "application/trig",
-      },
-    });
+    try {
+      // Alle Szenarien aus dem Repository abrufen
+      const { data } = await this.fetchAgentDataFromRepo();
+      const repositoryData = data;
 
-    if (!response.ok) {
-      throw new Error(
-        `Fehler beim Herunterladen des Repositories: ${response.statusText}`
-      );
+      if (!repositoryData || repositoryData.length === 0) {
+        return;
+      }
+
+      console.log("Repository data:", repositoryData);
+
+      // Starte den TriG-Text für das gesamte Repository
+      let trigContent = `@prefix : <http://example.com/carla-scenario#> .\n@prefix carjan: <http://example.com/carla-scenario#> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\n`;
+
+      // Iteriere über jedes Szenario im Repository
+      repositoryData.forEach((scenarioData) => {
+        console.log("Scenario data:", scenarioData);
+        if (!scenarioData["@graph"]) {
+          return;
+        }
+        const scenarioGraph = scenarioData["@graph"];
+        const scenarioName = scenarioData["@id"].split("#")[1];
+
+        // Starte den TriG-Block für das aktuelle Szenario
+        trigContent += `:${scenarioName} {\n`;
+
+        // Füge Szenario- und Entitätsdaten hinzu
+        scenarioGraph.forEach((item) => {
+          const id = item["@id"].split("#")[1]; // Nur der Identifier nach dem Hash
+
+          if (
+            item["@type"] &&
+            item["@type"].includes("http://example.com/carla-scenario#Scenario")
+          ) {
+            // Füge die Szenario-Eigenschaften hinzu
+            trigContent += `  :${id} rdf:type carjan:Scenario ;\n`;
+
+            if (item["http://example.com/carla-scenario#label"]) {
+              trigContent += `    carjan:label "${item["http://example.com/carla-scenario#label"][0]["@value"]}" ;\n`;
+            }
+
+            if (item["http://example.com/carla-scenario#category"]) {
+              const category =
+                item["http://example.com/carla-scenario#category"][0][
+                  "@id"
+                ].split("#")[1];
+              trigContent += `    carjan:category carjan:${category} ;\n`;
+            }
+
+            if (item["http://example.com/carla-scenario#map"]) {
+              trigContent += `    carjan:map "${item["http://example.com/carla-scenario#map"][0]["@value"]}" ;\n`;
+            }
+
+            if (item["http://example.com/carla-scenario#cameraPosition"]) {
+              trigContent += `    carjan:cameraPosition "${item["http://example.com/carla-scenario#cameraPosition"][0]["@value"]}" ;\n`;
+            }
+
+            if (item["http://example.com/carla-scenario#weather"]) {
+              trigContent += `    carjan:weather "${item["http://example.com/carla-scenario#weather"][0]["@value"]}" ;\n`;
+            }
+
+            // Entitäten hinzufügen
+            if (item["http://example.com/carla-scenario#hasEntity"]) {
+              const entities = item[
+                "http://example.com/carla-scenario#hasEntity"
+              ].map((entity) => `:${entity["@id"].split("#")[1]}`);
+              trigContent += `    carjan:hasEntity ${entities.join(
+                " , "
+              )} .\n\n`;
+            }
+          }
+
+          // Füge die Entitäten hinzu
+          if (
+            item["@type"] &&
+            (item["@type"].includes(
+              "http://example.com/carla-scenario#Vehicle"
+            ) ||
+              item["@type"].includes(
+                "http://example.com/carla-scenario#Pedestrian"
+              ))
+          ) {
+            const entityType = item["@type"][0].split("#")[1];
+
+            trigContent += `  :${id} rdf:type carjan:${entityType} ;\n`;
+
+            if (item["http://example.com/carla-scenario#label"]) {
+              trigContent += `    carjan:label "${item["http://example.com/carla-scenario#label"][0]["@value"]}" ;\n`;
+            }
+
+            if (item["http://example.com/carla-scenario#x"]) {
+              trigContent += `    carjan:x "${item["http://example.com/carla-scenario#x"][0]["@value"]}"^^xsd:integer ;\n`;
+            }
+
+            if (item["http://example.com/carla-scenario#y"]) {
+              trigContent += `    carjan:y "${item["http://example.com/carla-scenario#y"][0]["@value"]}"^^xsd:integer .\n\n`;
+            }
+          }
+        });
+        trigContent += "  }\n\n";
+      });
+
+      // Download als .trig-Datei für das gesamte Repository
+      const blob = new Blob([trigContent], { type: "text/plain" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `repository.trig`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      return trigContent;
+    } catch (error) {
+      console.error("Fehler beim Herunterladen des Repositorys:", error);
     }
-
-    const trigContent = await response.text();
-    return trigContent;
   },
-
   readFile(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -819,7 +997,10 @@ export default Component.extend({
       let currentScenario = null;
 
       const entitiesMap = {}; // Map zur Speicherung der Entitäten anhand ihrer URI
+      const waypointsMap = {}; // Map zur Speicherung der Waypoints
+      const pathsMap = {}; // Map zur Speicherung der Paths
 
+      // Erste Iteration: Szenarien, Entitäten, Waypoints und Paths erfassen
       quads.forEach((quad) => {
         const subject = quad.subject.value;
         const predicate = quad.predicate.value;
@@ -831,15 +1012,15 @@ export default Component.extend({
           object === "http://example.com/carla-scenario#Scenario"
         ) {
           if (currentScenario) {
-            // Speichere das vorherige Szenario
             scenarios.push(currentScenario);
           }
 
-          // Neues Szenario beginnen
           currentScenario = {
             scenarioName: subject,
             scenarioMap: "map01", // Standardkarte
             entities: [],
+            waypoints: [],
+            paths: [],
             cameraPosition: null,
             label: "",
             category: "",
@@ -878,6 +1059,20 @@ export default Component.extend({
               currentScenario.entities.push(entityURI);
             }
           }
+
+          if (predicate === "http://example.com/carla-scenario#hasPath") {
+            const pathURI = object;
+            if (!currentScenario.paths.includes(pathURI)) {
+              currentScenario.paths.push(pathURI);
+            }
+          }
+
+          if (predicate === "http://example.com/carla-scenario#hasWaypoints") {
+            const waypointURI = object;
+            if (!currentScenario.waypoints.includes(waypointURI)) {
+              currentScenario.waypoints.push(waypointURI);
+            }
+          }
         }
 
         // Entitäten erfassen
@@ -888,7 +1083,6 @@ export default Component.extend({
         ) {
           const entityType = object.split("#")[1];
 
-          // Initialisieren von entitiesMap[subject] für Entitäten
           if (!entitiesMap[subject]) {
             entitiesMap[subject] = {
               entity: subject,
@@ -896,43 +1090,166 @@ export default Component.extend({
               label: undefined,
               x: undefined,
               y: undefined,
+              heading: null, // Initialisierung von heading
+              followsPath: null, // Initialisierung von followsPath
             };
           } else {
             entitiesMap[subject].type = entityType;
           }
         }
 
-        // Label der Entitäten zuweisen
-        if (
-          entitiesMap[subject] &&
-          predicate === "http://example.com/carla-scenario#label"
-        ) {
-          entitiesMap[subject].label = object.replace(/^"|"$/g, "");
-        }
-
-        // X- und Y-Koordinaten der Entitäten zuweisen
+        // Label, Koordinaten und weitere Eigenschaften der Entitäten zuweisen
         if (entitiesMap[subject]) {
+          if (predicate === "http://example.com/carla-scenario#label") {
+            entitiesMap[subject].label = object.replace(/^"|"$/g, "");
+          }
           if (predicate === "http://example.com/carla-scenario#x") {
             entitiesMap[subject].x = object.replace(/^"|"$/g, "");
           }
           if (predicate === "http://example.com/carla-scenario#y") {
             entitiesMap[subject].y = object.replace(/^"|"$/g, "");
           }
+          if (predicate === "http://example.com/carla-scenario#heading") {
+            entitiesMap[subject].heading = object.replace(/^"|"$/g, "");
+          }
+          // Optional: Zuweisung von followsPath, wenn vorhanden
+          if (predicate === "http://example.com/carla-scenario#followsPath") {
+            entitiesMap[subject].followsPath = object;
+          }
+        }
+
+        // Waypoints erfassen
+        if (
+          predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+          object === "http://example.com/carla-scenario#Waypoint"
+        ) {
+          if (!waypointsMap[subject]) {
+            waypointsMap[subject] = {
+              waypoint: subject,
+              x: null,
+              y: null,
+              waitTime: null,
+              positionInCell: "center",
+            };
+          }
+        }
+
+        if (waypointsMap[subject]) {
+          if (predicate === "http://example.com/carla-scenario#x") {
+            waypointsMap[subject].x = object.replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#y") {
+            waypointsMap[subject].y = object.replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#waitTime") {
+            waypointsMap[subject].waitTime = object.replace(/^"|"$/g, "");
+          }
+          if (
+            predicate === "http://example.com/carla-scenario#positionInCell"
+          ) {
+            waypointsMap[subject].positionInCell = object.replace(/^"|"$/g, "");
+          }
+        }
+
+        // Paths erfassen
+        if (
+          predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+          object === "http://example.com/carla-scenario#Path"
+        ) {
+          if (!pathsMap[subject]) {
+            pathsMap[subject] = {
+              path: subject,
+              waypoints: [],
+              description: "",
+            };
+          }
+        }
+
+        // Beschreibung und Waypoints in Paths erfassen
+        if (pathsMap[subject]) {
+          if (predicate === "http://example.com/carla-scenario#description") {
+            pathsMap[subject].description = object.replace(/^"|"$/g, "");
+          }
+        }
+      });
+
+      // Zweite Iteration: Waypoints den Paths zuordnen
+      quads.forEach((quad) => {
+        const subject = quad.subject.value;
+        const predicate = quad.predicate.value;
+        const object = quad.object.value;
+
+        // Erfassung von RDF-Listen für Waypoints in Paths
+        if (
+          pathsMap[subject] &&
+          predicate === "http://example.com/carla-scenario#hasWaypoints"
+        ) {
+          const waypointsInPath = [];
+          let currentListNode = object;
+
+          while (
+            currentListNode !== "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"
+          ) {
+            quads.forEach((quadItem) => {
+              if (quadItem.subject.value === currentListNode) {
+                if (
+                  quadItem.predicate.value ===
+                  "http://www.w3.org/1999/02/22-rdf-syntax-ns#first"
+                ) {
+                  waypointsInPath.push(quadItem.object.value); // Die Waypoint-URI wird erfasst
+                }
+                if (
+                  quadItem.predicate.value ===
+                  "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"
+                ) {
+                  currentListNode = quadItem.object.value;
+                }
+              }
+            });
+          }
+
+          // Mappe die URIs auf die tatsächlichen Waypoints aus waypointsMap
+          pathsMap[subject].waypoints = waypointsInPath.map((waypointURI) => {
+            const waypoint = waypointsMap[waypointURI];
+
+            if (!waypoint) {
+              console.error(
+                `Waypoint with URI ${waypointURI} not found in waypointsMap.`
+              );
+            }
+
+            return waypoint;
+          });
+        }
+      });
+
+      // Überprüfung der Entitäten und Error-Handling für nicht gefundene Pfade
+      Object.keys(entitiesMap).forEach((entityURI) => {
+        const entity = entitiesMap[entityURI];
+        if (entity.followsPath && !pathsMap[entity.followsPath]) {
+          console.error(
+            `Entity ${entityURI} follows path ${entity.followsPath}, but the path was not found in pathsMap.`
+          );
+          entity.followsPath = null; // Lösche ungültige Pfadzuweisungen
         }
       });
 
       if (currentScenario) {
-        // Speichere das letzte Szenario
         scenarios.push(currentScenario);
       }
 
-      // Ersetze die Entity-URIs in den Szenarien durch die tatsächlichen Entitätsobjekte aus entitiesMap
+      // Entitäten, Waypoints und Paths zu den Szenarien zuordnen
       scenarios.forEach((scenario) => {
-        scenario.entities = scenario.entities.map(
-          (entityURI) => entitiesMap[entityURI]
-        );
+        scenario.entities = scenario.entities.map((entityURI) => {
+          return entitiesMap[entityURI];
+        });
+        scenario.paths = scenario.paths.map((pathURI) => {
+          return pathsMap[pathURI];
+        });
+        scenario.waypoints = scenario.waypoints.map((waypointURI) => {
+          return waypointsMap[waypointURI];
+        });
       });
-
       return { scenarios };
     } catch (error) {
       console.error("Error parsing Turtle file:", error);

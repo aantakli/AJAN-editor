@@ -261,7 +261,7 @@ export default Component.extend({
 
     const weather = "Clear";
     const category = "Urban";
-    const cameraPosition = "left";
+    const cameraPosition = this.carjanState.get("cameraPosition") || "up";
 
     rdfGraph.add(
       rdf.quad(

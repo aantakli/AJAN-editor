@@ -148,7 +148,7 @@ export default Component.extend({
             waypoint: subject,
             x: null,
             y: null,
-            waitTime: null,
+            waitTime: 0,
           };
         }
       }
@@ -269,7 +269,7 @@ export default Component.extend({
     },
 
     async downloadScenario() {
-      this.downloadScenarioAsTrig(this.scenarioName);
+      this.downloadScenarioAsTrig(this.scenarioName, true, true);
     },
 
     async openDeleteDialog() {
@@ -415,43 +415,8 @@ export default Component.extend({
       this.setMap(mapName);
     },
 
-    downloadTurtle() {
-      // Die URL des RDF4J-Endpunkts
-      const url = "http://localhost:8090/rdf4j/repositories/carjan/statements";
-
-      // Die Anfrage zum Herunterladen der Statements im Turtle-Format
-      fetch(url, {
-        headers: {
-          Accept: "text/turtle", // Fordert Turtle-Format an
-        },
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch Turtle data");
-          }
-          return response.text();
-        })
-        .then((data) => {
-          // Erstelle einen Blob aus den erhaltenen Turtle-Daten
-          const blob = new Blob([data], { type: "application/trig" });
-          const link = document.createElement("a");
-
-          // Erstelle eine temporäre URL für den Blob und setze den Download-Name
-          const url = window.URL.createObjectURL(blob);
-          link.href = url;
-          link.download = "scenario-statements.trig";
-
-          // Simuliere einen Klick auf den Link, um den Download auszulösen
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-
-          // Lösche die temporäre URL
-          window.URL.revokeObjectURL(url);
-        })
-        .catch((error) => {
-          console.error("Error downloading Turtle data:", error);
-        });
+    downloadAll() {
+      this.downloadRepository(true);
     },
 
     triggerSaveScenario() {
@@ -483,7 +448,7 @@ export default Component.extend({
 
       const file = event.target.files[0];
 
-      if (file && file.name.endsWith(".ttl")) {
+      if (file && file.name.endsWith(".trig")) {
         const reader = new FileReader();
 
         reader.onload = (e) => {
@@ -522,6 +487,15 @@ export default Component.extend({
         reader.readAsText(file);
       }
     },
+  },
+
+  async addPrefixes() {
+    return (
+      `@prefix : <http://example.com/carla-scenario#> .\n` +
+      `@prefix carjan: <http://example.com/carla-scenario#> .\n` +
+      `@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n` +
+      `@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\n`
+    );
   },
 
   async updateWithResult(result) {
@@ -596,123 +570,37 @@ export default Component.extend({
 
     return existingDataset;
   },
-  async downloadRepository() {
+  async downloadRepository(flag = false) {
     try {
-      // Alle Szenarien aus dem Repository abrufen
-      const { data } = await this.fetchAgentDataFromRepo();
-      const repositoryData = data;
-
-      if (!repositoryData || repositoryData.length === 0) {
-        return;
+      const { scenarios } = await this.fetchAgentDataFromRepo();
+      let trigContent = "";
+      trigContent += await this.addPrefixes();
+      for (const scenario of scenarios) {
+        console.log("Downloading scenario:", scenario);
+        trigContent += await this.downloadScenarioAsTrig(
+          scenario,
+          false,
+          false
+        );
       }
 
-      console.log("Repository data:", repositoryData);
-
-      // Starte den TriG-Text für das gesamte Repository
-      let trigContent = `@prefix : <http://example.com/carla-scenario#> .\n@prefix carjan: <http://example.com/carla-scenario#> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\n`;
-
-      // Iteriere über jedes Szenario im Repository
-      repositoryData.forEach((scenarioData) => {
-        console.log("Scenario data:", scenarioData);
-        if (!scenarioData["@graph"]) {
-          return;
-        }
-        const scenarioGraph = scenarioData["@graph"];
-        const scenarioName = scenarioData["@id"].split("#")[1];
-
-        // Starte den TriG-Block für das aktuelle Szenario
-        trigContent += `:${scenarioName} {\n`;
-
-        // Füge Szenario- und Entitätsdaten hinzu
-        scenarioGraph.forEach((item) => {
-          const id = item["@id"].split("#")[1]; // Nur der Identifier nach dem Hash
-
-          if (
-            item["@type"] &&
-            item["@type"].includes("http://example.com/carla-scenario#Scenario")
-          ) {
-            // Füge die Szenario-Eigenschaften hinzu
-            trigContent += `  :${id} rdf:type carjan:Scenario ;\n`;
-
-            if (item["http://example.com/carla-scenario#label"]) {
-              trigContent += `    carjan:label "${item["http://example.com/carla-scenario#label"][0]["@value"]}" ;\n`;
-            }
-
-            if (item["http://example.com/carla-scenario#category"]) {
-              const category =
-                item["http://example.com/carla-scenario#category"][0][
-                  "@id"
-                ].split("#")[1];
-              trigContent += `    carjan:category carjan:${category} ;\n`;
-            }
-
-            if (item["http://example.com/carla-scenario#map"]) {
-              trigContent += `    carjan:map "${item["http://example.com/carla-scenario#map"][0]["@value"]}" ;\n`;
-            }
-
-            if (item["http://example.com/carla-scenario#cameraPosition"]) {
-              trigContent += `    carjan:cameraPosition "${item["http://example.com/carla-scenario#cameraPosition"][0]["@value"]}" ;\n`;
-            }
-
-            if (item["http://example.com/carla-scenario#weather"]) {
-              trigContent += `    carjan:weather "${item["http://example.com/carla-scenario#weather"][0]["@value"]}" ;\n`;
-            }
-
-            // Entitäten hinzufügen
-            if (item["http://example.com/carla-scenario#hasEntity"]) {
-              const entities = item[
-                "http://example.com/carla-scenario#hasEntity"
-              ].map((entity) => `:${entity["@id"].split("#")[1]}`);
-              trigContent += `    carjan:hasEntity ${entities.join(
-                " , "
-              )} .\n\n`;
-            }
-          }
-
-          // Füge die Entitäten hinzu
-          if (
-            item["@type"] &&
-            (item["@type"].includes(
-              "http://example.com/carla-scenario#Vehicle"
-            ) ||
-              item["@type"].includes(
-                "http://example.com/carla-scenario#Pedestrian"
-              ))
-          ) {
-            const entityType = item["@type"][0].split("#")[1];
-
-            trigContent += `  :${id} rdf:type carjan:${entityType} ;\n`;
-
-            if (item["http://example.com/carla-scenario#label"]) {
-              trigContent += `    carjan:label "${item["http://example.com/carla-scenario#label"][0]["@value"]}" ;\n`;
-            }
-
-            if (item["http://example.com/carla-scenario#x"]) {
-              trigContent += `    carjan:x "${item["http://example.com/carla-scenario#x"][0]["@value"]}"^^xsd:integer ;\n`;
-            }
-
-            if (item["http://example.com/carla-scenario#y"]) {
-              trigContent += `    carjan:y "${item["http://example.com/carla-scenario#y"][0]["@value"]}"^^xsd:integer .\n\n`;
-            }
-          }
-        });
-        trigContent += "  }\n\n";
-      });
-
-      // Download als .trig-Datei für das gesamte Repository
-      const blob = new Blob([trigContent], { type: "text/plain" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `repository.trig`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
+      if (flag) {
+        // Wenn der Download-Flag gesetzt ist, speichere die Datei
+        const blob = new Blob([trigContent], { type: "text/plain" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `repository.trig`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return trigContent;
+      }
       return trigContent;
     } catch (error) {
       console.error("Fehler beim Herunterladen des Repositorys:", error);
     }
   },
+
   readFile(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -812,19 +700,26 @@ export default Component.extend({
     }
   },
 
-  async downloadScenarioAsTrig(scenarioName) {
+  async downloadScenarioAsTrig(scenarioName, prefixes = true, download = true) {
     try {
       const { scenarioData } = await this.fetchAgentDataFromRepo(scenarioName);
-
+      console.log(
+        "Scenario data for scenario",
+        scenarioName,
+        ":",
+        scenarioData
+      );
       if (!scenarioData) {
         return;
       }
 
       // Starte den TriG-Text
-      let trigContent = `@prefix : <http://example.com/carla-scenario#> .\r
-    @prefix carjan: <http://example.com/carla-scenario#> .\r
-    @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\r
-    @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\n:${scenarioName} {\n`;
+      let trigContent = "";
+      if (prefixes) {
+        trigContent += await this.addPrefixes();
+      }
+
+      trigContent += `:${scenarioName} {\n`;
 
       // Entitäten und Szenario-Daten
       const scenarioGraph = scenarioData["@graph"];
@@ -833,35 +728,25 @@ export default Component.extend({
       scenarioGraph.forEach((item) => {
         const id = item["@id"].split("#")[1]; // Nur der Identifier nach dem Hash
 
+        let currentItemContent = "";
+
         if (
           item["@type"] &&
           item["@type"].includes("http://example.com/carla-scenario#Scenario")
         ) {
           // Füge die Szenario-Eigenschaften hinzu
-          trigContent += `  :${id} rdf:type carjan:Scenario ;\n`;
-
-          if (item["http://example.com/carla-scenario#label"]) {
-            trigContent += `    carjan:label "${item["http://example.com/carla-scenario#label"][0]["@value"]}" ;\n`;
-          }
-
-          if (item["http://example.com/carla-scenario#category"]) {
-            const category =
-              item["http://example.com/carla-scenario#category"][0][
-                "@id"
-              ].split("#")[1];
-            trigContent += `    carjan:category carjan:${category} ;\n`;
-          }
+          currentItemContent += `    :${id} rdf:type carjan:Scenario ;\n`;
 
           if (item["http://example.com/carla-scenario#map"]) {
-            trigContent += `    carjan:map "${item["http://example.com/carla-scenario#map"][0]["@value"]}" ;\n`;
+            currentItemContent += `      carjan:map "${item["http://example.com/carla-scenario#map"][0]["@value"]}" ;\n`;
           }
 
           if (item["http://example.com/carla-scenario#cameraPosition"]) {
-            trigContent += `    carjan:cameraPosition "${item["http://example.com/carla-scenario#cameraPosition"][0]["@value"]}" ;\n`;
+            currentItemContent += `      carjan:cameraPosition "${item["http://example.com/carla-scenario#cameraPosition"][0]["@value"]}" ;\n`;
           }
 
           if (item["http://example.com/carla-scenario#weather"]) {
-            trigContent += `    carjan:weather "${item["http://example.com/carla-scenario#weather"][0]["@value"]}" ;\n`;
+            currentItemContent += `      carjan:weather "${item["http://example.com/carla-scenario#weather"][0]["@value"]}" ;\n`;
           }
 
           // Entitäten hinzufügen
@@ -869,10 +754,20 @@ export default Component.extend({
             const entities = item[
               "http://example.com/carla-scenario#hasEntity"
             ].map((entity) => `:${entity["@id"].split("#")[1]}`);
-            trigContent += `    carjan:hasEntity ${entities.join(" , ")} ;\n`;
+            currentItemContent += `      carjan:hasEntity ${entities.join(
+              " , "
+            )} ;\n`;
           }
 
-          trigContent += "  }\n\n";
+          // Pfade hinzufügen
+          if (item["http://example.com/carla-scenario#hasPath"]) {
+            const paths = item["http://example.com/carla-scenario#hasPath"].map(
+              (path) => `:${path["@id"].split("#")[1]}`
+            );
+            currentItemContent += `      carjan:hasPath ${paths.join(
+              " , "
+            )} ;\n`;
+          }
         }
 
         // Füge die Entitäten hinzu
@@ -887,32 +782,88 @@ export default Component.extend({
         ) {
           const entityType = item["@type"][0].split("#")[1];
 
-          trigContent += `  :${id} rdf:type carjan:${entityType} ;\n`;
-
-          if (item["http://example.com/carla-scenario#label"]) {
-            trigContent += `    carjan:label "${item["http://example.com/carla-scenario#label"][0]["@value"]}" ;\n`;
-          }
+          currentItemContent += `    :${id} rdf:type carjan:${entityType} ;\n`;
 
           if (item["http://example.com/carla-scenario#x"]) {
-            trigContent += `    carjan:x "${item["http://example.com/carla-scenario#x"][0]["@value"]}"^^xsd:integer ;\n`;
+            currentItemContent += `      carjan:x "${item["http://example.com/carla-scenario#x"][0]["@value"]}"^^xsd:integer ;\n`;
           }
 
           if (item["http://example.com/carla-scenario#y"]) {
-            trigContent += `    carjan:y "${item["http://example.com/carla-scenario#y"][0]["@value"]}"^^xsd:integer .\n\n`;
+            currentItemContent += `      carjan:y "${item["http://example.com/carla-scenario#y"][0]["@value"]}"^^xsd:integer ;\n`;
           }
         }
+
+        // Füge die Pfade hinzu
+        if (
+          item["@type"] &&
+          item["@type"].includes("http://example.com/carla-scenario#Path")
+        ) {
+          currentItemContent += `    :${id} rdf:type carjan:Path ;\n`;
+
+          if (item["http://example.com/carla-scenario#description"]) {
+            currentItemContent += `      carjan:description "${item["http://example.com/carla-scenario#description"][0]["@value"]}" ;\n`;
+          }
+
+          // Füge die Waypoints zu den Paths hinzu
+          if (item["http://example.com/carla-scenario#hasWaypoints"]) {
+            const waypointsList =
+              item["http://example.com/carla-scenario#hasWaypoints"][0][
+                "@list"
+              ];
+            const waypoints = waypointsList.map(
+              (waypoint) => `:${waypoint["@id"].split("#")[1]}`
+            );
+            currentItemContent += `      carjan:hasWaypoints ( ${waypoints.join(
+              " "
+            )} ) ;\n`;
+          }
+        }
+
+        // Füge die Waypoints hinzu
+        if (
+          item["@type"] &&
+          item["@type"].includes("http://example.com/carla-scenario#Waypoint")
+        ) {
+          currentItemContent += `    :${id} rdf:type carjan:Waypoint ;\n`;
+
+          if (item["http://example.com/carla-scenario#x"]) {
+            currentItemContent += `      carjan:x "${item["http://example.com/carla-scenario#x"][0]["@value"]}"^^xsd:integer ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#y"]) {
+            currentItemContent += `      carjan:y "${item["http://example.com/carla-scenario#y"][0]["@value"]}"^^xsd:integer`;
+          }
+
+          if (item["http://example.com/carla-scenario#waitTime"]) {
+            currentItemContent += `;\n      carjan:waitTime "${item["http://example.com/carla-scenario#waitTime"][0]["@value"]}"^^xsd:integer ;\n`;
+          } else {
+            currentItemContent += `.\n`;
+          }
+        }
+
+        trigContent +=
+          currentItemContent.trim().slice(-1) === ";"
+            ? currentItemContent.trim().slice(0, -1) + " .\n"
+            : currentItemContent + "\n";
+        trigContent += "\n";
       });
+      trigContent = trigContent.trim() + "\n"; // Remove trailing newline
+      trigContent += "}\n\n";
 
       // Download als .trig-Datei
-      const blob = new Blob([trigContent], { type: "text/plain" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `${scenarioName}.trig`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      if (download) {
+        const blob = new Blob([trigContent], { type: "text/plain" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${scenarioName}.trig`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        return trigContent;
+      }
     } catch (error) {
-      console.error("Fehler beim Laden der Map und Agents:", error);
+      console.error("Fehler beim Laden des Szenarios:", error);
     }
   },
 
@@ -1128,7 +1079,7 @@ export default Component.extend({
               waypoint: subject,
               x: null,
               y: null,
-              waitTime: null,
+              waitTime: 0,
               positionInCell: "center",
             };
           }
@@ -1258,9 +1209,7 @@ export default Component.extend({
 
   async addRDFStatements(scenario) {
     const scenarioURI = rdf.namedNode(scenario.scenarioName);
-
-    // Szenario als Named Graph verwenden
-    const graph = scenarioURI;
+    const graph = scenarioURI; // Verwende das Szenario als Named Graph
 
     // Füge das Szenario hinzu
     rdfGraph.add(
@@ -1272,7 +1221,7 @@ export default Component.extend({
       )
     );
 
-    // Füge Szenario-Eigenschaften hinzu
+    // Füge Szenario-Eigenschaften hinzu (Label, Kategorie, Map, Wetter, Kamera)
     if (scenario.label) {
       rdfGraph.add(
         rdf.quad(
@@ -1332,7 +1281,6 @@ export default Component.extend({
     for (const entity of scenario.entities) {
       const entityURI = rdf.namedNode(entity.entity);
 
-      // Füge die Entität hinzu
       rdfGraph.add(
         rdf.quad(
           entityURI,
@@ -1341,17 +1289,6 @@ export default Component.extend({
           graph
         )
       );
-
-      if (entity.label) {
-        rdfGraph.add(
-          rdf.quad(
-            entityURI,
-            this.namedNode("carjan:label"),
-            rdf.literal(entity.label),
-            graph
-          )
-        );
-      }
 
       if (entity.x !== undefined) {
         rdfGraph.add(
@@ -1384,6 +1321,126 @@ export default Component.extend({
           graph
         )
       );
+    }
+
+    // Füge die Paths hinzu und verknüpfe sie mit dem Szenario
+    for (const path of scenario.paths) {
+      const pathURI = rdf.namedNode(path.path);
+
+      rdfGraph.add(
+        rdf.quad(
+          pathURI,
+          this.namedNode("rdf:type"),
+          this.namedNode("carjan:Path"),
+          graph
+        )
+      );
+
+      if (path.description) {
+        rdfGraph.add(
+          rdf.quad(
+            pathURI,
+            this.namedNode("carjan:description"),
+            rdf.literal(path.description),
+            graph
+          )
+        );
+      }
+
+      // Verknüpfe den Path mit dem Szenario
+      rdfGraph.add(
+        rdf.quad(scenarioURI, this.namedNode("carjan:hasPath"), pathURI, graph)
+      );
+
+      // Füge die Waypoints zu den Paths hinzu
+      if (path.waypoints && path.waypoints.length > 0) {
+        let listNode = rdf.blankNode(); // Start mit einem Blank Node für die Waypoints-Liste
+
+        rdfGraph.add(
+          rdf.quad(
+            pathURI,
+            this.namedNode("carjan:hasWaypoints"),
+            listNode,
+            graph
+          )
+        );
+
+        for (let i = 0; i < path.waypoints.length; i++) {
+          const waypoint = path.waypoints[i];
+          const waypointURI = rdf.namedNode(waypoint.waypoint);
+
+          // Füge den Waypoint als RDF-Resource hinzu
+          rdfGraph.add(
+            rdf.quad(
+              waypointURI,
+              this.namedNode("rdf:type"),
+              this.namedNode("carjan:Waypoint"),
+              graph
+            )
+          );
+
+          if (waypoint.x !== undefined) {
+            rdfGraph.add(
+              rdf.quad(
+                waypointURI,
+                this.namedNode("carjan:x"),
+                rdf.literal(waypoint.x, this.namedNode("xsd:integer")),
+                graph
+              )
+            );
+          }
+
+          if (waypoint.y !== undefined) {
+            rdfGraph.add(
+              rdf.quad(
+                waypointURI,
+                this.namedNode("carjan:y"),
+                rdf.literal(waypoint.y, this.namedNode("xsd:integer")),
+                graph
+              )
+            );
+          }
+
+          if (waypoint.waitTime !== undefined) {
+            rdfGraph.add(
+              rdf.quad(
+                waypointURI,
+                this.namedNode("carjan:waitTime"),
+                rdf.literal(waypoint.waitTime, this.namedNode("xsd:integer")),
+                graph
+              )
+            );
+          }
+
+          // Füge rdf:first und rdf:rest für die RDF-Liste hinzu
+          rdfGraph.add(
+            rdf.quad(listNode, this.namedNode("rdf:first"), waypointURI, graph)
+          );
+
+          if (i < path.waypoints.length - 1) {
+            const nextListNode = rdf.blankNode(); // Nächster Blank Node für rdf:rest
+            rdfGraph.add(
+              rdf.quad(
+                listNode,
+                this.namedNode("rdf:rest"),
+                nextListNode,
+                graph
+              )
+            );
+            listNode = nextListNode;
+          } else {
+            // Letzter Waypoint, rdf:rest auf rdf:nil setzen
+            rdfGraph.add(
+              rdf.quad(
+                listNode,
+                this.namedNode("rdf:rest"),
+                this.namedNode("rdf:nil"),
+                graph
+              )
+            );
+          }
+        }
+      }
     }
   },
 

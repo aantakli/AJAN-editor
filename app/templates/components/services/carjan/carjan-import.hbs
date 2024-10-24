@@ -1,7 +1,7 @@
 <div>
   <input
     type="file"
-    accept=".ttl"
+    accept=".trig"
     id="fileInput"
     style="display:none"
     onchange={{action "handleFile"}}
@@ -70,7 +70,7 @@
       Save
     </button>
 
-    <button class="ui primary button sticky-save" {{action "downloadTurtle"}}>
+    <button class="ui primary button sticky-save" {{action "downloadAll"}}>
       <i class="download icon" />
       Download Repository
     </button>

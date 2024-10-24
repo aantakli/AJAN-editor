@@ -1,0 +1,56 @@
+<p class="node-adder-class title-behaviors">
+  <i class="map pin icon"></i>
+  <b>Waypoint Selection</b>
+</p>
+<p class="active title composite-selection">
+  <i class="info circle icon" style="margin-left: 4px"></i>
+  Drag & Drop a Waypoint onto the canvas.
+</p>
+
+<div class="content">
+  <!-- Standardmäßiger Drag-and-Drop-Bereich für neue Waypoints -->
+  <div class="ui items" local-class="waypoint-selection-container">
+    <div local-class="waypoint-panel">
+      <div class="ui items" local-class="waypoint-item" style="margin: 0;">
+        <div local-class="waypoint-image">
+          <i
+            id="map-pin-icon"
+            class="icon map pin"
+            style="font-size: 48px;"
+          ></i>
+        </div>
+        <div local-class="waypoint-content">
+          <a local-class="waypoint-header">New Waypoint</a>
+        </div>
+      </div>
+
+      <div
+        local-class="drag-overlay"
+        draggable="true"
+        data-waypoint-type="waypoint"
+        ondragstart={{action "dragStart"}}
+        ondragleave={{action "dragLeave"}}
+        style="position:absolute; top:0; left:0; width:100%; height:100%"
+      ></div>
+    </div>
+  </div>
+
+  <div class="ui items">
+    {{#each waypoints as |waypoint|}}
+      <div local-class="waypoint-panel">
+        <div class="ui items" local-class="waypoint-item" style="margin: 0;">
+          <div local-class="waypoint-image">
+            <i
+              id="{{waypoint.id}}-icon"
+              class="icon map pin"
+              style="font-size: 48px;"
+            ></i>
+          </div>
+          <div local-class="waypoint-content">
+            <a local-class="waypoint-header">{{waypoint.name}}</a>
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+</div>

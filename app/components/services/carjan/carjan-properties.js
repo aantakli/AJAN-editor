@@ -23,8 +23,10 @@ export default Component.extend({
     },
   },
 
-  didInsertElement() {
+  didRender() {
     this._super(...arguments);
-    this.$(".ui.dropdown").dropdown();
+    Ember.run.scheduleOnce("afterRender", this, function () {
+      this.$(".ui.dropdown").dropdown({});
+    });
   },
 });

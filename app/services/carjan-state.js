@@ -55,4 +55,45 @@ export default Service.extend({
   setUpdateStatements(rdfgraph) {
     set(this, "updateStatements", rdfgraph);
   },
+
+  // Die neue setScenario Funktion
+  setScenario(dataset) {
+    const scenario = dataset.scenarios[0]; // Nimm das erste Szenario aus dem Dataset
+
+    // Setze die entsprechenden Werte basierend auf dem Szenario
+    if (scenario.scenarioName) {
+      this.setScenarioName(scenario.scenarioName.split("#")[1]);
+    }
+    if (scenario.scenarioMap) {
+      this.setMapName(scenario.scenarioMap);
+    }
+    if (scenario.weather) {
+      this.setWeather(scenario.weather);
+    }
+    if (scenario.cameraPosition) {
+      this.setCameraPosition(scenario.cameraPosition);
+    }
+    if (scenario.category) {
+      this.setCategory(scenario.category);
+    }
+
+    // Setze die Entitäten (agents) und Waypoints
+    if (scenario.entities) {
+      this.setAgentData(scenario.entities);
+    }
+
+    // Die Pfade (paths) und Wegpunkte (waypoints) können auch in anderen Methoden verarbeitet werden,
+    // je nachdem wie du sie weiterverwenden möchtest.
+    if (scenario.paths) {
+      // Optional: Hier könntest du eine Funktion wie `setPaths` implementieren
+      // this.setPaths(scenario.paths);
+    }
+
+    if (scenario.waypoints) {
+      // Optional: Hier könntest du eine Funktion wie `setWaypoints` implementieren
+      // this.setWaypoints(scenario.waypoints);
+    }
+
+    console.log("Scenario has been set in CarjanState", scenario);
+  },
 });

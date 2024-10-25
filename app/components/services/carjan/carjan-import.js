@@ -538,20 +538,8 @@ export default Component.extend({
           !newScenarioLabels.includes(existingScenario.scenarioName)
       );
 
-      // Logge den Zustand nach dem Filtern
-      console.log(
-        "Filtered existingDataset:",
-        JSON.parse(JSON.stringify(existingDataset))
-      );
-
       // Füge die neuen Szenarien hinzu
       existingDataset.scenarios.push(...newScenarioDataset.scenarios);
-
-      // Logge das finale Dataset
-      console.log(
-        "Final dataset after merge:",
-        JSON.parse(JSON.stringify(existingDataset))
-      );
 
       return existingDataset;
     } catch (error) {
@@ -561,11 +549,12 @@ export default Component.extend({
   },
   async deleteScenarioFromRepository(scenarioLabelToDelete) {
     const existingRepositoryContent = await this.downloadRepository();
-
     const existingDataset = await this.parseTurtle(existingRepositoryContent);
-
+    console.log("label to delete", scenarioLabelToDelete);
+    console.log("existing dataset", existingDataset);
     existingDataset.scenarios = existingDataset.scenarios.filter(
-      (existingScenario) => existingScenario.label !== scenarioLabelToDelete
+      (existingScenario) =>
+        existingScenario.scenarioName.split("#")[1] !== scenarioLabelToDelete
     );
 
     return existingDataset;

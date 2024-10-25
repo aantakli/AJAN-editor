@@ -265,6 +265,7 @@ export default Component.extend({
       if (value) {
         this.loadMapAndAgents(value);
         this.carjanState.setScenarioName(value);
+        this.updateCarjanState(value);
       }
     },
 
@@ -479,7 +480,6 @@ export default Component.extend({
 
         reader.onload = (e) => {
           this.addScenarioToRepository(e.target.result).then((result) => {
-            console.log("Result:", result);
             this.updateWithResult(result);
           });
         };
@@ -507,6 +507,16 @@ export default Component.extend({
     });
   },
 
+  async updateCarjanState(scenarioName) {
+    const existingRepositoryContent = await this.downloadRepository();
+    const existingDataset = await this.parseTurtle(existingRepositoryContent);
+    existingDataset.scenarios = existingDataset.scenarios.filter(
+      (existingScenario) =>
+        existingScenario.scenarioName.split("#")[1] === scenarioName
+    );
+    this.carjanState.setScenario(existingDataset);
+  },
+
   async addScenarioToRepository(newScenarioContent) {
     try {
       // Lade vorhandenes Repository-Inhalt
@@ -516,16 +526,6 @@ export default Component.extend({
       // Parsen des bestehenden Inhalts und des neuen Szenarios
       const existingDataset = await this.parseTurtle(existingRepositoryContent);
       const newScenarioDataset = await this.parseTurtle(newScenarioContent);
-
-      // Kopiere und logge den initialen Zustand des Datasets
-      console.log(
-        "Initial existingDataset:",
-        JSON.parse(JSON.stringify(existingDataset))
-      );
-      console.log(
-        "New scenario dataset:",
-        JSON.parse(JSON.stringify(newScenarioDataset))
-      );
 
       // Extrahiere die Labels der neuen Szenarien
       const newScenarioLabels = newScenarioDataset.scenarios.map(
@@ -550,8 +550,6 @@ export default Component.extend({
   async deleteScenarioFromRepository(scenarioLabelToDelete) {
     const existingRepositoryContent = await this.downloadRepository();
     const existingDataset = await this.parseTurtle(existingRepositoryContent);
-    console.log("label to delete", scenarioLabelToDelete);
-    console.log("existing dataset", existingDataset);
     existingDataset.scenarios = existingDataset.scenarios.filter(
       (existingScenario) =>
         existingScenario.scenarioName.split("#")[1] !== scenarioLabelToDelete
@@ -565,7 +563,6 @@ export default Component.extend({
       let trigContent = "";
       trigContent += await this.addPrefixes();
       for (const scenario of scenarios) {
-        console.log("Downloading scenario:", scenario);
         trigContent += await this.downloadScenarioAsTrig(
           scenario,
           false,
@@ -692,12 +689,6 @@ export default Component.extend({
   async downloadScenarioAsTrig(scenarioName, prefixes = true, download = true) {
     try {
       const { scenarioData } = await this.fetchAgentDataFromRepo(scenarioName);
-      console.log(
-        "Scenario data for scenario",
-        scenarioName,
-        ":",
-        scenarioData
-      );
       if (!scenarioData) {
         return;
       }

@@ -36,4 +36,9 @@ export default Component.extend({
       event.target.style.cursor = "move";
     },
   },
+  setupTabs() {
+    $(document).ready(function () {
+      $(".menu .item").tab();
+    });
+  },
 });

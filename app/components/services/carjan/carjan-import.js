@@ -116,8 +116,8 @@ export default Component.extend({
       // Entitäten Parsing
       if (
         predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
-        (object === "http://example.com/carla-scenario#Vehicle" ||
-          object === "http://example.com/carla-scenario#Pedestrian")
+        (object === "http://example.com/carla-scenario#vehicle" ||
+          object === "http://example.com/carla-scenario#vedestrian")
       ) {
         if (!entities[subject]) {
           entities[subject] = {
@@ -265,7 +265,6 @@ export default Component.extend({
       if (value) {
         this.loadMapAndAgents(value);
         this.carjanState.setScenarioName(value);
-        this.updateCarjanState(value);
       }
     },
 
@@ -510,6 +509,8 @@ export default Component.extend({
   async updateCarjanState(scenarioName) {
     const existingRepositoryContent = await this.downloadRepository();
     const existingDataset = await this.parseTurtle(existingRepositoryContent);
+    console.log("existingDataset ===>", existingDataset);
+
     existingDataset.scenarios = existingDataset.scenarios.filter(
       (existingScenario) =>
         existingScenario.scenarioName.split("#")[1] === scenarioName
@@ -681,6 +682,8 @@ export default Component.extend({
 
       // Optional: Aktualisieren der verfügbaren Szenarien
       this.carjanState.setAvailableScenarios(scenarios);
+
+      this.updateCarjanState(scenarioName);
     } catch (error) {
       console.error("Fehler beim Laden der Map und Agents:", error);
     }
@@ -760,8 +763,7 @@ export default Component.extend({
               "http://example.com/carla-scenario#Pedestrian"
             ))
         ) {
-          const entityType = item["@type"][0].split("#")[1];
-
+          let entityType = item["@type"][0].split("#")[1];
           currentItemContent += `    :${id} rdf:type carjan:${entityType} ;\n`;
 
           if (item["http://example.com/carla-scenario#x"]) {
@@ -829,7 +831,6 @@ export default Component.extend({
       });
       trigContent = trigContent.trim() + "\n"; // Remove trailing newline
       trigContent += "}\n\n";
-
       // Download als .trig-Datei
       if (download) {
         const blob = new Blob([trigContent], { type: "text/plain" });
@@ -864,9 +865,7 @@ export default Component.extend({
       scenarioURIs.push(scenario.scenarioName);
       await this.addRDFStatements(scenario);
     }
-
     this.addGlobalConfig(scenarioURIs);
-
     await this.updateRepo();
     rdfGraph.set(rdf.dataset());
   },
@@ -923,14 +922,12 @@ export default Component.extend({
       const turtleStream = stringToStream(turtleContent);
       const parser = new N3Parser({ format: "application/trig" });
       const quads = await rdf.dataset().import(parser.import(turtleStream));
-
       const scenarios = [];
       let currentScenario = null;
 
       const entitiesMap = {}; // Map zur Speicherung der Entitäten anhand ihrer URI
       const waypointsMap = {}; // Map zur Speicherung der Waypoints
       const pathsMap = {}; // Map zur Speicherung der Paths
-
       // Erste Iteration: Szenarien, Entitäten, Waypoints und Paths erfassen
       quads.forEach((quad) => {
         const subject = quad.subject.value;
@@ -997,7 +994,6 @@ export default Component.extend({
               currentScenario.paths.push(pathURI);
             }
           }
-
           if (predicate === "http://example.com/carla-scenario#hasWaypoints") {
             const waypointURI = object;
             if (!currentScenario.waypoints.includes(waypointURI)) {
@@ -1012,7 +1008,7 @@ export default Component.extend({
           (object === "http://example.com/carla-scenario#Vehicle" ||
             object === "http://example.com/carla-scenario#Pedestrian")
         ) {
-          const entityType = object.split("#")[1];
+          let entityType = object.split("#")[1];
 
           if (!entitiesMap[subject]) {
             entitiesMap[subject] = {

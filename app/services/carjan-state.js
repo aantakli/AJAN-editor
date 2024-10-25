@@ -12,6 +12,8 @@ export default Service.extend({
   weather: "Clear",
   category: "Urban",
   cameraPosition: "up",
+  paths: null,
+  waypoints: null,
 
   setMapName(mapName) {
     set(this, "mapName", mapName);
@@ -56,11 +58,16 @@ export default Service.extend({
     set(this, "updateStatements", rdfgraph);
   },
 
-  // Die neue setScenario Funktion
-  setScenario(dataset) {
-    const scenario = dataset.scenarios[0]; // Nimm das erste Szenario aus dem Dataset
+  setPaths(paths) {
+    set(this, "paths", paths);
+  },
+  setWaypoints(waypoints) {
+    set(this, "waypoints", waypoints);
+  },
 
-    // Setze die entsprechenden Werte basierend auf dem Szenario
+  setScenario(dataset) {
+    const scenario = dataset.scenarios[0];
+
     if (scenario.scenarioName) {
       this.setScenarioName(scenario.scenarioName.split("#")[1]);
     }
@@ -76,24 +83,26 @@ export default Service.extend({
     if (scenario.category) {
       this.setCategory(scenario.category);
     }
-
-    // Setze die Entitäten (agents) und Waypoints
     if (scenario.entities) {
       this.setAgentData(scenario.entities);
     }
 
-    // Die Pfade (paths) und Wegpunkte (waypoints) können auch in anderen Methoden verarbeitet werden,
-    // je nachdem wie du sie weiterverwenden möchtest.
     if (scenario.paths) {
-      // Optional: Hier könntest du eine Funktion wie `setPaths` implementieren
-      // this.setPaths(scenario.paths);
+      this.setPaths(scenario.paths);
     }
 
     if (scenario.waypoints) {
-      // Optional: Hier könntest du eine Funktion wie `setWaypoints` implementieren
-      // this.setWaypoints(scenario.waypoints);
+      this.setWaypoints(scenario.waypoints);
     }
 
     console.log("Scenario has been set in CarjanState", scenario);
+    console.log("Scenario Name: ", this.scenarioName);
+    console.log("Map Name: ", this.mapName);
+    console.log("Weather: ", this.weather);
+    console.log("Category: ", this.category);
+    console.log("Camera Position: ", this.cameraPosition);
+    console.log("Agent Data: ", this.agentData);
+    console.log("Paths: ", this.paths);
+    console.log("Waypoints: ", this.waypoints);
   },
 });

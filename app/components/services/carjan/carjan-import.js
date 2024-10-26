@@ -43,7 +43,7 @@ export default Component.extend({
     const parsedStatements = this.parseQuadsToScenarios(statements);
 
     const existingRepositoryContent = await this.downloadRepository();
-    const existingDataset = await this.parseTurtle(existingRepositoryContent);
+    const existingDataset = await this.parseTrig(existingRepositoryContent);
 
     const newScenarioNames = parsedStatements.scenarios.map(
       (scenario) => scenario.scenarioName
@@ -452,8 +452,8 @@ export default Component.extend({
         const reader = new FileReader();
 
         reader.onload = (e) => {
-          const turtleContent = e.target.result;
-          this.parseTurtle(turtleContent).then((result) => {
+          const trigContent = e.target.result;
+          this.parseTrig(trigContent).then((result) => {
             this.updateWithResult(result);
           });
         };
@@ -508,13 +508,13 @@ export default Component.extend({
 
   async updateCarjanState(scenarioName) {
     const existingRepositoryContent = await this.downloadRepository();
-    const existingDataset = await this.parseTurtle(existingRepositoryContent);
-    console.log("existingDataset ===>", existingDataset);
+    const existingDataset = await this.parseTrig(existingRepositoryContent);
 
     existingDataset.scenarios = existingDataset.scenarios.filter(
       (existingScenario) =>
         existingScenario.scenarioName.split("#")[1] === scenarioName
     );
+
     this.carjanState.setScenario(existingDataset);
   },
 
@@ -525,9 +525,8 @@ export default Component.extend({
       existingRepositoryContent = existingRepositoryContent || [];
 
       // Parsen des bestehenden Inhalts und des neuen Szenarios
-      const existingDataset = await this.parseTurtle(existingRepositoryContent);
-      const newScenarioDataset = await this.parseTurtle(newScenarioContent);
-
+      const existingDataset = await this.parseTrig(existingRepositoryContent);
+      const newScenarioDataset = await this.parseTrig(newScenarioContent);
       // Extrahiere die Labels der neuen Szenarien
       const newScenarioLabels = newScenarioDataset.scenarios.map(
         (scenario) => scenario.scenarioName
@@ -550,7 +549,7 @@ export default Component.extend({
   },
   async deleteScenarioFromRepository(scenarioLabelToDelete) {
     const existingRepositoryContent = await this.downloadRepository();
-    const existingDataset = await this.parseTurtle(existingRepositoryContent);
+    const existingDataset = await this.parseTrig(existingRepositoryContent);
     existingDataset.scenarios = existingDataset.scenarios.filter(
       (existingScenario) =>
         existingScenario.scenarioName.split("#")[1] !== scenarioLabelToDelete
@@ -703,7 +702,6 @@ export default Component.extend({
       }
 
       trigContent += `:${scenarioName} {\n`;
-
       // Entitäten und Szenario-Daten
       const scenarioGraph = scenarioData["@graph"];
 
@@ -712,7 +710,6 @@ export default Component.extend({
         const id = item["@id"].split("#")[1]; // Nur der Identifier nach dem Hash
 
         let currentItemContent = "";
-
         if (
           item["@type"] &&
           item["@type"].includes("http://example.com/carla-scenario#Scenario")
@@ -748,6 +745,16 @@ export default Component.extend({
               (path) => `:${path["@id"].split("#")[1]}`
             );
             currentItemContent += `      carjan:hasPath ${paths.join(
+              " , "
+            )} ;\n`;
+          }
+
+          // Waypoints hinzufügen
+          if (item["http://example.com/carla-scenario#hasWaypoints"]) {
+            const waypoints = item[
+              "http://example.com/carla-scenario#hasWaypoints"
+            ].map((path) => `:${path["@id"].split("#")[1]}`);
+            currentItemContent += `      carjan:hasWaypoints ${waypoints.join(
               " , "
             )} ;\n`;
           }
@@ -818,8 +825,9 @@ export default Component.extend({
 
           if (item["http://example.com/carla-scenario#waitTime"]) {
             currentItemContent += `;\n      carjan:waitTime "${item["http://example.com/carla-scenario#waitTime"][0]["@value"]}"^^xsd:integer ;\n`;
-          } else {
-            currentItemContent += `.\n`;
+          }
+          if (item["http://example.com/carla-scenario#positionInCell"]) {
+            currentItemContent += `      carjan:positionInCell "${item["http://example.com/carla-scenario#positionInCell"][0]["@value"]}" ;\n`;
           }
         }
 
@@ -917,17 +925,18 @@ export default Component.extend({
     }
   },
 
-  async parseTurtle(turtleContent) {
+  async parseTrig(trigContent) {
     try {
-      const turtleStream = stringToStream(turtleContent);
+      const trigStream = stringToStream(trigContent);
       const parser = new N3Parser({ format: "application/trig" });
-      const quads = await rdf.dataset().import(parser.import(turtleStream));
+      const quads = await rdf.dataset().import(parser.import(trigStream));
       const scenarios = [];
       let currentScenario = null;
 
       const entitiesMap = {}; // Map zur Speicherung der Entitäten anhand ihrer URI
       const waypointsMap = {}; // Map zur Speicherung der Waypoints
       const pathsMap = {}; // Map zur Speicherung der Paths
+
       // Erste Iteration: Szenarien, Entitäten, Waypoints und Paths erfassen
       quads.forEach((quad) => {
         const subject = quad.subject.value;
@@ -945,7 +954,7 @@ export default Component.extend({
 
           currentScenario = {
             scenarioName: subject,
-            scenarioMap: "map01", // Standardkarte
+            scenarioMap: "map01",
             entities: [],
             waypoints: [],
             paths: [],
@@ -956,7 +965,7 @@ export default Component.extend({
           };
         }
 
-        // Eigenschaften des aktuellen Szenarios extrahieren
+        // Szenario-Eigenschaften hinzufügen
         if (currentScenario && subject === currentScenario.scenarioName) {
           if (predicate === "http://example.com/carla-scenario#label") {
             currentScenario.label = object.replace(/^"|"$/g, "");
@@ -988,12 +997,15 @@ export default Component.extend({
             }
           }
 
+          // Pfade dem Szenario hinzufügen
           if (predicate === "http://example.com/carla-scenario#hasPath") {
             const pathURI = object;
             if (!currentScenario.paths.includes(pathURI)) {
               currentScenario.paths.push(pathURI);
             }
           }
+
+          // Direktzuweisung von Waypoints zum Szenario
           if (predicate === "http://example.com/carla-scenario#hasWaypoints") {
             const waypointURI = object;
             if (!currentScenario.waypoints.includes(waypointURI)) {
@@ -1009,23 +1021,18 @@ export default Component.extend({
             object === "http://example.com/carla-scenario#Pedestrian")
         ) {
           let entityType = object.split("#")[1];
-
-          if (!entitiesMap[subject]) {
-            entitiesMap[subject] = {
-              entity: subject,
-              type: entityType,
-              label: undefined,
-              x: undefined,
-              y: undefined,
-              heading: null, // Initialisierung von heading
-              followsPath: null, // Initialisierung von followsPath
-            };
-          } else {
-            entitiesMap[subject].type = entityType;
-          }
+          entitiesMap[subject] = {
+            entity: subject,
+            type: entityType,
+            label: undefined,
+            x: undefined,
+            y: undefined,
+            heading: null,
+            followsPath: null,
+          };
         }
 
-        // Label, Koordinaten und weitere Eigenschaften der Entitäten zuweisen
+        // Eigenschaften von Entitäten hinzufügen
         if (entitiesMap[subject]) {
           if (predicate === "http://example.com/carla-scenario#label") {
             entitiesMap[subject].label = object.replace(/^"|"$/g, "");
@@ -1039,7 +1046,6 @@ export default Component.extend({
           if (predicate === "http://example.com/carla-scenario#heading") {
             entitiesMap[subject].heading = object.replace(/^"|"$/g, "");
           }
-          // Optional: Zuweisung von followsPath, wenn vorhanden
           if (predicate === "http://example.com/carla-scenario#followsPath") {
             entitiesMap[subject].followsPath = object;
           }
@@ -1050,15 +1056,13 @@ export default Component.extend({
           predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
           object === "http://example.com/carla-scenario#Waypoint"
         ) {
-          if (!waypointsMap[subject]) {
-            waypointsMap[subject] = {
-              waypoint: subject,
-              x: null,
-              y: null,
-              waitTime: 0,
-              positionInCell: "center",
-            };
-          }
+          waypointsMap[subject] = {
+            waypoint: subject,
+            x: null,
+            y: null,
+            waitTime: 0,
+            positionInCell: "center",
+          };
         }
 
         if (waypointsMap[subject]) {
@@ -1083,20 +1087,18 @@ export default Component.extend({
           predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
           object === "http://example.com/carla-scenario#Path"
         ) {
-          if (!pathsMap[subject]) {
-            pathsMap[subject] = {
-              path: subject,
-              waypoints: [],
-              description: "",
-            };
-          }
+          pathsMap[subject] = {
+            path: subject,
+            waypoints: [],
+            description: "",
+          };
         }
 
-        // Beschreibung und Waypoints in Paths erfassen
-        if (pathsMap[subject]) {
-          if (predicate === "http://example.com/carla-scenario#description") {
-            pathsMap[subject].description = object.replace(/^"|"$/g, "");
-          }
+        if (
+          pathsMap[subject] &&
+          predicate === "http://example.com/carla-scenario#description"
+        ) {
+          pathsMap[subject].description = object.replace(/^"|"$/g, "");
         }
       });
 
@@ -1165,7 +1167,6 @@ export default Component.extend({
         scenarios.push(currentScenario);
       }
 
-      // Entitäten, Waypoints und Paths zu den Szenarien zuordnen
       scenarios.forEach((scenario) => {
         scenario.entities = scenario.entities.map((entityURI) => {
           return entitiesMap[entityURI];
@@ -1173,13 +1174,17 @@ export default Component.extend({
         scenario.paths = scenario.paths.map((pathURI) => {
           return pathsMap[pathURI];
         });
-        scenario.waypoints = scenario.waypoints.map((waypointURI) => {
-          return waypointsMap[waypointURI];
-        });
+
+        scenario.waypoints = scenario.waypoints
+          .map((waypointURI) => {
+            return waypointsMap[waypointURI];
+          })
+          .filter(Boolean);
       });
+
       return { scenarios };
     } catch (error) {
-      console.error("Error parsing Turtle file:", error);
+      console.error("Error parsing Trig file:", error);
     }
   },
 
@@ -1294,6 +1299,74 @@ export default Component.extend({
           scenarioURI,
           this.namedNode("carjan:hasEntity"),
           entityURI,
+          graph
+        )
+      );
+    }
+
+    // Füge die Waypoints hinzu und verknüpfe sie mit dem Szenario
+    for (const waypoint of scenario.waypoints) {
+      const waypointURI = rdf.namedNode(waypoint.waypoint);
+
+      rdfGraph.add(
+        rdf.quad(
+          waypointURI,
+          this.namedNode("rdf:type"),
+          this.namedNode("carjan:Waypoint"),
+          graph
+        )
+      );
+
+      if (waypoint.x !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            waypointURI,
+            this.namedNode("carjan:x"),
+            rdf.literal(waypoint.x, this.namedNode("xsd:integer")),
+            graph
+          )
+        );
+      }
+
+      if (waypoint.y !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            waypointURI,
+            this.namedNode("carjan:y"),
+            rdf.literal(waypoint.y, this.namedNode("xsd:integer")),
+            graph
+          )
+        );
+      }
+
+      if (waypoint.waitTime !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            waypointURI,
+            this.namedNode("carjan:waitTime"),
+            rdf.literal(waypoint.waitTime, this.namedNode("xsd:integer")),
+            graph
+          )
+        );
+      }
+
+      if (waypoint.positionInCell !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            waypointURI,
+            this.namedNode("carjan:positionInCell"),
+            rdf.literal(waypoint.positionInCell),
+            graph
+          )
+        );
+      }
+
+      // Verknüpfe den Waypoint direkt mit dem Szenario
+      rdfGraph.add(
+        rdf.quad(
+          scenarioURI,
+          this.namedNode("carjan:hasWaypoints"),
+          waypointURI,
           graph
         )
       );

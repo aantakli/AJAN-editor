@@ -13,7 +13,7 @@
 }
 
 .carla-image {
-  width: 50%; /* Bild wird halb so groß dargestellt */
+  width: 25%; /* Bild wird halb so groß dargestellt */
   height: auto;
   display: block; /* Verhindert, dass das Bild wie Inline-Element zusätzlichen Platz benötigt */
   margin: 0 auto; /* Zentriert das Bild horizontal */

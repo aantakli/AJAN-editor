@@ -5,17 +5,39 @@
 
 <!-- Paths Tab -->
 <div class="ui bottom attached active tab segment" data-tab="paths">
-  <h3>Available Paths</h3>
+  <p class="node-adder-class title-behaviors">
+    <i class="share alternate icon"></i>
+    <b>Path Selection</b>
+  </p>
 
   <div class="ui items" id="paths-list">
-    <!-- Hier wird jeder Pfad dynamisch hinzugefügt -->
     {{#each paths as |path|}}
       <div class="item">
         <div class="content">
-          <div class="header">{{path.name}}</div>
+          <div class="header">
+            {{path.name}}
+          </div>
           <div class="description">
             Description:
             {{path.description}}
+          </div>
+          <div class="extra">
+            <div>Waypoints in Path:</div>
+            <div class="ui steps">
+              {{#each path.waypoints as |waypoint|}}
+                <div class="link step">
+                  <i class="map pin icon"></i>
+                  <div class="content">
+                    <div class="title">
+                      {{waypoint.waypointId}}
+                    </div>
+                    <div class="description">Position: ({{waypoint.x}},
+                      {{waypoint.y}})</div>
+                  </div>
+                </div>
+              {{/each}}
+            </div>
+
           </div>
         </div>
       </div>
@@ -23,7 +45,7 @@
   </div>
 
   <!-- Button to add a new Path -->
-  <button class="ui button" id="add-path">
+  <button class="ui button" id="add-path" {{action "addPath"}}>
     <i class="plus icon"></i>
     New Path
   </button>
@@ -68,19 +90,24 @@
       </div>
     </div>
 
-    <div class="ui items">
+    <!-- Liste der bestehenden Waypoints -->
+    <h4>Existing Waypoints</h4>
+    <div class="ui items" id="existing-waypoints-list">
       {{#each waypoints as |waypoint|}}
-        <div local-class="waypoint-panel">
-          <div class="ui items" local-class="waypoint-item" style="margin: 0;">
-            <div local-class="waypoint-image">
-              <i
-                id="{{waypoint.id}}-icon"
-                class="icon map pin"
-                style="font-size: 48px;"
-              ></i>
-            </div>
-            <div local-class="waypoint-content">
-              <a local-class="waypoint-header">{{waypoint.name}}</a>
+        <div class="item">
+          <div class="content">
+            <div class="header">{{waypoint.name}}</div>
+            <div class="description">
+              Coordinates: ({{waypoint.x}},
+              {{waypoint.y}})
+              {{#if waypoint.waitTime}}
+                | Wait Time:
+                {{waypoint.waitTime}}s
+              {{/if}}
+              {{#if waypoint.positionInCell}}
+                | Position in Cell:
+                {{waypoint.positionInCell}}
+              {{/if}}
             </div>
           </div>
         </div>

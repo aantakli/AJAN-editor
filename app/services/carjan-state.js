@@ -94,15 +94,5 @@ export default Service.extend({
     if (scenario.waypoints) {
       this.setWaypoints(scenario.waypoints);
     }
-
-    console.log("Scenario has been set in CarjanState", scenario);
-    console.log("Scenario Name: ", this.scenarioName);
-    console.log("Map Name: ", this.mapName);
-    console.log("Weather: ", this.weather);
-    console.log("Category: ", this.category);
-    console.log("Camera Position: ", this.cameraPosition);
-    console.log("Agent Data: ", this.agentData);
-    console.log("Paths: ", this.paths);
-    console.log("Waypoints: ", this.waypoints);
   },
 });

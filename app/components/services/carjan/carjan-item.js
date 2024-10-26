@@ -521,7 +521,6 @@ export default Component.extend({
           console.log(`Cannot place entity on void cell at (${row}, ${col})`);
           return;
         }
-        console.log(entityType);
         const iconMap = {
           Pedestrian: "user",
           pedestrian: "user",
@@ -535,7 +534,6 @@ export default Component.extend({
         const iconClass = iconMap[entityType] || iconMap.default;
 
         gridElement.innerHTML = "";
-        console.log(iconClass);
         const iconElement = document.createElement("i");
         iconElement.classList.add("icon", iconClass);
         iconElement.style.fontSize = "24px";

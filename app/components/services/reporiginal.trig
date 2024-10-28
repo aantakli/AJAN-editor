@@ -1,0 +1,83 @@
+@prefix : <http://example.com/carla-scenario#> .
+@prefix carjan: <http://example.com/carla-scenario#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:Scenario1 {
+  :Entity0704 rdf:type carjan:Vehicle ;
+    carjan:x "4"^^xsd:integer ;
+    carjan:y "7"^^xsd:integer .
+
+  :Entity0805 rdf:type carjan:Pedestrian ;
+    carjan:x "5"^^xsd:integer ;
+    carjan:y "8"^^xsd:integer .
+
+  :Scenario1 rdf:type carjan:Scenario ;
+    carjan:map "map04" ;
+    carjan:cameraPosition "up" ;
+    carjan:weather "Clear" ;
+    carjan:hasEntity :Entity0704 , :Entity0805 .
+
+  }
+
+:Scenario2 {
+  :Entity0305 rdf:type carjan:Pedestrian ;
+    carjan:x "5"^^xsd:integer ;
+    carjan:y "3"^^xsd:integer .
+
+  :Entity0803 rdf:type carjan:Vehicle ;
+    carjan:x "3"^^xsd:integer ;
+    carjan:y "8"^^xsd:integer .
+
+  :Scenario2 rdf:type carjan:Scenario ;
+    carjan:map "map02" ;
+    carjan:cameraPosition "up" ;
+    carjan:weather "Clear" ;
+    carjan:hasEntity :Entity0305 , :Entity0803 .
+
+  }
+
+  :Develop4 {
+  :Entity0704 rdf:type carjan:Vehicle ;
+    carjan:x "4"^^xsd:integer ;
+    carjan:y "7"^^xsd:integer ;
+    carjan:heading "right" ;   
+    carjan:followsPath :Path1 .
+
+  :Entity0805 rdf:type carjan:Pedestrian ;
+    carjan:x "5"^^xsd:integer ;
+    carjan:y "8"^^xsd:integer ;
+    carjan:heading "left" . 
+
+  :Develop4 rdf:type carjan:Scenario ;
+    carjan:map "map04" ;
+    carjan:cameraPosition "right" ;
+    carjan:weather "Clear" ;
+    carjan:hasEntity :Entity0704 , :Entity0805 ;
+    carjan:hasPath :Path1 , :Path2 ;
+    carjan:hasWaypoints :Waypoint01 , :Waypoint02 .
+
+
+  :Path1 rdf:type carjan:Path ;
+    carjan:hasWaypoints (
+      :Waypoint01
+      :Waypoint02
+    ) ;
+    carjan:description "Path from point A to B" .  
+
+  :Path2 rdf:type carjan:Path ;
+    carjan:hasWaypoints (
+      :Waypoint02
+      :Waypoint01
+    ) .
+
+  :Waypoint01 rdf:type carjan:Waypoint ;
+    carjan:x "6"^^xsd:integer ;
+    carjan:y "8"^^xsd:integer ;
+    carjan:waitTime "5"^^xsd:integer ;
+    carjan:positionInCell "top-left" .
+
+  :Waypoint02 rdf:type carjan:Waypoint ;
+    carjan:x "8"^^xsd:integer ;
+    carjan:y "10"^^xsd:integer .
+}

@@ -103,6 +103,8 @@ export default Component.extend({
         : event.dataTransfer.getData("text");
       this.draggingEntityType = null;
 
+      console.log("entityType", entityType);
+
       if (row && col) {
         this.addEntityToGrid(entityType, row, col);
       }
@@ -292,11 +294,10 @@ export default Component.extend({
     cells.forEach((cell) => {
       const row = cell.dataset.row;
       const col = cell.dataset.col;
+      const cellStatus = this.gridStatus[`${row},${col}`];
 
-      const isOccupied = cell.getAttribute("data-occupied") === "true";
-      const entityType = this.gridStatus[`${row},${col}`].entityType;
-
-      if (isOccupied && entityType !== "void") {
+      // Entitäten speichern
+      if (cellStatus.occupied && cellStatus.entityType !== "void") {
         const entityId =
           String(row).padStart(2, "0") + String(col).padStart(2, "0");
         const entityURI = rdf.namedNode(
@@ -311,12 +312,76 @@ export default Component.extend({
           )
         );
 
-        this.addEntityToGraph(rdfGraph, entityURI, entityType, row, col);
+        this.addEntityToGraph(
+          rdfGraph,
+          entityURI,
+          cellStatus.entityType,
+          row,
+          col
+        );
+      }
+
+      // Waypoints speichern
+      if (cellStatus.waypoints && cellStatus.waypoints.length > 0) {
+        cellStatus.waypoints.forEach((waypoint, index) => {
+          const waypointId = `Waypoint${String(row).padStart(2, "0")}${String(
+            col
+          ).padStart(2, "0")}_${index}`;
+          const waypointURI = rdf.namedNode(
+            `http://example.com/carla-scenario#${waypointId}`
+          );
+
+          rdfGraph.add(
+            rdf.quad(
+              scenarioURI,
+              rdf.namedNode("http://example.com/carla-scenario#hasWaypoints"),
+              waypointURI
+            )
+          );
+
+          // Füge Waypoint-Daten hinzu
+          rdfGraph.add(
+            rdf.quad(
+              waypointURI,
+              rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+              rdf.namedNode("http://example.com/carla-scenario#Waypoint")
+            )
+          );
+
+          rdfGraph.add(
+            rdf.quad(
+              waypointURI,
+              rdf.namedNode("http://example.com/carla-scenario#x"),
+              rdf.literal(
+                row,
+                rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
+              )
+            )
+          );
+
+          rdfGraph.add(
+            rdf.quad(
+              waypointURI,
+              rdf.namedNode("http://example.com/carla-scenario#y"),
+              rdf.literal(
+                col,
+                rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
+              )
+            )
+          );
+
+          rdfGraph.add(
+            rdf.quad(
+              waypointURI,
+              rdf.namedNode("http://example.com/carla-scenario#positionInCell"),
+              rdf.literal(waypoint.positionInCell || "top-left")
+            )
+          );
+        });
       }
     });
 
     this.carjanState.setUpdateStatements(rdfGraph);
-
     this.carjanState.set("isSaveRequest", false);
   },
 
@@ -514,25 +579,52 @@ export default Component.extend({
       const gridElement = this.element.querySelector(
         `.grid-cell[data-row="${row}"][data-col="${col}"]`
       );
-      if (gridElement) {
-        const currentStatus = this.gridStatus[`${row},${col}`];
 
-        if (currentStatus.occupied && currentStatus.entityType === "void") {
+      if (gridElement) {
+        const cellStatus = this.gridStatus[`${row},${col}`];
+
+        // Für Waypoints: keine "Besetzung" des Tiles und kein data-entityType
+        if (entityType === "waypoint") {
+          // Füge Waypoint-Icon hinzu
+
+          console.log("Adding waypoint to grid", row, col);
+          const waypointIcon = document.createElement("i");
+          waypointIcon.classList.add("icon", "map", "pin");
+          waypointIcon.style.fontSize = "12px";
+          waypointIcon.style.display = "inline-block";
+          waypointIcon.style.position = "absolute";
+          waypointIcon.style.pointerEvents = "none";
+
+          gridElement.appendChild(waypointIcon);
+
+          if (!cellStatus.waypoints) {
+            cellStatus.waypoints = [];
+          }
+          cellStatus.waypoints.push({ type: entityType, row, col });
+
+          return;
+        }
+
+        // Für andere Entitäten
+        if (cellStatus.occupied && cellStatus.entityType === "void") {
           console.log(`Cannot place entity on void cell at (${row}, ${col})`);
           return;
         }
+
         const iconMap = {
           Pedestrian: "user",
           pedestrian: "user",
           Vehicle: "car",
           vehicle: "car",
           autonomous: "taxi",
+          waypoint: "map marker alternate",
           obstacle: "tree",
           default: "map marker alternate",
         };
 
         const iconClass = iconMap[entityType] || iconMap.default;
 
+        // Lösche vorheriges Icon und füge das neue Entität-Icon hinzu
         gridElement.innerHTML = "";
         const iconElement = document.createElement("i");
         iconElement.classList.add("icon", iconClass);
@@ -550,9 +642,11 @@ export default Component.extend({
         gridElement.setAttribute("data-entityType", entityType);
         gridElement.setAttribute("draggable", "true");
 
+        // Aktualisiere Status für reguläre Entitäten
         this.gridStatus[`${row},${col}`] = {
           occupied: true,
           entityType: entityType,
+          waypoints: cellStatus.waypoints || [],
         };
       }
     });

@@ -40,12 +40,14 @@ export default Component.extend({
 
   updateObserver: observer("carjanState.updateStatements", async function () {
     const statements = this.carjanState.updateStatements._quads;
-    const parsedStatements = this.parseQuadsToScenarios(statements);
+    console.log("Statements: ", statements);
+    const parsedStatements = await this.parseQuadsToScenarios(statements);
+    console.log("parsed : ", parsedStatements);
 
     const existingRepositoryContent = await this.downloadRepository();
     const existingDataset = await this.parseTrig(existingRepositoryContent);
 
-    const newScenarioNames = parsedStatements.scenarios.map(
+    const newScenarioNames = parsedStatements.map(
       (scenario) => scenario.scenarioName
     );
 
@@ -59,137 +61,266 @@ export default Component.extend({
     this.updateWithResult(existingDataset);
   }),
 
-  parseQuadsToScenarios(quads) {
-    const scenarios = {};
-    const entities = {};
-    const waypoints = {};
-    const paths = {};
+  async parseQuadsToScenarios(quads) {
+    try {
+      this.downloadQuadsAsFile(quads, "quads.trig");
+      const scenarios = [];
+      let currentScenario = null;
 
-    quads.forEach((quad) => {
-      const subject = quad.subject.value;
-      const predicate = quad.predicate.value;
-      const object = quad.object.value;
+      const entitiesMap = {}; // Map zur Speicherung der Entitäten anhand ihrer URI
+      const waypointsMap = {}; // Map zur Speicherung der Waypoints
+      const pathsMap = {}; // Map zur Speicherung der Paths
 
-      // Szenario und Entitäten Parsing
-      if (
-        predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
-        object === "http://example.com/carla-scenario#Scenario"
-      ) {
-        if (!scenarios[subject]) {
-          scenarios[subject] = {
+      // Erste Iteration: Szenarien, Entitäten, Waypoints und Paths erfassen
+      quads.forEach((quad) => {
+        const subject = quad.subject.value;
+        const predicate = quad.predicate.value;
+        const object = quad.object.value;
+
+        // Szenario-Erkennung
+        if (
+          predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+          object === "http://example.com/carla-scenario#Scenario"
+        ) {
+          if (currentScenario) {
+            scenarios.push(currentScenario);
+          }
+
+          currentScenario = {
             scenarioName: subject,
-            scenarioMap: null,
-            cameraPosition: null,
-            category: null,
-            weather: null,
+            scenarioMap: "map01",
             entities: [],
+            waypoints: [],
             paths: [],
+            cameraPosition: null,
+            label: "",
+            category: "",
+            weather: "",
           };
         }
-      }
 
-      if (scenarios[subject]) {
-        if (predicate === "http://example.com/carla-scenario#hasMap") {
-          scenarios[subject].scenarioMap = object;
-        }
-        if (predicate === "http://example.com/carla-scenario#cameraPosition") {
-          scenarios[subject].cameraPosition = object;
-        }
-        if (predicate === "http://example.com/carla-scenario#category") {
-          scenarios[subject].category = object.split("#")[1];
-        }
-        if (predicate === "http://example.com/carla-scenario#weather") {
-          scenarios[subject].weather = object;
-        }
-        if (predicate === "http://example.com/carla-scenario#hasEntity") {
-          if (!scenarios[subject].entities.includes(object)) {
-            scenarios[subject].entities.push(object);
+        // Szenario-Eigenschaften hinzufügen
+        if (currentScenario && subject === currentScenario.scenarioName) {
+          if (predicate === "http://example.com/carla-scenario#label") {
+            currentScenario.label = object.replace(/^"|"$/g, "");
+          }
+
+          if (predicate === "http://example.com/carla-scenario#category") {
+            currentScenario.category = object.split("#")[1];
+          }
+
+          if (predicate === "http://example.com/carla-scenario#map") {
+            currentScenario.scenarioMap = object.replace(/^"|"$/g, "");
+          }
+
+          if (predicate === "http://example.com/carla-scenario#weather") {
+            currentScenario.weather = object.replace(/^"|"$/g, "");
+          }
+
+          if (
+            predicate === "http://example.com/carla-scenario#cameraPosition"
+          ) {
+            currentScenario.cameraPosition = object.replace(/^"|"$/g, "");
+          }
+
+          // Entitäten dem Szenario hinzufügen
+          if (predicate === "http://example.com/carla-scenario#hasEntity") {
+            const entityURI = object;
+            if (!currentScenario.entities.includes(entityURI)) {
+              currentScenario.entities.push(entityURI);
+            }
+          }
+
+          // Pfade dem Szenario hinzufügen
+          if (predicate === "http://example.com/carla-scenario#hasPath") {
+            const pathURI = object;
+            if (!currentScenario.paths.includes(pathURI)) {
+              currentScenario.paths.push(pathURI);
+            }
+          }
+
+          // Direktzuweisung von Waypoints zum Szenario
+          if (predicate === "http://example.com/carla-scenario#hasWaypoints") {
+            const waypointURI = object;
+            if (!currentScenario.waypoints.includes(waypointURI)) {
+              currentScenario.waypoints.push(waypointURI);
+            }
           }
         }
-        if (predicate === "http://example.com/carla-scenario#followsPath") {
-          if (!scenarios[subject].paths.includes(object)) {
-            scenarios[subject].paths.push(object);
-          }
-        }
-      }
 
-      // Entitäten Parsing
-      if (
-        predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
-        (object === "http://example.com/carla-scenario#vehicle" ||
-          object === "http://example.com/carla-scenario#vedestrian")
-      ) {
-        if (!entities[subject]) {
-          entities[subject] = {
+        // Entitäten erfassen
+        if (
+          predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+          (object === "http://example.com/carla-scenario#Vehicle" ||
+            object === "http://example.com/carla-scenario#Pedestrian")
+        ) {
+          let entityType = object.split("#")[1];
+          entitiesMap[subject] = {
             entity: subject,
-            type: object.split("#")[1],
-            x: null,
-            y: null,
+            type: entityType,
+            label: undefined,
+            x: undefined,
+            y: undefined,
+            heading: null,
+            followsPath: null,
           };
         }
-      }
 
-      if (entities[subject]) {
-        if (predicate === "http://example.com/carla-scenario#spawnPointX") {
-          entities[subject].x = object;
+        // Eigenschaften von Entitäten hinzufügen
+        if (entitiesMap[subject]) {
+          if (predicate === "http://example.com/carla-scenario#label") {
+            entitiesMap[subject].label = object.replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#x") {
+            entitiesMap[subject].x = object.replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#y") {
+            entitiesMap[subject].y = object.replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#heading") {
+            entitiesMap[subject].heading = object.replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#followsPath") {
+            entitiesMap[subject].followsPath = object;
+          }
         }
-        if (predicate === "http://example.com/carla-scenario#spawnPointY") {
-          entities[subject].y = object;
-        }
-      }
 
-      // Waypoints Parsing
-      if (
-        predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
-        object === "http://example.com/carla-scenario#Waypoint"
-      ) {
-        if (!waypoints[subject]) {
-          waypoints[subject] = {
+        // Waypoints erfassen
+        if (
+          predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+          object === "http://example.com/carla-scenario#Waypoint"
+        ) {
+          waypointsMap[subject] = {
             waypoint: subject,
             x: null,
             y: null,
             waitTime: 0,
+            positionInCell: "center",
           };
         }
-      }
 
-      if (waypoints[subject]) {
-        if (predicate === "http://example.com/carla-scenario#x") {
-          waypoints[subject].x = object;
+        if (waypointsMap[subject]) {
+          if (predicate === "http://example.com/carla-scenario#x") {
+            waypointsMap[subject].x = object.replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#y") {
+            waypointsMap[subject].y = object.replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#waitTime") {
+            waypointsMap[subject].waitTime = object.replace(/^"|"$/g, "");
+          }
+          if (
+            predicate === "http://example.com/carla-scenario#positionInCell"
+          ) {
+            waypointsMap[subject].positionInCell = object.replace(/^"|"$/g, "");
+          }
         }
-        if (predicate === "http://example.com/carla-scenario#y") {
-          waypoints[subject].y = object;
-        }
-        if (predicate === "http://example.com/carla-scenario#waitTime") {
-          waypoints[subject].waitTime = object;
-        }
-      }
 
-      // Paths Parsing
-      if (predicate === "http://example.com/carla-scenario#hasWaypoints") {
-        if (!paths[subject]) {
-          paths[subject] = {
+        // Paths erfassen
+        if (
+          predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+          object === "http://example.com/carla-scenario#Path"
+        ) {
+          pathsMap[subject] = {
             path: subject,
             waypoints: [],
+            description: "",
           };
         }
-        paths[subject].waypoints.push(object);
+
+        if (
+          pathsMap[subject] &&
+          predicate === "http://example.com/carla-scenario#description"
+        ) {
+          pathsMap[subject].description = object.replace(/^"|"$/g, "");
+        }
+      });
+
+      // Zweite Iteration: Waypoints den Paths zuordnen
+      quads.forEach((quad) => {
+        const subject = quad.subject.value;
+        const predicate = quad.predicate.value;
+        const object = quad.object.value;
+
+        // Erfassung von RDF-Listen für Waypoints in Paths
+        if (
+          pathsMap[subject] &&
+          predicate === "http://example.com/carla-scenario#hasWaypoints"
+        ) {
+          const waypointsInPath = [];
+          let currentListNode = object;
+
+          while (
+            currentListNode !== "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"
+          ) {
+            quads.forEach((quadItem) => {
+              if (quadItem.subject.value === currentListNode) {
+                if (
+                  quadItem.predicate.value ===
+                  "http://www.w3.org/1999/02/22-rdf-syntax-ns#first"
+                ) {
+                  waypointsInPath.push(quadItem.object.value); // Die Waypoint-URI wird erfasst
+                }
+                if (
+                  quadItem.predicate.value ===
+                  "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"
+                ) {
+                  currentListNode = quadItem.object.value;
+                }
+              }
+            });
+          }
+
+          // Mappe die URIs auf die tatsächlichen Waypoints aus waypointsMap
+          pathsMap[subject].waypoints = waypointsInPath.map((waypointURI) => {
+            const waypoint = waypointsMap[waypointURI];
+
+            if (!waypoint) {
+              console.error(
+                `Waypoint with URI ${waypointURI} not found in waypointsMap.`
+              );
+            }
+
+            return waypoint;
+          });
+        }
+      });
+
+      // Überprüfung der Entitäten und Error-Handling für nicht gefundene Pfade
+      Object.keys(entitiesMap).forEach((entityURI) => {
+        const entity = entitiesMap[entityURI];
+        if (entity.followsPath && !pathsMap[entity.followsPath]) {
+          console.error(
+            `Entity ${entityURI} follows path ${entity.followsPath}, but the path was not found in pathsMap.`
+          );
+          entity.followsPath = null; // Lösche ungültige Pfadzuweisungen
+        }
+      });
+
+      if (currentScenario) {
+        scenarios.push(currentScenario);
       }
-    });
 
-    // Entitäten und Waypoints den Szenarien zuordnen
-    Object.keys(scenarios).forEach((scenarioKey) => {
-      const scenario = scenarios[scenarioKey];
-      scenario.entities = scenario.entities.map(
-        (entityURI) => entities[entityURI]
-      );
-      scenario.paths = scenario.paths.map((pathURI) => paths[pathURI]);
-    });
+      scenarios.forEach((scenario) => {
+        scenario.entities = scenario.entities.map((entityURI) => {
+          return entitiesMap[entityURI];
+        });
+        scenario.paths = scenario.paths.map((pathURI) => {
+          return pathsMap[pathURI];
+        });
 
-    return {
-      scenarios: Object.values(scenarios),
-      waypoints: Object.values(waypoints),
-    };
+        scenario.waypoints = scenario.waypoints
+          .map((waypointURI) => {
+            return waypointsMap[waypointURI];
+          })
+          .filter(Boolean);
+      });
+
+      return scenarios;
+    } catch (error) {
+      console.error("Error in parseQuadsToScenarios:", error);
+      return [];
+    }
   },
 
   async getMap(mapName) {
@@ -925,11 +1056,44 @@ export default Component.extend({
     }
   },
 
+  // Funktion zum Herunterladen aller Quads
+  downloadQuadsAsFile(quads, fileName = "exportedData.ttl") {
+    // Erstelle einen leeren String zum Sammeln der Quads
+    let quadString = "";
+
+    // Konvertiere jedes Quad in eine lesbare Turtle-Syntax
+    quads.forEach((quad) => {
+      const subject = quad.subject.value;
+      const predicate = quad.predicate.value;
+      const object =
+        quad.object.termType === "Literal"
+          ? `"${quad.object.value}"`
+          : quad.object.value;
+
+      // Füge das aktuelle Quad zum String hinzu
+      quadString += `<${subject}> <${predicate}> ${object} .\n`;
+    });
+
+    // Erstelle eine Blob-Datei mit dem Quads-String
+    const blob = new Blob([quadString], { type: "text/turtle" });
+
+    // Erstelle einen Download-Link und starte den Download
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
+
   async parseTrig(trigContent) {
     try {
       const trigStream = stringToStream(trigContent);
       const parser = new N3Parser({ format: "application/trig" });
       const quads = await rdf.dataset().import(parser.import(trigStream));
+      //const result = await this.parseQuadsToScenarios(quads);
+
+      this.downloadQuadsAsFile(quads);
       const scenarios = [];
       let currentScenario = null;
 

@@ -301,7 +301,6 @@ export default Component.extend({
 
     const cells = gridContainer.querySelectorAll(".grid-cell");
 
-    // Alle Zellen durchgehen und Entitäten erfassen
     cells.forEach((cell) => {
       const row = cell.dataset.row;
       const col = cell.dataset.col;
@@ -357,14 +356,8 @@ export default Component.extend({
       }
     });
 
-    console.log("RDF-Graph:", rdfGraph);
-
-    // Waypoints und Pfade aus carjanState hinzufügen
     this.addPathsAndWaypointsFromState(rdfGraph, scenarioURI);
 
-    console.log("RDF-Graph nach Waypoints und Pfade:", rdfGraph);
-
-    // Speichere die finalen Statements
     this.carjanState.setUpdateStatements(rdfGraph);
     this.carjanState.set("isSaveRequest", false);
   },
@@ -384,13 +377,10 @@ export default Component.extend({
     return positionMap[positionInCell] ? positionMap[positionInCell] : 0;
   },
 
-  // Helper-Funktion zum Hinzufügen von Paths und deren Waypoints aus dem carjanState
   addPathsAndWaypointsFromState(rdfGraph, scenarioURI) {
     const paths = this.carjanState.get("paths") || [];
     const waypoints = this.carjanState.get("waypoints") || [];
-    let addedWaypointKeys = new Set(); // Set zur Verfolgung eindeutiger Waypoints basierend auf Koordinaten und Position
-    console.log("Waypoints:", waypoints);
-    // Waypoints direkt dem Szenario hinzufügen
+
     waypoints.forEach((waypoint) => {
       const positionIndex = this.getPositionIndex(waypoint.positionInCell);
 
@@ -498,14 +488,7 @@ export default Component.extend({
         path.waypoints.forEach((waypoint, idx) => {
           console.log("Waypoint:", waypoint);
           const positionIndex = this.getPositionIndex(waypoint.positionInCell);
-          const waypointKey = `${waypoint.x}-${waypoint.y}-${positionIndex}`;
 
-          // Prüfen, ob der Waypoint für diesen Path bereits hinzugefügt wurde
-          if (addedWaypointKeys.has(waypointKey)) {
-            return;
-          }
-
-          addedWaypointKeys.add(waypointKey);
           const waypointId = `Waypoint${String(waypoint.x).padStart(
             2,
             "0"
@@ -751,7 +734,6 @@ export default Component.extend({
         `.grid-cell[data-row="${row}"][data-col="${col}"]`
       );
 
-      console.log("gridElement:", gridElement);
       if (gridElement) {
         // Initialisiere den Status der Zelle, falls nicht vorhanden
         let cellStatus = this.gridStatus[`${row},${col}`] || { waypoints: [] };
@@ -824,7 +806,6 @@ export default Component.extend({
 
   addWaypointsToGrid() {
     const waypoints = this.carjanState.get("waypoints") || [];
-    console.log("Lade alle Waypoints ins Grid:", waypoints);
 
     waypoints.forEach((waypoint) => {
       this.addSingleWaypoint(waypoint.x, waypoint.y, waypoint.positionInCell);
@@ -921,6 +902,7 @@ export default Component.extend({
       }
     });
   },
+
   refreshGrid(map, agents) {
     set(this, "mapData", map);
     set(this, "agentData", agents);

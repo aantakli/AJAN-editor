@@ -30,10 +30,6 @@ export default Component.extend({
 
     this.set("waypoints", trimmedWaypoints);
     this.set("paths", trimmedPaths);
-    console.log("carjanState", this.carjanState);
-    console.log("this.carjanstate.waypoints", this.carjanState.waypoints);
-    console.log("Trimmed Waypoints: ", this.waypoints);
-    console.log("Trimmed Paths: ", this.paths);
 
     // Rufe die Funktion zur Initialisierung der Tabs auf
     this.setupTabs();

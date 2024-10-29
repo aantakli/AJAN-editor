@@ -17,8 +17,7 @@
     carjan:cameraPosition "up" ;
     carjan:weather "Clear" ;
     carjan:hasEntity :Entity0704 , :Entity0805 .
-
-  }
+}
 
 :Scenario2 {
   :Entity0305 rdf:type carjan:Pedestrian ;
@@ -34,50 +33,51 @@
     carjan:cameraPosition "up" ;
     carjan:weather "Clear" ;
     carjan:hasEntity :Entity0305 , :Entity0803 .
+}
 
-  }
-
-  :Develop4 {
-  :Entity0704 rdf:type carjan:Vehicle ;
+:Develop4 {
+  :Entity0404 rdf:type carjan:Vehicle ;
     carjan:x "4"^^xsd:integer ;
-    carjan:y "7"^^xsd:integer ;
-    carjan:heading "right" ;   
+    carjan:y "4"^^xsd:integer ;
+    carjan:heading "right" ;
     carjan:followsPath :Path1 .
 
-  :Entity0805 rdf:type carjan:Pedestrian ;
+  :Entity0305 rdf:type carjan:Pedestrian ;
     carjan:x "5"^^xsd:integer ;
-    carjan:y "8"^^xsd:integer ;
-    carjan:heading "left" . 
+    carjan:y "3"^^xsd:integer ;
+    carjan:heading "left" .
 
   :Develop4 rdf:type carjan:Scenario ;
     carjan:map "map04" ;
     carjan:cameraPosition "right" ;
     carjan:weather "Clear" ;
-    carjan:hasEntity :Entity0704 , :Entity0805 ;
+    carjan:hasEntity :Entity0404 , :Entity0305 ;
     carjan:hasPath :Path1 , :Path2 ;
-    carjan:hasWaypoints :Waypoint01 , :Waypoint02 .
-
+    carjan:hasWaypoints :Waypoint0302_0 , :Waypoint0304_4 .
 
   :Path1 rdf:type carjan:Path ;
     carjan:hasWaypoints (
-      :Waypoint01
-      :Waypoint02
+      :Waypoint0302_0
+      :Waypoint0304_4
     ) ;
-    carjan:description "Path from point A to B" .  
+    carjan:description "Path from point A to B" .
 
   :Path2 rdf:type carjan:Path ;
     carjan:hasWaypoints (
-      :Waypoint02
-      :Waypoint01
+      :Waypoint0304_4
+      :Waypoint0302_0
     ) .
 
-  :Waypoint01 rdf:type carjan:Waypoint ;
-    carjan:x "6"^^xsd:integer ;
-    carjan:y "8"^^xsd:integer ;
+  :Waypoint0302_0 rdf:type carjan:Waypoint ;
+    carjan:label "Waypoint 1" ;
+    carjan:x "3"^^xsd:integer ;
+    carjan:y "2"^^xsd:integer ;
     carjan:waitTime "5"^^xsd:integer ;
-    carjan:positionInCell "top-left" .
+    carjan:positionInCell "middle-right" .
 
-  :Waypoint02 rdf:type carjan:Waypoint ;
-    carjan:x "8"^^xsd:integer ;
-    carjan:y "10"^^xsd:integer .
+  :Waypoint0304_4 rdf:type carjan:Waypoint ;
+    carjan:label "Waypoint 2" ;
+    carjan:x "3"^^xsd:integer ;
+    carjan:y "4"^^xsd:integer ;
+    carjan:positionInCell "bottom-right" .
 }

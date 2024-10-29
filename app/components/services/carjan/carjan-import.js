@@ -39,31 +39,42 @@ export default Component.extend({
   },
 
   updateObserver: observer("carjanState.updateStatements", async function () {
-    const statements = this.carjanState.updateStatements._quads;
-    console.log("Statements: ", statements);
-    const parsedStatements = await this.parseQuadsToScenarios(statements);
-    console.log("parsed : ", parsedStatements);
+    try {
+      const statements = this.carjanState.updateStatements._quads;
+      this.downloadQuadsAsFile(statements, "update.trig");
 
-    const existingRepositoryContent = await this.downloadRepository();
-    const existingDataset = await this.parseTrig(existingRepositoryContent);
+      // Stelle sicher, dass parsedStatements ein Array ist
+      const parsedStatements =
+        (await this.parseQuadsToScenarios(statements)) || [];
 
-    const newScenarioNames = parsedStatements.map(
-      (scenario) => scenario.scenarioName
-    );
+      // Downloade und parse das bestehende Repository
+      const existingRepositoryContent = await this.downloadRepository();
+      const existingDataset = await this.parseTrig(existingRepositoryContent);
 
-    existingDataset.scenarios = existingDataset.scenarios.filter(
-      (existingScenario) =>
-        !newScenarioNames.includes(existingScenario.scenarioName)
-    );
+      // Standardwert setzen, falls existingDataset.scenarios nicht existiert
+      existingDataset.scenarios = existingDataset.scenarios || [];
 
-    existingDataset.scenarios.push(...parsedStatements.scenarios);
+      const newScenarioNames = parsedStatements.map(
+        (scenario) => scenario.scenarioName
+      );
 
-    this.updateWithResult(existingDataset);
+      // Filtere die Szenarien basierend auf den Namen
+      existingDataset.scenarios = existingDataset.scenarios.filter(
+        (existingScenario) =>
+          !newScenarioNames.includes(existingScenario.scenarioName)
+      );
+
+      // Füge parsedStatements direkt zu existingDataset.scenarios hinzu
+      existingDataset.scenarios.push(...parsedStatements);
+
+      this.updateWithResult(existingDataset);
+    } catch (error) {
+      console.error("Error in updateObserver:", error);
+    }
   }),
 
   async parseQuadsToScenarios(quads) {
     try {
-      this.downloadQuadsAsFile(quads, "quads.trig");
       const scenarios = [];
       let currentScenario = null;
 
@@ -259,7 +270,15 @@ export default Component.extend({
                   quadItem.predicate.value ===
                   "http://www.w3.org/1999/02/22-rdf-syntax-ns#first"
                 ) {
-                  waypointsInPath.push(quadItem.object.value); // Die Waypoint-URI wird erfasst
+                  const waypointURI = quadItem.object.value;
+                  waypointsInPath.push(waypointURI); // Die Waypoint-URI wird erfasst
+
+                  // Überprüfen, ob der Waypoint in waypointsMap existiert
+                  if (!waypointsMap[waypointURI]) {
+                    console.error(
+                      `Missing Waypoint in waypointsMap for URI: ${waypointURI}`
+                    );
+                  }
                 }
                 if (
                   quadItem.predicate.value ===
@@ -271,18 +290,11 @@ export default Component.extend({
             });
           }
 
-          // Mappe die URIs auf die tatsächlichen Waypoints aus waypointsMap
-          pathsMap[subject].waypoints = waypointsInPath.map((waypointURI) => {
-            const waypoint = waypointsMap[waypointURI];
-
-            if (!waypoint) {
-              console.error(
-                `Waypoint with URI ${waypointURI} not found in waypointsMap.`
-              );
-            }
-
-            return waypoint;
-          });
+          pathsMap[subject].waypoints = waypointsInPath
+            .map((waypointURI) => {
+              return waypointsMap[waypointURI];
+            })
+            .filter(Boolean);
         }
       });
 
@@ -1093,7 +1105,7 @@ export default Component.extend({
       const quads = await rdf.dataset().import(parser.import(trigStream));
       //const result = await this.parseQuadsToScenarios(quads);
 
-      this.downloadQuadsAsFile(quads);
+      //this.downloadQuadsAsFile(quads);
       const scenarios = [];
       let currentScenario = null;
 

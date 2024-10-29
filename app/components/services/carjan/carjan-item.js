@@ -36,6 +36,8 @@ export default Component.extend({
       .trim(),
     void: "#333333",
   },
+  currentWaypoints: [],
+
   didInsertElement() {
     this._super(...arguments);
     rdfGraph.set(rdf.dataset());
@@ -105,7 +107,7 @@ export default Component.extend({
 
       if (row && col) {
         if (entityType === "waypoint") {
-          this.addWaypointsToGrid(row, col);
+          this.addSingleWaypoint(row, col, "top-left");
         } else {
           this.addEntityToGrid(entityType, row, col);
         }
@@ -221,7 +223,8 @@ export default Component.extend({
   }),
 
   waypointsObserver: observer("carjanState.waypoints", function () {
-    this.addWaypointsToGrid();
+    const waypoints = this.carjanState.waypoints || [];
+    console.log("Waypoints Observer:", waypoints);
   }),
 
   deleteAllEntites() {
@@ -352,71 +355,14 @@ export default Component.extend({
           )
         );
       }
-
-      // Waypoints speichern
-      if (cellStatus.waypoints && cellStatus.waypoints.length > 0) {
-        cellStatus.waypoints.forEach((waypoint, index) => {
-          // ID im Format WaypointXXYY_index generieren
-          const waypointId = `Waypoint${String(row).padStart(2, "0")}${String(
-            col
-          ).padStart(2, "0")}_${index}`;
-          const waypointURI = rdf.namedNode(
-            `http://example.com/carla-scenario#${waypointId}`
-          );
-
-          // Füge den Waypoint zum Szenario hinzu
-          rdfGraph.add(
-            rdf.quad(
-              scenarioURI,
-              rdf.namedNode("http://example.com/carla-scenario#hasWaypoints"),
-              waypointURI
-            )
-          );
-
-          // Typ und Position des Waypoints hinzufügen
-          rdfGraph.add(
-            rdf.quad(
-              waypointURI,
-              rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-              rdf.namedNode("http://example.com/carla-scenario#Waypoint")
-            )
-          );
-
-          rdfGraph.add(
-            rdf.quad(
-              waypointURI,
-              rdf.namedNode("http://example.com/carla-scenario#x"),
-              rdf.literal(
-                row,
-                rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
-              )
-            )
-          );
-
-          rdfGraph.add(
-            rdf.quad(
-              waypointURI,
-              rdf.namedNode("http://example.com/carla-scenario#y"),
-              rdf.literal(
-                col,
-                rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
-              )
-            )
-          );
-
-          rdfGraph.add(
-            rdf.quad(
-              waypointURI,
-              rdf.namedNode("http://example.com/carla-scenario#positionInCell"),
-              rdf.literal(waypoint.positionInCell || "top-left")
-            )
-          );
-        });
-      }
     });
+
+    console.log("RDF-Graph:", rdfGraph);
 
     // Waypoints und Pfade aus carjanState hinzufügen
     this.addPathsAndWaypointsFromState(rdfGraph, scenarioURI);
+
+    console.log("RDF-Graph nach Waypoints und Pfade:", rdfGraph);
 
     // Speichere die finalen Statements
     this.carjanState.setUpdateStatements(rdfGraph);
@@ -442,15 +388,16 @@ export default Component.extend({
   addPathsAndWaypointsFromState(rdfGraph, scenarioURI) {
     const paths = this.carjanState.get("paths") || [];
     const waypoints = this.carjanState.get("waypoints") || [];
-
+    let addedWaypointKeys = new Set(); // Set zur Verfolgung eindeutiger Waypoints basierend auf Koordinaten und Position
+    console.log("Waypoints:", waypoints);
     // Waypoints direkt dem Szenario hinzufügen
     waypoints.forEach((waypoint) => {
       const positionIndex = this.getPositionIndex(waypoint.positionInCell);
+
       const waypointId = `Waypoint${String(waypoint.x).padStart(
         2,
         "0"
       )}${String(waypoint.y).padStart(2, "0")}_${positionIndex}`;
-
       const waypointURI = rdf.namedNode(
         `http://example.com/carla-scenario#${waypointId}`
       );
@@ -504,6 +451,8 @@ export default Component.extend({
       );
     });
 
+    console.log("Paths:", paths);
+
     // Pfade hinzufügen
     paths.forEach((path, pathIndex) => {
       const pathId = `Path${pathIndex + 1}`;
@@ -547,12 +496,20 @@ export default Component.extend({
         );
 
         path.waypoints.forEach((waypoint, idx) => {
+          console.log("Waypoint:", waypoint);
           const positionIndex = this.getPositionIndex(waypoint.positionInCell);
+          const waypointKey = `${waypoint.x}-${waypoint.y}-${positionIndex}`;
+
+          // Prüfen, ob der Waypoint für diesen Path bereits hinzugefügt wurde
+          if (addedWaypointKeys.has(waypointKey)) {
+            return;
+          }
+
+          addedWaypointKeys.add(waypointKey);
           const waypointId = `Waypoint${String(waypoint.x).padStart(
             2,
             "0"
           )}${String(waypoint.y).padStart(2, "0")}_${positionIndex}`;
-
           const waypointURI = rdf.namedNode(
             `http://example.com/carla-scenario#${waypointId}`
           );
@@ -566,7 +523,6 @@ export default Component.extend({
           );
 
           if (idx < path.waypoints.length - 1) {
-            // Erzeuge den nächsten Listenknoten mit positionIndex für Konsistenz
             const nextPositionIndex = this.getPositionIndex(
               path.waypoints[idx + 1].positionInCell
             );
@@ -720,6 +676,7 @@ export default Component.extend({
       });
     }
 
+    this.addWaypointsToGrid();
     this.updateCameraPosition();
     set(this, "gridCells", cells);
     set(this, "gridStatus", status);
@@ -788,55 +745,89 @@ export default Component.extend({
     cameraIcon.style.left = `${left}px`;
   },
 
-  addWaypointsToGrid() {
-    const waypoints = this.carjanState.get("waypoints") || [];
-    waypoints.forEach((waypoint) => {
-      const { x: row, y: col, positionInCell } = waypoint;
+  addSingleWaypoint(row, col, positionInCell) {
+    run.scheduleOnce("afterRender", this, function () {
+      const gridElement = this.element.querySelector(
+        `.grid-cell[data-row="${row}"][data-col="${col}"]`
+      );
 
-      run.scheduleOnce("afterRender", this, function () {
-        const gridElement = this.element.querySelector(
-          `.grid-cell[data-row="${row}"][data-col="${col}"]`
+      console.log("gridElement:", gridElement);
+      if (gridElement) {
+        // Initialisiere den Status der Zelle, falls nicht vorhanden
+        let cellStatus = this.gridStatus[`${row},${col}`] || { waypoints: [] };
+        if (!cellStatus.waypoints) {
+          cellStatus.waypoints = [];
+        }
+
+        // Erstelle das Waypoint-Icon
+        const waypointIcon = document.createElement("i");
+        waypointIcon.classList.add("icon", "map", "marker", "alternate");
+        waypointIcon.style.fontSize = "12px";
+        waypointIcon.style.position = "absolute";
+        waypointIcon.style.pointerEvents = "none";
+
+        // Berechne den Offset basierend auf `positionInCell`
+        const cellSize = gridElement.offsetWidth || 36;
+        const positionIndex = this.getPositionIndex(positionInCell);
+        const [offsetX, offsetY] = this.getOffsetForPositionIndex(
+          positionIndex,
+          cellSize
         );
 
-        if (gridElement) {
-          // Hole den Status der Zelle oder initialisiere ihn, falls er nicht existiert
-          let cellStatus = this.gridStatus[`${row},${col}`];
-          if (!cellStatus) {
-            cellStatus = { waypoints: [] };
-            this.gridStatus[`${row},${col}`] = cellStatus;
-          } else if (!cellStatus.waypoints) {
-            cellStatus.waypoints = []; // Initialisiere `waypoints`, falls noch nicht vorhanden
-          }
+        waypointIcon.style.left = `${offsetX}px`;
+        waypointIcon.style.top = `${offsetY}px`;
 
-          // Erstelle das Waypoint-Icon
-          const waypointIcon = document.createElement("i");
-          waypointIcon.classList.add("icon", "map", "marker", "alternate");
-          waypointIcon.style.fontSize = "12px";
-          waypointIcon.style.position = "absolute";
-          waypointIcon.style.pointerEvents = "none";
+        // Füge das Waypoint-Icon zur Zelle hinzu
+        gridElement.appendChild(waypointIcon);
 
-          // Positioniere das Icon innerhalb der Zelle basierend auf `positionInCell`
-          const positionIndex = this.getPositionIndex(positionInCell);
+        // Aktualisiere den Waypoint-Status in der Zelle
+        cellStatus.waypoints.push({
+          type: "waypoint",
+          positionInCell: positionInCell,
+        });
+        // Speichere den aktualisierten Status in der gridStatus-Map
+        this.gridStatus[`${row},${col}`] = cellStatus;
+        let prefix = "http://example.com/carla-scenario#";
+        let waypointId = `Waypoint${String(row).padStart(2, "0")}${String(
+          col
+        ).padStart(2, "0")}_${positionIndex}`;
 
-          const [offsetX, offsetY] =
-            this.getOffsetForPositionIndex(positionIndex);
+        let waypointURI = `${prefix}${waypointId}`;
 
-          waypointIcon.style.left = `${offsetX}px`;
-          waypointIcon.style.top = `${offsetY}px`;
+        const newWaypoint = {
+          waypoint: waypointURI,
+          x: row,
+          y: col,
+          positionInCell: positionInCell,
+        };
 
-          // Füge das Waypoint-Icon zur Zelle hinzu
-          gridElement.appendChild(waypointIcon);
+        const existingWaypoints = this.carjanState.get("waypoints");
+        const isDuplicate = existingWaypoints.some(
+          (waypoint) =>
+            waypoint.waypoint === newWaypoint.waypoint &&
+            waypoint.x === newWaypoint.x &&
+            waypoint.y === newWaypoint.y &&
+            waypoint.positionInCell === newWaypoint.positionInCell
+        );
 
-          // Aktualisiere den Waypoint-Status in der Zelle
-          cellStatus.waypoints.push({
-            type: "waypoint",
-            positionInCell: positionInCell,
-          });
-
-          // Speichere den aktualisierten Status in der `gridStatus`-Map
-          this.gridStatus[`${row},${col}`] = cellStatus;
+        if (!isDuplicate) {
+          this.carjanState.set("waypoints", [
+            ...existingWaypoints,
+            newWaypoint,
+          ]);
         }
-      });
+
+        this.currentWaypoints = this.carjanState.get("waypoints");
+      }
+    });
+  },
+
+  addWaypointsToGrid() {
+    const waypoints = this.carjanState.get("waypoints") || [];
+    console.log("Lade alle Waypoints ins Grid:", waypoints);
+
+    waypoints.forEach((waypoint) => {
+      this.addSingleWaypoint(waypoint.x, waypoint.y, waypoint.positionInCell);
     });
   },
 
@@ -896,7 +887,6 @@ export default Component.extend({
         iconElement.style.width = "100%";
         iconElement.style.pointerEvents = "none";
 
-        console.log("Adding entity to grid", entityType, row, col);
         gridElement.appendChild(iconElement);
 
         gridElement.setAttribute("data-occupied", "true");

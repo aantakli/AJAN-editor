@@ -9,24 +9,25 @@ export default Component.extend({
   async init() {
     this._super(...arguments);
 
-    // Lade Waypoints und Paths aus dem carjanState mit Verzögerung
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const waypoints = this.carjanState.waypoints || [];
-    console.log("waypoints", waypoints);
-    // Trimme das Waypoint-URI nach dem "#" und setze die waypoints und paths
     const trimmedWaypoints = (waypoints || []).map((waypoint) => ({
       ...waypoint,
       waypointId: waypoint.waypoint.split("#")[1] || waypoint.waypoint, // falls kein '#', bleibt der Wert gleich
     }));
 
-    const trimmedPaths = (this.carjanState.paths || []).map((path) => ({
+    const paths = this.carjanState.paths || [];
+    const trimmedPaths = (paths || []).map((path) => ({
       ...path,
       waypoints: path.waypoints.map((wp) => ({
         ...wp,
         waypointId: wp.waypoint.split("#")[1] || wp.waypoint,
       })),
     }));
+
+    console.log("Original paths: ", paths);
+    console.log("Paths: ", trimmedPaths);
 
     this.set("waypoints", trimmedWaypoints);
     this.set("paths", trimmedPaths);

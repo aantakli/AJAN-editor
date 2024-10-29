@@ -42,11 +42,20 @@ export default Component.extend({
     try {
       const statements = this.carjanState.updateStatements._quads;
       this.downloadQuadsAsFile(statements, "update.trig");
+      // log statements that have "waypoint" contained anywhere in the quad
+      const filteredQuads = statements.filter(
+        (quad) =>
+          quad.subject.value.includes("aypoint") ||
+          quad.predicate.value.includes("aypoint") ||
+          quad.object.value.includes("aypoint")
+      );
+
+      console.log("Filtered Waypoint Quads:", filteredQuads);
 
       // Stelle sicher, dass parsedStatements ein Array ist
       const parsedStatements =
         (await this.parseQuadsToScenarios(statements)) || [];
-
+      console.log("Parsed statements:", parsedStatements);
       // Downloade und parse das bestehende Repository
       const existingRepositoryContent = await this.downloadRepository();
       const existingDataset = await this.parseTrig(existingRepositoryContent);
@@ -1291,40 +1300,58 @@ export default Component.extend({
         ) {
           const waypointsInPath = [];
           let currentListNode = object;
+          const visitedNodes = new Set(); // Verhindert Endlosschleifen
 
           while (
-            currentListNode !== "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"
+            currentListNode &&
+            currentListNode !==
+              "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" &&
+            !visitedNodes.has(currentListNode)
           ) {
+            visitedNodes.add(currentListNode); // Aktuellen Knoten speichern
+            let foundQuadItem = null;
+
+            // Suche nach dem passenden `quadItem`
             quads.forEach((quadItem) => {
               if (quadItem.subject.value === currentListNode) {
-                if (
-                  quadItem.predicate.value ===
-                  "http://www.w3.org/1999/02/22-rdf-syntax-ns#first"
-                ) {
-                  waypointsInPath.push(quadItem.object.value); // Die Waypoint-URI wird erfasst
-                }
-                if (
-                  quadItem.predicate.value ===
-                  "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"
-                ) {
-                  currentListNode = quadItem.object.value;
-                }
+                foundQuadItem = quadItem; // Speichere das gefundene `quadItem`
+                return false; // Beende die Schleife, da das Quad gefunden wurde
               }
             });
+
+            // Verarbeitung des gefundenen QuadItems
+            if (foundQuadItem) {
+              if (
+                foundQuadItem.predicate.value ===
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#first"
+              ) {
+                waypointsInPath.push(foundQuadItem.object.value); // Erfasse die Waypoint-URI
+              }
+              if (
+                foundQuadItem.predicate.value ===
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"
+              ) {
+                currentListNode = foundQuadItem.object.value; // Setze den nächsten Knoten
+              } else {
+                break; // Beende die Schleife, wenn keine `rest`-Beziehung vorhanden
+              }
+            } else {
+              break; // Beende die Schleife, wenn kein passendes `quadItem` gefunden wurde
+            }
           }
 
           // Mappe die URIs auf die tatsächlichen Waypoints aus waypointsMap
-          pathsMap[subject].waypoints = waypointsInPath.map((waypointURI) => {
-            const waypoint = waypointsMap[waypointURI];
-
-            if (!waypoint) {
-              console.error(
-                `Waypoint with URI ${waypointURI} not found in waypointsMap.`
-              );
-            }
-
-            return waypoint;
-          });
+          pathsMap[subject].waypoints = waypointsInPath
+            .map((waypointURI) => {
+              const waypoint = waypointsMap[waypointURI];
+              if (!waypoint) {
+                console.error(
+                  `Waypoint with URI ${waypointURI} not found in waypointsMap.`
+                );
+              }
+              return waypoint;
+            })
+            .filter(Boolean); // Filtert `undefined`-Werte heraus
         }
       });
 

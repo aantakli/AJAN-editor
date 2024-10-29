@@ -12,13 +12,13 @@ export default Component.extend({
     // Lade Waypoints und Paths aus dem carjanState mit Verzögerung
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
+    const waypoints = this.carjanState.waypoints || [];
+    console.log("waypoints", waypoints);
     // Trimme das Waypoint-URI nach dem "#" und setze die waypoints und paths
-    const trimmedWaypoints = (this.carjanState.waypoints || []).map(
-      (waypoint) => ({
-        ...waypoint,
-        waypointId: waypoint.waypoint.split("#")[1] || waypoint.waypoint, // falls kein '#', bleibt der Wert gleich
-      })
-    );
+    const trimmedWaypoints = (waypoints || []).map((waypoint) => ({
+      ...waypoint,
+      waypointId: waypoint.waypoint.split("#")[1] || waypoint.waypoint, // falls kein '#', bleibt der Wert gleich
+    }));
 
     const trimmedPaths = (this.carjanState.paths || []).map((path) => ({
       ...path,

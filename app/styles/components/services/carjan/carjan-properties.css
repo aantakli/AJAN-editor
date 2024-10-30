@@ -45,3 +45,31 @@
   border-radius: 0px;
   box-shadow: 0px;
 }
+
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 60px);
+  grid-template-rows: repeat(3, 50px);
+  gap: 1px;
+  margin-right: 5px;
+  justify-content: center;
+}
+
+.grid-gap {
+  width: 10px;
+  height: 50px;
+  display: inline-block;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.grid-cell {
+  width: 75px;
+  height: 50px;
+  border: 1px solid black;
+  position: relative;
+  outline: 1px solid transparent;
+}
+.grid-cell:hover {
+  outline: 3px solid rgba(0, 0, 0, 0.1);
+}

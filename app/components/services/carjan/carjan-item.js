@@ -222,11 +222,6 @@ export default Component.extend({
     this.updateCameraPosition();
   }),
 
-  waypointsObserver: observer("carjanState.waypoints", function () {
-    const waypoints = this.carjanState.waypoints || [];
-    console.log("Waypoints Observer:", waypoints);
-  }),
-
   deleteAllEntites() {
     if (this.gridCells) {
       this.gridCells.forEach((cell) => {
@@ -271,8 +266,8 @@ export default Component.extend({
       );
     }
 
-    const weather = "Clear";
-    const category = "Urban";
+    const weather = this.carjanState.get("weather") || "Clear";
+    const category = this.carjanState.get("category") || "Urban";
     const cameraPosition = this.carjanState.get("cameraPosition") || "up";
 
     rdfGraph.add(
@@ -441,8 +436,6 @@ export default Component.extend({
       );
     });
 
-    console.log("Paths:", paths);
-
     // Pfade hinzufügen
     paths.forEach((path, pathIndex) => {
       const pathId = `Path${pathIndex + 1}`;
@@ -486,7 +479,6 @@ export default Component.extend({
         );
 
         path.waypoints.forEach((waypoint, idx) => {
-          console.log("Waypoint:", waypoint);
           const positionIndex = this.getPositionIndex(waypoint.positionInCell);
 
           const waypointId = `Waypoint${String(waypoint.x).padStart(
@@ -658,7 +650,6 @@ export default Component.extend({
         this.addEntityToGrid(agent.type, agent.x, agent.y);
       });
     }
-
     this.addWaypointsToGrid();
     this.updateCameraPosition();
     set(this, "gridCells", cells);
@@ -990,6 +981,14 @@ export default Component.extend({
     const col = targetCell.dataset.col;
 
     const cellStatus = this.gridStatus[`${row},${col}`];
+
+    if (cellStatus && cellStatus.waypoints && cellStatus.waypoints.length > 0) {
+      this.carjanState.set("currentCellStatus", cellStatus);
+      this.carjanState.set("currentCellPosition", [row, col]);
+      this.carjanState.set("openWaypointEditor", true);
+      console.log(`Waypoint editor opened for cell at (${row}, ${col})`);
+    }
+
     const isEntityCell = cellStatus && cellStatus.occupied;
     if (e.button === 0) {
       if (isEntityCell && cellStatus.entityType !== "void") {

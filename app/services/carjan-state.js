@@ -14,6 +14,13 @@ export default Service.extend({
   cameraPosition: "up",
   paths: null,
   waypoints: null,
+  openWaypointEditor: false,
+  currentCellStatus: null,
+  currentCellPosition: [],
+
+  setWaypointEditor(isOpen) {
+    set(this, "openWaypointEditor", isOpen);
+  },
 
   setMapName(mapName) {
     set(this, "mapName", mapName);
@@ -61,8 +68,17 @@ export default Service.extend({
   setPaths(paths) {
     set(this, "paths", paths);
   },
+
   setWaypoints(waypoints) {
     set(this, "waypoints", waypoints);
+  },
+
+  setCurrentCellStatus(cellStatus) {
+    set(this, "currentCellStatus", cellStatus);
+  },
+
+  setCurrentCellPosition(cellPosition) {
+    set(this, "currentCellPosition", cellPosition);
   },
 
   setScenario(dataset) {

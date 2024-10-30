@@ -26,9 +26,6 @@ export default Component.extend({
       })),
     }));
 
-    console.log("Original paths: ", paths);
-    console.log("Paths: ", trimmedPaths);
-
     this.set("waypoints", trimmedWaypoints);
     this.set("paths", trimmedPaths);
 

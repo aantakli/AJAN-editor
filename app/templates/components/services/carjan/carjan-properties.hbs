@@ -2,75 +2,124 @@
   <h4>
     <i class="cog icon" />
     Properties
+    {{#if isLoading}}
+      <i class="spinner loading icon"></i>
+    {{/if}}
   </h4>
 </div>
 
-<p class="node-adder-class title-behaviors">
-  <i class="map outline icon"></i>
-  <b>Scenario Properties</b>
-</p>
-<p class="active title composite-selection">
-  <i class="info circle icon" style="margin-left: 4px"></i>
-  Select global properties for the scenario.
-</p>
-<div class="ui form">
-  <div local-class="pad">
-    <div class="field">
-      <label>Weather</label>
-      <div class="ui selection dropdown" {{action "setWeather" on="change"}}>
-        <input type="hidden" name="weather" />
-        <i class="dropdown icon" />
-        <div class="default text">Select Weather</div>
-        <div class="menu">
-          <div class="item" data-value="Clear">Clear</div>
-          <div class="item" data-value="Rainy">Rainy</div>
-          <div class="item" data-value="Foggy">Foggy</div>
-        </div>
+{{#if isLoading}}
+  <p class="active title composite-selection">
+    <i class="info circle icon" style="margin-left: 4px"></i>
+    Loading properties...
+  </p>
+{{else}}
+  <div class="properties-panel">
+
+    {{#if this.showWaypointEditor}}
+      <p class="node-adder-class title-behaviors">
+        <i class="map marker alternate icon"></i>
+        <b>Waypoint Editor</b>
+      </p>
+      <div
+        ondrop={{action "dropOnBackground"}}
+        ondragover={{action "allowDrop"}}
+        local-class="gridContainer"
+      >
+        {{#each gridCells as |cell|}}
+          <div
+            class="grid-cell"
+            local-class="grid-cell"
+            style="background-color: {{this.backgroundColor}}; height: 50px; width: 60px;"
+            data-row={{cell.row}}
+            data-col={{cell.col}}
+            draggable="true"
+            ondrop={{action "dropOnCell"}}
+            ondragover={{action "allowDrop"}}
+            ondragleave={{action "dragLeave"}}
+            ondragstart={{action "dragStart"}}
+          />
+        {{/each}}
       </div>
-    </div>
+      <!-- Standard properties content here -->
+      <h1></h1>
+    {{/if}}
   </div>
 
-  <div local-class="pad">
-    <div class="field">
-      <label>Camera Angle</label>
-      <div
-        class="ui selection dropdown"
-        onchange={{action "setCameraPosition"}}
-      >
-        <input type="hidden" name="cameraPosition" />
-        <i class="dropdown icon" />
-        <div class="text">
-          {{#if (eq carjanState.cameraPosition "up")}}
-            <i class="video icon rotated counterclockwise" />Up
-          {{else if (eq carjanState.cameraPosition "down")}}
-            <i class="video icon rotated clockwise" />
-            Down
-          {{else if (eq carjanState.cameraPosition "left")}}
-            <i class="video icon flipped horizonally" />
-            Left
-          {{else if (eq carjanState.cameraPosition "right")}}
-            <i class="video icon" />
-            Right
-          {{else}}
-            Select Camera Position
-          {{/if}}
-        </div>
-        <div class="menu">
-          <div class="item" data-value="up"><i
-              class="video icon rotated counterclockwise"
-            />Up</div>
-          <div class="item" data-value="down"><i
-              class="video icon rotated clockwise"
-            />Down</div>
-          <div class="item" data-value="left"><i
-              class="video icon flipped horizontally"
-            />Left</div>
-          <div class="item" data-value="right"><i
-              class="video icon"
-            />Right</div>
+  <p class="node-adder-class title-behaviors">
+    <i class="map outline icon"></i>
+    <b>Scenario Properties</b>
+  </p>
+  <p class="active title composite-selection">
+    <i class="info circle icon" style="margin-left: 4px"></i>
+    Select global properties for the scenario.
+  </p>
+  <div class="ui form">
+    <div local-class="pad">
+      <div class="field">
+        <label>Weather</label>
+        <div class="ui selection dropdown" onchange={{action "setWeather"}}>
+          <input type="hidden" name="weather" />
+          <i class="dropdown icon" />
+          <div class="text">
+            {{#if (eq carjanState.weather "Clear")}}
+              Clear
+            {{else if (eq carjanState.weather "Rainy")}}
+              Rainy
+            {{else if (eq carjanState.weather "Foggy")}}
+              Foggy
+            {{else}}
+              Select Weather
+            {{/if}}
+          </div>
+          <div class="menu">
+            <div class="item" data-value="Clear">Clear</div>
+            <div class="item" data-value="Rainy">Rainy</div>
+            <div class="item" data-value="Foggy">Foggy</div>
+          </div>
         </div>
       </div>
     </div>
+
+    <div local-class="pad">
+      <div class="field">
+        <label>Camera Angle</label>
+        <div
+          class="ui selection dropdown"
+          onchange={{action "setCameraPosition"}}
+        >
+          <input type="hidden" name="cameraPosition" />
+          <i class="dropdown icon" />
+          <div class="text">
+            {{#if (eq carjanState.cameraPosition "up")}}
+              <i class="video icon rotated counterclockwise" />Up
+            {{else if (eq carjanState.cameraPosition "down")}}
+              <i class="video icon rotated clockwise" />Down
+            {{else if (eq carjanState.cameraPosition "left")}}
+              <i class="video icon flipped horizontally" />Left
+            {{else if (eq carjanState.cameraPosition "right")}}
+              <i class="video icon" />Right
+            {{else}}
+              Select Camera Position
+            {{/if}}
+          </div>
+          <div class="menu">
+            <div class="item" data-value="up"><i
+                class="video icon rotated counterclockwise"
+              />Up</div>
+            <div class="item" data-value="down"><i
+                class="video icon rotated clockwise"
+              />Down</div>
+            <div class="item" data-value="left"><i
+                class="video icon flipped horizontally"
+              />Left</div>
+            <div class="item" data-value="right"><i
+                class="video icon"
+              />Right</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="margin: 20px;"></div>
   </div>
-  <div style="margin: 20px;"></div>
-</div>
+{{/if}}

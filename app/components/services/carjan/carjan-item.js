@@ -797,7 +797,6 @@ export default Component.extend({
 
   addWaypointsToGrid() {
     const waypoints = this.carjanState.get("waypoints") || [];
-
     waypoints.forEach((waypoint) => {
       this.addSingleWaypoint(waypoint.x, waypoint.y, waypoint.positionInCell);
     });

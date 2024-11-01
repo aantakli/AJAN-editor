@@ -18,6 +18,11 @@ export default Service.extend({
   currentCellStatus: null,
   currentCellPosition: [],
 
+  // observe the waypoints
+  waypointsObserver: function () {
+    console.log("waypoints changed to", this.get("waypoints"));
+  }.observes("waypoints"),
+
   setWaypointEditor(isOpen) {
     set(this, "openWaypointEditor", isOpen);
   },
@@ -83,7 +88,6 @@ export default Service.extend({
 
   setScenario(dataset) {
     const scenario = dataset.scenarios[0];
-
     if (scenario.scenarioName) {
       this.setScenarioName(scenario.scenarioName.split("#")[1]);
     }

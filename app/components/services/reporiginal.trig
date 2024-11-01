@@ -53,29 +53,29 @@
     carjan:weather "Clear" ;
     carjan:hasEntity :Entity0404 , :Entity0305 ;
     carjan:hasPath :Path1 , :Path2 ;
-    carjan:hasWaypoints :Waypoint0302_0 , :Waypoint0304_4 .
+    carjan:hasWaypoints :Waypoint0302_5 , :Waypoint0304_8 .
 
   :Path1 rdf:type carjan:Path ;
     carjan:hasWaypoints (
-      :Waypoint0302_0
-      :Waypoint0304_4
+      :Waypoint0302_5
+      :Waypoint0304_8
     ) ;
     carjan:description "Path from point A to B" .
 
   :Path2 rdf:type carjan:Path ;
     carjan:hasWaypoints (
-      :Waypoint0304_4
-      :Waypoint0302_0
+      :Waypoint0304_8
+      :Waypoint0302_5
     ) .
 
-  :Waypoint0302_0 rdf:type carjan:Waypoint ;
+  :Waypoint0302_5 rdf:type carjan:Waypoint ;
     carjan:label "Waypoint 1" ;
     carjan:x "3"^^xsd:integer ;
     carjan:y "2"^^xsd:integer ;
     carjan:waitTime "5"^^xsd:integer ;
     carjan:positionInCell "middle-right" .
 
-  :Waypoint0304_4 rdf:type carjan:Waypoint ;
+  :Waypoint0304_8 rdf:type carjan:Waypoint ;
     carjan:label "Waypoint 2" ;
     carjan:x "3"^^xsd:integer ;
     carjan:y "4"^^xsd:integer ;

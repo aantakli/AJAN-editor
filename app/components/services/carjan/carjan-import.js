@@ -28,6 +28,7 @@ export default Component.extend({
   scenarioName: "",
   hasError: false,
   isNameEmpty: true,
+  loading: true,
   isDisabled: computed("hasError", "isNameEmpty", function () {
     return this.hasError || this.isNameEmpty;
   }),
@@ -41,11 +42,8 @@ export default Component.extend({
   updateObserver: observer("carjanState.updateStatements", async function () {
     try {
       const statements = this.carjanState.updateStatements._quads;
-      this.downloadQuadsAsFile(statements, "update.trig");
-
       const parsedStatements =
         (await this.parseQuadsToScenarios(statements)) || [];
-
       const existingRepositoryContent = await this.downloadRepository();
       const existingDataset = await this.parseTrig(existingRepositoryContent);
 
@@ -379,8 +377,6 @@ export default Component.extend({
         this.set("selectedValue", firstScenario);
         this.set("availableScenarios", sortedScenarios);
 
-        this.loadMapAndAgents(firstScenario);
-
         Ember.run.scheduleOnce("afterRender", this, function () {
           this.$(".ui.dropdown")
             .dropdown({
@@ -394,6 +390,10 @@ export default Component.extend({
         console.error("No scenarios found in repository");
       }
     });
+    // after 1s
+    setTimeout(() => {
+      this.loading = false;
+    }, 1000);
   },
 
   actions: {
@@ -431,9 +431,9 @@ export default Component.extend({
         this.set("isDeleteDialogOpen", false);
         this.deleteScenarioFromRepository(selectedScenario).then((result) => {
           this.updateWithResult(result).then(() => {
-            //setTimeout(() => {
-            //   window.location.reload(true);
-            // }, 1000);
+            setTimeout(() => {
+              window.location.reload(true);
+            }, 1000);
           });
         });
       }
@@ -559,9 +559,9 @@ export default Component.extend({
 
     triggerSaveScenario() {
       this.carjanState.saveRequest();
-      // setTimeout(() => {
-      //   window.location.reload(true);
-      // }, 1000);
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 1000);
     },
 
     async saveAndReset() {
@@ -638,9 +638,9 @@ export default Component.extend({
   async updateWithResult(result) {
     this.updateCarjanRepo(result).then(() => {
       this.loadGrid();
-      // setTimeout(() => {
-      //   window.location.reload(true);
-      //  }, 1000);
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 1000);
     });
   },
 
@@ -790,7 +790,7 @@ export default Component.extend({
   async loadGrid() {
     this.checkRepository().then(() => {
       setTimeout(() => {
-        this.loadMapAndAgents();
+        this.loadMapAndAgents(this.get("selectedValue"));
       }, 200);
     });
   },
@@ -1099,6 +1099,7 @@ export default Component.extend({
       const parser = new N3Parser({ format: "application/trig" });
       const quads = await rdf.dataset().import(parser.import(trigStream));
       const scenarios = await this.parseQuadsToScenarios(quads);
+
       return { scenarios };
     } catch (error) {
       console.error("Error parsing Trig file:", error);

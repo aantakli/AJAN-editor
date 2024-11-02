@@ -12,7 +12,7 @@ export default Component.extend({
   cells: null,
   gridCells: null,
   cellStatus: null,
-  cellPosition: [],
+  cellPosition: null,
   waypoints: null,
   isDragging: false,
 
@@ -54,6 +54,24 @@ export default Component.extend({
     this.displayWaypointsInCell();
     return this.carjanState.openWaypointEditor;
   }),
+
+  waypointsObserver: function () {
+    console.log("waypoints in properties", this.carjanState.get("waypoints"));
+    this.waypoints = this.carjanState.get("waypoints");
+    this.displayWaypointsInCell();
+  }.observes("carjanState.waypoints"),
+
+  positionObserver: function () {
+    console.log(
+      "currentCellPosition in properties",
+      this.carjanState.get("currentCellPosition")
+    );
+
+    let position = this.carjanState.get("currentCellPosition");
+
+    this.set("cellPosition", [position[0], position[1]]);
+    this.displayWaypointsInCell();
+  }.observes("carjanState.currentCellPosition"),
 
   getNumericPositionIndex(positionInCell) {
     const positionMap = {
@@ -190,7 +208,7 @@ export default Component.extend({
     }
 
     let waypoints = this.carjanState.waypoints;
-
+    console.log("cellPosition in displayWaypointsInCell", this.cellPosition);
     // only those with x,y = this.cellPosition
     waypoints = waypoints.filter(
       (wp) => wp.x === this.cellPosition[0] && wp.y === this.cellPosition[1]
@@ -216,6 +234,11 @@ export default Component.extend({
               waypoint.positionIndex[0] === row &&
               waypoint.positionIndex[1] === col
           );
+
+          // Entferne falsche Waypoint-Icons aus der Zelle
+          gridElement.innerHTML = "";
+          gridElement.removeAttribute("draggable");
+
           // Nur wenn ein passender Waypoint gefunden wurde, Icon hinzufügen
           if (matchingWaypoint) {
             this.addWaypointToGrid(row, col, matchingWaypoint.positionInCell);
@@ -273,13 +296,6 @@ export default Component.extend({
       }
     }
     this.set("gridCells", cells);
-  },
-
-  didRender() {
-    this._super(...arguments);
-    run.scheduleOnce("afterRender", this, function () {
-      this.$(".ui.dropdown").dropdown({});
-    });
   },
 
   actions: {

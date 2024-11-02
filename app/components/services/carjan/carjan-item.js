@@ -372,6 +372,21 @@ export default Component.extend({
     return positionMap[positionInCell] ? positionMap[positionInCell] : 0;
   },
 
+  getPositionByIndex(index) {
+    const positionMap = {
+      0: "top-left",
+      1: "top-center",
+      2: "top-right",
+      3: "middle-left",
+      4: "middle-center",
+      5: "middle-right",
+      6: "bottom-left",
+      7: "bottom-center",
+      8: "bottom-right",
+    };
+    return positionMap[index];
+  },
+
   addPathsAndWaypointsFromState(rdfGraph, scenarioURI) {
     const paths = this.carjanState.get("paths") || [];
     const waypoints = this.carjanState.get("waypoints") || [];
@@ -719,7 +734,7 @@ export default Component.extend({
     cameraIcon.style.left = `${left}px`;
   },
 
-  addSingleWaypoint(row, col, positionInCell) {
+  async addSingleWaypoint(row, col, positionInCell) {
     run.scheduleOnce("afterRender", this, function () {
       const gridElement = this.element.querySelector(
         `.grid-cell[data-row="${row}"][data-col="${col}"]`
@@ -730,6 +745,21 @@ export default Component.extend({
         let cellStatus = this.gridStatus[`${row},${col}`] || { waypoints: [] };
         if (!cellStatus.waypoints) {
           cellStatus.waypoints = [];
+        } else {
+          // falls es schon einen waypoint mit gleicher positionInCell gibt, berechne den Index der positionInCell
+          const existingWaypoint = cellStatus.waypoints.find(
+            (waypoint) => waypoint.positionInCell === positionInCell
+          );
+
+          if (existingWaypoint) {
+            if (cellStatus.waypoints.length < 9) {
+              let index = this.getPositionIndex(positionInCell);
+              index = (index + 1) % 9;
+              this.addSingleWaypoint(row, col, this.getPositionByIndex(index));
+              return;
+            }
+            return;
+          }
         }
 
         // Erstelle das Waypoint-Icon
@@ -985,7 +1015,6 @@ export default Component.extend({
       this.carjanState.set("currentCellStatus", cellStatus);
       this.carjanState.set("currentCellPosition", [row, col]);
       this.carjanState.set("openWaypointEditor", true);
-      console.log(`Waypoint editor opened for cell at (${row}, ${col})`);
     }
 
     const isEntityCell = cellStatus && cellStatus.occupied;

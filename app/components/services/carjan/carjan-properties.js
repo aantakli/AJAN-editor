@@ -71,8 +71,6 @@ export default Component.extend({
   },
 
   async moveWaypointWithinGrid(currentPositionInCell, newPositionInCell) {
-    console.log("this.cellStatus.waypoints", this.cellStatus.waypoints);
-
     // Finde den ursprünglichen Waypoint anhand von x, y und positionInCell
     const oldWaypoint = await this.waypoints.find(
       (wp) =>
@@ -80,6 +78,9 @@ export default Component.extend({
         wp.y === this.cellPosition[1] &&
         wp.positionInCell === currentPositionInCell
     );
+
+    // Erstelle eine tiefe Kopie des alten Waypoints
+    let newWaypoint = { ...oldWaypoint };
 
     // Speichere den alten Waypoint-URI
     const oldWaypointURI = oldWaypoint.waypoint;
@@ -93,9 +94,8 @@ export default Component.extend({
       "0"
     )}_${newPositionIndex}`;
 
-    // Aktualisiere den Waypoint-URI und die Position in `positionInCell`
-    oldWaypoint.waypoint = updatedWaypointURI;
-    oldWaypoint.positionInCell = newPositionInCell;
+    newWaypoint.waypoint = updatedWaypointURI;
+    newWaypoint.positionInCell = newPositionInCell;
 
     // Aktualisiere die Pfade in carjanState, die diesen Waypoint enthalten
     const updatedPaths = this.carjanState.paths.map((path) => {
@@ -119,10 +119,9 @@ export default Component.extend({
 
     let allWaypoints = [
       ...this.waypoints.filter((wp) => wp.waypoint !== oldWaypointURI),
+      newWaypoint,
     ];
 
-    console.log("allWaypoints", allWaypoints);
-    console.log("oldWaypoint", oldWaypoint);
     this.removeEntityFromGrid(oldWaypoint.positionInCell);
 
     this.carjanState.setWaypoints(allWaypoints);
@@ -140,16 +139,15 @@ export default Component.extend({
         `.grid-cell[data-row="${row}"][data-col="${col}"]`
       );
 
-      console.log("gridElement", gridElement);
-
       if (gridElement) {
-        const waypointIcon = gridElement.childNodes;
+        const waypointIcons = gridElement.querySelectorAll(
+          ".icon.map.marker.alternate"
+        );
 
-        console.log("waypointIcon", waypointIcon);
-
-        if (waypointIcon) {
-          gridElement.removeChild(waypointIcon);
-        }
+        // Entferne jedes Waypoint-Icon einzeln
+        waypointIcons.forEach((icon) => {
+          gridElement.removeChild(icon);
+        });
       } else {
         console.warn(
           `Kein Grid-Element gefunden für Zelle: row=${row}, col=${col}`
@@ -222,7 +220,6 @@ export default Component.extend({
               waypoint.positionIndex[0] === row &&
               waypoint.positionIndex[1] === col
           );
-          console.log("matchingWaypoint.positionInCell", matchingWaypoint);
           // Nur wenn ein passender Waypoint gefunden wurde, Icon hinzufügen
           if (matchingWaypoint) {
             const waypointIcon = document.createElement("i");
@@ -297,7 +294,6 @@ export default Component.extend({
             this.draggingWaypoint.positionInCell,
             newPositionInCell
           );
-
           this.displayWaypointsInCell();
         }
 
@@ -322,6 +318,8 @@ export default Component.extend({
       const col = parseInt(event.target.dataset.col, 10);
       // Finde den Waypoint in der Zelle, basierend auf den Koordinaten und der aktuellen `positionInCell`
       const currentPositionInCell = this.getPositionByIndex(row, col);
+      console.log("currentPositionInCell", currentPositionInCell);
+      console.log("this.cellPosition", this.cellPosition);
       const waypoint = this.waypoints.find(
         (wp) =>
           wp.x === this.cellPosition[0] &&
@@ -350,7 +348,8 @@ export default Component.extend({
 
   onMouseDown(event) {
     const target = event.target;
-
+    console.log("target", target);
+    console.log("target.classList", target.classList);
     // Prüfe, ob das Ziel ein Waypoint-Icon ist
     if (
       target.classList.contains("map") &&

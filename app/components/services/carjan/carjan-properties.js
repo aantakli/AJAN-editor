@@ -124,6 +124,8 @@ export default Component.extend({
 
     this.removeEntityFromGrid(oldWaypoint.positionInCell);
 
+    this.waypoints = allWaypoints;
+    console.log("allWaypoints", allWaypoints);
     this.carjanState.setWaypoints(allWaypoints);
     this.carjanState.setPaths(updatedPaths);
   },
@@ -140,14 +142,8 @@ export default Component.extend({
       );
 
       if (gridElement) {
-        const waypointIcons = gridElement.querySelectorAll(
-          ".icon.map.marker.alternate"
-        );
-
-        // Entferne jedes Waypoint-Icon einzeln
-        waypointIcons.forEach((icon) => {
-          gridElement.removeChild(icon);
-        });
+        gridElement.removeAttribute("draggable");
+        gridElement.innerHTML = "";
       } else {
         console.warn(
           `Kein Grid-Element gefunden für Zelle: row=${row}, col=${col}`
@@ -222,22 +218,7 @@ export default Component.extend({
           );
           // Nur wenn ein passender Waypoint gefunden wurde, Icon hinzufügen
           if (matchingWaypoint) {
-            const waypointIcon = document.createElement("i");
-            waypointIcon.classList.add("icon", "map", "marker", "alternate");
-            waypointIcon.style.fontSize = "24px";
-            waypointIcon.style.display = "flex";
-            waypointIcon.style.alignItems = "center";
-            waypointIcon.style.justifyContent = "center";
-            waypointIcon.style.height = "100%";
-            waypointIcon.style.width = "100%";
-            waypointIcon.style.pointerEvents = "none";
-
-            // Füge das Waypoint-Icon zur Zelle hinzu
-            waypointIcon.setAttribute(
-              "data-position-in-cell",
-              matchingWaypoint.positionInCell
-            );
-            gridElement.appendChild(waypointIcon);
+            this.addWaypointToGrid(row, col, matchingWaypoint.positionInCell);
           }
         } else {
           console.warn(
@@ -246,6 +227,42 @@ export default Component.extend({
         }
       });
     });
+  },
+
+  addWaypointToGrid(inputRow, inputCol, posInCell) {
+    const row = parseInt(inputRow, 10);
+    const col = parseInt(inputCol, 10);
+    const gridElement = this.element.querySelector(
+      `.grid-cell[data-row="${row}"][data-col="${col}"]`
+    );
+    if (gridElement) {
+      gridElement.innerHTML = "";
+      const waypointIcon = document.createElement("i");
+      waypointIcon.classList.add("icon", "map", "marker", "alternate");
+      waypointIcon.style.fontSize = "24px";
+      waypointIcon.style.display = "flex";
+      waypointIcon.style.alignItems = "center";
+      waypointIcon.style.justifyContent = "center";
+      waypointIcon.style.height = "100%";
+      waypointIcon.style.width = "100%";
+      waypointIcon.style.pointerEvents = "none";
+
+      // Füge das Waypoint-Icon zur Zelle hinzu
+      waypointIcon.setAttribute("data-position-in-cell", posInCell);
+
+      gridElement.setAttribute("draggable", "true");
+      gridElement.appendChild(waypointIcon);
+    }
+  },
+
+  recoverWaypoint() {
+    this.addWaypointToGrid(
+      this.draggingWaypoint.x,
+      this.draggingWaypoint.y,
+      this.draggingWaypoint.positionInCell
+    );
+    console.log("Recovered Waypoint");
+    this.draggingWaypoint = null;
   },
 
   setupGrid() {
@@ -288,13 +305,25 @@ export default Component.extend({
       const col = parseInt(event.target.dataset.col, 10);
       if (this.draggingWaypoint) {
         const newPositionInCell = this.getPositionByIndex(row, col);
+        const isOccupied = this.waypoints.find(
+          (wp) =>
+            wp.x === this.cellPosition[0] &&
+            wp.y === this.cellPosition[1] &&
+            wp.positionInCell === newPositionInCell
+        );
         // Nur verschieben, wenn das neue Ziel sich vom originalen unterscheidet
-        if (newPositionInCell !== this.draggingWaypoint.positionInCell) {
-          await this.moveWaypointWithinGrid(
+        if (
+          newPositionInCell !== this.draggingWaypoint.positionInCell &&
+          !isOccupied
+        ) {
+          this.moveWaypointWithinGrid(
             this.draggingWaypoint.positionInCell,
             newPositionInCell
-          );
-          this.displayWaypointsInCell();
+          ).then(() => {
+            this.displayWaypointsInCell();
+          });
+        } else {
+          this.recoverWaypoint();
         }
 
         // Reset nach dem Drop
@@ -310,7 +339,7 @@ export default Component.extend({
     dragLeave(event) {
       event.target.classList.remove("cell-hover-allowed");
       event.target.classList.remove("cell-hover-not-allowed");
-      event.target.style.cursor = "move";
+      event.target.style.cursor = "default";
     },
 
     dragStart(event) {
@@ -326,6 +355,7 @@ export default Component.extend({
           wp.y === this.cellPosition[1] &&
           wp.positionInCell === currentPositionInCell
       );
+      console.log("waypoint", waypoint);
       if (waypoint) {
         // Speichere den Waypoint, seine aktuelle Position und `positionInCell` für den Drop
         this.draggingWaypoint = waypoint;
@@ -333,7 +363,8 @@ export default Component.extend({
 
         // Setze das Drag-Image auf den Waypoint
         event.dataTransfer.setData("text/plain", "waypoint");
-        const waypointIcon = event.target.querySelector(".icon.map.marker");
+        let waypointIcon = event.target.querySelector(".icon.map.marker");
+        console.log("waypointIcon", waypointIcon);
         if (waypointIcon) {
           event.dataTransfer.setDragImage(waypointIcon, 12, 12);
         }

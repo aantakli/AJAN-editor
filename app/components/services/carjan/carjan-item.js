@@ -205,6 +205,7 @@ export default Component.extend({
         this.previousAgents !== currentAgents
       ) {
         this.deleteAllEntites();
+        console.log("Removed all from observer");
         this.setupGrid(currentMap, currentAgents);
         this.previousMap = currentMap;
         this.previousAgents = currentAgents;
@@ -827,14 +828,12 @@ export default Component.extend({
   addWaypointsToGrid() {
     this.removeAllWaypoints();
     const waypoints = this.carjanState.get("waypoints") || [];
-    console.log("Waypoints", waypoints);
     waypoints.forEach((waypoint) => {
       this.addSingleWaypoint(waypoint.x, waypoint.y, waypoint.positionInCell);
     });
   },
 
   removeAllWaypoints() {
-    console.log("Removing all waypoints");
     if (this.gridStatus) {
       // remove this.gridStatus.[i].waypoints
       for (let row = 0; row < this.gridRows; row++) {

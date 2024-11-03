@@ -56,17 +56,11 @@ export default Component.extend({
   }),
 
   waypointsObserver: function () {
-    console.log("waypoints in properties", this.carjanState.get("waypoints"));
     this.waypoints = this.carjanState.get("waypoints");
     this.displayWaypointsInCell();
   }.observes("carjanState.waypoints"),
 
   positionObserver: function () {
-    console.log(
-      "currentCellPosition in properties",
-      this.carjanState.get("currentCellPosition")
-    );
-
     let position = this.carjanState.get("currentCellPosition");
 
     this.set("cellPosition", [position[0], position[1]]);
@@ -143,7 +137,6 @@ export default Component.extend({
     this.removeEntityFromGrid(oldWaypoint.positionInCell);
 
     this.waypoints = allWaypoints;
-    console.log("allWaypoints", allWaypoints);
     this.carjanState.setWaypoints(allWaypoints);
     this.carjanState.setPaths(updatedPaths);
   },
@@ -208,7 +201,6 @@ export default Component.extend({
     }
 
     let waypoints = this.carjanState.waypoints;
-    console.log("cellPosition in displayWaypointsInCell", this.cellPosition);
     // only those with x,y = this.cellPosition
     waypoints = waypoints.filter(
       (wp) => wp.x === this.cellPosition[0] && wp.y === this.cellPosition[1]
@@ -284,7 +276,6 @@ export default Component.extend({
       this.draggingWaypoint.y,
       this.draggingWaypoint.positionInCell
     );
-    console.log("Recovered Waypoint");
     this.draggingWaypoint = null;
   },
 
@@ -363,15 +354,12 @@ export default Component.extend({
       const col = parseInt(event.target.dataset.col, 10);
       // Finde den Waypoint in der Zelle, basierend auf den Koordinaten und der aktuellen `positionInCell`
       const currentPositionInCell = this.getPositionByIndex(row, col);
-      console.log("currentPositionInCell", currentPositionInCell);
-      console.log("this.cellPosition", this.cellPosition);
       const waypoint = this.waypoints.find(
         (wp) =>
           wp.x === this.cellPosition[0] &&
           wp.y === this.cellPosition[1] &&
           wp.positionInCell === currentPositionInCell
       );
-      console.log("waypoint", waypoint);
       if (waypoint) {
         // Speichere den Waypoint, seine aktuelle Position und `positionInCell` für den Drop
         this.draggingWaypoint = waypoint;
@@ -380,7 +368,6 @@ export default Component.extend({
         // Setze das Drag-Image auf den Waypoint
         event.dataTransfer.setData("text/plain", "waypoint");
         let waypointIcon = event.target.querySelector(".icon.map.marker");
-        console.log("waypointIcon", waypointIcon);
         if (waypointIcon) {
           event.dataTransfer.setDragImage(waypointIcon, 12, 12);
         }
@@ -393,10 +380,15 @@ export default Component.extend({
     },
   },
 
+  didRender() {
+    this._super(...arguments);
+    run.scheduleOnce("afterRender", this, function () {
+      this.$(".ui.dropdown").dropdown({});
+    });
+  },
+
   onMouseDown(event) {
     const target = event.target;
-    console.log("target", target);
-    console.log("target.classList", target.classList);
     // Prüfe, ob das Ziel ein Waypoint-Icon ist
     if (
       target.classList.contains("map") &&

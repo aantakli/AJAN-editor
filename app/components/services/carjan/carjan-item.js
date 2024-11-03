@@ -227,7 +227,44 @@ export default Component.extend({
       this.gridCells.forEach((cell) => {
         const row = cell.row;
         const col = cell.col;
-        this.removeEntityFromGrid(row, col);
+        if (this.gridStatus[`${row},${col}`].entityType !== "void") {
+          this.removeEntityFromGrid(row, col);
+        }
+      });
+    }
+    let currentMap = this.carjanState.get("mapData");
+    this.setVoids(currentMap);
+  },
+
+  setVoids(map) {
+    if (this.gridCells) {
+      this.gridCells.forEach((cell) => {
+        const row = cell.row;
+        const col = cell.col;
+        let color = this.colors.void;
+
+        if (map && map[row] && map[row][col]) {
+          const cellType = map[row][col];
+          if (cellType === "r" || cellType === "p") {
+          }
+          if (cellType === "r") {
+            color = this.colors.road;
+          } else if (cellType === "p") {
+            color = this.colors.path;
+          }
+        }
+
+        if (color === this.colors.void) {
+          this.gridStatus[`${row},${col}`] = {
+            occupied: true,
+            entityType: "void",
+          };
+        } else {
+          this.gridStatus[`${row},${col}`] = {
+            occupied: false,
+            entityType: null,
+          };
+        }
       });
     }
   },
@@ -256,11 +293,12 @@ export default Component.extend({
     );
 
     const currentMap = this.carjanState.get("mapName");
+
     if (currentMap) {
       rdfGraph.add(
         rdf.quad(
           scenarioURI,
-          rdf.namedNode("http://example.com/carla-scenario#hasMap"),
+          rdf.namedNode("http://example.com/carla-scenario#map"),
           rdf.literal(currentMap)
         )
       );
@@ -322,7 +360,10 @@ export default Component.extend({
             entityURI,
             rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
             rdf.namedNode(
-              `http://example.com/carla-scenario#${cellStatus.entityType}`
+              `http://example.com/carla-scenario#${
+                cellStatus.entityType.charAt(0).toUpperCase() +
+                cellStatus.entityType.slice(1)
+              }`
             )
           )
         );
@@ -355,6 +396,12 @@ export default Component.extend({
 
     this.carjanState.setUpdateStatements(rdfGraph);
     this.carjanState.set("isSaveRequest", false);
+  },
+  async getMap(mapName) {
+    const response = await fetch("/assets/carjan/carjan-maps/maps.json");
+    const maps = await response.json();
+    this.carjanState.setMapName(mapName);
+    return maps[mapName] || maps.map01;
   },
 
   getPositionIndex(positionInCell) {
@@ -545,58 +592,6 @@ export default Component.extend({
     });
   },
 
-  addEntityToGraph(rdfGraph, entityURI, entityType, row, col) {
-    let entityTypeURI;
-
-    if (entityType === "pedestrian") {
-      entityTypeURI = rdf.namedNode(
-        "http://example.com/carla-scenario#Pedestrian"
-      );
-    } else if (entityType === "vehicle") {
-      entityTypeURI = rdf.namedNode(
-        "http://example.com/carla-scenario#Vehicle"
-      );
-    } else if (entityType === "autonomous") {
-      entityTypeURI = rdf.namedNode(
-        "http://example.com/carla-scenario#AutonomousVehicle"
-      );
-    } else {
-      entityTypeURI = rdf.namedNode(
-        "http://example.com/carla-scenario#Obstacle"
-      );
-    }
-
-    rdfGraph.add(
-      rdf.quad(
-        entityURI,
-        rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-        entityTypeURI
-      )
-    );
-
-    rdfGraph.add(
-      rdf.quad(
-        entityURI,
-        rdf.namedNode("http://example.com/carla-scenario#spawnPointX"),
-        rdf.literal(
-          col,
-          rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
-        )
-      )
-    );
-
-    rdfGraph.add(
-      rdf.quad(
-        entityURI,
-        rdf.namedNode("http://example.com/carla-scenario#spawnPointY"),
-        rdf.literal(
-          row,
-          rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
-        )
-      )
-    );
-  },
-
   setupGrid(map = null, agents = null) {
     if (!map || !agents) {
       return;
@@ -618,8 +613,6 @@ export default Component.extend({
           }
         }
 
-        colors[`${row},${col}`] = color;
-
         if (color === this.colors.void) {
           status[`${row},${col}`] = {
             occupied: true,
@@ -632,6 +625,7 @@ export default Component.extend({
           };
         }
 
+        colors[`${row},${col}`] = color;
         cells.push({ row, col });
       }
     }
@@ -743,6 +737,11 @@ export default Component.extend({
       if (gridElement) {
         // Initialisiere den Status der Zelle, falls nicht vorhanden
         let cellStatus = this.gridStatus[`${row},${col}`] || { waypoints: [] };
+        if (cellStatus.occupied && cellStatus.entityType === "void") {
+          console.log(`Cannot place waypoint on void cell at (${row}, ${col})`);
+          return;
+        }
+
         if (!cellStatus.waypoints) {
           cellStatus.waypoints = [];
         } else {
@@ -826,10 +825,28 @@ export default Component.extend({
   },
 
   addWaypointsToGrid() {
+    this.removeAllWaypoints();
     const waypoints = this.carjanState.get("waypoints") || [];
+    console.log("Waypoints", waypoints);
     waypoints.forEach((waypoint) => {
       this.addSingleWaypoint(waypoint.x, waypoint.y, waypoint.positionInCell);
     });
+  },
+
+  removeAllWaypoints() {
+    console.log("Removing all waypoints");
+    if (this.gridStatus) {
+      // remove this.gridStatus.[i].waypoints
+      for (let row = 0; row < this.gridRows; row++) {
+        for (let col = 0; col < this.gridCols; col++) {
+          let cellStatus = this.gridStatus[`${row},${col}`];
+          if (cellStatus && cellStatus.waypoints) {
+            cellStatus.waypoints = [];
+            this.gridStatus[`${row},${col}`] = cellStatus;
+          }
+        }
+      }
+    }
   },
 
   getOffsetForPositionIndex(positionIndex) {

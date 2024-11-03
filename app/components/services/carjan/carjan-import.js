@@ -431,9 +431,9 @@ export default Component.extend({
         this.set("isDeleteDialogOpen", false);
         this.deleteScenarioFromRepository(selectedScenario).then((result) => {
           this.updateWithResult(result).then(() => {
-            setTimeout(() => {
-              window.location.reload(true);
-            }, 1000);
+            // setTimeout(() => {
+            //     window.location.reload(true);
+            //    }, 1000);
           });
         });
       }
@@ -559,9 +559,9 @@ export default Component.extend({
 
     triggerSaveScenario() {
       this.carjanState.saveRequest();
-      setTimeout(() => {
-        window.location.reload(true);
-      }, 1000);
+      // setTimeout(() => {
+      //    window.location.reload(true);
+      //}, 1000);
     },
 
     async saveAndReset() {
@@ -638,9 +638,9 @@ export default Component.extend({
   async updateWithResult(result) {
     this.updateCarjanRepo(result).then(() => {
       this.loadGrid();
-      setTimeout(() => {
-        window.location.reload(true);
-      }, 1000);
+      //setTimeout(() => {
+      //   window.location.reload(true);
+      //   }, 1000);
     });
   },
 
@@ -806,11 +806,10 @@ export default Component.extend({
       }
 
       const agents = this.extractAgentsData(scenarioData);
-      const { scenarioMap, cameraPosition } =
+      const { mapName, cameraPosition } =
         this.extractScenarioData(scenarioData);
-
-      const map = scenarioMap
-        ? await this.getMap(scenarioMap)
+      const map = mapName
+        ? await this.getMap(mapName)
         : await this.getDefaultMap();
 
       this.carjanState.setMapData(map);
@@ -1611,7 +1610,6 @@ export default Component.extend({
         }
       });
     }
-
     // Return both mapName and cameraPosition
     return { mapName, cameraPosition };
   },

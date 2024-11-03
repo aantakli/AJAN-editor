@@ -18,11 +18,6 @@ export default Service.extend({
   currentCellStatus: null,
   currentCellPosition: [],
 
-  // observe the waypoints
-  waypointsObserver: function () {
-    console.log("waypoints changed to", this.get("waypoints"));
-  }.observes("waypoints"),
-
   setWaypointEditor(isOpen) {
     set(this, "openWaypointEditor", isOpen);
   },
@@ -32,6 +27,7 @@ export default Service.extend({
   },
 
   setMapData(map) {
+    console.log("setMapData", map);
     set(this, "mapData", map);
   },
 

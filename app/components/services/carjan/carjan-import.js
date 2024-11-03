@@ -402,6 +402,7 @@ export default Component.extend({
       this.set("selectedValue", value);
       if (value) {
         this.loadMapAndAgents(value);
+        this.loadGrid();
         this.carjanState.setScenarioName(value);
       }
     },

@@ -432,9 +432,9 @@ export default Component.extend({
         this.set("isDeleteDialogOpen", false);
         this.deleteScenarioFromRepository(selectedScenario).then((result) => {
           this.updateWithResult(result).then(() => {
-            // setTimeout(() => {
-            //     window.location.reload(true);
-            //    }, 1000);
+            setTimeout(() => {
+              window.location.reload(true);
+            }, 1000);
           });
         });
       }
@@ -560,9 +560,9 @@ export default Component.extend({
 
     triggerSaveScenario() {
       this.carjanState.saveRequest();
-      // setTimeout(() => {
-      //    window.location.reload(true);
-      //}, 1000);
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 1000);
     },
 
     async saveAndReset() {
@@ -639,9 +639,9 @@ export default Component.extend({
   async updateWithResult(result) {
     this.updateCarjanRepo(result).then(() => {
       this.loadGrid();
-      //setTimeout(() => {
-      //   window.location.reload(true);
-      //   }, 1000);
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 1000);
     });
   },
 

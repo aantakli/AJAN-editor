@@ -49,6 +49,29 @@ export default Component.extend({
       this.setupGrid(this.carjanState.mapData, this.carjanState.agentData);
     }
   },
+
+  addPath() {
+    document.getElementById("overlay").removeAttribute("hidden");
+
+    const markers = document.querySelectorAll("i.icon.map.marker.alternate");
+    console.log("markers", markers);
+    markers.forEach((marker) => {
+      marker.classList.add("highlight-marker");
+      marker.style.backgroundColor = "transparent";
+      marker.style.boxShadow = "none";
+      marker.style.border = "none";
+    });
+  },
+
+  removeOverlay() {
+    document.getElementById("overlay").setAttribute("hidden", true);
+
+    const markers = document.querySelectorAll("i.icon.map.marker.alternate");
+    markers.forEach((marker) => {
+      marker.classList.remove("highlight-marker");
+    });
+  },
+
   actions: {
     allowDrop(event) {
       event.preventDefault();
@@ -221,6 +244,14 @@ export default Component.extend({
 
   cameraPositionObserver: observer("carjanState.cameraPosition", function () {
     this.updateCameraPosition();
+  }),
+
+  addPathObserver: observer("carjanState.addPath", function () {
+    if (this.carjanState.addPath) {
+      this.addPath();
+    } else {
+      this.removeOverlay();
+    }
   }),
 
   deleteAllEntites() {
@@ -1023,7 +1054,22 @@ export default Component.extend({
   onMouseDown(e) {
     const drag = this.get("drag");
 
+    const waypointIcon = e.target.closest("i.icon.map.marker.alternate");
+
+    if (
+      e.target.classList.contains("icon") &&
+      e.target.classList.contains("map") &&
+      e.target.classList.contains("marker") &&
+      e.target.classList.contains("alternate")
+    ) {
+      console.log("Waypoint-Icon angeklickt", e.target);
+
+      // Hier kannst du weitere Aktionen ausführen, wenn das Icon angeklickt wurde
+      return; // Beende die Funktion, wenn ein Waypoint-Icon geklickt wurde
+    }
+
     const targetCell = e.target;
+    console.log("element", targetCell);
     const row = targetCell.dataset.row;
     const col = targetCell.dataset.col;
 

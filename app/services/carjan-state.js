@@ -17,6 +17,13 @@ export default Service.extend({
   openWaypointEditor: false,
   currentCellStatus: null,
   currentCellPosition: [],
+  addPath: false,
+
+  appendPath(path) {
+    const paths = this.paths || [];
+    paths.push(path);
+    this.setPaths(paths);
+  },
 
   setWaypointEditor(isOpen) {
     set(this, "openWaypointEditor", isOpen);
@@ -66,6 +73,7 @@ export default Service.extend({
   },
 
   setPaths(paths) {
+    console.log("paths", paths);
     set(this, "paths", paths);
   },
 

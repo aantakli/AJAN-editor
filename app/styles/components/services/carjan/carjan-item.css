@@ -66,3 +66,28 @@
   position: absolute;
   color: #f2711c;
 }
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 1000;
+  pointer-events: none;
+}
+:global(.highlight-marker) {
+  z-index: 1100;
+}
+
+:global(i.icon.map.marker.alternate) {
+  background-color: transparent !important;
+  pointer-events: auto !important;
+  transition: transform 0.2s ease-in-out;
+}
+
+:global(i.icon.map.marker.alternate:hover) {
+  transform: scale(1.5);
+  cursor: pointer;
+}

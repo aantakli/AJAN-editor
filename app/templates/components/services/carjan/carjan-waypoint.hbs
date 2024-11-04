@@ -9,46 +9,73 @@
     <i class="share alternate icon"></i>
     <b>Path Selection</b>
   </p>
-
-  <div class="ui items" id="paths-list">
-    {{#each paths as |path|}}
-      <div class="item">
-        <div class="content">
-          <div class="header">
-            {{path.name}}
-          </div>
-          <div class="description">
-            Description:
-            {{path.description}}
-          </div>
-          <div class="extra">
-            <div>Waypoints in Path:</div>
-            <div class="ui steps">
-              {{#each path.waypoints as |waypoint|}}
-                <div class="link step">
-                  <i class="map pin icon"></i>
-                  <div class="content">
-                    <div class="title">
-                      {{waypoint.waypointId}}
-                    </div>
-                    <div class="description">Position: ({{waypoint.x}},
-                      {{waypoint.y}})</div>
-                  </div>
-                </div>
-              {{/each}}
-            </div>
-
-          </div>
-        </div>
-      </div>
-    {{/each}}
-  </div>
-
+  {{spectrum-color-picker
+    color=teamColor
+    showButtons=false
+    clickoutFiresChange=true
+    onChange=(action "colorChanged")
+    onShow=(action "pickerOpened")
+    onHide=(action "pickerClosed")
+    onMove=(action "userMovedColorPicker")
+  }}
   <!-- Button to add a new Path -->
-  <button class="ui button" id="add-path" {{action "addPath"}}>
+  <button class="ui button" id="add-path" {{action "openNewPathDialog"}}>
     <i class="plus icon"></i>
     New Path
   </button>
+  <div
+    class="ui items"
+    id="paths-list"
+    local-class="waypoint-selection-container"
+  >
+    {{#each paths as |path|}}
+      <div
+        local-class="waypoint-panel"
+        style="margin-bottom: 12px;"
+        {{action "openPathwayEditor" path}}
+      >
+        <div local-class="waypoint-panel-triangle">
+          <div class="item">
+
+            <div class="content">
+              <div local-class="description">
+                <i class="icon share alternate"></i>
+                {{path.description}}
+              </div>
+              <div class="extra">
+                <div class="ui breadcrumb">
+                  {{#each path.waypoints as |waypoint|}}
+                    <i class="right angle icon divider"></i>
+                    <div class="section">
+                      <div local-class="waypoint-panel">
+                        <div
+                          class="ui items"
+                          local-class="waypoint-item"
+                          style="margin: 0;"
+                        >
+                          <div class="content">
+                            <div class="title">
+                              <i class="map pin icon"></i>
+                              ({{waypoint.x}},
+                              {{waypoint.y}})</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  {{/each}}
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    {{/each}}
+  </div>
+
 </div>
 
 <!-- Waypoints Tab -->
@@ -115,3 +142,49 @@
     </div>
   </div>
 </div>
+
+{{#if isDialogOpen}}
+  <div class="ui dimmer modals page">
+    <div class="ui small basic modal transition" local-class="center-modal">
+
+      <div class="header"><i class="share alternate icon"></i>
+        Create your New Path
+      </div>
+      <div class="content">
+        <div class="ui form">
+          <div class="field {{if hasError 'error'}}">
+            <p>
+              <i class="edit icon" />
+              Enter the description of your new Path.
+            </p>
+            {{input
+              value=pathDescription
+              placeholder=placeholderText
+              key-up=(action "checkPathName")
+            }}
+            {{#if hasError}}
+              <div class="ui pointing red basic label">
+                <i class="exclamation triangle icon" />
+                {{errorMessage}}
+              </div>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <button
+          class="ui green cancel button"
+          {{action "generateNewPath"}}
+          disabled={{isDisabled}}
+        >
+          <i class="check icon"></i>
+          Confirm
+        </button>
+
+        <button class="ui cancel button" {{action "closeNewPathDialog"}}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+{{/if}}

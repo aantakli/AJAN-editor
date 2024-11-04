@@ -5,6 +5,7 @@
       ondrop={{action "dropOnBackground"}}
       ondragover={{action "allowDrop"}}
     >
+      <div id="overlay" local-class="overlay" hidden></div>
       {{#each gridCells as |cell|}}
         <div
           class="grid-cell"

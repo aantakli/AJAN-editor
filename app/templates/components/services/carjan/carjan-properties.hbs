@@ -57,7 +57,10 @@
 
         <div local-class="pad">
           <div class="field">
-            <label>Path Description</label>
+            <label>
+              <i class="edit icon" />
+              Path Description
+            </label>
             {{input
               type="text"
               placeholder=this.selectedPath.description
@@ -66,14 +69,25 @@
                 (mut this.selectedPath.description) value="target.value"
               )
               focus-out=(action "inputFocusOut")
+              key-up=(action "checkPathDescription")
             }}
           </div>
+          {{#if hasError}}
+            <div class="ui pointing red basic label">
+              <i class="exclamation triangle icon" />
+              {{errorMessage}}
+              <h1></h1>
+              Your description will not be saved.
+            </div>
+          {{/if}}
         </div>
-        <h1></h1>
         <div class="ui form">
           <div local-class="pad">
             <div class="field">
-              <label>Path Color</label>
+              <label>
+                <i class="eye dropper icon" />
+                Path Color
+              </label>
               <div
                 class="ui items"
                 local-class="property-selection-container"
@@ -255,8 +269,9 @@
             <i class="undo icon"></i>
             Retry
           </button>
-          <button class="ui cancel button" {{action "closeDrawPathModal"}}>
-            Close
+          <button class="ui cancel red button" {{action "closeDrawPathModal"}}>
+            <i class="trash icon"></i>
+            Cancel
           </button>
         </div>
       </div>

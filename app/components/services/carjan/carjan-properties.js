@@ -308,14 +308,69 @@ export default Component.extend({
   },
 
   actions: {
-    inputFocusOut() {
-      let allPaths = this.carjanState.paths;
+    checkPathDescription() {
+      const pathDescription = this.selectedPath.description.trim();
+      console.log("Path description: ", pathDescription);
+      const isDescriptionEmpty = pathDescription === "";
+      this.set("isDescriptionEmpty", isDescriptionEmpty);
 
-      let updatedPaths = allPaths.map((path) =>
-        path.path === this.selectedPath.path ? this.selectedPath : path
+      if (isDescriptionEmpty) {
+        this.set("hasError", true);
+        this.set(
+          "errorMessage",
+          "Empty path description. Please enter a description."
+        );
+        return;
+      } else {
+        console.log("Path description is not empty");
+      }
+
+      const isValidDescription = /^[a-zA-Z0-9_ ]+$/.test(pathDescription);
+      if (!isValidDescription) {
+        this.set("hasError", true);
+        this.set(
+          "errorMessage",
+          "Invalid path description. Only letters, numbers, spaces, and underscores are allowed."
+        );
+        return;
+      } else {
+        console.log("Path description is valid");
+      }
+
+      const paths = this.carjanState.paths || [];
+      const isDuplicateDescription = paths.some(
+        (path) =>
+          path.description.trim() === pathDescription &&
+          path.description !== this.selectedPath.description
       );
 
-      this.carjanState.set("paths", updatedPaths);
+      console.log("Duplicate description: ", isDuplicateDescription);
+
+      if (isDuplicateDescription) {
+        this.set("hasError", true);
+        this.set(
+          "errorMessage",
+          "Duplicate path description found. Please use a unique description."
+        );
+        return;
+      } else {
+        console.log("Path description is unique");
+      }
+
+      this.set("hasError", false);
+      this.set("errorMessage", "");
+    },
+
+    inputFocusOut() {
+      if (!this.hasError) {
+        let allPaths = this.carjanState.paths;
+
+        let updatedPaths = allPaths.map((path) =>
+          path.path === this.selectedPath.path ? this.selectedPath : path
+        );
+
+        this.carjanState.set("paths", updatedPaths);
+      }
     },
 
     async openDeletePathDialog(path) {
@@ -331,11 +386,6 @@ export default Component.extend({
             dimmerSettings: { duration: { show: 500, hide: 500 } },
           })
           .modal("show");
-
-        this.$(".sp-container").css({
-          mixBlendMode: "multiply",
-          pointerEvents: "none",
-        });
       });
     },
 
@@ -357,12 +407,6 @@ export default Component.extend({
     cancelPathDelete() {
       this.$(".ui.modal").modal("hide");
       this.set("isDeletePathDialogOpen", false);
-      setTimeout(() => {
-        this.$(".sp-container").css({
-          mixBlendMode: "normal",
-          pointerEvents: "auto",
-        });
-      }, 500);
     },
 
     openDrawPathModal() {
@@ -379,10 +423,6 @@ export default Component.extend({
             dimmerSettings: { duration: { show: 500, hide: 500 } },
           });
           modalElement.modal("show");
-          this.$(".sp-container").css({
-            mixBlendMode: "multiply",
-            pointerEvents: "none",
-          });
         }
       });
     },
@@ -410,17 +450,12 @@ export default Component.extend({
 
     retryDrawing() {
       console.log("Pfad-Zeichnen zurücksetzen");
+      this.carjanState.initPathDrawing();
     },
 
     closeDrawPathModal() {
       this.$(".ui.modal").modal("hide");
       this.set("isDrawPathModalOpen", false);
-      setTimeout(() => {
-        this.$(".sp-container").css({
-          mixBlendMode: "normal",
-          pointerEvents: "auto",
-        });
-      }, 500);
     },
 
     setWeather(event) {

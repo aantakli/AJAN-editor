@@ -1086,6 +1086,9 @@ export default Component.extend({
         `Waypoint Position - Row: ${x}, Col: ${y}, PositionInCell: ${positionInCell}`
       );
 
+      const pathColor = this.carjanState.selectedPath.color || "#000";
+      e.target.style.color = pathColor;
+
       this.carjanState.addWaypointToPathInProgress({
         x,
         y,

@@ -24,10 +24,17 @@ export default Service.extend({
   pathInProgress: null,
 
   initPathDrawing() {
+    const allWaypoints = document.querySelectorAll(
+      ".icon.map.marker.alternate"
+    );
+    allWaypoints.forEach((waypointIcon) => {
+      waypointIcon.style.color = "#000";
+    });
     this.set("pathInProgress", { path: `#Path${Date.now()}`, waypoints: [] });
   },
 
   addWaypointToPathInProgress(waypoint) {
+    console.log("selectedPath", this.selectedPath);
     if (this.pathInProgress) {
       this.pathInProgress.waypoints.push(waypoint);
       console.log("Added waypoint to pathInProgress", this.pathInProgress);

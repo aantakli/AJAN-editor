@@ -142,6 +142,7 @@
 
 :global(.sp-container) {
   border-color: white;
+  mix-blend-mode: multiply;
 }
 
 :global(.sp-picker-container) {

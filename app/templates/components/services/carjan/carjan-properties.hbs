@@ -68,18 +68,44 @@
             }}
           </div>
         </div>
-        <!-- Color Picker -->
-        {{spectrum-color-picker
-          color=teamColor
-          showButtons=false
-          clickoutFiresChange=true
-          preferredFormat="hex"
-          onChange=(action "colorChanged")
-          onShow=(action "pickerOpened")
-          onHide=(action "pickerClosed")
-          onMove=(action "userMovedColorPicker")
-        }}
+        <h1></h1>
+        <div class="ui form">
+          <div local-class="pad">
+            <div class="field">
+              <label>Path Color</label>
+              <div
+                class="ui items"
+                local-class="property-selection-container"
+                style="margin: 0;"
+              >
+                <div local-class="property-panel">
+                  <div local-class="property-image">
+                    <div id="colorPickerOverlay" local-class="overlay"></div>
+                    {{spectrum-color-picker
+                      color=teamColor
+                      showButtons=false
+                      clickoutFiresChange=true
+                      preferredFormat="hex"
+                      flatMode=true
+                      onChange=(action "colorChanged")
+                      onShow=(action "pickerOpened")
+                      onHide=(action "pickerClosed")
+                      onMove=(action "userMovedColorPicker")
+                    }}
+                  </div>
+                </div>
 
+              </div>
+            </div>
+          </div>
+        </div>
+        <button
+          class="ui red button"
+          {{action "openDeletePathDialog" selectedPath}}
+        >
+          <i class="trash icon" />
+          Delete Path
+        </button>
       </div>
 
     {{/if}}
@@ -161,5 +187,34 @@
       </div>
     </div>
     <div style="margin: 20px;"></div>
+  </div>
+{{/if}}
+
+{{#if isDeletePathDialogOpen}}
+  <div class="ui dimmer modals page">
+    <div class="ui small basic modal transition" local-class="center-modal">
+      <div class="header">
+        <i class="trash alternate icon"></i>
+        Confirm Path Deletion
+      </div>
+      <div class="content">
+        <p>
+          Are you sure you want to delete the path
+          <strong>"{{selectedPath.description}}"</strong>?
+        </p>
+        <p>
+          This action cannot be undone.
+        </p>
+      </div>
+      <div class="actions">
+        <button class="ui red cancel button" {{action "confirmPathDelete"}}>
+          <i class="check icon"></i>
+          Confirm
+        </button>
+        <button class="ui cancel button" {{action "cancelPathDelete"}}>
+          Cancel
+        </button>
+      </div>
+    </div>
   </div>
 {{/if}}

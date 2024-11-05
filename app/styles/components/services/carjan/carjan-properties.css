@@ -73,3 +73,106 @@
 .grid-cell:hover {
   outline: 3px solid rgba(0, 0, 0, 0.1);
 }
+
+.property-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.property-image {
+  width: 70px !important;
+  height: 70px;
+}
+
+.property-image i {
+  font-size: 24px;
+  z-index: -1;
+}
+
+.property-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  margin-left: 20px;
+}
+
+.property-header {
+  font-size: 1.2em;
+  font-weight: bold;
+  text-align: left;
+}
+
+.property-selection-container {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 400px;
+  gap: 20px;
+  padding: 10px;
+}
+
+.property-panel {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+  position: relative;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  padding-bottom: 27px;
+  height: 200px;
+  padding-top: 20px;
+}
+
+.property-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  margin-left: 20px;
+}
+
+.property-header {
+  font-size: 1.2em;
+  font-weight: bold;
+  text-align: left;
+}
+
+:global(.sp-container) {
+  border-color: white;
+}
+
+:global(.sp-picker-container) {
+  background-color: white;
+}
+
+:global(.sp-replacer) {
+  border: none;
+  background: white;
+}
+
+:global(.sp-dd) {
+  display: none;
+}
+
+:global(.sp-preview) {
+  width: 5rem;
+  height: 5rem;
+}
+
+.center-modal {
+  left: auto;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  z-index: 999;
+  display: none;
+}

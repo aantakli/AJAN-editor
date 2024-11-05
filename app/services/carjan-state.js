@@ -20,6 +20,28 @@ export default Service.extend({
   addPath: false,
   selectedPath: null,
   openPathEditor: false,
+  pathMode: false,
+  pathInProgress: null,
+
+  initPathDrawing() {
+    this.set("pathInProgress", { path: `#Path${Date.now()}`, waypoints: [] });
+  },
+
+  addWaypointToPathInProgress(waypoint) {
+    if (this.pathInProgress) {
+      this.pathInProgress.waypoints.push(waypoint);
+      console.log("Added waypoint to pathInProgress", this.pathInProgress);
+    } else {
+      console.warn("Path drawing not initialized. Call initPathDrawing first.");
+    }
+  },
+
+  setPathMode(isPathMode) {
+    set(this, "pathMode", isPathMode);
+    if (isPathMode) {
+      this.initPathDrawing();
+    }
+  },
 
   appendPath(path) {
     const paths = this.paths || [];

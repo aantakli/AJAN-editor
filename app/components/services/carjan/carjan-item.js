@@ -234,6 +234,21 @@ export default Component.extend({
     }
   ),
 
+  pathModeObserver: observer("carjanState.pathMode", function () {
+    if (this.carjanState.pathMode) {
+      this.setupGrid(this.carjanState.mapData, this.carjanState.agentData);
+      const cameraIcon = document.getElementById("cameraIcon");
+      if (cameraIcon) {
+        cameraIcon.classList.add("hidden");
+      }
+    } else {
+      const cameraIcon = document.getElementById("cameraIcon");
+      if (cameraIcon) {
+        cameraIcon.classList.remove("hidden");
+      }
+    }
+  }),
+
   saveObserver: observer("carjanState.isSaveRequest", function () {
     if (this.carjanState.isSaveRequest) {
       this.saveEditorToRepo();
@@ -580,7 +595,6 @@ export default Component.extend({
 
         path.waypoints.forEach((waypoint, idx) => {
           const positionIndex = this.getPositionIndex(waypoint.positionInCell);
-
           const waypointId = `Waypoint${String(waypoint.x).padStart(
             2,
             "0"
@@ -641,7 +655,6 @@ export default Component.extend({
     for (let row = 0; row < this.gridRows; row++) {
       for (let col = 0; col < this.gridCols; col++) {
         let color = this.colors.void;
-
         if (map && map[row] && map[row][col]) {
           const cellType = map[row][col];
           if (cellType === "r") {
@@ -671,26 +684,28 @@ export default Component.extend({
     this.gridStatus = status;
 
     run.scheduleOnce("afterRender", this, function () {
-      for (let row = 0; row < this.gridRows; row++) {
-        for (let col = 0; col < this.gridCols; col++) {
-          const gridElement = this.element.querySelector(
-            `.grid-cell[data-row="${row}"][data-col="${col}"]`
-          );
-          if (gridElement) {
-            gridElement.style.backgroundColor = colors[`${row},${col}`];
-            gridElement.style.height = `${this.cellHeight}px`;
-            gridElement.style.width = `${this.cellWidth}px`;
-
-            const currentStatus = this.gridStatus[`${row},${col}`];
-
-            gridElement.setAttribute("data-occupied", currentStatus.occupied);
-            gridElement.setAttribute(
-              "data-entityType",
-              currentStatus.entityType
+      Ember.run.next(this, () => {
+        for (let row = 0; row < this.gridRows; row++) {
+          for (let col = 0; col < this.gridCols; col++) {
+            const gridElement = this.element.querySelector(
+              `.grid-cell[data-row="${row}"][data-col="${col}"]`
             );
+            if (gridElement) {
+              gridElement.style.backgroundColor = colors[`${row},${col}`];
+              gridElement.style.height = `${this.cellHeight}px`;
+              gridElement.style.width = `${this.cellWidth}px`;
+
+              const currentStatus = this.gridStatus[`${row},${col}`];
+
+              gridElement.setAttribute("data-occupied", currentStatus.occupied);
+              gridElement.setAttribute(
+                "data-entityType",
+                currentStatus.entityType
+              );
+            }
           }
         }
-      }
+      });
     });
     if (agents) {
       agents.forEach((agent) => {
@@ -773,7 +788,6 @@ export default Component.extend({
       );
 
       if (gridElement) {
-        // Initialisiere den Status der Zelle, falls nicht vorhanden
         let cellStatus = this.gridStatus[`${row},${col}`] || { waypoints: [] };
         if (cellStatus.occupied && cellStatus.entityType === "void") {
           console.log(`Cannot place waypoint on void cell at (${row}, ${col})`);
@@ -783,7 +797,6 @@ export default Component.extend({
         if (!cellStatus.waypoints) {
           cellStatus.waypoints = [];
         } else {
-          // falls es schon einen waypoint mit gleicher positionInCell gibt, berechne den Index der positionInCell
           const existingWaypoint = cellStatus.waypoints.find(
             (waypoint) => waypoint.positionInCell === positionInCell
           );
@@ -799,14 +812,16 @@ export default Component.extend({
           }
         }
 
-        // Erstelle das Waypoint-Icon
         const waypointIcon = document.createElement("i");
         waypointIcon.classList.add("icon", "map", "marker", "alternate");
         waypointIcon.style.fontSize = "12px";
         waypointIcon.style.position = "absolute";
         waypointIcon.style.pointerEvents = "none";
 
-        // Berechne den Offset basierend auf `positionInCell`
+        waypointIcon.setAttribute("data-x", row);
+        waypointIcon.setAttribute("data-y", col);
+        waypointIcon.setAttribute("data-position-in-cell", positionInCell);
+
         const cellSize = gridElement.offsetWidth || 36;
         const positionIndex = this.getPositionIndex(positionInCell);
         const [offsetX, offsetY] = this.getOffsetForPositionIndex(
@@ -817,15 +832,13 @@ export default Component.extend({
         waypointIcon.style.left = `${offsetX}px`;
         waypointIcon.style.top = `${offsetY}px`;
 
-        // Füge das Waypoint-Icon zur Zelle hinzu
         gridElement.appendChild(waypointIcon);
 
-        // Aktualisiere den Waypoint-Status in der Zelle
         cellStatus.waypoints.push({
           type: "waypoint",
           positionInCell: positionInCell,
         });
-        // Speichere den aktualisierten Status in der gridStatus-Map
+
         this.gridStatus[`${row},${col}`] = cellStatus;
         let prefix = "http://example.com/carla-scenario#";
         let waypointId = `Waypoint${String(row).padStart(2, "0")}${String(
@@ -1058,18 +1071,28 @@ export default Component.extend({
   onMouseDown(e) {
     const drag = this.get("drag");
 
-    const waypointIcon = e.target.closest("i.icon.map.marker.alternate");
-
     if (
       e.target.classList.contains("icon") &&
       e.target.classList.contains("map") &&
       e.target.classList.contains("marker") &&
-      e.target.classList.contains("alternate")
+      e.target.classList.contains("alternate") &&
+      this.carjanState.pathMode
     ) {
-      console.log("Waypoint-Icon angeklickt", e.target);
+      const x = e.target.getAttribute("data-x");
+      const y = e.target.getAttribute("data-y");
+      const positionInCell = e.target.getAttribute("data-position-in-cell");
 
-      // Hier kannst du weitere Aktionen ausführen, wenn das Icon angeklickt wurde
-      return; // Beende die Funktion, wenn ein Waypoint-Icon geklickt wurde
+      console.log(
+        `Waypoint Position - Row: ${x}, Col: ${y}, PositionInCell: ${positionInCell}`
+      );
+
+      this.carjanState.addWaypointToPathInProgress({
+        x,
+        y,
+        positionInCell,
+      });
+
+      return;
     }
 
     const targetCell = e.target;

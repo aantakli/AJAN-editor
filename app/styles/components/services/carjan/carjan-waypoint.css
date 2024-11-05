@@ -25,8 +25,8 @@
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 20%; /* Bestimmt die Breite des Bandes */
-  height: 80%; /* Bestimmt die Höhe des Bandes */
+  width: 20%;
+  height: 80%;
   background-color: var(--triangle-color);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   clip-path: polygon(0 100%, 100% 0, 100% 100%, 0 100%);
@@ -82,7 +82,6 @@
 }
 
 .follow-drag-icon {
-  /* Initiale versteckte Position */
   pointer-events: none;
   z-index: 1000;
 }

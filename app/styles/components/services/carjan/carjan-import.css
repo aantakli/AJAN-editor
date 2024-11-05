@@ -1,7 +1,7 @@
 .button-container {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Adjust the gap value as needed */
+  gap: 10px;
   width: fit-content;
   margin: 16px;
 }

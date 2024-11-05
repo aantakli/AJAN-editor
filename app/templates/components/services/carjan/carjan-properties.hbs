@@ -65,6 +65,7 @@
               oninput=(action
                 (mut this.selectedPath.description) value="target.value"
               )
+              focus-out=(action "inputFocusOut")
             }}
           </div>
         </div>
@@ -94,18 +95,30 @@
                     }}
                   </div>
                 </div>
+                <div local-class="button-container">
 
+                  <button
+                    class="ui button secondary"
+                    style="border-radius: 8px;"
+                    {{action "openDrawPathModal"}}
+                  >
+                    <i class="pencil alternate icon"></i>
+                    Draw Path
+                  </button>
+                  <button
+                    class="ui red button"
+                    style="border-radius: 8px;"
+                    {{action "openDeletePathDialog" selectedPath}}
+                  >
+                    <i class="trash icon" />
+                    Delete Path
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <button
-          class="ui red button"
-          {{action "openDeletePathDialog" selectedPath}}
-        >
-          <i class="trash icon" />
-          Delete Path
-        </button>
+
       </div>
 
     {{/if}}
@@ -214,6 +227,38 @@
         <button class="ui cancel button" {{action "cancelPathDelete"}}>
           Cancel
         </button>
+      </div>
+    </div>
+  </div>
+{{/if}}
+
+{{#if isDrawPathModalOpen}}
+  <div class="ui dimmer modals page">
+    <div local-class="marge">
+      <div
+        class="ui small draw-path modal transition"
+        local-class="center-modal marge"
+      >
+        <div class="header">
+          <i class="pencil alternate icon"></i>
+          Draw Path Mode
+        </div>
+        <div class="scrolling content">
+          {{services/carjan/carjan-item}}
+        </div>
+        <div class="actions">
+          <button class="ui green cancel button" {{action "confirmDrawPath"}}>
+            <i class="check icon"></i>
+            Confirm
+          </button>
+          <button class="ui button" {{action "retryDrawing"}}>
+            <i class="undo icon"></i>
+            Retry
+          </button>
+          <button class="ui cancel button" {{action "closeDrawPathModal"}}>
+            Close
+          </button>
+        </div>
       </div>
     </div>
   </div>

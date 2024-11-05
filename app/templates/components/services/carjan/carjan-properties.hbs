@@ -17,6 +17,7 @@
   <div class="properties-panel">
 
     {{#if this.showWaypointEditor}}
+      <!-- Waypoint Editor -->
       <p class="node-adder-class title-behaviors">
         <i class="map marker alternate icon"></i>
         <b>Waypoint Editor</b>
@@ -41,9 +42,48 @@
           />
         {{/each}}
       </div>
-      <!-- Standard properties content here -->
       <h1></h1>
     {{/if}}
+
+    {{#if this.showPathEditor}}
+      <!-- Path Editor -->
+      <p class="node-adder-class title-behaviors">
+        <i class="share alternate icon"></i>
+        <b>Path Editor</b>
+      </p>
+
+      <!-- Input-Feld für die Path-Beschreibung -->
+      <div class="ui form">
+
+        <div local-class="pad">
+          <div class="field">
+            <label>Path Description</label>
+            {{input
+              type="text"
+              placeholder=this.selectedPath.description
+              value=this.selectedPath.description
+              oninput=(action
+                (mut this.selectedPath.description) value="target.value"
+              )
+            }}
+          </div>
+        </div>
+        <!-- Color Picker -->
+        {{spectrum-color-picker
+          color=teamColor
+          showButtons=false
+          clickoutFiresChange=true
+          preferredFormat="hex"
+          onChange=(action "colorChanged")
+          onShow=(action "pickerOpened")
+          onHide=(action "pickerClosed")
+          onMove=(action "userMovedColorPicker")
+        }}
+
+      </div>
+
+    {{/if}}
+
   </div>
 
   <p class="node-adder-class title-behaviors">

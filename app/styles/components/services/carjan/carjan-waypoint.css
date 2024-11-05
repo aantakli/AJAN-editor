@@ -27,7 +27,8 @@
   right: 0;
   width: 20%; /* Bestimmt die Breite des Bandes */
   height: 80%; /* Bestimmt die Höhe des Bandes */
-  background-color: red; /* Setzt die Farbe des Bandes */
+  background-color: var(--triangle-color);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   clip-path: polygon(0 100%, 100% 0, 100% 100%, 0 100%);
 }
 

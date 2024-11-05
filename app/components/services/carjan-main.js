@@ -9,6 +9,7 @@ export default Component.extend({
     this.setupDropdown();
     this.setupTabs();
   },
+
   setupDropdown() {
     const dropdown = this.element.querySelector(".ui.dropdown");
     if (dropdown) {

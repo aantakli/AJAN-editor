@@ -229,6 +229,7 @@ export default Component.extend({
             path: subject,
             waypoints: [],
             description: "",
+            color: "#000000",
           };
         }
 
@@ -237,6 +238,13 @@ export default Component.extend({
           predicate === "http://example.com/carla-scenario#description"
         ) {
           pathsMap[subject].description = object.replace(/^"|"$/g, "");
+        }
+
+        if (
+          pathsMap[subject] &&
+          predicate === "http://example.com/carla-scenario#color"
+        ) {
+          pathsMap[subject].color = object.replace(/^"|"$/g, "");
         }
       });
 
@@ -931,6 +939,10 @@ export default Component.extend({
             currentItemContent += `      carjan:description "${item["http://example.com/carla-scenario#description"][0]["@value"]}" ;\n`;
           }
 
+          if (item["http://example.com/carla-scenario#color"]) {
+            currentItemContent += `      carjan:color "${item["http://example.com/carla-scenario#color"][0]["@value"]}" ;\n`;
+          }
+
           // Füge die Waypoints zu den Paths hinzu
           if (item["http://example.com/carla-scenario#hasWaypoints"]) {
             const waypointsList =
@@ -1309,6 +1321,17 @@ export default Component.extend({
             pathURI,
             this.namedNode("carjan:description"),
             rdf.literal(path.description),
+            graph
+          )
+        );
+      }
+
+      if (path.color) {
+        rdfGraph.add(
+          rdf.quad(
+            pathURI,
+            this.namedNode("carjan:color"),
+            rdf.literal(path.color),
             graph
           )
         );

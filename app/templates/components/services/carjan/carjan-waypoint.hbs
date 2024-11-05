@@ -9,15 +9,7 @@
     <i class="share alternate icon"></i>
     <b>Path Selection</b>
   </p>
-  {{spectrum-color-picker
-    color=teamColor
-    showButtons=false
-    clickoutFiresChange=true
-    onChange=(action "colorChanged")
-    onShow=(action "pickerOpened")
-    onHide=(action "pickerClosed")
-    onMove=(action "userMovedColorPicker")
-  }}
+
   <!-- Button to add a new Path -->
   <button class="ui button" id="add-path" {{action "openNewPathDialog"}}>
     <i class="plus icon"></i>
@@ -34,9 +26,8 @@
         style="margin-bottom: 12px;"
         {{action "openPathwayEditor" path}}
       >
-        <div local-class="waypoint-panel-triangle">
+        <div local-class="waypoint-panel-triangle" id={{path.path}}>
           <div class="item">
-
             <div class="content">
               <div local-class="description">
                 <i class="icon share alternate"></i>
@@ -62,12 +53,9 @@
                         </div>
                       </div>
                     </div>
-
                   {{/each}}
                 </div>
-
               </div>
-
             </div>
           </div>
         </div>

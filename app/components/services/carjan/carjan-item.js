@@ -54,7 +54,6 @@ export default Component.extend({
     document.getElementById("overlay").removeAttribute("hidden");
 
     const markers = document.querySelectorAll("i.icon.map.marker.alternate");
-    console.log("markers", markers);
     markers.forEach((marker) => {
       marker.classList.add("highlight-marker");
       marker.style.backgroundColor = "transparent";
@@ -227,7 +226,6 @@ export default Component.extend({
         this.previousMap !== currentMap ||
         this.previousAgents !== currentAgents
       ) {
-        console.log("Data changed and deleting waypoints");
         this.deleteAllEntites();
         this.setupGrid(currentMap, currentAgents);
         this.previousMap = currentMap;
@@ -561,6 +559,14 @@ export default Component.extend({
         )
       );
 
+      rdfGraph.add(
+        rdf.quad(
+          pathURI,
+          rdf.namedNode("http://example.com/carla-scenario#color"),
+          rdf.literal(path.color || "")
+        )
+      );
+
       if (path.waypoints && path.waypoints.length > 0) {
         let listNode = rdf.blankNode();
 
@@ -871,8 +877,6 @@ export default Component.extend({
         for (let col = 0; col < this.gridCols; col++) {
           let cellStatus = this.gridStatus[`${row},${col}`];
           if (cellStatus && cellStatus.waypoints) {
-            console.log("cellStatus", cellStatus);
-
             cellStatus.waypoints = [];
             this.gridStatus[`${row},${col}`] = cellStatus;
           }
@@ -1069,7 +1073,6 @@ export default Component.extend({
     }
 
     const targetCell = e.target;
-    console.log("element", targetCell);
     const row = targetCell.dataset.row;
     const col = targetCell.dataset.col;
 

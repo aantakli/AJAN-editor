@@ -18,6 +18,8 @@ export default Service.extend({
   currentCellStatus: null,
   currentCellPosition: [],
   addPath: false,
+  selectedPath: null,
+  openPathEditor: false,
 
   appendPath(path) {
     const paths = this.paths || [];
@@ -27,6 +29,14 @@ export default Service.extend({
 
   setWaypointEditor(isOpen) {
     set(this, "openWaypointEditor", isOpen);
+  },
+
+  setPathEditor(isOpen) {
+    set(this, "openPathEditor", isOpen);
+  },
+
+  setSelectedPath(path) {
+    set(this, "selectedPath", path);
   },
 
   setMapName(mapName) {
@@ -73,12 +83,10 @@ export default Service.extend({
   },
 
   setPaths(paths) {
-    console.log("paths", paths);
     set(this, "paths", paths);
   },
 
   setWaypoints(waypoints) {
-    console.log("waypoints", waypoints);
     set(this, "waypoints", waypoints);
   },
 
@@ -91,7 +99,6 @@ export default Service.extend({
   },
 
   setScenario(dataset) {
-    console.log("dataset", dataset);
     const scenario = dataset.scenarios[0];
     if (scenario.scenarioName) {
       this.setScenarioName(scenario.scenarioName.split("#")[1]);

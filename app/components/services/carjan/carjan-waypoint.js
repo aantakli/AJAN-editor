@@ -70,8 +70,9 @@ export default Component.extend({
   },
 
   actions: {
-    openPathwayEditor() {
-      console.log("Open pathway editor");
+    openPathwayEditor(path) {
+      this.carjanState.setSelectedPath(path);
+      this.carjanState.setPathEditor(true);
     },
 
     async openNewPathDialog() {
@@ -169,22 +170,7 @@ export default Component.extend({
     removeOverlay() {
       this.carjanState.setPath(false);
     },
-    colorChanged(newColor) {
-      this.set("teamColor", newColor);
-      console.log("Farbe geändert:", newColor);
-    },
 
-    pickerOpened() {
-      console.log("Farb-Picker geöffnet");
-    },
-
-    pickerClosed() {
-      console.log("Farb-Picker geschlossen");
-    },
-
-    userMovedColorPicker(color) {
-      console.log("Farbe während der Bewegung:", color);
-    },
     dragStart(event) {
       const waypointType = event.currentTarget.dataset.waypointType;
       event.dataTransfer.setData("text", waypointType);
@@ -220,6 +206,26 @@ export default Component.extend({
     },
   },
 
+  didRender() {
+    this._super(...arguments);
+
+    // Überprüfe, ob alle Pfade geladen sind und der DOM bereit ist
+    Ember.run.scheduleOnce("afterRender", this, function () {
+      const paths = this.carjanState.paths;
+      if (paths) {
+        this.carjanState.paths.forEach((path) => {
+          this.setTriangleColor(path);
+        });
+      }
+    });
+  },
+
+  setTriangleColor(path) {
+    const triangleElement = document.getElementById(path.path);
+    if (triangleElement) {
+      triangleElement.style.setProperty("--triangle-color", path.color);
+    }
+  },
   setupTabs() {
     $(document).ready(function () {
       $(".menu .item").tab();

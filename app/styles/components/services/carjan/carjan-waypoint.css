@@ -87,27 +87,6 @@
   z-index: 1000;
 }
 
-:global(.sp-container) {
-  border-color: white;
-}
-
-:global(.sp-picker-container) {
-  background-color: white;
-}
-
-:global(.sp-replacer) {
-  border: none;
-  background: white;
-}
-
-:global(.sp-dd) {
-  display: none;
-}
-
-:global(.sp-preview) {
-  width: 20px;
-}
-
 .center-modal {
   left: auto;
 }

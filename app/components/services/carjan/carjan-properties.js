@@ -1,7 +1,7 @@
 import Component from "@ember/component";
 import { inject as service } from "@ember/service";
 import { computed } from "@ember/object";
-import { run } from "@ember/runloop";
+import { run, next } from "@ember/runloop";
 
 export default Component.extend({
   ajax: service(),
@@ -16,7 +16,9 @@ export default Component.extend({
   waypoints: null,
   isDragging: false,
   selectedPath: null,
+  overlayColorpicker: 0,
   pathId: null,
+  isDeletePathDialogOpen: false,
 
   colors: {
     road: getComputedStyle(document.documentElement)
@@ -306,6 +308,62 @@ export default Component.extend({
   },
 
   actions: {
+    async openDeletePathDialog(path) {
+      this.set("selectedPath", path);
+      this.set("isDeletePathDialogOpen", true);
+
+      next(() => {
+        this.$(".ui.basic.modal")
+          .modal({
+            closable: false,
+            transition: "scale",
+            duration: 500,
+            dimmerSettings: { duration: { show: 500, hide: 500 } },
+          })
+          .modal("show");
+
+        this.$(".sp-container").css({
+          mixBlendMode: "multiply",
+          pointerEvents: "none",
+        });
+      });
+    },
+
+    confirmPathDelete() {
+      this.$(".ui.modal").modal("hide");
+
+      const pathToDelete = this.selectedPath;
+      if (pathToDelete) {
+        console.log("Lösche Pfad", pathToDelete);
+        // Entferne den Pfad aus carjanState.paths
+        const updatedPaths = this.carjanState.paths.filter(
+          (path) => path.path !== pathToDelete.path
+        );
+
+        console.log("Pfade", updatedPaths);
+
+        // Schließe das Modal und setze selectedPath zurück
+        this.set("isDeletePathDialogOpen", false);
+        this.set("selectedPath", null);
+        this.carjanState.setPaths(updatedPaths);
+      }
+
+      console.log("Pfad gelöscht", this.carjanState.paths);
+      this.carjanState.saveRequest();
+    },
+
+    cancelPathDelete() {
+      this.$(".ui.modal").modal("hide");
+      this.set("isDeletePathDialogOpen", false);
+
+      //timeout 500ms then remove overlay
+      setTimeout(() => {
+        this.$(".sp-container").css({
+          mixBlendMode: "normal",
+          pointerEvents: "auto",
+        });
+      }, 500);
+    },
     setWeather(event) {
       const selectedWeather = event.target.value;
       this.carjanState.setWeather(selectedWeather);

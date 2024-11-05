@@ -308,6 +308,16 @@ export default Component.extend({
   },
 
   actions: {
+    inputFocusOut() {
+      let allPaths = this.carjanState.paths;
+
+      let updatedPaths = allPaths.map((path) =>
+        path.path === this.selectedPath.path ? this.selectedPath : path
+      );
+
+      this.carjanState.set("paths", updatedPaths);
+    },
+
     async openDeletePathDialog(path) {
       this.set("selectedPath", path);
       this.set("isDeletePathDialogOpen", true);
@@ -334,29 +344,19 @@ export default Component.extend({
 
       const pathToDelete = this.selectedPath;
       if (pathToDelete) {
-        console.log("Lösche Pfad", pathToDelete);
-        // Entferne den Pfad aus carjanState.paths
         const updatedPaths = this.carjanState.paths.filter(
           (path) => path.path !== pathToDelete.path
         );
-
-        console.log("Pfade", updatedPaths);
-
-        // Schließe das Modal und setze selectedPath zurück
         this.set("isDeletePathDialogOpen", false);
         this.set("selectedPath", null);
         this.carjanState.setPaths(updatedPaths);
       }
-
-      console.log("Pfad gelöscht", this.carjanState.paths);
       this.carjanState.saveRequest();
     },
 
     cancelPathDelete() {
       this.$(".ui.modal").modal("hide");
       this.set("isDeletePathDialogOpen", false);
-
-      //timeout 500ms then remove overlay
       setTimeout(() => {
         this.$(".sp-container").css({
           mixBlendMode: "normal",
@@ -364,6 +364,65 @@ export default Component.extend({
         });
       }, 500);
     },
+
+    openDrawPathModal() {
+      this.set("isDrawPathModalOpen", true);
+      this.carjanState.setPathMode(true);
+      next(() => {
+        const modalElement = this.$(".ui.draw-path.modal");
+
+        if (modalElement.length) {
+          modalElement.modal({
+            closable: false,
+            transition: "scale",
+            duration: 500,
+            dimmerSettings: { duration: { show: 500, hide: 500 } },
+          });
+          modalElement.modal("show");
+          this.$(".sp-container").css({
+            mixBlendMode: "multiply",
+            pointerEvents: "none",
+          });
+        }
+      });
+    },
+
+    confirmDrawPath() {
+      let newPath = this.carjanState.pathInProgress;
+      console.log("Neuer Pfad: ", newPath.waypoints);
+
+      if (newPath && newPath.waypoints.length > 0) {
+        this.set("selectedPath.waypoints", newPath.waypoints);
+        console.log("Pfad-Zeichnen bestätigt", this.selectedPath);
+
+        let allPaths = this.carjanState.paths;
+
+        let updatedPaths = allPaths.map((path) =>
+          path.path === this.selectedPath.path ? this.selectedPath : path
+        );
+
+        this.carjanState.set("paths", updatedPaths);
+
+        this.carjanState.setPathMode(false);
+        this.carjanState.saveRequest();
+      }
+    },
+
+    retryDrawing() {
+      console.log("Pfad-Zeichnen zurücksetzen");
+    },
+
+    closeDrawPathModal() {
+      this.$(".ui.modal").modal("hide");
+      this.set("isDrawPathModalOpen", false);
+      setTimeout(() => {
+        this.$(".sp-container").css({
+          mixBlendMode: "normal",
+          pointerEvents: "auto",
+        });
+      }, 500);
+    },
+
     setWeather(event) {
       const selectedWeather = event.target.value;
       this.carjanState.setWeather(selectedWeather);
@@ -444,9 +503,11 @@ export default Component.extend({
         event.preventDefault();
       }
     },
+
     allowDrop(event) {
       event.preventDefault();
     },
+
     async colorChanged(newColor) {
       this.set("teamColor", newColor);
       if (this.selectedPath) {

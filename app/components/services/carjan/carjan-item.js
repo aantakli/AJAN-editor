@@ -278,6 +278,17 @@ export default Component.extend({
   }),
 
   selectedPathObserver: observer("carjanState.selectedPath", function () {
+    this.drawMainPathLines();
+  }),
+
+  selectedPathColorObserver: observer(
+    "carjanState.selectedPath.color",
+    function () {
+      this.drawMainPathLines();
+    }
+  ),
+
+  drawMainPathLines() {
     if (this.carjanState.selectedPath && !this.pathMode) {
       this.pathIcons = [];
 
@@ -290,10 +301,9 @@ export default Component.extend({
           this.pathIcons.push(waypointElement);
         }
       });
-
       this.drawPathLines();
     }
-  }),
+  },
 
   deleteAllEntites() {
     if (this.gridCells) {
@@ -1106,6 +1116,8 @@ export default Component.extend({
     pathElement.setAttribute("stroke-width", "2");
     pathElement.setAttribute("stroke-dasharray", "4, 4");
     pathElement.setAttribute("fill", "none");
+    pathElement.setAttribute("pointer-events", "none");
+    pathElement.setAttribute("id", "pathline");
 
     pathOverlay.appendChild(pathElement);
   },

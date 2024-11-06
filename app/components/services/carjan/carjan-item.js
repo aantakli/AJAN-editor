@@ -1,6 +1,6 @@
 import Component from "@ember/component";
 import { inject as service } from "@ember/service";
-import { set, observer } from "@ember/object";
+import { set, observer, computed } from "@ember/object";
 import { run } from "@ember/runloop";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdf from "npm:rdf-ext";
@@ -44,6 +44,11 @@ export default Component.extend({
     this.draggingEntityType = null;
     this.setupPanningAndZoom();
     this.applyTransform();
+    const fullPath = this.carjanState.selectedPath
+      ? this.carjanState.selectedPath.path
+      : "main";
+    const shortId = fullPath.includes("#") ? fullPath.split("#")[1] : fullPath;
+    this.set("gridId", shortId);
 
     if (this.carjanState.mapData && this.carjanState.agentData) {
       this.setupGrid(this.carjanState.mapData, this.carjanState.agentData);
@@ -1004,11 +1009,18 @@ export default Component.extend({
 
   applyTransform() {
     const gridContainer = this.element.querySelector("#gridContainer");
-    const cameraIcon = this.element.querySelector(".camera-icon");
+    const pathOverlay = this.element.querySelector(`#${this.gridId}`);
+    const scale = this.get("scale");
+    const translateX = this.get("translateX");
+    const translateY = this.get("translateY");
 
-    gridContainer.style.transform = `translate3d(${this.get(
-      "translateX"
-    )}px, ${this.get("translateY")}px, 0) scale(${this.get("scale")})`;
+    // Anwenden der Transformationslogik auf das Grid
+    gridContainer.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`;
+
+    // Anwenden der gleichen Transformationslogik auf das Path Overlay
+    if (pathOverlay) {
+      pathOverlay.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`;
+    }
   },
 
   applyTransformToCameraIcon(iconElement) {
@@ -1035,6 +1047,84 @@ export default Component.extend({
     viewport.addEventListener("wheel", this._onWheel);
 
     viewport.style.cursor = "move";
+  },
+
+  drawPathLines() {
+    const pathOverlay = document.getElementById(this.gridId);
+    if (!pathOverlay) return;
+
+    // Leeren des SVG-Overlays
+    pathOverlay.innerHTML = "";
+
+    const overlayRect = pathOverlay.getBoundingClientRect();
+
+    const icons = this.pathIcons || [];
+    if (icons.length < 2) return; // Mindestens zwei Waypoints sind erforderlich
+
+    const pathColor = this.carjanState.selectedPath.color || "#000";
+
+    // Sammle die centerX und centerY Koordinaten für jedes Icon und passe sie relativ zu `pathOverlay` an
+    const points = icons.map((icon) => {
+      const rect = icon.element.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2 - overlayRect.left;
+      const centerY = rect.top + rect.height / 2 - overlayRect.top;
+      console.log(`Adjusted Center of icon: (${centerX}, ${centerY})`);
+      return { centerX, centerY };
+    });
+
+    // Starte den Pfad mit dem ersten Punkt
+    let pathData = `M ${points[0].centerX},${points[0].centerY} `;
+
+    // Erstelle die Pfadsegmente mit kubischen Bézier-Kurven
+    for (let i = 0; i < points.length - 1; i++) {
+      const start = points[i];
+      const end = points[i + 1];
+
+      // Kontrollpunkte für die kubische Bézier-Kurve berechnen
+      const cp1X = start.centerX + (end.centerX - start.centerX) / 3;
+      const cp1Y = start.centerY;
+      const cp2X = end.centerX - (end.centerX - start.centerX) / 3;
+      const cp2Y = end.centerY;
+
+      // Kubische Bézier-Kurve
+      pathData += `C ${cp1X},${cp1Y} ${cp2X},${cp2Y} ${end.centerX},${end.centerY} `;
+    }
+
+    // Erstelle das Pfadelement mit der generierten Pfadbeschreibung
+    const pathElement = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "path"
+    );
+    pathElement.setAttribute("d", pathData);
+    pathElement.setAttribute("stroke", pathColor);
+    pathElement.setAttribute("stroke-width", "2");
+    pathElement.setAttribute("stroke-dasharray", "4, 4");
+    pathElement.setAttribute("fill", "none");
+
+    // Füge das Pfadelement zum SVG-Overlay hinzu
+    pathOverlay.appendChild(pathElement);
+
+    // Positioniere ein Chevron in der Mitte des Pfades
+    const midpointIndex = Math.floor((points.length - 1) / 2);
+    const midpoint = points[midpointIndex];
+    const chevron = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "polygon"
+    );
+
+    const chevronX = midpoint.centerX;
+    const chevronY = midpoint.centerY;
+    chevron.setAttribute(
+      "points",
+      `
+            ${chevronX - 6},${chevronY - 3}
+            ${chevronX + 6},${chevronY - 3}
+            ${chevronX},${chevronY + 6}
+        `
+    );
+    chevron.setAttribute("fill", pathColor);
+
+    pathOverlay.appendChild(chevron);
   },
 
   findNearestCell(mouseX, mouseY) {
@@ -1089,12 +1179,15 @@ export default Component.extend({
       const pathColor = this.carjanState.selectedPath.color || "#000";
       e.target.style.color = pathColor;
 
-      this.carjanState.addWaypointToPathInProgress({
-        x,
-        y,
-        positionInCell,
+      // Füge den Icon und seine Position zu `this.pathIcons` hinzu
+      this.pathIcons = this.pathIcons || [];
+      this.pathIcons.push({
+        x: parseInt(x),
+        y: parseInt(y),
+        element: e.target,
       });
 
+      this.drawPathLines();
       return;
     }
 

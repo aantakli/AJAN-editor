@@ -5,7 +5,11 @@
   <div class="flex-body" local-class="main-container">
     <div id="behaviors-body" class="flex-content" local-class="behaviors-body">
       <div id="split-container" style="display: flex; flex-direction: row;">
-        <div id="split-left" class="split content split-horizontal">
+        <div
+          id="split-left"
+          class="split content split-horizontal"
+          style="background-color: #E8EDF1;"
+        >
           <div local-class="intro">
             <h4>
               <i class="icon car" />
@@ -47,12 +51,16 @@
         <div
           id="split-middle"
           class="split content split-horizontal"
-          style="height: auto;"
+          style="height: auto; "
         >
           {{services/carjan/carjan-item id="carjan-item"}}
         </div>
 
-        <div id="split-right" class="split content split-horizontal">
+        <div
+          id="split-right"
+          class="split content split-horizontal"
+          style="background-color: #E8EDF1;"
+        >
           {{services/carjan/carjan-properties}}
           {{services/carjan/carjan-preview-button}}
         </div>

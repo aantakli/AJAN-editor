@@ -1,32 +1,40 @@
-<div id="viewport">
-  <div id="room">
-    <svg
-      id={{gridId}}
-      width="100%"
-      height="100%"
-      local-class="path-overlay"
-      style="position: absolute; top: 0; left: 0; pointer-events: none;"
-    ></svg>
-    <div
-      id="gridContainer"
-      ondrop={{action "dropOnBackground"}}
-      ondragover={{action "allowDrop"}}
-    >
-      <div id="overlay" local-class="overlay" hidden></div>
+<div class="ui segment">
+  {{#if this.reloadFlag}}
+    <p></p>
+    <div class="ui active inverted dimmer" id="loading">
+      <div class="ui medium text loader">Loading Grid</div>
+    </div>
+  {{/if}}
 
-      {{#each gridCells as |cell|}}
-        <div
-          class="grid-cell"
-          data-row={{cell.row}}
-          data-col={{cell.col}}
-          draggable="true"
-          ondrop={{action "dropOnCell"}}
-          ondragover={{action "allowDrop"}}
-          ondragleave={{action "dragLeave"}}
-          ondragstart={{action "dragStart"}}
-        />
-      {{/each}}
-      <i class="video icon" id="cameraIcon"></i>
+  <div id="viewport">
+    <div id="room">
+      <div
+        id="gridContainer"
+        ondrop={{action "dropOnBackground"}}
+        ondragover={{action "allowDrop"}}
+      >
+        <div id="overlay" local-class="overlay" hidden></div>
+        <svg
+          id={{gridId}}
+          width="100%"
+          height="100%"
+          local-class="path-overlay"
+          style="pointer-events: none;"
+        ></svg>
+        {{#each gridCells as |cell|}}
+          <div
+            class="grid-cell"
+            data-row={{cell.row}}
+            data-col={{cell.col}}
+            draggable="true"
+            ondrop={{action "dropOnCell"}}
+            ondragover={{action "allowDrop"}}
+            ondragleave={{action "dragLeave"}}
+            ondragstart={{action "dragStart"}}
+          />
+        {{/each}}
+        <i class="video icon" id="cameraIcon"></i>
+      </div>
     </div>
   </div>
 </div>

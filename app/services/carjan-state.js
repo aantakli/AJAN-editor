@@ -22,6 +22,15 @@ export default Service.extend({
   openPathEditor: false,
   pathMode: false,
   pathInProgress: null,
+  propertyPanel: null,
+
+  setPathColor(color) {
+    set(this.selectedPath, "color", color);
+  },
+
+  setPropertyPanel(propertyPanel) {
+    set(this, "propertyPanel", propertyPanel);
+  },
 
   initPathDrawing() {
     const allWaypoints = document.querySelectorAll(

@@ -548,7 +548,7 @@ export default Component.extend({
       if (this.selectedPath) {
         this.set("selectedPath.color", newColor);
       }
-      this.selectedPath.color = newColor;
+
       await this.updatePath();
     },
 
@@ -567,11 +567,12 @@ export default Component.extend({
 
     userMovedColorPicker(color) {
       let previewBox = document.getElementById(this.selectedPath.path);
-      if (previewBox) {
-        window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        if (previewBox) {
           previewBox.style.setProperty("--triangle-color", color);
-        });
-      }
+        }
+        this.carjanState.setPathColor(color);
+      });
     },
   },
 

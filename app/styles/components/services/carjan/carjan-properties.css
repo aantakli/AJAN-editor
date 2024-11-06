@@ -124,6 +124,7 @@
   padding-bottom: 27px;
   height: 200px;
   padding-top: 20px;
+  background-color: white;
 }
 
 .property-content {
@@ -180,7 +181,7 @@
 
 .button-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 10px;
   width: fit-content;
   margin: 16px;
@@ -190,4 +191,15 @@
   background-color: transparent !important;
   border-color: transparent !important;
   box-shadow: none !important;
+}
+
+.with-background {
+  background-image: url("/assets/carjan/carjan-maps/images/dots.jpg");
+  background-size: cover; /* Passt das Bild an die Größe des Containers an */
+  background-repeat: no-repeat; /* Verhindert Wiederholungen */
+  background-position: center; /* Zentriert das Bild */
+  display: flex;
+  justify-content: center;
+  height: 100px;
+  padding: 10px;
 }

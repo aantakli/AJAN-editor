@@ -37,6 +37,8 @@ export default Component.extend({
     void: "#333333",
   },
   currentWaypoints: [],
+  chevrons: [],
+  reloadFlag: true,
 
   didInsertElement() {
     this._super(...arguments);
@@ -49,10 +51,13 @@ export default Component.extend({
       : "main";
     const shortId = fullPath.includes("#") ? fullPath.split("#")[1] : fullPath;
     this.set("gridId", shortId);
-
-    if (this.carjanState.mapData && this.carjanState.agentData) {
-      this.setupGrid(this.carjanState.mapData, this.carjanState.agentData);
-    }
+    console.log("Loading..");
+    setTimeout(() => {
+      this.set("reloadFlag", false);
+      if (this.carjanState.mapData && this.carjanState.agentData) {
+        this.setupGrid(this.carjanState.mapData, this.carjanState.agentData);
+      }
+    }, 1000);
   },
 
   addPath() {
@@ -228,10 +233,14 @@ export default Component.extend({
       const currentAgents = this.carjanState.agentData;
 
       if (
-        this.previousMap !== currentMap ||
-        this.previousAgents !== currentAgents
+        (this.previousMap !== currentMap ||
+          this.previousAgents !== currentAgents) &&
+        !this.reloadFlag
       ) {
         this.deleteAllEntites();
+        console.log("Setup mapdata ====================");
+        console.log("new map? ", this.previousMap !== currentMap);
+        console.log("new agents? ", this.previousAgents !== currentAgents);
         this.setupGrid(currentMap, currentAgents);
         this.previousMap = currentMap;
         this.previousAgents = currentAgents;
@@ -241,6 +250,7 @@ export default Component.extend({
 
   pathModeObserver: observer("carjanState.pathMode", function () {
     if (this.carjanState.pathMode) {
+      console.log("Setup path mode ====================");
       this.setupGrid(this.carjanState.mapData, this.carjanState.agentData);
       const cameraIcon = document.getElementById("cameraIcon");
       if (cameraIcon) {
@@ -333,7 +343,6 @@ export default Component.extend({
       `http://example.com/carla-scenario#${scenarioName}`
     );
 
-    // Szenario-Daten hinzufügen
     rdfGraph.add(
       rdf.quad(
         scenarioURI,
@@ -389,7 +398,6 @@ export default Component.extend({
       const col = cell.dataset.col;
       const cellStatus = this.gridStatus[`${row},${col}`];
 
-      // Entitäten speichern, wenn sie existieren
       if (cellStatus.occupied && cellStatus.entityType !== "void") {
         const entityId =
           String(row).padStart(2, "0") + String(col).padStart(2, "0");
@@ -499,7 +507,6 @@ export default Component.extend({
         `http://example.com/carla-scenario#${waypointId}`
       );
 
-      // Füge den Waypoint zum Szenario hinzu
       rdfGraph.add(
         rdf.quad(
           scenarioURI,
@@ -508,7 +515,6 @@ export default Component.extend({
         )
       );
 
-      // Typ und Position des Waypoints hinzufügen
       rdfGraph.add(
         rdf.quad(
           waypointURI,
@@ -548,7 +554,6 @@ export default Component.extend({
       );
     });
 
-    // Pfade hinzufügen
     paths.forEach((path, pathIndex) => {
       const pathId = `Path${pathIndex + 1}`;
       const pathURI = rdf.namedNode(
@@ -712,7 +717,7 @@ export default Component.extend({
         }
       });
     });
-    if (agents) {
+    if (agents && !this.carjanState.pathMode) {
       agents.forEach((agent) => {
         this.addEntityToGrid(agent.type, agent.x, agent.y);
       });
@@ -890,7 +895,6 @@ export default Component.extend({
 
   async removeAllWaypoints() {
     if (this.gridStatus) {
-      // remove this.gridStatus.[i].waypoints
       for (let row = 0; row < this.gridRows; row++) {
         for (let col = 0; col < this.gridCols; col++) {
           let cellStatus = this.gridStatus[`${row},${col}`];
@@ -907,15 +911,15 @@ export default Component.extend({
     const cellWidth = this.cellWidth - 15;
     const cellHeight = this.cellHeight - 15;
     const offsets = [
-      [0, 0], // top-left
-      [cellWidth / 2, 0], // top-center
-      [cellWidth - 2, 0], // top-right
-      [0, cellHeight / 2 - 2], // middle-left
-      [cellWidth / 2, cellHeight / 2 - 2], // center
-      [cellWidth - 2, cellHeight / 2 - 2], // middle-right
-      [0, cellHeight - 5], // bottom-left
-      [cellWidth / 2, cellHeight - 5], // bottom-center
-      [cellWidth - 2, cellHeight - 5], // bottom-right
+      [0, 0],
+      [cellWidth / 2, 0],
+      [cellWidth - 2, 0],
+      [0, cellHeight / 2 - 2],
+      [cellWidth / 2, cellHeight / 2 - 2],
+      [cellWidth - 2, cellHeight / 2 - 2],
+      [0, cellHeight - 5],
+      [cellWidth / 2, cellHeight - 5],
+      [cellWidth - 2, cellHeight - 5],
     ];
     return offsets[positionIndex] || [0, 0];
   },
@@ -929,7 +933,6 @@ export default Component.extend({
       if (gridElement) {
         const cellStatus = this.gridStatus[`${row},${col}`];
 
-        // Für andere Entitäten
         if (cellStatus.occupied && cellStatus.entityType === "void") {
           console.log(`Cannot place entity on void cell at (${row}, ${col})`);
           return;
@@ -947,7 +950,6 @@ export default Component.extend({
 
         const iconClass = iconMap[entityType] || iconMap.default;
 
-        // Lösche vorheriges Icon und füge das neue Entität-Icon hinzu
         gridElement.innerHTML = "";
         const iconElement = document.createElement("i");
         iconElement.classList.add("icon", iconClass);
@@ -965,7 +967,6 @@ export default Component.extend({
         gridElement.setAttribute("data-entityType", entityType);
         gridElement.setAttribute("draggable", "true");
 
-        // Aktualisiere Status für reguläre Entitäten
         this.gridStatus[`${row},${col}`] = {
           occupied: true,
           entityType: entityType,
@@ -997,7 +998,7 @@ export default Component.extend({
   refreshGrid(map, agents) {
     set(this, "mapData", map);
     set(this, "agentData", agents);
-
+    console.log("Refresh grid ====================");
     this.setupGrid(map, agents);
   },
 
@@ -1014,12 +1015,9 @@ export default Component.extend({
     const translateX = this.get("translateX");
     const translateY = this.get("translateY");
 
-    // Anwenden der Transformationslogik auf das Grid
     gridContainer.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`;
 
-    // Anwenden der gleichen Transformationslogik auf das Path Overlay
     if (pathOverlay) {
-      pathOverlay.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`;
     }
   },
 
@@ -1048,49 +1046,61 @@ export default Component.extend({
 
     viewport.style.cursor = "move";
   },
+  drawDebugCircle(x, y, color) {
+    const debugCircle = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle"
+    );
+    debugCircle.setAttribute("cx", x);
+    debugCircle.setAttribute("cy", y);
+    debugCircle.setAttribute("r", "3");
+    debugCircle.setAttribute("fill", color);
+    debugCircle.setAttribute("opacity", "0.5");
+    const pathOverlay = document.getElementById(this.gridId);
+    pathOverlay.appendChild(debugCircle);
+  },
 
   drawPathLines() {
     const pathOverlay = document.getElementById(this.gridId);
     if (!pathOverlay) return;
 
-    // Leeren des SVG-Overlays
     pathOverlay.innerHTML = "";
 
     const overlayRect = pathOverlay.getBoundingClientRect();
-
+    console.log("overlayRect", overlayRect);
     const icons = this.pathIcons || [];
-    if (icons.length < 2) return; // Mindestens zwei Waypoints sind erforderlich
+    if (icons.length < 2) return;
 
     const pathColor = this.carjanState.selectedPath.color || "#000";
-
-    // Sammle die centerX und centerY Koordinaten für jedes Icon und passe sie relativ zu `pathOverlay` an
+    console.log("icons", icons);
     const points = icons.map((icon) => {
-      const rect = icon.element.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2 - overlayRect.left;
-      const centerY = rect.top + rect.height / 2 - overlayRect.top;
-      console.log(`Adjusted Center of icon: (${centerX}, ${centerY})`);
+      const rect = icon.getBoundingClientRect();
+
+      const centerX =
+        (rect.left + rect.width / 2 - overlayRect.left) *
+        (1 / this.get("scale"));
+      const centerY =
+        (rect.top + rect.height / 2 - overlayRect.top) *
+        (1 / this.get("scale"));
+      this.drawDebugCircle(centerX, centerY, "red");
+
       return { centerX, centerY };
     });
 
-    // Starte den Pfad mit dem ersten Punkt
     let pathData = `M ${points[0].centerX},${points[0].centerY} `;
 
-    // Erstelle die Pfadsegmente mit kubischen Bézier-Kurven
     for (let i = 0; i < points.length - 1; i++) {
       const start = points[i];
       const end = points[i + 1];
 
-      // Kontrollpunkte für die kubische Bézier-Kurve berechnen
       const cp1X = start.centerX + (end.centerX - start.centerX) / 3;
       const cp1Y = start.centerY;
       const cp2X = end.centerX - (end.centerX - start.centerX) / 3;
       const cp2Y = end.centerY;
 
-      // Kubische Bézier-Kurve
       pathData += `C ${cp1X},${cp1Y} ${cp2X},${cp2Y} ${end.centerX},${end.centerY} `;
     }
 
-    // Erstelle das Pfadelement mit der generierten Pfadbeschreibung
     const pathElement = document.createElementNS(
       "http://www.w3.org/2000/svg",
       "path"
@@ -1101,30 +1111,7 @@ export default Component.extend({
     pathElement.setAttribute("stroke-dasharray", "4, 4");
     pathElement.setAttribute("fill", "none");
 
-    // Füge das Pfadelement zum SVG-Overlay hinzu
     pathOverlay.appendChild(pathElement);
-
-    // Positioniere ein Chevron in der Mitte des Pfades
-    const midpointIndex = Math.floor((points.length - 1) / 2);
-    const midpoint = points[midpointIndex];
-    const chevron = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "polygon"
-    );
-
-    const chevronX = midpoint.centerX;
-    const chevronY = midpoint.centerY;
-    chevron.setAttribute(
-      "points",
-      `
-            ${chevronX - 6},${chevronY - 3}
-            ${chevronX + 6},${chevronY - 3}
-            ${chevronX},${chevronY + 6}
-        `
-    );
-    chevron.setAttribute("fill", pathColor);
-
-    pathOverlay.appendChild(chevron);
   },
 
   findNearestCell(mouseX, mouseY) {
@@ -1179,13 +1166,8 @@ export default Component.extend({
       const pathColor = this.carjanState.selectedPath.color || "#000";
       e.target.style.color = pathColor;
 
-      // Füge den Icon und seine Position zu `this.pathIcons` hinzu
       this.pathIcons = this.pathIcons || [];
-      this.pathIcons.push({
-        x: parseInt(x),
-        y: parseInt(y),
-        element: e.target,
-      });
+      this.pathIcons.push(e.target);
 
       this.drawPathLines();
       return;

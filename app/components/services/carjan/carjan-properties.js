@@ -429,7 +429,7 @@ export default Component.extend({
 
     confirmDrawPath() {
       let newPath = this.carjanState.pathInProgress;
-      console.log("Neuer Pfad: ", newPath.waypoints);
+      console.log("Neuer Pfad: ", newPath);
 
       if (newPath && newPath.waypoints.length > 0) {
         this.set("selectedPath.waypoints", newPath.waypoints);

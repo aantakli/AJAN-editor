@@ -51,7 +51,6 @@ export default Component.extend({
       : "main";
     const shortId = fullPath.includes("#") ? fullPath.split("#")[1] : fullPath;
     this.set("gridId", shortId);
-    console.log("Loading..");
     setTimeout(() => {
       this.set("reloadFlag", false);
       if (this.carjanState.mapData && this.carjanState.agentData) {
@@ -238,9 +237,6 @@ export default Component.extend({
         !this.reloadFlag
       ) {
         this.deleteAllEntites();
-        console.log("Setup mapdata ====================");
-        console.log("new map? ", this.previousMap !== currentMap);
-        console.log("new agents? ", this.previousAgents !== currentAgents);
         this.setupGrid(currentMap, currentAgents);
         this.previousMap = currentMap;
         this.previousAgents = currentAgents;
@@ -250,7 +246,6 @@ export default Component.extend({
 
   pathModeObserver: observer("carjanState.pathMode", function () {
     if (this.carjanState.pathMode) {
-      console.log("Setup path mode ====================");
       this.setupGrid(this.carjanState.mapData, this.carjanState.agentData);
       const cameraIcon = document.getElementById("cameraIcon");
       if (cameraIcon) {
@@ -279,6 +274,24 @@ export default Component.extend({
       this.addPath();
     } else {
       this.removeOverlay();
+    }
+  }),
+
+  selectedPathObserver: observer("carjanState.selectedPath", function () {
+    if (this.carjanState.selectedPath && !this.pathMode) {
+      this.pathIcons = [];
+
+      this.carjanState.selectedPath.waypoints.forEach((waypoint) => {
+        const waypointElement = document.querySelector(
+          `.grid-cell[data-row="${waypoint.x}"][data-col="${waypoint.y}"] .icon[data-position-in-cell="${waypoint.positionInCell}"]`
+        );
+
+        if (waypointElement) {
+          this.pathIcons.push(waypointElement);
+        }
+      });
+
+      this.drawPathLines();
     }
   }),
 
@@ -998,7 +1011,6 @@ export default Component.extend({
   refreshGrid(map, agents) {
     set(this, "mapData", map);
     set(this, "agentData", agents);
-    console.log("Refresh grid ====================");
     this.setupGrid(map, agents);
   },
 
@@ -1046,19 +1058,6 @@ export default Component.extend({
 
     viewport.style.cursor = "move";
   },
-  drawDebugCircle(x, y, color) {
-    const debugCircle = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "circle"
-    );
-    debugCircle.setAttribute("cx", x);
-    debugCircle.setAttribute("cy", y);
-    debugCircle.setAttribute("r", "3");
-    debugCircle.setAttribute("fill", color);
-    debugCircle.setAttribute("opacity", "0.5");
-    const pathOverlay = document.getElementById(this.gridId);
-    pathOverlay.appendChild(debugCircle);
-  },
 
   drawPathLines() {
     const pathOverlay = document.getElementById(this.gridId);
@@ -1067,12 +1066,10 @@ export default Component.extend({
     pathOverlay.innerHTML = "";
 
     const overlayRect = pathOverlay.getBoundingClientRect();
-    console.log("overlayRect", overlayRect);
     const icons = this.pathIcons || [];
     if (icons.length < 2) return;
 
     const pathColor = this.carjanState.selectedPath.color || "#000";
-    console.log("icons", icons);
     const points = icons.map((icon) => {
       const rect = icon.getBoundingClientRect();
 
@@ -1082,7 +1079,6 @@ export default Component.extend({
       const centerY =
         (rect.top + rect.height / 2 - overlayRect.top) *
         (1 / this.get("scale"));
-      this.drawDebugCircle(centerX, centerY, "red");
 
       return { centerX, centerY };
     });
@@ -1158,11 +1154,11 @@ export default Component.extend({
       const x = e.target.getAttribute("data-x");
       const y = e.target.getAttribute("data-y");
       const positionInCell = e.target.getAttribute("data-position-in-cell");
-
-      console.log(
-        `Waypoint Position - Row: ${x}, Col: ${y}, PositionInCell: ${positionInCell}`
+      const waypoints = this.carjanState.waypoints || [];
+      const filteredWaypoints = waypoints.filter(
+        (waypoint) => waypoint.positionInCell === positionInCell
       );
-
+      this.carjanState.addWaypointToPathInProgress(filteredWaypoints[0]);
       const pathColor = this.carjanState.selectedPath.color || "#000";
       e.target.style.color = pathColor;
 

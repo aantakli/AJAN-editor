@@ -91,3 +91,8 @@
   transform: scale(1.5);
   cursor: pointer;
 }
+
+.path-overlay {
+  position: relative;
+  z-index: 9999;
+}

@@ -1,11 +1,19 @@
 <div id="viewport">
   <div id="room">
+    <svg
+      id={{gridId}}
+      width="100%"
+      height="100%"
+      local-class="path-overlay"
+      style="position: absolute; top: 0; left: 0; pointer-events: none;"
+    ></svg>
     <div
       id="gridContainer"
       ondrop={{action "dropOnBackground"}}
       ondragover={{action "allowDrop"}}
     >
       <div id="overlay" local-class="overlay" hidden></div>
+
       {{#each gridCells as |cell|}}
         <div
           class="grid-cell"

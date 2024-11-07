@@ -38,6 +38,8 @@ export default Service.extend({
     );
     allWaypoints.forEach((waypointIcon) => {
       waypointIcon.style.color = "#000";
+      waypointIcon.style.transform = "scale(1)";
+      waypointIcon.style.textShadow = "none";
     });
     this.set("pathInProgress", { path: `#Path${Date.now()}`, waypoints: [] });
   },

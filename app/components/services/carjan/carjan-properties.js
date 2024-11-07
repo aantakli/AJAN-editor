@@ -310,8 +310,7 @@ export default Component.extend({
   actions: {
     checkPathDescription() {
       const pathDescription = this.selectedPath.description.trim();
-      console.log("Path description: ", pathDescription);
-      const isDescriptionEmpty = pathDescription === "";
+      const isDescriptionEmpty = pathDescription.trim() === "";
       this.set("isDescriptionEmpty", isDescriptionEmpty);
 
       if (isDescriptionEmpty) {
@@ -321,8 +320,6 @@ export default Component.extend({
           "Empty path description. Please enter a description."
         );
         return;
-      } else {
-        console.log("Path description is not empty");
       }
 
       const isValidDescription = /^[a-zA-Z0-9_ ]+$/.test(pathDescription);
@@ -333,18 +330,18 @@ export default Component.extend({
           "Invalid path description. Only letters, numbers, spaces, and underscores are allowed."
         );
         return;
-      } else {
-        console.log("Path description is valid");
       }
-
       const paths = this.carjanState.paths || [];
-      const isDuplicateDescription = paths.some(
-        (path) =>
-          path.description.trim() === pathDescription &&
-          path.description !== this.selectedPath.description
-      );
+      const trimmedDescription = pathDescription.trim();
 
-      console.log("Duplicate description: ", isDuplicateDescription);
+      // Falls `selectedPath` nicht das aktuelle `pathDescription` hat, ignorieren wir es in der Suche
+      const isDuplicateDescription = paths.some((path) => {
+        const isSameDescription =
+          path.description.trim() === trimmedDescription;
+        const isNotSelectedPath = path !== this.selectedPath;
+
+        return isSameDescription && isNotSelectedPath;
+      });
 
       if (isDuplicateDescription) {
         this.set("hasError", true);
@@ -353,8 +350,6 @@ export default Component.extend({
           "Duplicate path description found. Please use a unique description."
         );
         return;
-      } else {
-        console.log("Path description is unique");
       }
 
       this.set("hasError", false);
@@ -433,8 +428,6 @@ export default Component.extend({
 
       if (newPath && newPath.waypoints.length > 0) {
         this.set("selectedPath.waypoints", newPath.waypoints);
-        console.log("Pfad-Zeichnen bestätigt", this.selectedPath);
-
         let allPaths = this.carjanState.paths;
 
         let updatedPaths = allPaths.map((path) =>

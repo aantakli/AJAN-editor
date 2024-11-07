@@ -40,14 +40,25 @@
                 <i class="icon share alternate"></i>
                 {{path.description}}
               </div>
-              <div class="extra">
+              <div class="extra" local-class="scroll-path-waypoints">
                 <div class="ui breadcrumb">
                   <i class="icon arrow right"></i>
 
-                  {{#each path.firstTwoWaypoints as |waypoint|}}
+                  {{#each path.waypoints as |waypoint|}}
                     <i class="right angle icon divider"></i>
                     <div class="section">
-                      <div local-class="waypoint-panel">
+                      <div
+                        local-class="waypoint-panel"
+                        onmouseenter={{action
+                          "setWaypointHighlightColor"
+                          waypoint
+                          path
+                        }}
+                        onmouseleave={{action
+                          "clearWaypointHighlightColor"
+                          waypoint
+                        }}
+                      >
                         <div
                           class="ui items"
                           local-class="waypoint-item"
@@ -66,11 +77,6 @@
                   {{/each}}
 
                   <i class="right angle icon divider"></i>
-                  {{#if path.hasMoreThanTwoWaypoints}}
-                    <div class="section">...</div>
-                    <i class="right angle icon divider"></i>
-                  {{/if}}
-
                   <i class="icon flag outline"></i>
                 </div>
               </div>

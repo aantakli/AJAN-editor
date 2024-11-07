@@ -1,11 +1,12 @@
 import Component from "@ember/component";
 import { inject as service } from "@ember/service";
 import { next } from "@ember/runloop";
+import { computed } from "@ember/object";
 
 export default Component.extend({
   carjanState: service(),
   waypoints: null,
-  paths: null,
+  paths: [],
   placeholderOptions: [
     "Where no waypoint has gone before...",
     "A scenic route full of detours and surprises!",
@@ -35,6 +36,16 @@ export default Component.extend({
   placeholderText: "",
   pathDescription: "",
   waypointColor: "red",
+
+  pathsWithWaypoints: computed("paths.@each.waypoints", function () {
+    return this.paths.map((path) => {
+      return {
+        ...path,
+        firstTwoWaypoints: path.waypoints.slice(0, 2),
+        hasMoreThanTwoWaypoints: path.waypoints.length > 2,
+      };
+    });
+  }),
 
   async init() {
     this._super(...arguments);

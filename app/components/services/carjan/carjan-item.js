@@ -288,6 +288,13 @@ export default Component.extend({
     }
   ),
 
+  pathInProgressObserver: observer("carjanState.pathInProgress", function () {
+    console.log("Path in progress", this.carjanState.pathInProgress);
+    if (this.carjanState.pathInProgress.waypoints.length === 0) {
+      this.pathIcons = [];
+    }
+  }),
+
   drawMainPathLines() {
     if (this.carjanState.selectedPath && !this.pathMode) {
       this.pathIcons = [];
@@ -1077,6 +1084,16 @@ export default Component.extend({
 
     const overlayRect = pathOverlay.getBoundingClientRect();
     const icons = this.pathIcons || [];
+    console.log(icons);
+    if (icons.length == 0) {
+      const pathElement = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "path"
+      );
+      pathElement.setAttribute("d", "");
+      pathOverlay.appendChild(pathElement);
+      return;
+    }
     if (icons.length < 2) return;
 
     const pathColor = this.carjanState.selectedPath.color || "#000";
@@ -1113,8 +1130,8 @@ export default Component.extend({
     );
     pathElement.setAttribute("d", pathData);
     pathElement.setAttribute("stroke", pathColor);
-    pathElement.setAttribute("stroke-width", "2");
-    pathElement.setAttribute("stroke-dasharray", "4, 4");
+    pathElement.setAttribute("stroke-width", "4");
+    pathElement.setAttribute("stroke-dasharray", "8, 8");
     pathElement.setAttribute("fill", "none");
     pathElement.setAttribute("pointer-events", "none");
     pathElement.setAttribute("id", "pathline");

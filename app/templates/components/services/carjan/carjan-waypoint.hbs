@@ -11,7 +11,11 @@
   </p>
 
   <!-- Button to add a new Path -->
-  <button class="ui button" id="add-path" {{action "openNewPathDialog"}}>
+  <button
+    class="ui secondary button"
+    id="add-path"
+    {{action "openNewPathDialog"}}
+  >
     <i class="plus icon"></i>
     New Path
   </button>
@@ -23,22 +27,24 @@
     id="paths-list"
     local-class="waypoint-selection-container"
   >
-    {{#each paths as |path|}}
+    {{#each pathsWithWaypoints as |path|}}
       <div
-        local-class="waypoint-panel"
+        local-class="waypoint-panel-main"
         style="margin-bottom: 12px;"
         {{action "openPathwayEditor" path}}
       >
         <div local-class="waypoint-panel-triangle" id={{path.path}}>
           <div class="item">
-            <div class="content">
+            <div class="content" local-class="content-small">
               <div local-class="description">
                 <i class="icon share alternate"></i>
                 {{path.description}}
               </div>
               <div class="extra">
                 <div class="ui breadcrumb">
-                  {{#each path.waypoints as |waypoint|}}
+                  <i class="icon arrow right"></i>
+
+                  {{#each path.firstTwoWaypoints as |waypoint|}}
                     <i class="right angle icon divider"></i>
                     <div class="section">
                       <div local-class="waypoint-panel">
@@ -51,19 +57,27 @@
                             <div class="title">
                               <i class="map pin icon"></i>
                               ({{waypoint.x}},
-                              {{waypoint.y}})</div>
+                              {{waypoint.y}})
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   {{/each}}
+
+                  <i class="right angle icon divider"></i>
+                  {{#if path.hasMoreThanTwoWaypoints}}
+                    <div class="section">...</div>
+                    <i class="right angle icon divider"></i>
+                  {{/if}}
+
+                  <i class="icon flag outline"></i>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
     {{/each}}
   </div>
 

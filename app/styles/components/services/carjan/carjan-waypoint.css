@@ -16,6 +16,16 @@
   position: relative;
 }
 
+.waypoint-panel-main {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+  position: relative;
+  padding-left: 60px;
+}
+
 .waypoint-panel:hover {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
@@ -23,24 +33,13 @@
 .waypoint-panel-triangle::before {
   content: "";
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 20%;
-  height: 80%;
+  top: 0;
+  left: 16px;
+  width: 5%;
+  height: 100%;
   background-color: var(--triangle-color);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  clip-path: polygon(0 100%, 100% 0, 100% 100%, 0 100%);
-}
-
-.waypoint-panel-triangle::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 10%;
-  height: 40%;
-  background-color: white;
-  clip-path: polygon(0 100%, 100% 0, 100% 100%);
+  border-radius: 5px 5px 5px 5px;
 }
 
 .waypoint-item {

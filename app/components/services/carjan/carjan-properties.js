@@ -450,6 +450,11 @@ export default Component.extend({
 
     retryDrawing() {
       console.log("Pfad-Zeichnen zurücksetzen");
+      console.log("pathid", this.pathId);
+      const pathOverlay = document.getElementById(this.pathId);
+      if (pathOverlay) {
+        pathOverlay.innerHTML = ""; // Setzt das SVG-Overlay auf leer
+      }
       this.carjanState.initPathDrawing();
     },
 

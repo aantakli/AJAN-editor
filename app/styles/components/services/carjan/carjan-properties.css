@@ -195,11 +195,23 @@
 
 .with-background {
   background-image: url("/assets/carjan/carjan-maps/images/dots.jpg");
-  background-size: cover; /* Passt das Bild an die Größe des Containers an */
-  background-repeat: no-repeat; /* Verhindert Wiederholungen */
-  background-position: center; /* Zentriert das Bild */
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
   display: flex;
   justify-content: center;
   height: 100px;
   padding: 10px;
+}
+
+.waypoint-panel-main {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+  position: relative;
+  padding-left: 60px;
+  background-color: white;
+  justify-content: center;
 }

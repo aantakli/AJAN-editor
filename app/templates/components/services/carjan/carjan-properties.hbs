@@ -20,11 +20,7 @@
       <i class="map marker alternate icon"></i>
       <b>Waypoint Editor</b>
     </p>
-    <div
-      ondrop={{action "dropOnBackground"}}
-      ondragover={{action "allowDrop"}}
-      local-class="gridContainer"
-    >
+    <div ondragover={{action "allowDrop"}} local-class="gridContainer">
       {{#each gridCells as |cell|}}
         <div
           class="grid-cell"
@@ -41,6 +37,34 @@
       {{/each}}
     </div>
     <h1></h1>
+
+    <div
+      local-class="button-container"
+      style="margin: 25px; pointer-events: none;"
+    >
+      <button class="ui red button" {{action "closeWaypointEditor"}}>
+        Close
+      </button>
+
+      <div
+        class="grid-cell"
+        id="trash"
+        style="height: 50px; width: 60px; background-color: white; pointer-events: all;"
+        ondrop={{action "dropOnCell"}}
+        ondragover={{action "allowDrop"}}
+        ondragleave={{action "dragLeave"}}
+        ondragstart={{action "dragStart"}}
+      >
+
+        <i
+          class="trash alternate icon"
+          style="font-size: 24px; display: flex; justify-content: center; align-items: center; height: 100%;width: 100%; pointer-events: none;"
+        >
+        </i>
+
+      </div>
+    </div>
+
   {{/if}}
 
   {{#if this.showPathEditor}}
@@ -110,7 +134,7 @@
                 </div>
               </div>
               <div local-class="property-panel with-background">
-                <div local-class="button-container">
+                <div local-class="button-container" style="overflow: scroll;">
                   <button
                     class="ui button secondary"
                     style="border-radius: 8px;"

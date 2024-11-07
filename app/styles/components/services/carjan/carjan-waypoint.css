@@ -121,4 +121,5 @@
   overflow: scroll;
   text-overflow: ellipsis;
   width: 100%;
+  padding-bottom: 20px;
 }

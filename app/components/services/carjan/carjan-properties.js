@@ -54,7 +54,7 @@ export default Component.extend({
 
   showWaypointEditor: computed("carjanState.openWaypointEditor", function () {
     this.cellStatus = this.carjanState.currentCellStatus;
-    this.cellPosition = this.carjanState.currentCellPosition;
+    this.set("cellPosition", this.carjanState.currentCellPosition);
     this.waypoints = this.carjanState.waypoints;
     this.displayWaypointsInCell();
     return this.carjanState.openWaypointEditor;
@@ -254,10 +254,6 @@ export default Component.extend({
           if (matchingWaypoint) {
             this.addWaypointToGrid(row, col, matchingWaypoint.positionInCell);
           }
-        } else {
-          console.warn(
-            `Kein Element gefunden für Zelle: row=${row}, col=${col}`
-          );
         }
       });
     });
@@ -305,6 +301,72 @@ export default Component.extend({
       }
     }
     this.set("gridCells", cells);
+  },
+
+  async deleteWaypoint(positionInCell) {
+    const waypointToDelete = await this.waypoints.find(
+      (wp) =>
+        wp.x === this.cellPosition[0] &&
+        wp.y === this.cellPosition[1] &&
+        wp.positionInCell === positionInCell
+    );
+
+    if (!waypointToDelete) {
+      console.warn("Waypoint not found for deletion.");
+      return;
+    }
+
+    const waypointURI = waypointToDelete.waypoint;
+
+    const updatedPaths = this.carjanState.paths.map((path) => {
+      const filteredWaypoints = path.waypoints.filter(
+        (wp) => wp.waypoint !== waypointURI
+      );
+      return {
+        ...path,
+        waypoints: filteredWaypoints,
+      };
+    });
+
+    const updatedWaypoints = this.waypoints.filter(
+      (wp) => wp.waypoint !== waypointURI
+    );
+    this.removeEntityFromGrid(positionInCell);
+
+    this.waypoints = updatedWaypoints;
+    this.carjanState.setWaypoints(updatedWaypoints);
+    this.carjanState.setPaths(updatedPaths);
+  },
+
+  findNearestCell(mouseX, mouseY) {
+    let closestCell = null;
+    let minDistance = Infinity;
+
+    this.gridCells.forEach((cell) => {
+      const row = cell.row;
+      const col = cell.col;
+
+      const gridElement = this.element.querySelector(
+        `.grid-cell[data-row="${row}"][data-col="${col}"]`
+      );
+
+      if (gridElement) {
+        const rect = gridElement.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const distance = Math.sqrt(
+          Math.pow(centerX - mouseX, 2) + Math.pow(centerY - mouseY, 2)
+        );
+
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestCell = { row, col };
+        }
+      }
+    });
+
+    return closestCell;
   },
 
   actions: {
@@ -445,7 +507,7 @@ export default Component.extend({
     retryDrawing() {
       const pathOverlay = document.getElementById(this.pathId);
       if (pathOverlay) {
-        pathOverlay.innerHTML = ""; // Setzt das SVG-Overlay auf leer
+        pathOverlay.innerHTML = "";
       }
       this.carjanState.initPathDrawing();
     },
@@ -472,7 +534,13 @@ export default Component.extend({
 
     async dropOnCell(event) {
       event.preventDefault();
-
+      const trash = document.getElementById("trash");
+      if (event.target === trash) {
+        if (this.draggingWaypoint) {
+          this.deleteWaypoint(this.draggingWaypoint.positionInCell);
+        }
+        return;
+      }
       const row = parseInt(event.target.dataset.row, 10);
       const col = parseInt(event.target.dataset.col, 10);
       if (this.draggingWaypoint) {
@@ -502,8 +570,8 @@ export default Component.extend({
       }
     },
 
-    dropOnBackground() {
-      return;
+    closeWaypointEditor() {
+      this.carjanState.setWaypointEditor(false);
     },
 
     dragLeave(event) {

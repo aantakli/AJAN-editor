@@ -19,6 +19,8 @@ export default Component.extend({
   overlayColorpicker: 0,
   pathId: null,
   isDeletePathDialogOpen: false,
+  original: "",
+  changeOriginalFlag: true,
 
   colors: {
     road: getComputedStyle(document.documentElement)
@@ -308,6 +310,12 @@ export default Component.extend({
   },
 
   actions: {
+    inputFocusIn() {
+      if (this.changeOriginalFlag) {
+        this.original = this.selectedPath.description;
+      }
+      this.changeOriginalFlag = false;
+    },
     checkPathDescription() {
       const pathDescription = this.selectedPath.description.trim();
       const isDescriptionEmpty = pathDescription.trim() === "";
@@ -334,16 +342,16 @@ export default Component.extend({
       const paths = this.carjanState.paths || [];
       const trimmedDescription = pathDescription.trim();
 
-      // Falls `selectedPath` nicht das aktuelle `pathDescription` hat, ignorieren wir es in der Suche
       const isDuplicateDescription = paths.some((path) => {
         const isSameDescription =
           path.description.trim() === trimmedDescription;
-        const isNotSelectedPath = path !== this.selectedPath;
 
-        return isSameDescription && isNotSelectedPath;
+        return isSameDescription && trimmedDescription !== this.original.trim();
       });
 
       if (isDuplicateDescription) {
+        console.log("paths", paths);
+
         this.set("hasError", true);
         this.set(
           "errorMessage",

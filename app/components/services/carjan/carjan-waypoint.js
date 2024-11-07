@@ -64,7 +64,6 @@ export default Component.extend({
       const newPath = paths.find((path) => path.path === selectedPath.path);
       this.carjanState.setPathEditor(true);
       this.carjanState.setSelectedPath(newPath);
-      console.log("newPaths", newPath);
     }, 50);
   }),
 

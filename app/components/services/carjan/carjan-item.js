@@ -293,7 +293,6 @@ export default Component.extend({
   ),
 
   pathInProgressObserver: observer("carjanState.pathInProgress", function () {
-    console.log("Path in progress", this.carjanState.pathInProgress);
     if (this.carjanState.pathInProgress.waypoints.length === 0) {
       this.pathIcons = [];
     }
@@ -364,6 +363,7 @@ export default Component.extend({
   },
 
   saveEditorToRepo() {
+    console.log("Saving..");
     const rdfGraph = rdf.dataset();
 
     const gridContainer = this.element.querySelector("#gridContainer");
@@ -485,10 +485,9 @@ export default Component.extend({
     });
 
     this.addPathsAndWaypointsFromState(rdfGraph, scenarioURI);
-    console.log("rdfGraph", rdfGraph);
-
     this.carjanState.setUpdateStatements(rdfGraph);
     this.carjanState.set("isSaveRequest", false);
+    console.log("Saved!");
   },
   async getMap(mapName) {
     const response = await fetch("/assets/carjan/carjan-maps/maps.json");
@@ -628,9 +627,6 @@ export default Component.extend({
       );
 
       if (path.waypoints && path.waypoints.length > 0) {
-        console.log("Adding waypoints to path", pathId);
-        console.log("path.waypoints", path.waypoints);
-
         let listNode = rdf.blankNode();
 
         rdfGraph.add(
@@ -660,12 +656,8 @@ export default Component.extend({
           );
 
           if (idx < path.waypoints.length - 1) {
-            const nextPositionIndex = this.getPositionIndex(
-              path.waypoints[idx + 1].positionInCell
-            );
-            const nextListNode = rdf.namedNode(
-              `http://example.com/carla-scenario#PathListNode${nextPositionIndex}`
-            );
+            const nextListNode = rdf.blankNode();
+
             rdfGraph.add(
               rdf.quad(
                 listNode,
@@ -838,7 +830,9 @@ export default Component.extend({
       if (gridElement) {
         let cellStatus = this.gridStatus[`${row},${col}`] || { waypoints: [] };
         if (cellStatus.occupied && cellStatus.entityType === "void") {
-          console.log(`Cannot place waypoint on void cell at (${row}, ${col})`);
+          console.error(
+            `Cannot place waypoint on void cell at (${row}, ${col})`
+          );
           return;
         }
 
@@ -972,7 +966,7 @@ export default Component.extend({
         const cellStatus = this.gridStatus[`${row},${col}`];
 
         if (cellStatus.occupied && cellStatus.entityType === "void") {
-          console.log(`Cannot place entity on void cell at (${row}, ${col})`);
+          console.error(`Cannot place entity on void cell at (${row}, ${col})`);
           return;
         }
 
@@ -1092,7 +1086,6 @@ export default Component.extend({
 
     const overlayRect = pathOverlay.getBoundingClientRect();
     const icons = this.pathIcons || [];
-    console.log(icons);
     if (icons.length == 0) {
       const pathElement = document.createElementNS(
         "http://www.w3.org/2000/svg",
@@ -1188,15 +1181,21 @@ export default Component.extend({
       e.target.classList.contains("alternate") &&
       this.carjanState.pathMode
     ) {
-      console.log("Adding waypoint to path in progress", e.target);
-      const x = e.target.getAttribute("data-x");
-      const y = e.target.getAttribute("data-y");
       const positionInCell = e.target.getAttribute("data-position-in-cell");
+      const x = e.target.getAttribute("data-x").toString();
+      const y = e.target.getAttribute("data-y").toString();
       const waypoints = this.carjanState.waypoints || [];
+      console.log("x,y, position", x, y, positionInCell);
       const filteredWaypoints = waypoints.filter(
-        (waypoint) => waypoint.positionInCell === positionInCell
+        (waypoint) =>
+          waypoint.positionInCell === positionInCell &&
+          waypoint.x === x &&
+          waypoint.y === y
       );
-      this.carjanState.addWaypointToPathInProgress(filteredWaypoints[0]);
+      console.log(filteredWaypoints);
+      if (filteredWaypoints.length > 0) {
+        this.carjanState.addWaypointToPathInProgress(filteredWaypoints[0]);
+      }
       const pathColor = this.carjanState.selectedPath.color || "#000";
 
       e.target.style.transition =

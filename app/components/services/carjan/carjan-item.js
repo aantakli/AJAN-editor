@@ -259,6 +259,10 @@ export default Component.extend({
     }
   }),
 
+  waypointObserver: observer("carjanState.waypoints", function () {
+    this.setupGrid(this.carjanState.mapData, this.carjanState.agentData);
+  }),
+
   saveObserver: observer("carjanState.isSaveRequest", function () {
     if (this.carjanState.isSaveRequest) {
       this.saveEditorToRepo();
@@ -481,6 +485,7 @@ export default Component.extend({
     });
 
     this.addPathsAndWaypointsFromState(rdfGraph, scenarioURI);
+    console.log("rdfGraph", rdfGraph);
 
     this.carjanState.setUpdateStatements(rdfGraph);
     this.carjanState.set("isSaveRequest", false);
@@ -623,6 +628,9 @@ export default Component.extend({
       );
 
       if (path.waypoints && path.waypoints.length > 0) {
+        console.log("Adding waypoints to path", pathId);
+        console.log("path.waypoints", path.waypoints);
+
         let listNode = rdf.blankNode();
 
         rdfGraph.add(
@@ -1180,6 +1188,7 @@ export default Component.extend({
       e.target.classList.contains("alternate") &&
       this.carjanState.pathMode
     ) {
+      console.log("Adding waypoint to path in progress", e.target);
       const x = e.target.getAttribute("data-x");
       const y = e.target.getAttribute("data-y");
       const positionInCell = e.target.getAttribute("data-position-in-cell");
@@ -1189,7 +1198,12 @@ export default Component.extend({
       );
       this.carjanState.addWaypointToPathInProgress(filteredWaypoints[0]);
       const pathColor = this.carjanState.selectedPath.color || "#000";
+
+      e.target.style.transition =
+        "transform 0.5s ease, color 0.2s ease, textshadow 0.2 ease";
       e.target.style.color = pathColor;
+      e.target.style.transform = "scale(1.8)";
+      e.target.style.textShadow = "0 0 3px black";
 
       this.pathIcons = this.pathIcons || [];
       this.pathIcons.push(e.target);

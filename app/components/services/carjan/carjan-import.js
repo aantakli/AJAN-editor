@@ -44,6 +44,7 @@ export default Component.extend({
       const statements = this.carjanState.updateStatements._quads;
       const parsedStatements =
         (await this.parseQuadsToScenarios(statements)) || [];
+      console.log("parsedStatements", parsedStatements);
       const existingRepositoryContent = await this.downloadRepository();
       const existingDataset = await this.parseTrig(existingRepositoryContent);
 

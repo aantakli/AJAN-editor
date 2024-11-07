@@ -1,7 +1,7 @@
 import Component from "@ember/component";
 import { inject as service } from "@ember/service";
 import { next } from "@ember/runloop";
-import { computed } from "@ember/object";
+import { computed, observer } from "@ember/object";
 
 export default Component.extend({
   carjanState: service(),
@@ -47,6 +47,27 @@ export default Component.extend({
     });
   }),
 
+  pathObserver: observer("carjanState.paths.@each.waypoints", function () {
+    const paths = this.carjanState.paths || [];
+    this.set(
+      "pathsWithWaypoints",
+      paths.map((path) => ({
+        ...path,
+        firstTwoWaypoints: path.waypoints.slice(0, 2),
+        hasMoreThanTwoWaypoints: path.waypoints.length > 2,
+      }))
+    );
+    const selectedPath = this.carjanState.selectedPath;
+    this.carjanState.setPathEditor(false);
+    if (!selectedPath) return;
+    setTimeout(() => {
+      const newPath = paths.find((path) => path.path === selectedPath.path);
+      this.carjanState.setPathEditor(true);
+      this.carjanState.setSelectedPath(newPath);
+      console.log("newPaths", newPath);
+    }, 50);
+  }),
+
   async init() {
     this._super(...arguments);
     this.setRandomPlaceholder();
@@ -81,6 +102,31 @@ export default Component.extend({
   },
 
   actions: {
+    setWaypointHighlightColor(waypoint, path) {
+      const iconElement = document.querySelector(
+        `[data-x="${waypoint.x}"][data-y="${waypoint.y}"][data-position-in-cell="${waypoint.positionInCell}"]`
+      );
+      if (iconElement) {
+        iconElement.style.transition =
+          "transform 0.5s ease, color 0.2s ease, textshadow 0.2 ease";
+        iconElement.style.color = path.color;
+        iconElement.style.transform = "scale(1.8)";
+        // add shadow
+        iconElement.style.textShadow = "0 0 3px black";
+      }
+    },
+    clearWaypointHighlightColor(waypoint) {
+      const iconElement = document.querySelector(
+        `[data-x="${waypoint.x}"][data-y="${waypoint.y}"][data-position-in-cell="${waypoint.positionInCell}"]`
+      );
+      if (iconElement) {
+        iconElement.style.transition =
+          "transform 0.5s ease, color 0.2s ease, textshadow 0.2 ease";
+        iconElement.style.color = "black";
+        iconElement.style.transform = "scale(1)";
+        iconElement.style.textShadow = "none";
+      }
+    },
     openPathwayEditor(path) {
       this.carjanState.setSelectedPath(path);
       this.carjanState.setPathEditor(true);

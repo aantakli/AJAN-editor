@@ -26,6 +26,10 @@
   padding-left: 60px;
 }
 
+.waypoint-panel-main:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
 .waypoint-panel:hover {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
@@ -110,4 +114,11 @@
   height: 10px;
   border-radius: 50%;
   margin-left: 10px;
+}
+
+.scroll-path-waypoints {
+  white-space: nowrap;
+  overflow: scroll;
+  text-overflow: ellipsis;
+  width: 100%;
 }

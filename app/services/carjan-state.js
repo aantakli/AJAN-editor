@@ -45,10 +45,8 @@ export default Service.extend({
   },
 
   addWaypointToPathInProgress(waypoint) {
-    console.log("selectedPath", this.selectedPath);
     if (this.pathInProgress) {
       this.pathInProgress.waypoints.push(waypoint);
-      console.log("Added waypoint to pathInProgress", this.pathInProgress);
     } else {
       console.warn("Path drawing not initialized. Call initPathDrawing first.");
     }

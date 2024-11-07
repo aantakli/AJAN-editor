@@ -42,9 +42,10 @@ export default Component.extend({
   updateObserver: observer("carjanState.updateStatements", async function () {
     try {
       const statements = this.carjanState.updateStatements._quads;
+      // print as string
       const parsedStatements =
         (await this.parseQuadsToScenarios(statements)) || [];
-      console.log("parsedStatements", parsedStatements);
+
       const existingRepositoryContent = await this.downloadRepository();
       const existingDataset = await this.parseTrig(existingRepositoryContent);
 
@@ -291,7 +292,6 @@ export default Component.extend({
               }
             });
           }
-
           pathsMap[subject].waypoints = waypointsInPath
             .map((waypointURI) => {
               return waypointsMap[waypointURI];

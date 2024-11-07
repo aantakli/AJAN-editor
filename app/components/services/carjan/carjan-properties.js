@@ -350,8 +350,6 @@ export default Component.extend({
       });
 
       if (isDuplicateDescription) {
-        console.log("paths", paths);
-
         this.set("hasError", true);
         this.set(
           "errorMessage",
@@ -432,8 +430,6 @@ export default Component.extend({
 
     confirmDrawPath() {
       let newPath = this.carjanState.pathInProgress;
-      console.log("Neuer Pfad: ", newPath);
-
       if (newPath && newPath.waypoints.length > 0) {
         this.set("selectedPath.waypoints", newPath.waypoints);
         let allPaths = this.carjanState.paths;
@@ -441,17 +437,13 @@ export default Component.extend({
         let updatedPaths = allPaths.map((path) =>
           path.path === this.selectedPath.path ? this.selectedPath : path
         );
-
         this.carjanState.set("paths", updatedPaths);
-
         this.carjanState.setPathMode(false);
         this.carjanState.saveRequest();
       }
     },
 
     retryDrawing() {
-      console.log("Pfad-Zeichnen zurücksetzen");
-      console.log("pathid", this.pathId);
       const pathOverlay = document.getElementById(this.pathId);
       if (pathOverlay) {
         pathOverlay.innerHTML = ""; // Setzt das SVG-Overlay auf leer

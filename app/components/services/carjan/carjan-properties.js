@@ -35,9 +35,6 @@ export default Component.extend({
   init() {
     this._super(...arguments);
     this.setupGrid();
-    if (this.selectedPath && this.selectedPath.color) {
-      this.set("teamColor", this.selectedPath.color);
-    }
   },
 
   backgroundColor: computed("cellPosition", "carjanState.mapData", function () {
@@ -68,12 +65,13 @@ export default Component.extend({
     if (isOpen) {
       this.set("selectedPath", this.carjanState.selectedPath);
       this.pathId = this.actions.getPathId(this.selectedPath);
-      if (this.selectedPath && this.selectedPath.color) {
-        this.set("teamColor", this.selectedPath.color);
-      }
     }
     return isOpen;
   }),
+
+  selectedPathObserver: function () {
+    this.set("selectedPath", this.carjanState.selectedPath);
+  }.observes("carjanState.selectedPath.color"),
 
   waypointsObserver: function () {
     this.waypoints = this.carjanState.get("waypoints");
@@ -102,7 +100,7 @@ export default Component.extend({
     return positionMap[positionInCell] ? positionMap[positionInCell] : 0;
   },
 
-  async updatePath() {
+  updatePath() {
     const oldPathURI = this.selectedPath.path;
     const newPath = { ...this.selectedPath };
 
@@ -411,8 +409,9 @@ export default Component.extend({
     },
 
     openDrawPathModal() {
-      this.set("isDrawPathModalOpen", true);
       this.carjanState.setPathMode(true);
+      this.set("isDrawPathModalOpen", true);
+
       next(() => {
         const modalElement = this.$(".ui.draw-path.modal");
 
@@ -541,13 +540,8 @@ export default Component.extend({
       event.preventDefault();
     },
 
-    async colorChanged(newColor) {
-      this.set("teamColor", newColor);
-      if (this.selectedPath) {
-        this.set("selectedPath.color", newColor);
-      }
-
-      await this.updatePath();
+    colorChanged() {
+      this.updatePath();
     },
 
     pickerOpened() {

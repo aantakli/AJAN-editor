@@ -299,7 +299,7 @@ export default Component.extend({
   }),
 
   drawMainPathLines() {
-    if (this.carjanState.selectedPath && !this.pathMode) {
+    if (this.carjanState.selectedPath && !this.carjanState.pathMode) {
       this.pathIcons = [];
 
       this.carjanState.selectedPath.waypoints.forEach((waypoint) => {
@@ -363,7 +363,6 @@ export default Component.extend({
   },
 
   saveEditorToRepo() {
-    console.log("Saving..");
     const rdfGraph = rdf.dataset();
 
     const gridContainer = this.element.querySelector("#gridContainer");
@@ -487,7 +486,6 @@ export default Component.extend({
     this.addPathsAndWaypointsFromState(rdfGraph, scenarioURI);
     this.carjanState.setUpdateStatements(rdfGraph);
     this.carjanState.set("isSaveRequest", false);
-    console.log("Saved!");
   },
   async getMap(mapName) {
     const response = await fetch("/assets/carjan/carjan-maps/maps.json");
@@ -1081,7 +1079,6 @@ export default Component.extend({
   drawPathLines() {
     const pathOverlay = document.getElementById(this.gridId);
     if (!pathOverlay) return;
-
     pathOverlay.innerHTML = "";
 
     const overlayRect = pathOverlay.getBoundingClientRect();
@@ -1135,7 +1132,7 @@ export default Component.extend({
     pathElement.setAttribute("stroke-dasharray", "8, 8");
     pathElement.setAttribute("fill", "none");
     pathElement.setAttribute("pointer-events", "none");
-    pathElement.setAttribute("id", "pathline");
+    pathElement.setAttribute("id", `${this.gridId}-pathline`);
 
     pathOverlay.appendChild(pathElement);
   },
@@ -1185,14 +1182,12 @@ export default Component.extend({
       const x = e.target.getAttribute("data-x").toString();
       const y = e.target.getAttribute("data-y").toString();
       const waypoints = this.carjanState.waypoints || [];
-      console.log("x,y, position", x, y, positionInCell);
       const filteredWaypoints = waypoints.filter(
         (waypoint) =>
           waypoint.positionInCell === positionInCell &&
           waypoint.x === x &&
           waypoint.y === y
       );
-      console.log(filteredWaypoints);
       if (filteredWaypoints.length > 0) {
         this.carjanState.addWaypointToPathInProgress(filteredWaypoints[0]);
       }

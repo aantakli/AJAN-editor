@@ -13,7 +13,7 @@ export default Component.extend({
     "The quick brown path jumps over lazy obstacles",
     "Straight to the point... or is it?",
     "A shortcut through scenic chaos",
-    "Zig-zags for added excitement",
+    "Zigzags for added excitement",
     "Taking the long way home",
     "Warning: Detours ahead",
     "Path to enlightenment... or confusion",

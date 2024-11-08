@@ -1,7 +1,34 @@
 import Component from "@ember/component";
+import { next } from "@ember/runloop";
 
 export default Component.extend({
+  isDialogOpen: false,
+  hasError: false,
+  isDisabled: true,
+
   actions: {
+    async openCarlaModal() {
+      this.set("isDialogOpen", true);
+      this.set("hasError", false);
+
+      next(() => {
+        this.$(".ui.basic.modal")
+          .modal({
+            closable: false,
+            transition: "scale",
+            duration: 500,
+            dimmerSettings: { duration: { show: 500, hide: 500 } },
+          })
+          .modal("show");
+      });
+    },
+
+    closeCarlaDialog() {
+      this.$(".ui.modal").modal("hide");
+      this.set("isDialogOpen", false);
+      this.set("hasError", false);
+    },
+
     async loadScenario() {
       try {
         const response = await fetch(

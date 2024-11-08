@@ -11,6 +11,32 @@ export default Component.extend({
   loadingStep1: false,
   loadingStep2: false,
   loadingStep3: false,
+  carlaPath: "",
+
+  async saveCarlaPath() {
+    try {
+      const carlaPath = this.get("carlaPath").replace(/"/g, "");
+      const response = await fetch(
+        "http://localhost:4204/api/save_carla_path",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ path: carlaPath }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log(result.status);
+    } catch (error) {
+      console.error("Failed to save Carla path.", error);
+    }
+  },
 
   async startFlask() {
     this.set("loadingStep1", true);
@@ -31,7 +57,7 @@ export default Component.extend({
       this.set("loadingStep1", false);
       this.set("step1", true);
       console.log("Flask started successfully.");
-      // this.checkFlaskStatus();
+      this.startCarla();
     } catch (error) {
       this.set("loadingStep1", false);
       console.error("Failed to start Flask.", error);
@@ -119,6 +145,10 @@ export default Component.extend({
   },
 
   actions: {
+    async handleSaveCarlaPath() {
+      await this.saveCarlaPath();
+    },
+
     async openCarlaModal() {
       this.set("isDialogOpen", true);
       this.set("hasError", false);

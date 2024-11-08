@@ -22,6 +22,22 @@
     alt="Carla"
     local-class="carla-image"
   />
+  <div>
+    <div class="ui form">
+      <div class="field">
+        <label>CARLA Path</label>
+        {{input value=carlaPath placeholder="Enter CARLA executable path"}}
+      </div>
+      <button class="ui button" {{action "handleSaveCarlaPath"}}>
+        Save CARLA Path
+      </button>
+    </div>
+
+    {{#if carlaPath}}
+      <p>Selected Path: {{carlaPath}}</p>
+    {{/if}}
+  </div>
+
 </div>
 
 {{#if isDialogOpen}}

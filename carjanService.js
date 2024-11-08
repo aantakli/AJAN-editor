@@ -3,6 +3,10 @@ const http = require("http");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const { spawn } = require("child_process");
+const dotenv = require("dotenv");
+const path = require("path");
+const fs = require("fs");
+
 const {
   initializeCarjanRepository,
   deleteStatements,
@@ -15,6 +19,8 @@ const port = 4204;
 const server = http.createServer(app);
 let flaskProcess = null;
 let flaskPid = null;
+
+dotenv.config();
 
 function startFlaskService() {
   flaskProcess = spawn(
@@ -111,6 +117,31 @@ async function waitForFlaskToBeReady() {
 }
 
 app.use(cors());
+app.use(express.json());
+
+app.post("/api/save_carla_path", (req, res) => {
+  const carlaPath = req.body.path;
+  if (!carlaPath) {
+    return res.status(400).json({ error: "CARLA path is required" });
+  }
+
+  const envFilePath = path.join(__dirname, ".env");
+
+  fs.writeFile(
+    envFilePath,
+    `CARLA_PATH="${carlaPath}"\n`,
+    { flag: "w" },
+    (err) => {
+      if (err) {
+        console.error("Failed to write CARLA path to .env file:", err);
+        return res.status(500).json({ error: "Failed to save CARLA path" });
+      }
+
+      console.log("CARLA path saved to .env file");
+      res.json({ status: "CARLA path saved successfully" });
+    }
+  );
+});
 
 app.post("/api/start_flask", async (req, res) => {
   try {

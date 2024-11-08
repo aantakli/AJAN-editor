@@ -14,7 +14,9 @@ import numpy as np
 import requests
 import threading
 import logging
+import os
 
+carla_path = os.getenv("CARLA_PATH", "CarlaUE4.exe")
 
 app = Flask(__name__)
 app_data = {}
@@ -702,11 +704,11 @@ def health_check():
 
 @app.route("/start_carla", methods=["GET"])
 def start_carla():
-    return jsonify({"status": "Carla started"}), 200
     global client, world, blueprint_library, current_map
     try:
-        # Pfad zur CARLA-Exe (aktualisiere diesen Pfad nach Bedarf)
-       # exe_path = r"C:\path\to\CarlaUE4.exe"
+        print("CARLA Path:", carla_path)
+        return jsonify({"status": "CARLA started successfully."}), 200
+        exe_path = r"C:\path\to\CarlaUE4.exe"
         # Starte die CARLA-Exe
        # subprocess.Popen(exe_path)
         print("CarlaUE4.exe started successfully.")

@@ -1,7 +1,7 @@
 .button-container {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Adjust the gap value as needed */
+  gap: 10px;
   width: fit-content;
   margin: 16px;
 }
@@ -13,10 +13,10 @@
 }
 
 .carla-image {
-  width: 25%; /* Bild wird halb so groß dargestellt */
+  width: 25%;
   height: auto;
-  display: block; /* Verhindert, dass das Bild wie Inline-Element zusätzlichen Platz benötigt */
-  margin: 0 auto; /* Zentriert das Bild horizontal */
+  display: block;
+  margin: 0 auto;
 }
 
 .button-panel {
@@ -31,4 +31,36 @@
 
 .center-modal {
   left: auto;
+}
+
+.stepper {
+  display: flex;
+  justify-content: space-around;
+  padding: 20px 0;
+}
+
+.step {
+  text-align: center;
+  position: relative;
+  flex: 1;
+}
+
+.step.completed .icon,
+.step.completed .loader {
+  color: #4caf50;
+}
+
+.step.loading .loader {
+  display: inline-block;
+}
+
+.step .icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.step span {
+  display: block;
+  font-size: 14px;
+  margin-top: 4px;
 }

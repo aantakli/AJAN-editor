@@ -696,6 +696,10 @@ def idleWait():
 def hi():
     return "Hello, World!"
 
+@app.route('/health_check', methods=['GET'])
+def health_check():
+    return jsonify({"status": "OK"}), 200
+
 @app.route("/start_carla", methods=["GET"])
 def start_carla():
     return jsonify({"status": "Carla started"}), 200

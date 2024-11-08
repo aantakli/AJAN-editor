@@ -1,9 +1,8 @@
 .button-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  width: fit-content;
   margin: 16px;
+  align-items: center;
 }
 
 .center-modal {

@@ -17,24 +17,35 @@
             </h4>
           </div>
           <div class="ui top attached tabular menu">
-            <a class="item active" data-tab="import"><i
-                class="icon database"
-              ></i>
+            <a
+              class="item active"
+              data-tab="import"
+              {{action "closePathwayEditor"}}
+            ><i class="icon database"></i>
               Files
             </a>
-            <a class="item" data-tab="map-selection"><i class="icon map"></i>
+            <a
+              class="item"
+              data-tab="map-selection"
+              {{action "closePathwayEditor"}}
+            ><i class="icon map"></i>
               Maps
             </a>
-            <a class="item" data-tab="dragdrop"><i class="icon user"></i>
+            <a
+              class="item"
+              data-tab="dragdrop"
+              {{action "closePathwayEditor"}}
+            ><i class="icon user"></i>
               Entities
             </a>
-            <a class="item" data-tab="waypoint"><i class="icon map pin"></i>
-              Waypoints
+            <a class="item" data-tab="waypoint"><i class="icon map signs"></i>
+              Paths
             </a>
           </div>
 
           <div class="ui bottom attached tab segment active" data-tab="import">
             {{services/carjan/carjan-import}}
+            {{services/carjan/carjan-preview-button}}
           </div>
           <div class="ui bottom attached tab segment" data-tab="map-selection">
             {{services/carjan/carjan-map-selection}}
@@ -62,7 +73,6 @@
           style="background-color: #E8EDF1;"
         >
           {{services/carjan/carjan-properties}}
-          {{services/carjan/carjan-preview-button}}
         </div>
       </div>
 

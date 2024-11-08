@@ -1,8 +1,10 @@
 import Component from "@ember/component";
+import { inject as service } from "@ember/service";
 import Split from "split.js";
 import $ from "jquery";
 
 export default Component.extend({
+  carjanState: service(),
   didInsertElement() {
     this._super(...arguments);
     this.setupSplitPanes();
@@ -49,6 +51,15 @@ export default Component.extend({
       },
     });
   },
+
+  actions: {
+    closePathwayEditor() {
+      const mainElement = document.getElementById("main");
+      mainElement.innerHTML = "";
+      this.carjanState.setPathEditor(false);
+    },
+  },
+
   setupTabs() {
     $(document).ready(function () {
       $(".menu .item").tab();

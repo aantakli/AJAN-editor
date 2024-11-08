@@ -1213,6 +1213,7 @@ export default Component.extend({
     const cellStatus = this.gridStatus[`${row},${col}`];
 
     if (cellStatus && cellStatus.waypoints && cellStatus.waypoints.length > 0) {
+      console.log("cellStatus", cellStatus);
       this.carjanState.set("currentCellStatus", cellStatus);
       this.carjanState.set("currentCellPosition", [row, col]);
       this.carjanState.set("openWaypointEditor", true);

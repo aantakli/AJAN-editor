@@ -47,6 +47,27 @@ export default Component.extend({
     });
   }),
 
+  waypointPathList: computed(
+    "waypoints.@each",
+    "paths.@each.waypoints",
+    function () {
+      // Sicherstellen, dass `waypoints` und `paths` initialisiert sind
+      const waypoints = this.waypoints || [];
+      const paths = this.paths || [];
+
+      return waypoints.map((waypoint) => {
+        const associatedPaths = paths.filter((path) =>
+          path.waypoints.some((wp) => wp.waypoint === waypoint.waypoint)
+        );
+
+        return {
+          ...waypoint,
+          paths: associatedPaths,
+        };
+      });
+    }
+  ),
+
   pathObserver: observer("carjanState.paths.@each.waypoints", function () {
     const paths = this.carjanState.paths || [];
     this.set(
@@ -100,15 +121,22 @@ export default Component.extend({
     this.set("placeholderText", options[randomIndex]);
   },
 
+  isWaypointInPath: (waypoint, path) =>
+    path.waypoints.some((wp) => wp.waypoint === waypoint.waypoint),
+
   actions: {
     setWaypointHighlightColor(waypoint, path) {
       const iconElement = document.querySelector(
         `[data-x="${waypoint.x}"][data-y="${waypoint.y}"][data-position-in-cell="${waypoint.positionInCell}"]`
       );
+      let color = "#FEFEFE";
+      if (path) {
+        color = path.color;
+      }
       if (iconElement) {
         iconElement.style.transition =
           "transform 0.5s ease, color 0.2s ease, textshadow 0.2 ease";
-        iconElement.style.color = path.color;
+        iconElement.style.color = color;
         iconElement.style.transform = "scale(1.8)";
         // add shadow
         iconElement.style.textShadow = "0 0 3px black";
@@ -129,6 +157,30 @@ export default Component.extend({
     openPathwayEditor(path) {
       this.carjanState.setSelectedPath(path);
       this.carjanState.setPathEditor(true);
+    },
+
+    clearPath() {
+      const mainElement = document.getElementById("main");
+      mainElement.innerHTML = "";
+    },
+
+    closePathwayEditor() {
+      this.carjanState.setPathEditor(false);
+    },
+
+    openWaypointEditor(x, y, positionInCell) {
+      console.log("openWaypointEditor", x, y);
+      let filteredWaypoints = this.waypoints.filter(
+        (wp) => wp.x === x && wp.y === y
+      );
+      let cellStatus = {
+        ocucpied: false,
+        entityType: null,
+        waypoints: filteredWaypoints,
+      };
+      this.carjanState.set("currentCellPosition", [x, y]);
+      this.carjanState.set("currentCellStatus", cellStatus);
+      this.carjanState.setWaypointEditor(true);
     },
 
     async openNewPathDialog() {

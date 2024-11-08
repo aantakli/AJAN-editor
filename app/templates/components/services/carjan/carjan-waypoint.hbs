@@ -1,6 +1,8 @@
 <div class="ui top attached tabular menu">
-  <a class="active item" data-tab="paths">Paths</a>
-  <a class="item" data-tab="waypoints">Waypoints</a>
+  <a class="active item" data-tab="paths">
+    <i class="map signs icon"></i>Paths</a>
+  <a class="item" data-tab="waypoints">
+    <i class="map pin icon"></i>Waypoints</a>
 </div>
 
 <!-- Paths Tab -->
@@ -102,54 +104,114 @@
 
   <div class="content">
     <!-- Standardmäßiger Drag-and-Drop-Bereich für neue Waypoints -->
-    <div class="ui items" local-class="waypoint-selection-container">
-      <div local-class="waypoint-panel">
-        <div class="ui items" local-class="waypoint-item" style="margin: 0;">
-          <div local-class="waypoint-image">
-            <i
-              id="map-pin-icon"
-              class="icon map pin"
-              style="font-size: 48px;"
-            ></i>
-          </div>
-          <div local-class="waypoint-content">
-            <a local-class="waypoint-header">New Waypoint</a>
-          </div>
+    <div local-class="waypoint-panel">
+      <div class="ui items" local-class="waypoint-item" style="margin: 0;">
+        <div local-class="waypoint-image">
+          <i
+            id="map-pin-icon"
+            class="icon map pin"
+            style="font-size: 48px;"
+          ></i>
         </div>
-
-        <div
-          local-class="drag-overlay"
-          draggable="true"
-          data-waypoint-type="waypoint"
-          ondragstart={{action "dragStart"}}
-          ondragleave={{action "dragLeave"}}
-          style="position:absolute; top:0; left:0; width:100%; height:100%"
-        ></div>
+        <div local-class="waypoint-content">
+          <a local-class="waypoint-header">New Waypoint</a>
+        </div>
       </div>
-    </div>
 
+      <div
+        local-class="drag-overlay"
+        draggable="true"
+        data-waypoint-type="waypoint"
+        ondragstart={{action "dragStart"}}
+        ondragleave={{action "dragLeave"}}
+        style="position:absolute; top:0; left:0; width:100%; height:100%"
+      ></div>
+    </div>
+    <h3></h3>
     <!-- Liste der bestehenden Waypoints -->
-    <h4>Existing Waypoints</h4>
-    <div class="ui items" id="existing-waypoints-list">
-      {{#each waypoints as |waypoint|}}
-        <div class="item">
-          <div class="content">
-            <div class="header">{{waypoint.waypointId}}</div>
-            <div class="description">
-              Coordinates: ({{waypoint.x}},
-              {{waypoint.y}})
-              {{#if waypoint.waitTime}}
-                | Wait Time:
-                {{waypoint.waitTime}}s
-              {{/if}}
-              {{#if waypoint.positionInCell}}
-                | Position in Cell:
-                {{waypoint.positionInCell}}
-              {{/if}}
+    <p class="node-adder-class title-behaviors">
+      <i class="list ul icon"></i>
+      <b>Available Waypoints</b>
+    </p>
+    <div
+      class="ui items"
+      id="paths-list"
+      local-class="waypoint-selection-container"
+      style="height: 200px;"
+    >
+      {{#each waypointPathList as |waypoint|}}
+        <div
+          local-class="waypoint-panel-main"
+          style="margin-bottom: 12px; padding-left: 20px;"
+          onmouseenter={{action "setWaypointHighlightColor" waypoint null}}
+          onmouseleave={{action "clearWaypointHighlightColor" waypoint}}
+          onclick={{action
+            "openWaypointEditor"
+            waypoint.x
+            waypoint.y
+            waypoint.positionInCell
+          }}
+        >
+          <div class="item">
+            <div class="content" local-class="content-small">
+              <div local-class="description">
+                <i class="icon map pin"></i>
+                {{waypoint.waypointId}}
+                <div class="ui breadcrumb">
+                  <i class="right angle icon divider"></i>
+                  <div class="section">
+                    <div local-class="waypoint-panel">
+                      <div
+                        class="ui items"
+                        local-class="waypoint-item"
+                        style="margin: 0;"
+                      >
+                        <div class="content">
+                          <div class="title">
+                            <i class="map pin icon"></i>
+                            ({{waypoint.x}},
+                            {{waypoint.y}})
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="section"
+                    style="margin-left: 10px; color: #50C878"
+                  >
+                    {{waypoint.positionInCell}}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hier werden nur die relevanten Pfade für den aktuellen Waypoint angezeigt -->
+              <div class="extra" local-class="scroll-path-waypoints">
+                <div
+                  class="ui breadcrumb"
+                  style="display: flex; flex-direction: row; gap: 16px;"
+                >
+                  {{#each waypoint.paths as |path|}}
+                    <div
+                      local-class="waypoint-panel"
+                      onmouseenter={{action "openPathwayEditor" path}}
+                      onmouseleave={{action "clearPath"}}
+                    >
+                      <i
+                        class="icon share alternate"
+                        style="color: {{path.color}};"
+                      ></i>
+                      {{path.description}}
+                    </div>
+                  {{/each}}
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
       {{/each}}
+
     </div>
   </div>
 </div>

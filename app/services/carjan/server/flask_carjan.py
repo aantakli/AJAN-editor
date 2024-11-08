@@ -5,6 +5,7 @@ sys.stdout = open(sys.stdout.fileno(), 'w', buffering=1)
 from requestAJAN import destroy_actor, generate_actor, send_data, send_initialKnowledge
 from flask import Flask, Response, jsonify, request
 from rdflib import Graph, URIRef, Literal, Namespace, RDF
+import subprocess
 import rdflib
 import carla
 import logging
@@ -20,11 +21,12 @@ app_data = {}
 turtle_data_store = Graph()
 app.logger.setLevel(logging.INFO)
 actor_list = []
-client = carla.Client("localhost", 2000)
-client.set_timeout(10.0)
-world = client.get_world()
-blueprint_library = world.get_blueprint_library()
-current_map = world.get_map()
+
+# Globale Variablen für CARLA-Verbindung
+client = None
+world = None
+blueprint_library = None
+current_map = None
 
 entityList = []
 seen_actors = set()
@@ -693,6 +695,30 @@ def idleWait():
 @app.route("/hi", methods=["GET"])
 def hi():
     return "Hello, World!"
+
+@app.route("/start_carla", methods=["GET"])
+def start_carla():
+    return jsonify({"status": "Carla started"}), 200
+    global client, world, blueprint_library, current_map
+    try:
+        # Pfad zur CARLA-Exe (aktualisiere diesen Pfad nach Bedarf)
+       # exe_path = r"C:\path\to\CarlaUE4.exe"
+        # Starte die CARLA-Exe
+       # subprocess.Popen(exe_path)
+        print("CarlaUE4.exe started successfully.")
+
+        # Warte einige Sekunden, um sicherzustellen, dass CARLA gestartet ist
+        time.sleep(10)  # Anpassung der Wartezeit je nach Systemleistung
+
+        # Initialisiere den CARLA-Client und verbinde dich mit der Welt
+        #client = carla.Client("localhost", 2000)
+        #client.set_timeout(10.0)
+       # world = client.get_world()
+      #  current_map = world.get_map()
+        return jsonify({"status": "CARLA started and connected successfully."}), 200
+    except Exception as e:
+        print("Failed to start CARLA or establish connection:", e)
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/load_scenario', methods=['GET'])
 def load_scenario():

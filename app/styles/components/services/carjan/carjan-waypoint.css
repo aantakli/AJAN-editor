@@ -5,6 +5,8 @@
   height: 400px;
   gap: 20px;
   padding: 10px;
+  padding-left: 70px;
+  padding-right: 70px;
 }
 
 .waypoint-panel {
@@ -14,6 +16,7 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.3s ease;
   position: relative;
+  background-color: white;
 }
 
 .waypoint-panel-main {
@@ -24,6 +27,7 @@
   transition: box-shadow 0.3s ease;
   position: relative;
   padding-left: 60px;
+  background-color: white;
 }
 
 .waypoint-panel-main:hover {
@@ -44,6 +48,11 @@
   background-color: var(--triangle-color);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   border-radius: 5px 5px 5px 5px;
+}
+
+.waypoint-container {
+  padding-left: 70px;
+  padding-right: 70px;
 }
 
 .waypoint-item {

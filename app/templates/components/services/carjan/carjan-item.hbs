@@ -12,8 +12,21 @@
         id="gridContainer"
         ondrop={{action "dropOnBackground"}}
         ondragover={{action "allowDrop"}}
+        style="position: relative;"
       >
+
         <div id="overlay" local-class="overlay" hidden></div>
+        <div local-class="column-numbers">
+          {{#each (range 0 this.gridCols) as |col|}}
+            <div local-class="col-number">{{col}}</div>
+          {{/each}}
+        </div>
+
+        <div local-class="row-numbers">
+          {{#each (range 0 this.gridRows) as |row|}}
+            <div local-class="row-number">{{row}}</div>
+          {{/each}}
+        </div>
         <svg
           id={{gridId}}
           width="100%"

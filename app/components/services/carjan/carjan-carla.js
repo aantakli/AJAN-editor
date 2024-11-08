@@ -5,8 +5,15 @@ export default Component.extend({
   isDialogOpen: false,
   hasError: false,
   isDisabled: false,
+  step1: false,
+  step2: false,
+  step3: false,
+  loadingStep1: false,
+  loadingStep2: false,
+  loadingStep3: false,
 
   async startFlask() {
+    this.set("loadingStep1", true);
     try {
       const response = await fetch("http://localhost:4204/api/start_flask", {
         method: "POST",
@@ -20,23 +27,21 @@ export default Component.extend({
       }
 
       const result = await response.json();
-      console.log(result.status); // Ausgabe: "Flask started"
-      setTimeout(() => {
-        console.log("Starting Carla...");
-        // this.startCarla();
-      }, 2000);
+      console.log(result.status);
+      this.set("loadingStep1", false);
+      this.set("step1", true);
+      console.log("Flask started successfully.");
+      // this.checkFlaskStatus();
     } catch (error) {
+      this.set("loadingStep1", false);
       console.error("Failed to start Flask.", error);
     }
   },
 
   async stopFlask() {
     try {
-      const response = await fetch("http://localhost:4204/api/shutdown", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const response = await fetch("http://localhost:4204/api/shutdownFlask", {
+        method: "GET",
       });
 
       if (!response.ok) {
@@ -44,13 +49,14 @@ export default Component.extend({
       }
 
       const result = await response.json();
-      console.log(result.status); // Ausgabe: "Flask stopped"
+      console.log(result.status);
     } catch (error) {
       console.error("Failed to stop Flask.", error);
     }
   },
 
   async startCarla() {
+    this.set("loadingStep2", true);
     try {
       const response = await fetch("http://localhost:4204/api/start_carla", {
         method: "POST",
@@ -65,16 +71,65 @@ export default Component.extend({
 
       const result = await response.json();
       console.log(result.status);
+      this.set("loadingStep2", false);
+      this.set("step2", true);
+      this.loadScenario();
     } catch (error) {
+      this.set("loadingStep2", false);
       console.error("Failed to start Carla.", error);
+    }
+  },
+
+  async checkFlaskStatus() {
+    const checkInterval = setInterval(async () => {
+      try {
+        const response = await fetch("http://localhost:4204/api/health_check");
+        if (response.ok) {
+          clearInterval(checkInterval);
+          this.startCarla();
+        }
+      } catch (error) {
+        console.log("Flask ist noch nicht bereit, versuche es erneut...");
+      }
+    }, 500);
+  },
+
+  async loadScenario() {
+    this.set("loadingStep3", true);
+    try {
+      const response = await fetch("http://localhost:4204/api/carla-scenario", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log(result);
+      this.set("loadingStep3", false);
+      this.set("step3", true);
+    } catch (error) {
+      this.set("loadingStep3", false);
+      console.error("Failed to load Scenario.", error);
     }
   },
 
   actions: {
     async openCarlaModal() {
-      this.startFlask();
       this.set("isDialogOpen", true);
       this.set("hasError", false);
+      this.set("step1", false);
+      this.set("step2", false);
+      this.set("step3", false);
+      this.set("loadingStep1", false);
+      this.set("loadingStep2", false);
+      this.set("loadingStep3", false);
+
+      this.startFlask();
 
       next(() => {
         this.$(".ui.basic.modal")
@@ -90,92 +145,10 @@ export default Component.extend({
 
     closeCarlaDialog() {
       this.stopFlask();
+      console.log("Closing dialog...");
       this.$(".ui.modal").modal("hide");
       this.set("isDialogOpen", false);
       this.set("hasError", false);
-    },
-
-    async loadScenario() {
-      try {
-        const response = await fetch(
-          "http://localhost:4204/api/carla-scenario",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log(result);
-      } catch (error) {
-        console.error("Repository is not available.", error);
-      }
-    },
-    async resetCarla() {
-      try {
-        const response = await fetch("http://localhost:4204/api/reset-carla", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log(result);
-      } catch (error) {
-        console.error("Repository is not available.", error);
-      }
-    },
-    async ajanAgent() {
-      try {
-        const response = await fetch("http://localhost:4204/api/send_data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log(result);
-      } catch (error) {
-        console.error("Repository is not available.", error);
-      }
-    },
-
-    async startAgent(entityId) {
-      const eID = "Entity0205";
-      try {
-        const response = await fetch("http://localhost:4204/api/start_agent", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ id: eID }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log(result);
-      } catch (error) {
-        console.error("Repository is not available.", error);
-      }
     },
   },
 });

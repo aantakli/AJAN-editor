@@ -4,15 +4,17 @@
 </p>
 
 <div local-class="row-container">
-  <div local-class="button-container">
-    <button
-      {{action "openCarlaModal"}}
-      local-class="button-panel"
-      class="ui green button"
-    >
-      <i class="play icon"></i>
-      Simulate in CARLA
-    </button>
+  <div class="ui segment">
+    <div local-class="button-container">
+      <button
+        {{action "openCarlaModal"}}
+        local-class="button-panel"
+        class="ui green button"
+      >
+        <i class="play icon"></i>
+        Simulate in CARLA
+      </button>
+    </div>
   </div>
 
   <img
@@ -25,29 +27,54 @@
 {{#if isDialogOpen}}
   <div class="ui dimmer modals page">
     <div class="ui small basic modal transition" local-class="center-modal">
+      <div class="header">Starting Services</div>
+      <div class="content">
+        <div local-class="stepper">
+          <!-- Schritt 1: Starting Flask -->
+          <div
+            local-class="step"
+            class="{{if step1 'completed'}} {{if loadingStep1 'loading'}}"
+          >
+            {{#if loadingStep1}}
+              <div class="ui active inline loader"></div>
+            {{else}}
+              <i class="check icon"></i>
+            {{/if}}
+            <span>Starting Flask</span>
+          </div>
 
-      <div class="header"><img
-          src="/assets/carjan/carjan-maps/images/carla.png"
-          alt="Carla"
-          local-class="carla-image"
-        />
-        <i class="car icon"></i>
-        Simulate in CARLA
+          <!-- Schritt 2: Starting CARLA -->
+          <div
+            local-class="step"
+            class="{{if step2 'completed'}} {{if loadingStep2 'loading'}}"
+          >
+            {{#if loadingStep2}}
+              <div class="ui active inline loader"></div>
+            {{else}}
+              <i class="check icon"></i>
+            {{/if}}
+            <span>Starting CARLA</span>
+          </div>
+
+          <!-- Schritt 3: Loading Scenario -->
+          <div
+            local-class="step"
+            class="{{if step3 'completed'}} {{if loadingStep3 'loading'}}"
+          >
+            {{#if loadingStep3}}
+              <div class="ui active inline loader"></div>
+            {{else}}
+              <i class="check icon"></i>
+            {{/if}}
+            <span>Loading Scenario</span>
+          </div>
+        </div>
       </div>
-
       <div class="actions">
         <button
-          class="ui green cancel button"
-          {{action "loadScenario"}}
-          disabled={{isDisabled}}
-        >
-          <i class="check icon"></i>
-          Confirm
-        </button>
-
-        <button class="ui cancel button" {{action "closeCarlaDialog"}}>
-          Cancel
-        </button>
+          class="ui red cancel button"
+          {{action "closeCarlaDialog"}}
+        >Cancel</button>
       </div>
     </div>
   </div>

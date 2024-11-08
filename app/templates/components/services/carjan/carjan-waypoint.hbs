@@ -29,6 +29,11 @@
     </div>
   </div>
 
+  <p class="active title composite-selection">
+    <i class="info circle icon" style="margin-left: 4px"></i>
+    Click on a Path see its properties.
+  </p>
+
   <div
     class="ui items"
     id="paths-list"
@@ -136,16 +141,12 @@
       ></div>
     </div>
     <h3></h3>
-    <!-- Liste der bestehenden Waypoints -->
-    <p class="node-adder-class title-behaviors" style="margin-top: 20px;">
-      <i class="list ul icon"></i>
-      <b>Available Waypoints</b>
-    </p>
+
     <div
       class="ui items"
       id="paths-list"
       local-class="waypoint-selection-container"
-      style="height: 200px; background-color: rgb(232, 237, 241); border-radius: 10px;"
+      style="height: 300px; background-color: rgb(232, 237, 241); border-radius: 10px;"
     >
       {{#each waypointPathList as |waypoint|}}
         <div

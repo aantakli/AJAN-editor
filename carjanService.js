@@ -26,12 +26,10 @@ function startFlaskService() {
     }
   );
 
-  // Erhalte die Ausgabe von stdout (normale Logs)
   flaskProcess.stdout.on("data", (data) => {
     console.log(`=== Carjan Service ===\n${data.toString()}`);
   });
 
-  // Erhalte die Ausgabe von stderr (Fehlerprotokolle)
   flaskProcess.stderr.on("data", (data) => {
     console.error(`=== Carla Connection ===\n${data.toString()}`);
   });
@@ -42,6 +40,7 @@ function startFlaskService() {
 
   flaskProcess.unref();
   flaskPid = flaskProcess.pid;
+
   flaskProcess.on("exit", (code, signal) => {
     console.log(`Flask process exited with code ${code} and signal ${signal}`);
     flaskProcess = null;
@@ -63,20 +62,76 @@ async function destroyActors() {
 
 async function stopFlaskService() {
   if (flaskProcess) {
-    flaskProcess.kill();
+    try {
+      flaskProcess.kill();
+      console.log("Flask service stopped.");
+      flaskProcess = null;
+      flaskPid = null;
+      return true;
+    } catch (err) {
+      console.error("Error stopping Flask process:", err);
+      return false;
+    }
   } else if (flaskPid) {
     try {
       process.kill(flaskPid);
-      console.log("Flask service stopped.");
+      console.log(`Flask process with PID ${flaskPid} stopped.`);
+      flaskProcess = null;
+      flaskPid = null;
+      return true;
     } catch (err) {
       console.error(`Error stopping Flask process with PID ${flaskPid}:`, err);
+      return false;
     }
   } else {
     console.log("No Flask process to stop.");
+    return false;
   }
 }
 
+async function waitForFlaskToBeReady() {
+  const maxAttempts = 10;
+  const delay = 1000;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const response = await forwardToFlask("/health_check");
+      console.log("Flask response:", response);
+
+      if (response && response.status === "OK") {
+        console.log("Flask is ready.");
+        return true;
+      }
+    } catch (error) {
+      console.log(`Flask not ready, attempt ${attempt}...`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
+  return false;
+}
+
 app.use(cors());
+
+app.post("/api/start_flask", async (req, res) => {
+  try {
+    startFlaskService();
+    console.log("Flask process started. Waiting for it to be ready...");
+
+    const flaskReady = await waitForFlaskToBeReady();
+
+    if (flaskReady) {
+      console.log("Flask is ready.");
+      res.json({
+        status: "Flask started",
+      });
+    } else {
+      throw new Error("Flask did not become ready in time.");
+    }
+  } catch (error) {
+    console.error("Error starting Flask:", error);
+    res.status(500).json({ error: "Failed to start Flask" });
+  }
+});
 
 app.post("/api/init-carjan-repo", async (req, res) => {
   try {
@@ -179,21 +234,40 @@ app.post("/api/reset-carla", async (req, res) => {
 });
 
 app.get("/shutdown", (req, res) => {
+  console.log("Shutting down server...");
   res.send("Shutting down server...");
   stopFlaskService();
   process.exit();
 });
 
-app.post("/api/start_flask", async (req, res) => {
+app.get("/api/shutdownFlask", async (req, res) => {
+  const success = await stopFlaskService();
+
+  if (success) {
+    res.status(200).json({ status: "Flask service stopped successfully" });
+  } else {
+    res.status(500).json({ error: "Failed to stop Flask service" });
+  }
+});
+
+app.get("/api/health_check", async (req, res) => {
   try {
-    startFlaskService();
-    console.log("Flask started.");
+    const flaskResponse = await forwardToFlask("/health_check");
+
+    if (!flaskResponse.ok) {
+      throw new Error(`Flask server returned status ${flaskResponse.status}`);
+    }
+
+    const flaskData = await flaskResponse.json();
+    console.log("Flask Health-Check response:", flaskData);
+
     res.json({
-      status: "Flask started",
+      status: "Flask is ready",
+      flaskData: flaskData,
     });
   } catch (error) {
-    console.error("Error starting Flask:", error);
-    res.status(500).json({ error: "Failed to load scenario" });
+    console.error("Error forwarding Health-Check to Flask:", error);
+    res.status(500).json({ error: "Flask is not ready" });
   }
 });
 
@@ -280,7 +354,6 @@ function forwardToFlask(endpoint, body = null) {
       reject(e);
     });
 
-    // Sende den `body`, wenn er vorhanden ist
     if (body) {
       req.write(JSON.stringify(body));
     }

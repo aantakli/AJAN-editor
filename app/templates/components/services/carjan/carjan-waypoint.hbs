@@ -7,27 +7,33 @@
 
 <!-- Paths Tab -->
 <div class="ui bottom attached active tab segment" data-tab="paths">
-  <p class="node-adder-class title-behaviors">
-    <i class="share alternate icon"></i>
-    <b>Path Selection</b>
-  </p>
 
-  <!-- Button to add a new Path -->
-  <button
-    class="ui secondary button"
-    id="add-path"
-    {{action "openNewPathDialog"}}
-  >
-    <i class="plus icon"></i>
-    New Path
-  </button>
-  <div id="error-message" class="toast message negative container">Test toast!
-    BZTT</div>
+  <div class="ui segment">
+    <div class="ui grid">
+      <div class="ui eleven wide column">
+        <p class="node-adder-class title-behaviors">
+          <i class="share alternate icon"></i>
+          <b>Path Selection</b>
+        </p>
+      </div>
+      <div class="ui four wide column">
+        <button
+          class="ui secondary button"
+          id="add-path"
+          {{action "openNewPathDialog"}}
+        >
+          <i class="plus icon"></i>
+          New Path
+        </button>
+      </div>
+    </div>
+  </div>
 
   <div
     class="ui items"
     id="paths-list"
     local-class="waypoint-selection-container"
+    style="background-color: rgb(232, 237, 241); border-radius: 10px;"
   >
     {{#each pathsWithWaypoints as |path|}}
       <div
@@ -104,17 +110,19 @@
 
   <div class="content">
     <!-- Standardmäßiger Drag-and-Drop-Bereich für neue Waypoints -->
-    <div local-class="waypoint-panel">
-      <div class="ui items" local-class="waypoint-item" style="margin: 0;">
-        <div local-class="waypoint-image">
-          <i
-            id="map-pin-icon"
-            class="icon map pin"
-            style="font-size: 48px;"
-          ></i>
-        </div>
-        <div local-class="waypoint-content">
-          <a local-class="waypoint-header">New Waypoint</a>
+    <div local-class="waypoint-container">
+      <div local-class="waypoint-panel">
+        <div class="ui items" local-class="waypoint-item" style="margin: 0;">
+          <div local-class="waypoint-image">
+            <i
+              id="map-pin-icon"
+              class="icon map pin"
+              style="font-size: 48px;"
+            ></i>
+          </div>
+          <div local-class="waypoint-content">
+            <a local-class="waypoint-header">New Waypoint</a>
+          </div>
         </div>
       </div>
 
@@ -129,7 +137,7 @@
     </div>
     <h3></h3>
     <!-- Liste der bestehenden Waypoints -->
-    <p class="node-adder-class title-behaviors">
+    <p class="node-adder-class title-behaviors" style="margin-top: 20px;">
       <i class="list ul icon"></i>
       <b>Available Waypoints</b>
     </p>
@@ -137,7 +145,7 @@
       class="ui items"
       id="paths-list"
       local-class="waypoint-selection-container"
-      style="height: 200px;"
+      style="height: 200px; background-color: rgb(232, 237, 241); border-radius: 10px;"
     >
       {{#each waypointPathList as |waypoint|}}
         <div

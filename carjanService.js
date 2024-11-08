@@ -196,6 +196,23 @@ app.post("/api/start_flask", async (req, res) => {
     res.status(500).json({ error: "Failed to load scenario" });
   }
 });
+
+app.post("/api/start_carla", async (req, res) => {
+  try {
+    const flaskResponse = await forwardToFlask("/start_carla");
+
+    console.log("Flask response:", flaskResponse);
+
+    res.json({
+      status: "Scenario loaded from Flask",
+      scenario: flaskResponse,
+    });
+  } catch (error) {
+    console.error("Error forwarding to Flask:", error);
+    res.status(500).json({ error: "Failed to load scenario" });
+  }
+});
+
 app.post("/api/start_agent", async (req, res) => {
   const { id } = req.body;
 
@@ -226,16 +243,17 @@ process.on("SIGINT", () => {
 
 function forwardToFlask(endpoint, body = null) {
   return new Promise((resolve, reject) => {
-    m = body ? "POST" : "GET";
+    const method = body ? "POST" : "GET";
+    console.log("Forwarding to Flask:", endpoint);
+    console.log("method:", method);
     const options = {
       hostname: "localhost",
       port: 5000,
       path: endpoint,
-      method: m,
+      method: method,
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
     };
 
     const req = http.request(options, (res) => {
@@ -261,6 +279,11 @@ function forwardToFlask(endpoint, body = null) {
       console.error(`Problem with request: ${e.message}`);
       reject(e);
     });
+
+    // Sende den `body`, wenn er vorhanden ist
+    if (body) {
+      req.write(JSON.stringify(body));
+    }
 
     req.end();
   });

@@ -42,43 +42,57 @@
   {{/ui-dropdown}}
 
   <div local-class="button-container">
-    <button class="ui secondary button" {{action "openNewScenarioDialog"}}>
-      <i class="plus icon" />
-      New Scenario
-    </button>
+    <div class="ui horizontal segments">
+      <div class="ui segment">
+        <button class="ui secondary button" {{action "openNewScenarioDialog"}}>
+          <i class="plus icon" />
+          New Scenario
+        </button>
+      </div>
+      <div class="ui segment">
+        <button class="ui red button" {{action "openDeleteDialog"}}>
+          <i class="trash icon" />
+          Delete Scenario
+        </button>
+      </div>
+    </div>
+  </div>
 
-    <button class="ui red button" {{action "openDeleteDialog"}}>
-      <i class="trash icon" />
-      Delete Scenario
-    </button>
+  <p class="node-adder-class title-behaviors">
+    <i class="save icon" />
+    <b>Uploads</b>
+  </p>
 
-    <button class="ui primary button" {{action "uploadFile"}}>
-      <i class="upload icon" />
-      Upload Repository
-    </button>
+  <div local-class="button-container">
+    <div class="ui horizontal segments">
+      <div class="ui segment">
+        <button class="ui primary button" {{action "uploadFile"}}>
+          <i class="upload icon" />
+          Upload Repository
+        </button>
+      </div>
+      <div class="ui segment">
+        <button class="ui button" {{action "uploadScenario"}}>
+          <i class="upload icon" />
+          Upload Scenario
+        </button>
+      </div>
+    </div>
 
-    <button class="ui primary button" {{action "uploadScenario"}}>
-      <i class="upload icon" />
-      Upload Scenario
-    </button>
-
-    <button
-      class="ui primary button sticky-save"
-      {{action "triggerSaveScenario"}}
-    >
-      <i class="save icon" />
-      Save
-    </button>
-
-    <button class="ui primary button sticky-save" {{action "downloadAll"}}>
-      <i class="download icon" />
-      Download Repository
-    </button>
-
-    <button class="ui primary button sticky-save" {{action "downloadScenario"}}>
-      <i class="download icon"></i>
-      Download Scenario
-    </button>
+    <div class="ui horizontal segments">
+      <div class="ui segment">
+        <button class="ui primary button sticky-save" {{action "downloadAll"}}>
+          <i class="download icon"></i>
+          Download Repository
+        </button>
+      </div>
+      <div class="ui segment">
+        <button class="ui button sticky-save" {{action "downloadScenario"}}>
+          <i class="download icon"></i>
+          Download Scenario
+        </button>
+      </div>
+    </div>
   </div>
 
   {{#if isDialogOpen}}

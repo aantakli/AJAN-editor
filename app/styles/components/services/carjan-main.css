@@ -106,7 +106,7 @@ canvas {
 
 #split-middle {
   background-color: #fff;
-  flex-grow: 2; /* Dieser Pane bekommt mehr Platz */
+  flex-grow: 2;
 }
 
 #split-right {
@@ -116,4 +116,8 @@ canvas {
 
 #carjan-item {
   height: 100%;
+}
+
+.carla-image {
+  scale: 0.8;
 }

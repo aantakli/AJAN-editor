@@ -1,0 +1,49 @@
+<p class="node-adder-class title-behaviors">
+  <i class="taxi icon"></i>
+  <b>CARLA Simulator</b>
+</p>
+
+<div local-class="row-container">
+  <div local-class="button-container">
+    <button
+      {{action "openCarlaModal"}}
+      local-class="button-panel"
+      class="ui green button"
+    >
+      <i class="play icon"></i>
+      Simulate in CARLA
+    </button>
+  </div>
+
+  <img
+    src="/assets/carjan/carjan-maps/images/carla.png"
+    alt="Carla"
+    local-class="carla-image"
+  />
+</div>
+
+{{#if isDialogOpen}}
+  <div class="ui dimmer modals page">
+    <div class="ui small basic modal transition" local-class="center-modal">
+
+      <div class="header"><i class="share alternate icon"></i>
+        Create your New Path
+      </div>
+
+      <div class="actions">
+        <button
+          class="ui green cancel button"
+          {{action "loadScenario"}}
+          disabled={{isDisabled}}
+        >
+          <i class="check icon"></i>
+          Confirm
+        </button>
+
+        <button class="ui cancel button" {{action "closeCarlaDialog"}}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+{{/if}}

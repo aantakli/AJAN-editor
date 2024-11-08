@@ -18,3 +18,17 @@
   display: block; /* Verhindert, dass das Bild wie Inline-Element zusätzlichen Platz benötigt */
   margin: 0 auto; /* Zentriert das Bild horizontal */
 }
+
+.button-panel {
+  margin-left: 16px !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+  transition: box-shadow 0.2s ease !important;
+}
+
+.button-panel:hover {
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+.center-modal {
+  left: auto;
+}

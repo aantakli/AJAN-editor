@@ -64,3 +64,15 @@
   font-size: 14px;
   margin-top: 4px;
 }
+
+.log-terminal .log-error {
+  color: red;
+}
+
+.log-terminal .log-warning {
+  color: orange;
+}
+
+.log-terminal .log-info {
+  color: white;
+}

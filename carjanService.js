@@ -6,6 +6,7 @@ const { spawn } = require("child_process");
 const dotenv = require("dotenv");
 const path = require("path");
 const fs = require("fs");
+const WebSocket = require("ws");
 
 const {
   initializeCarjanRepository,
@@ -15,12 +16,21 @@ const {
 
 const app = express();
 const port = 4204;
-
 const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
 let flaskProcess = null;
 let flaskPid = null;
 
 dotenv.config();
+
+function broadcastMessage(message) {
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
 
 function startFlaskService() {
   flaskProcess = spawn(
@@ -31,26 +41,45 @@ function startFlaskService() {
       stdio: ["pipe", "pipe", "pipe"],
     }
   );
+  console.log("=== Carjan Service ===");
+  broadcastMessage("=== Carjan Service ===");
 
   flaskProcess.stdout.on("data", (data) => {
-    console.log(`=== Carjan Service ===\n${data.toString()}`);
+    const message = `> \n${data.toString()}`;
+
+    console.log(message);
+    broadcastMessage(message);
   });
 
   flaskProcess.stderr.on("data", (data) => {
-    console.error(`=== Carla Connection ===\n${data.toString()}`);
+    const messageText = data.toString().trim();
+    let message;
+
+    if (messageText.toLowerCase().includes("warning")) {
+      message = `[Warning] ${messageText}`;
+    } else if (messageText.toLowerCase().includes("warning")) {
+      message = `[Error] ${messageText}`;
+    }
+
+    console.error(message);
+    broadcastMessage(message);
   });
 
   flaskProcess.on("close", (code) => {
-    console.log(`Flask process exited with code ${code}`);
+    const message = `Flask process exited with code ${code}`;
+    console.log(message);
+    broadcastMessage(message);
+  });
+
+  flaskProcess.on("exit", (code, signal) => {
+    const message = `Flask process exited with code ${code} and signal ${signal}`;
+    console.log(message);
+    broadcastMessage(message);
+    flaskProcess = null;
   });
 
   flaskProcess.unref();
   flaskPid = flaskProcess.pid;
-
-  flaskProcess.on("exit", (code, signal) => {
-    console.log(`Flask process exited with code ${code} and signal ${signal}`);
-    flaskProcess = null;
-  });
 }
 
 async function destroyActors() {

@@ -1,7 +1,11 @@
 import Component from "@ember/component";
+import { inject as service } from "@ember/service";
 import { next } from "@ember/runloop";
+import { observer } from "@ember/object";
 
 export default Component.extend({
+  websockets: service(),
+
   carlaPath: "",
   errorMessage: "",
   isDialogOpen: false,
@@ -9,18 +13,62 @@ export default Component.extend({
   step1Status: "idle", // "loading", "completed", "error"
   step2Status: "idle",
   step3Status: "idle",
+  logs: [],
+  autoScrollEnabled: true,
+
+  didRender() {
+    this._super(...arguments);
+
+    next(() => {
+      const logContainer = this.$("#carla-terminal");
+      if (logContainer && logContainer.length) {
+        console.log("Log Container found, setting up scroll event.");
+
+        logContainer.on("scroll", () => {
+          const atBottom =
+            logContainer[0].scrollTop + logContainer[0].clientHeight >=
+            logContainer[0].scrollHeight - 5;
+          this.set("autoScrollEnabled", atBottom);
+        });
+      } else {
+        console.log("Log Container not found, trying again on next render.");
+      }
+    });
+  },
 
   didInsertElement() {
     this._super(...arguments);
-    window.addEventListener("beforeunload", this.handleBeforeUnload.bind(this));
+
+    // WebSocket initialisieren
+    const socket = this.websockets.socketFor("ws://localhost:4204");
+    socket.on("message", this.handleLogMessage, this);
   },
 
   willDestroyElement() {
-    this._super(...arguments);
+    const socket = this.websockets.socketFor("ws://localhost:4204");
+    socket.off("message", this.handleLogMessage, this);
     window.removeEventListener(
       "beforeunload",
       this.handleBeforeUnload.bind(this)
     );
+  },
+
+  handleLogMessage(event) {
+    let logMessage = String(event.data);
+
+    if (logMessage.includes("[Error]")) {
+      logMessage = `<span class="log-error">${logMessage}</span>`;
+    } else if (logMessage.includes("[Warning]")) {
+      logMessage = `<span class="log-warning">${logMessage}</span>`;
+    } else {
+      logMessage = `<span class="log-info">${logMessage}</span>`;
+    }
+
+    this.logs.pushObject(logMessage);
+
+    if (this.logs.length > 50) {
+      this.logs.shiftObject();
+    }
   },
 
   async handleBeforeUnload(event) {
@@ -166,6 +214,7 @@ export default Component.extend({
         step1Status: "idle",
         step2Status: "idle",
         step3Status: "idle",
+        logs: [], // Leeren der Logs bei neuer Sitzung
       });
       this.startFlask();
       next(() => {

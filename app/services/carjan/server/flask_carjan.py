@@ -729,17 +729,12 @@ def start_carla():
 
         dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
         load_dotenv(dotenv_path=dotenv_path)
-        print(f"Loading .env file from: {dotenv_path}")
-
         carla_path = os.getenv("CARLA_PATH")
-        print(f"CARLA path: {carla_path}")
         time.sleep(1)
 
         if not carla_path:
             return jsonify({"error": "CARLA path is not defined in .env file"}), 400
-        else:
-            print(f"Loaded CARLA_PATH: {carla_path}")
-        # Versuche, CARLA zu starten
+
         try:
             subprocess.Popen(carla_path)
             print("CarlaUE4.exe started successfully.")

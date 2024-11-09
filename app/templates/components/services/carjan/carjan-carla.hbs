@@ -83,8 +83,25 @@
             {{/if}}
             <span>Loading Scenario</span>
           </div>
-        </div>
 
+        </div>
+        <!-- Terminal Log -->
+        <div class="ui segment log-terminal">
+          <label>Carla Connection Server</label>
+          <div
+            class="ui inverted segment"
+            id="carla-terminal"
+            style="height: 200px; overflow-y: auto;"
+          >
+            <div class="ui relaxed divided list">
+              {{#each logs as |log|}}
+                <div class="item">
+                  {{{log}}}
+                </div>
+              {{/each}}
+            </div>
+          </div>
+        </div>
       </div>
       <div class="actions">
         <button

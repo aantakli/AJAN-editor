@@ -1,0 +1,6 @@
+Flask==2.1.1
+rdflib==6.1.1
+requests==2.26.0
+python-dotenv==0.19.2
+numpy==1.21.2
+carla==0.9.15

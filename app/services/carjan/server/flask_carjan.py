@@ -15,8 +15,22 @@ import requests
 import threading
 import logging
 import os
+from dotenv import load_dotenv
+import socket
+import psutil
 
-carla_path = os.getenv("CARLA_PATH", "CarlaUE4.exe")
+
+def is_port_in_use(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('localhost', port)) == 0
+
+def kill_process_on_port(port):
+    for proc in psutil.process_iter(['pid', 'name', 'connections']):
+        for conn in proc.info['connections']:
+            if conn.laddr.port == port:
+                print(f"Killing process {proc.info['name']} (PID {proc.info['pid']}) on port {port}")
+                proc.kill()
+                break
 
 app = Flask(__name__)
 app_data = {}
@@ -24,7 +38,10 @@ turtle_data_store = Graph()
 app.logger.setLevel(logging.INFO)
 actor_list = []
 
+
+
 # Globale Variablen für CARLA-Verbindung
+#carla_path = None
 client = None
 world = None
 blueprint_library = None
@@ -704,23 +721,48 @@ def health_check():
 
 @app.route("/start_carla", methods=["GET"])
 def start_carla():
-    global client, world, blueprint_library, current_map
     try:
-        print("CARLA Path:", carla_path)
-        return jsonify({"status": "CARLA started successfully."}), 200
-        exe_path = r"C:\path\to\CarlaUE4.exe"
-        # Starte die CARLA-Exe
-       # subprocess.Popen(exe_path)
-        print("CarlaUE4.exe started successfully.")
+        if is_port_in_use(2000):
+              print("Port 2000 is in use. Attempting to clear it.")
+              kill_process_on_port(2000)
+              time.sleep(2)
 
-        # Warte einige Sekunden, um sicherzustellen, dass CARLA gestartet ist
-        time.sleep(10)  # Anpassung der Wartezeit je nach Systemleistung
+        dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+        load_dotenv(dotenv_path=dotenv_path)
+        print(f"Loading .env file from: {dotenv_path}")
 
-        # Initialisiere den CARLA-Client und verbinde dich mit der Welt
-        #client = carla.Client("localhost", 2000)
-        #client.set_timeout(10.0)
-       # world = client.get_world()
-      #  current_map = world.get_map()
+        carla_path = os.getenv("CARLA_PATH")
+        print(f"CARLA path: {carla_path}")
+        time.sleep(1)
+
+        if not carla_path:
+            return jsonify({"error": "CARLA path is not defined in .env file"}), 400
+        else:
+            print(f"Loaded CARLA_PATH: {carla_path}")
+        # Versuche, CARLA zu starten
+        try:
+            subprocess.Popen(carla_path)
+            print("CarlaUE4.exe started successfully.")
+        except FileNotFoundError:
+            print("Failed to start CARLA: Invalid path.")
+            return jsonify({"error": "Invalid CARLA path. Please check the file path."}), 400
+
+
+        # Versuche, den CARLA-Client zu initialisieren
+        try:
+            time.sleep(10)
+            client = carla.Client("localhost", 2000)
+            client.set_timeout(20.0)  # Timeout für Verbindungsversuch
+            world = client.get_world()  # Versuche, die Welt zu laden
+
+            # Wenn die Verbindung erfolgreich ist, kehre mit 200 zurück
+            print("Connected to CARLA server.")
+            return jsonify({"status": "CARLA started and connected successfully."}), 200
+
+        except Exception as e:
+            print(f"Failed to connect to CARLA: {e}")
+            return jsonify({"error": "CARLA started, but connection to server failed. Please check the server status."}), 500
+
         return jsonify({"status": "CARLA started and connected successfully."}), 200
     except Exception as e:
         print("Failed to start CARLA or establish connection:", e)

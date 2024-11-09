@@ -2,16 +2,40 @@ import Component from "@ember/component";
 import { next } from "@ember/runloop";
 
 export default Component.extend({
-  isDialogOpen: false,
-  hasError: false,
-  isDisabled: false,
-  step1: false,
-  step2: false,
-  step3: false,
-  loadingStep1: false,
-  loadingStep2: false,
-  loadingStep3: false,
   carlaPath: "",
+  errorMessage: "",
+  isDialogOpen: false,
+  isDisabled: false,
+  step1Status: "idle", // "loading", "completed", "error"
+  step2Status: "idle",
+  step3Status: "idle",
+
+  didInsertElement() {
+    this._super(...arguments);
+    window.addEventListener("beforeunload", this.handleBeforeUnload.bind(this));
+  },
+
+  willDestroyElement() {
+    this._super(...arguments);
+    window.removeEventListener(
+      "beforeunload",
+      this.handleBeforeUnload.bind(this)
+    );
+  },
+
+  async handleBeforeUnload(event) {
+    try {
+      await fetch("http://localhost:4204/api/shutdownFlask", {
+        method: "GET",
+      });
+      console.log("Flask service stopped.");
+    } catch (error) {
+      console.error("Failed to stop Flask service:", error);
+    }
+
+    event.preventDefault();
+    event.returnValue = "";
+  },
 
   async saveCarlaPath() {
     try {
@@ -26,41 +50,28 @@ export default Component.extend({
           body: JSON.stringify({ path: carlaPath }),
         }
       );
-
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log(result.status);
+      console.log((await response.json()).status);
     } catch (error) {
       console.error("Failed to save Carla path.", error);
     }
   },
 
   async startFlask() {
-    this.set("loadingStep1", true);
+    this.set("step1Status", "loading");
     try {
       const response = await fetch("http://localhost:4204/api/start_flask", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
-
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log(result.status);
-      this.set("loadingStep1", false);
-      this.set("step1", true);
-      console.log("Flask started successfully.");
-      this.startCarla();
+      this.set("step1Status", "completed");
+      setTimeout(() => this.startCarla(), 1000);
     } catch (error) {
-      this.set("loadingStep1", false);
-      console.error("Failed to start Flask.", error);
+      this.set("step1Status", "error");
+      console.error("Failed to start Flask:", error);
     }
   },
 
@@ -82,27 +93,23 @@ export default Component.extend({
   },
 
   async startCarla() {
-    this.set("loadingStep2", true);
+    this.set("step2Status", "loading");
+    this.set("errorMessage", "");
     try {
       const response = await fetch("http://localhost:4204/api/start_carla", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
-
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        const errorData = await response.json();
+        this.set("errorMessage", errorData.error || "Failed to start CARLA.");
+        throw new Error(errorData.error || "Failed to start CARLA.");
       }
-
-      const result = await response.json();
-      console.log(result.status);
-      this.set("loadingStep2", false);
-      this.set("step2", true);
+      this.set("step2Status", "completed");
       this.loadScenario();
     } catch (error) {
-      this.set("loadingStep2", false);
-      console.error("Failed to start Carla.", error);
+      this.set("step2Status", "error");
+      console.error("Failed to start CARLA:", error);
     }
   },
 
@@ -121,7 +128,7 @@ export default Component.extend({
   },
 
   async loadScenario() {
-    this.set("loadingStep3", true);
+    this.set("step3Status", "loading");
     try {
       const response = await fetch("http://localhost:4204/api/carla-scenario", {
         method: "POST",
@@ -136,38 +143,37 @@ export default Component.extend({
 
       const result = await response.json();
       console.log(result);
-      this.set("loadingStep3", false);
-      this.set("step3", true);
+
+      this.set("step3Status", "completed");
     } catch (error) {
-      this.set("loadingStep3", false);
+      this.set("step3Status", "error");
       console.error("Failed to load Scenario.", error);
     }
   },
 
   actions: {
-    async handleSaveCarlaPath() {
+    async handleStartCarla() {
+      await this.stopFlask();
       await this.saveCarlaPath();
+      setTimeout(() => {
+        this.startFlask();
+      }, 1000);
     },
 
     async openCarlaModal() {
-      this.set("isDialogOpen", true);
-      this.set("hasError", false);
-      this.set("step1", false);
-      this.set("step2", false);
-      this.set("step3", false);
-      this.set("loadingStep1", false);
-      this.set("loadingStep2", false);
-      this.set("loadingStep3", false);
-
+      this.setProperties({
+        isDialogOpen: true,
+        step1Status: "idle",
+        step2Status: "idle",
+        step3Status: "idle",
+      });
       this.startFlask();
-
       next(() => {
         this.$(".ui.basic.modal")
           .modal({
             closable: false,
             transition: "scale",
             duration: 500,
-            dimmerSettings: { duration: { show: 500, hide: 500 } },
           })
           .modal("show");
       });
@@ -178,7 +184,6 @@ export default Component.extend({
       console.log("Closing dialog...");
       this.$(".ui.modal").modal("hide");
       this.set("isDialogOpen", false);
-      this.set("hasError", false);
     },
   },
 });

@@ -125,11 +125,11 @@ app.post("/api/save_carla_path", (req, res) => {
     return res.status(400).json({ error: "CARLA path is required" });
   }
 
-  const envFilePath = path.join(__dirname, ".env");
+  const envFilePath = path.join(__dirname, "app", "services", "carjan", ".env");
 
   fs.writeFile(
     envFilePath,
-    `CARLA_PATH="${carlaPath}"\n`,
+    `CARLA_PATH=${carlaPath}\n`,
     { flag: "w" },
     (err) => {
       if (err) {
@@ -137,7 +137,7 @@ app.post("/api/save_carla_path", (req, res) => {
         return res.status(500).json({ error: "Failed to save CARLA path" });
       }
 
-      console.log("CARLA path saved to .env file");
+      console.log("CARLA path saved to .env file in app/services/carjan");
       res.json({ status: "CARLA path saved successfully" });
     }
   );
@@ -307,6 +307,10 @@ app.post("/api/start_carla", async (req, res) => {
     const flaskResponse = await forwardToFlask("/start_carla");
 
     console.log("Flask response:", flaskResponse);
+
+    if (flaskResponse.error) {
+      return res.status(400).json({ error: flaskResponse.error });
+    }
 
     res.json({
       status: "Scenario loaded from Flask",

@@ -21,6 +21,15 @@ export default Component.extend({
   isDeletePathDialogOpen: false,
   original: "",
   changeOriginalFlag: true,
+  pedestrianModels: null,
+  selectedModel: null,
+  vehicleModels: null,
+  carModels: null,
+  truckModels: null,
+  vanModels: null,
+  busModels: null,
+  motorcycleModels: null,
+  bicycleModels: null,
 
   colors: {
     road: getComputedStyle(document.documentElement)
@@ -35,6 +44,26 @@ export default Component.extend({
   init() {
     this._super(...arguments);
     this.setupGrid();
+    this.set("pedestrianModels", this.generateModelList());
+
+    // Modelle aus der generierten Liste abrufen und nach Kategorie aufteilen
+    const models = this.generateCarModelList();
+    this.setProperties({
+      carModels: models.find((m) => m.category === "Car").items,
+      truckModels: models.find((m) => m.category === "Truck").items,
+      vanModels: models.find((m) => m.category === "Van").items,
+      busModels: models.find((m) => m.category === "Bus").items,
+      motorcycleModels: models.find((m) => m.category === "Motorcycle").items,
+      bicycleModels: models.find((m) => m.category === "Bicycle").items,
+    });
+
+    // Debug-Ausgaben zur Überprüfung
+    console.log("carModels", this.get("carModels"));
+    console.log("truckModels", this.get("truckModels"));
+    console.log("vanModels", this.get("vanModels"));
+    console.log("busModels", this.get("busModels"));
+    console.log("motorcycleModels", this.get("motorcycleModels"));
+    console.log("bicycleModels", this.get("bicycleModels"));
   },
 
   backgroundColor: computed("cellPosition", "carjanState.mapData", function () {
@@ -52,21 +81,22 @@ export default Component.extend({
     return this.colors.void;
   }),
 
-  showWaypointEditor: computed("carjanState.openWaypointEditor", function () {
-    this.cellStatus = this.carjanState.currentCellStatus;
-    this.set("cellPosition", this.carjanState.currentCellPosition);
-    this.waypoints = this.carjanState.waypoints;
-    this.displayWaypointsInCell();
-    return this.carjanState.openWaypointEditor;
-  }),
-
-  showPathEditor: computed("carjanState.openPathEditor", function () {
-    const isOpen = this.carjanState.openPathEditor;
-    if (isOpen) {
-      this.set("selectedPath", this.carjanState.selectedPath);
-      this.pathId = this.actions.getPathId(this.selectedPath);
+  showProperties: computed("carjanState.properties", function () {
+    switch (this.carjanState.properties) {
+      case "path":
+        this.set("selectedPath", this.carjanState.selectedPath);
+        this.pathId = this.actions.getPathId(this.selectedPath);
+        break;
+      case "waypoint":
+        this.cellStatus = this.carjanState.currentCellStatus;
+        this.set("cellPosition", this.carjanState.currentCellPosition);
+        this.waypoints = this.carjanState.waypoints;
+        this.displayWaypointsInCell();
+        break;
+      default:
+        break;
     }
-    return isOpen;
+    return this.carjanState.properties;
   }),
 
   selectedPathObserver: function () {
@@ -84,6 +114,256 @@ export default Component.extend({
     this.set("cellPosition", [position[0], position[1]]);
     this.displayWaypointsInCell();
   }.observes("carjanState.currentCellPosition"),
+
+  generateModelList() {
+    const models = [];
+    for (let i = 1; i < 50; i++) {
+      const id = i.toString().padStart(4, "0");
+      models.push({
+        id,
+        name: `pedestrian_${id}`,
+        imageUrl: `https://carla.readthedocs.io/en/0.9.15/img/catalogue/pedestrians/pedestrian_${id}.webp`,
+      });
+    }
+    return models;
+  },
+
+  generateCarModelList() {
+    const models = [
+      {
+        category: "Car",
+        items: [
+          {
+            name: "Audi - A2",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/audi_a2.webp",
+          },
+          {
+            name: "Audi - E-Tron",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/audi_etron.webp",
+          },
+          {
+            name: "Audi - TT",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/audi_tt.webp",
+          },
+          {
+            name: "BMW - Gran Tourer",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/bmw_grantourer.webp",
+          },
+          {
+            name: "Chevrolet - Impala",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/chevrolet_impala.webp",
+          },
+          {
+            name: "Citroen - C3",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/citroen_c3.webp",
+          },
+          {
+            name: "Dodge - Charger 2020",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/dodge_charger_2020.webp",
+          },
+          {
+            name: "Dodge - Police Charger 2020",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/dodge_charger_police_2020.webp",
+          },
+          {
+            name: "Dodge - Police Charger",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/dodge_charger_police_2020.webp",
+          },
+          {
+            name: "Ford - Crown (taxi)",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/ford_crown.webp",
+          },
+          {
+            name: "Ford - Mustang",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/ford_mustang.webp",
+          },
+          {
+            name: "Jeep - Wrangler Rubicon",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/jeep_wrangler_rubicon.webp",
+          },
+          {
+            name: "Lincoln - MKZ 2017",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/lincoln_mkz_2017.webp",
+          },
+          {
+            name: "Lincoln - MKZ 2020",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/lincoln_mkz_2020.webp",
+          },
+          {
+            name: "Mercedes - Coupe 2020",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/mercedes_coupe_2020.webp",
+          },
+          {
+            name: "Mercedes - Coupe",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/mercedes_coupe.webp",
+          },
+          {
+            name: "Micro - Microlino",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/micro_microlino.webp",
+          },
+          {
+            name: "Mini - Cooper S",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/mini_cooper_s.webp",
+          },
+          {
+            name: "Mini - Cooper S 2021",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/mini_cooper_s_2021.webp",
+          },
+          {
+            name: "Nissan - Micra",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/nissan_micra.webp",
+          },
+          {
+            name: "Nissan - Patrol",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/nissan_patrol.webp",
+          },
+          {
+            name: "Nissan - Patrol 2021",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/nissan_patrol_2021.webp",
+          },
+          {
+            name: "Seat - Leon",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/seat_leon.webp",
+          },
+          {
+            name: "Toyota - Prius",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/toyota_prius.webp",
+          },
+        ].sort((a, b) => a.name.localeCompare(b.name)),
+      },
+      {
+        category: "Truck",
+        items: [
+          {
+            name: "CARLA Motors - CarlaCola",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/carlamotors_carlacola.webp",
+          },
+          {
+            name: "CARLA Motors - European HGV",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/carlamotors_european_hgv.webp",
+          },
+          {
+            name: "CARLA Motors - Firetruck",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/carlamotors_firetruck.webp",
+          },
+          {
+            name: "Tesla - Cybertruck",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/tesla_cybertruck.webp",
+          },
+        ].sort((a, b) => a.name.localeCompare(b.name)),
+      },
+      {
+        category: "Van",
+        items: [
+          {
+            name: "Ford - Ambulance",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/ford_ambulance.webp",
+          },
+          {
+            name: "Mercedes - Sprinter",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/mercedes_sprinter.webp",
+          },
+          {
+            name: "Volkswagen - T2",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/volkswagen_t2.webp",
+          },
+          {
+            name: "Volkswagen - T2 2021",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/volkswagen_t2_2021.webp",
+          },
+        ].sort((a, b) => a.name.localeCompare(b.name)),
+      },
+      {
+        category: "Bus",
+        items: [
+          {
+            name: "Mitsubishi - Fusorosa",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/mitsubishi_fusorosa.webp",
+          },
+        ],
+      },
+      {
+        category: "Motorcycle",
+        items: [
+          {
+            name: "Harley Davidson - Low Rider",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/harley-davidson_low_rider.webp",
+          },
+          {
+            name: "Kawasaki - Ninja",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/kawasaki_ninja.webp",
+          },
+          {
+            name: "Vespa - ZX 125",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/vespa_zx125.webp",
+          },
+          {
+            name: "Yamaha - YZF",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/yamaha_yzf.webp",
+          },
+        ].sort((a, b) => a.name.localeCompare(b.name)),
+      },
+      {
+        category: "Bicycle",
+        items: [
+          {
+            name: "BH - Crossbike",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/bh_crossbike.webp",
+          },
+          {
+            name: "Diamondback - Century",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/diamondback_century.webp",
+          },
+          {
+            name: "Gazelle - Omafiets",
+            imageUrl:
+              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/gazelle_omafiets.webp",
+          },
+        ].sort((a, b) => a.name.localeCompare(b.name)),
+      },
+    ];
+
+    return models;
+  },
 
   getNumericPositionIndex(positionInCell) {
     const positionMap = {
@@ -370,6 +650,10 @@ export default Component.extend({
   },
 
   actions: {
+    selectModel(model) {
+      this.set("selectedModel", model);
+    },
+
     inputFocusIn() {
       if (this.changeOriginalFlag) {
         this.original = this.selectedPath.description;
@@ -571,7 +855,7 @@ export default Component.extend({
     },
 
     closeWaypointEditor() {
-      this.carjanState.setWaypointEditor(false);
+      this.carjanState.set("properties", "scenario");
     },
 
     dragLeave(event) {

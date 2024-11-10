@@ -79,11 +79,11 @@ export default Component.extend({
       }))
     );
     const selectedPath = this.carjanState.selectedPath;
-    this.carjanState.setPathEditor(false);
+    this.carjanState.set("properties", "scenario");
     if (!selectedPath) return;
     setTimeout(() => {
       const newPath = paths.find((path) => path.path === selectedPath.path);
-      this.carjanState.setPathEditor(true);
+      this.carjanState.set("properties", "path");
       this.carjanState.setSelectedPath(newPath);
     }, 50);
   }),
@@ -156,7 +156,7 @@ export default Component.extend({
     },
     openPathwayEditor(path) {
       this.carjanState.setSelectedPath(path);
-      this.carjanState.setPathEditor(true);
+      this.carjanState.set("properties", "path");
     },
 
     clearPath() {
@@ -165,7 +165,7 @@ export default Component.extend({
     },
 
     closePathwayEditor() {
-      this.carjanState.setPathEditor(false);
+      this.carjanState.set("properties", "scenario");
     },
 
     openWaypointEditor(x, y, positionInCell) {
@@ -180,7 +180,7 @@ export default Component.extend({
       };
       this.carjanState.set("currentCellPosition", [x, y]);
       this.carjanState.set("currentCellStatus", cellStatus);
-      this.carjanState.setWaypointEditor(true);
+      this.carjanState.set("properties", "waypoint");
     },
 
     async openNewPathDialog() {

@@ -1178,6 +1178,7 @@ export default Component.extend({
       e.target.classList.contains("alternate") &&
       this.carjanState.pathMode
     ) {
+      console.log("e.target", e.target);
       const positionInCell = e.target.getAttribute("data-position-in-cell");
       const x = e.target.getAttribute("data-x").toString();
       const y = e.target.getAttribute("data-y").toString();
@@ -1211,14 +1212,32 @@ export default Component.extend({
     const col = targetCell.dataset.col;
 
     const cellStatus = this.gridStatus[`${row},${col}`];
-
+    console.log("cellStatus", cellStatus);
     if (cellStatus && cellStatus.waypoints && cellStatus.waypoints.length > 0) {
-      console.log("cellStatus", cellStatus);
       this.carjanState.set("currentCellStatus", cellStatus);
       this.carjanState.set("currentCellPosition", [row, col]);
-      this.carjanState.set("openWaypointEditor", true);
+      this.carjanState.set("properties", "waypoint");
     }
 
+    if (cellStatus) {
+      if (cellStatus.entityType === "Pedestrian") {
+        console.log("Pedestrian clicked", row, col);
+        this.carjanState.set("currentCellStatus", cellStatus);
+        this.carjanState.set("currentCellPosition", [row, col]);
+        this.carjanState.set("properties", "pedestrian");
+      } else if (cellStatus.entityType === "Vehicle") {
+        console.log("Vehicle clicked", row, col);
+        this.carjanState.set("currentCellStatus", cellStatus);
+        this.carjanState.set("currentCellPosition", [row, col]);
+        this.carjanState.set("properties", "vehicle");
+      } else if (cellStatus.entityType === "autonomous") {
+        console.log("Autonomous clicked", row, col);
+      } else if (cellStatus.entityType === "obstacle") {
+        console.log("Obstacle clicked", row, col);
+      } else {
+        console.log("Unknown entity clicked", cellStatus);
+      }
+    }
     const isEntityCell = cellStatus && cellStatus.occupied;
     if (e.button === 0) {
       if (isEntityCell && cellStatus.entityType !== "void") {
@@ -1231,6 +1250,7 @@ export default Component.extend({
         this.isPanning = false;
         this.isDragging = true;
       } else {
+        console.log("isEntityCell", isEntityCell);
         drag.state = true;
         drag.x = e.pageX;
         drag.y = e.pageY;
@@ -1239,6 +1259,7 @@ export default Component.extend({
       }
     }
   },
+
   onMouseUp(e) {
     const drag = this.get("drag");
     drag.state = false;
@@ -1267,6 +1288,7 @@ export default Component.extend({
       drag.y = e.pageY;
     }
   },
+
   onWheel(e) {
     e.preventDefault();
 

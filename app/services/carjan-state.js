@@ -14,12 +14,11 @@ export default Service.extend({
   cameraPosition: "up",
   paths: null,
   waypoints: null,
-  openWaypointEditor: false,
   currentCellStatus: null,
   currentCellPosition: [],
   addPath: false,
   selectedPath: null,
-  openPathEditor: false,
+  properties: "scenario",
   pathMode: false,
   pathInProgress: null,
   propertyPanel: null,
@@ -65,12 +64,8 @@ export default Service.extend({
     this.setPaths(paths);
   },
 
-  setWaypointEditor(isOpen) {
-    set(this, "openWaypointEditor", isOpen);
-  },
-
-  setPathEditor(isOpen) {
-    set(this, "openPathEditor", isOpen);
+  setProperties(type) {
+    set(this, "properties", type);
   },
 
   setSelectedPath(path) {
@@ -155,6 +150,7 @@ export default Service.extend({
     }
     if (scenario.entities) {
       this.setAgentData(scenario.entities);
+      console.log("Entities: ", scenario.entities);
     }
 
     if (scenario.paths) {

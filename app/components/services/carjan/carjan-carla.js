@@ -22,16 +22,12 @@ export default Component.extend({
     next(() => {
       const logContainer = this.$("#carla-terminal");
       if (logContainer && logContainer.length) {
-        console.log("Log Container found, setting up scroll event.");
-
         logContainer.on("scroll", () => {
           const atBottom =
             logContainer[0].scrollTop + logContainer[0].clientHeight >=
             logContainer[0].scrollHeight - 5;
           this.set("autoScrollEnabled", atBottom);
         });
-      } else {
-        console.log("Log Container not found, trying again on next render.");
       }
     });
   },

@@ -56,18 +56,23 @@
               <i class="exclamation triangle icon"></i>
               <div class="ui red message">{{errorMessage}}</div>
               <div class="field">
-                <label>CARLA Path</label>
-                {{input
-                  value=carlaPath
-                  placeholder="Enter CARLA executable path"
-                }}
+                <div class="ui form">
+                  {{input
+                    style="margin-top: 12px;"
+                    value=carlaPath
+                    placeholder="Enter CARLA executable path"
+                  }}
+                </div>
               </div>
               <button
                 class="ui button"
+                style="margin-top: 12px;"
                 {{action "handleStartCarla"}}
-              >Retry</button>
+              >
+                <i class="redo icon"></i>
+                Retry
+              </button>
             {{/if}}
-            <span>Starting CARLA</span>
           </div>
 
           <!-- Step 3: Loading Scenario -->

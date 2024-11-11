@@ -215,3 +215,15 @@
   background-color: white;
   justify-content: center;
 }
+
+.color-indicator {
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  margin-right: 10px;
+}

@@ -30,6 +30,20 @@ export default Component.extend({
   busModels: null,
   motorcycleModels: null,
   bicycleModels: null,
+  isTooltipHidden: true,
+  selectedPath: null,
+  selectedHeading: null,
+
+  headings: [
+    { label: "North", value: "N" },
+    { label: "North-East", value: "NE" },
+    { label: "East", value: "E" },
+    { label: "South-East", value: "SE" },
+    { label: "South", value: "S" },
+    { label: "South-West", value: "SW" },
+    { label: "West", value: "W" },
+    { label: "North-West", value: "NW" },
+  ],
 
   colors: {
     road: getComputedStyle(document.documentElement)
@@ -82,6 +96,7 @@ export default Component.extend({
   }),
 
   showProperties: computed("carjanState.properties", function () {
+    console.log("this carjanstate paths", this.carjanState.paths);
     switch (this.carjanState.properties) {
       case "path":
         this.set("selectedPath", this.carjanState.selectedPath);
@@ -650,6 +665,29 @@ export default Component.extend({
   },
 
   actions: {
+    selectPath(path) {
+      this.set("selectedPath", path);
+    },
+    clearSelectedPath() {
+      this.set("selectedPath", null);
+      const dropdownElement = this.$("#pathDropdown");
+      console.log("dropdownElement", dropdownElement);
+      if (dropdownElement && dropdownElement.length) {
+        dropdownElement.dropdown("clear");
+      }
+    },
+
+    selectHeading(heading) {
+      this.set("selectedHeading", heading);
+    },
+
+    showTooltip() {
+      this.set("isTooltipHidden", false);
+    },
+
+    hideTooltip() {
+      this.set("isTooltipHidden", true);
+    },
     selectModel(model) {
       this.set("selectedModel", model);
     },

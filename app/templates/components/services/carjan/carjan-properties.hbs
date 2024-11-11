@@ -203,6 +203,102 @@
           </div>
         {{/if}}
       </div>
+
+      <!-- Dropdown für followsPath Auswahl -->
+      <div class="ui segment form">
+
+        <div local-class="pad">
+          <div class="field">
+            <label>
+              <i class="icon share alternate"></i>
+              Assign a unique Path
+            </label>
+            <div class="ui fluid search selection dropdown" id="pathDropdown">
+              <input type="hidden" name="followsPath" />
+              <i class="dropdown icon"></i>
+              <div class="default text">{{if
+                  selectedPath.description
+                  selectedPath.description
+                  "Select Path"
+                }}</div>
+              <div class="menu" style="overflow: hidden">
+                {{#each carjanState.paths as |path|}}
+                  <div
+                    class="item"
+                    data-value="{{path.path}}"
+                    {{action "selectPath" path}}
+                    style="overflow: hidden; margin-left: 10px;"
+                  >
+                    <div
+                      local-class="color-indicator"
+                      style="background-color: {{path.color}}; margin-right: 10px;"
+                    ></div>
+                    <p style="margin-left: 20px;">{{path.description}}</p>
+                  </div>
+                {{/each}}
+              </div>
+            </div>
+
+            <!-- Reset Button -->
+            {{#if selectedPath}}
+              <button
+                class="ui red icon button"
+                {{action "clearSelectedPath"}}
+                style="margin-top: 10px;"
+              >
+                <i class="x icon"></i>
+              </button>
+            {{/if}}
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Dropdown für heading Auswahl -->
+      <div class="ui segment">
+        <label>Select Heading</label>
+        <div
+          class="ui fluid selection dropdown
+            {{if (not-eq this.selectedPath null) 'disabled'}}"
+          onmouseenter={{action "showTooltip"}}
+          onmouseleave={{action "hideTooltip"}}
+        >
+          <input type="hidden" name="heading" />
+          <i class="dropdown icon"></i>
+          <div class="default text">{{if
+              (not-eq this.selectedPath null)
+              "Path"
+              "Select Heading"
+            }}</div>
+          <div class="menu" style="overflow: hidden;">
+            {{#each this.headings as |heading|}}
+              <div
+                class="item"
+                data-value="{{heading.value}}"
+                {{action
+                  "selectHeading"
+                  heading
+                  disabled=(not-eq this.selectedPath null)
+                }}
+              >
+                {{heading.label}}
+              </div>
+            {{/each}}
+          </div>
+        </div>
+        {{#if (not-eq this.selectedPath null)}}
+          <div
+            class="ui pointing blue basic label"
+            local-class="tooltip"
+            hidden={{this.isTooltipHidden}}
+          >
+            When a path is assigned, entities automatically face the first
+            waypoint.
+          </div>
+        {{/if}}
+      </div>
+
+      <!-- Dropdown für Pedestrian Model -->
       <div class="ui segment">
         <label>Choose a <b>CARLA</b> Pedestrian Model</label>
         <div class="ui fluid search selection dropdown">
@@ -219,13 +315,11 @@
               >
                 <img class="ui avatar image" src="{{model.imageUrl}}" />
                 {{model.name}}
-
               </div>
             {{/each}}
           </div>
         </div>
 
-        {{! Zeigt das ausgewählte Bild an }}
         {{#if selectedModel}}
           <div class="ui segment">
             <img
@@ -234,7 +328,6 @@
               class="ui medium rounded image"
             />
             <p>{{selectedModel.name}}</p>
-
           </div>
         {{/if}}
 
@@ -249,7 +342,6 @@
       </div>
 
     </div>
-
   {{/if}}
 
   {{#if (eq this.showProperties "vehicle")}}
@@ -484,7 +576,7 @@
           </div>
         </div>
       </div>
-      <div style="margin: 20px;"></div>
+      <div style="margin: 25px;"></div>
     </div>
   {{/if}}
 {{/if}}

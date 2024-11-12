@@ -5,7 +5,6 @@ export default Service.extend({
   mapData: null,
   agentData: null,
   mapName: null,
-  availableScenarios: null,
   scenarioName: null,
   isSaveRequest: false,
   updateStatements: null,
@@ -81,11 +80,8 @@ export default Service.extend({
   },
 
   setAgentData(agents) {
+    console.trace("Setting agent data: ", agents);
     set(this, "agentData", agents);
-  },
-
-  setAvailableScenarios(scenarios) {
-    this.set("availableScenarios", scenarios);
   },
 
   setScenarioName(name) {

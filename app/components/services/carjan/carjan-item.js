@@ -39,6 +39,8 @@ export default Component.extend({
   currentWaypoints: [],
   chevrons: [],
   reloadFlag: true,
+  draggingEnttiy: null,
+  draggingEntityPosition: null,
 
   didInsertElement() {
     this._super(...arguments);
@@ -140,6 +142,7 @@ export default Component.extend({
         if (entityType === "waypoint") {
           this.addSingleWaypoint(row, col, "top-left");
         } else {
+          this.moveEntityState(row, col);
           this.addEntityToGrid(entityType, row, col);
         }
       }
@@ -185,6 +188,8 @@ export default Component.extend({
       const row = event.target.dataset.row;
       const col = event.target.dataset.col;
 
+      this.draggingEntityPosition = { row, col };
+
       this.dragFlag = true;
 
       const cellStatus = this.gridStatus[`${row},${col}`];
@@ -227,16 +232,16 @@ export default Component.extend({
   mapDataObserver: observer(
     "carjanState.mapData",
     "carjanState.agentData",
-    function () {
+    async function () {
       const currentMap = this.carjanState.mapData;
       const currentAgents = this.carjanState.agentData;
-
+      // TODO
       if (
         (this.previousMap !== currentMap ||
           this.previousAgents !== currentAgents) &&
         !this.reloadFlag
       ) {
-        this.deleteAllEntites();
+        await this.deleteAllEntites();
         this.setupGrid(currentMap, currentAgents);
         this.previousMap = currentMap;
         this.previousAgents = currentAgents;
@@ -315,12 +320,29 @@ export default Component.extend({
     }
   },
 
+  moveEntityState(x, y) {
+    const { row, col } = this.draggingEntityPosition;
+    const entity = this.carjanState.agentData.find(
+      (agent) => agent.x === row && agent.y === col
+    );
+    entity.x = x;
+    entity.y = y;
+    entity.entity = `http://example.com/carla-scenario#Entity${String(
+      x
+    ).padStart(2, "0")}${String(y).padStart(2, "0")}`;
+    this.draggingEntityPosition = null;
+    console.log("this.carjanState.agentData", this.carjanState.agentData);
+  },
+
   deleteAllEntites() {
     if (this.gridCells) {
       this.gridCells.forEach((cell) => {
         const row = cell.row;
         const col = cell.col;
-        if (this.gridStatus[`${row},${col}`].entityType !== "void") {
+        if (
+          this.gridStatus[`${row},${col}`].entityType !== "void" &&
+          this.gridStatus[`${row},${col}`].entityType !== null
+        ) {
           this.removeEntityFromGrid(row, col);
         }
       });
@@ -480,6 +502,28 @@ export default Component.extend({
             )
           )
         );
+
+        if (["Pedestrian", "pedestrian"].includes(cellStatus.entityType)) {
+          const agents = this.carjanState.get("agentData");
+          console.log("agents", agents);
+          const agent = agents.find(
+            (agent) => agent.x === row && agent.y === col
+          );
+
+          if (agent && agent.label) {
+            rdfGraph.add(
+              rdf.quad(
+                entityURI,
+                rdf.namedNode("http://example.com/carla-scenario#label"),
+                rdf.namedNode(
+                  `${
+                    agent.label.charAt(0).toUpperCase() + agent.label.slice(1)
+                  }`
+                )
+              )
+            );
+          }
+        }
       }
     });
 
@@ -487,6 +531,7 @@ export default Component.extend({
     this.carjanState.setUpdateStatements(rdfGraph);
     this.carjanState.set("isSaveRequest", false);
   },
+
   async getMap(mapName) {
     const response = await fetch("/assets/carjan/carjan-maps/maps.json");
     const maps = await response.json();
@@ -745,7 +790,7 @@ export default Component.extend({
         }
       });
     });
-    if (agents && !this.carjanState.pathMode) {
+    if (agents && agents.length > 0 && !this.carjanState.pathMode) {
       agents.forEach((agent) => {
         this.addEntityToGrid(agent.type, agent.x, agent.y);
       });
@@ -975,7 +1020,7 @@ export default Component.extend({
           vehicle: "car",
           autonomous: "taxi",
           obstacle: "tree",
-          default: "map marker alternate",
+          default: "question",
         };
 
         const iconClass = iconMap[entityType] || iconMap.default;
@@ -1006,11 +1051,43 @@ export default Component.extend({
     });
   },
 
+  addEntityToState(entityType, row, col) {
+    let prefix = "http://example.com/carla-scenario#";
+    let entityId = `Entity${String(row).padStart(2, "0")}${String(col).padStart(
+      2,
+      "0"
+    )}`;
+    let entityURI = `${prefix}${entityId}`;
+
+    const newAgent = {
+      entity: entityURI,
+      x: row,
+      y: col,
+      type: entityType,
+    };
+
+    const existingAgents = this.carjanState.get("agentData");
+    const isDuplicate = existingAgents.some(
+      (agent) =>
+        agent.agent === newAgent.agent &&
+        agent.x === newAgent.x &&
+        agent.y === newAgent.y &&
+        agent.type === newAgent.type
+    );
+
+    this.previousAgents = [...existingAgents, newAgent];
+
+    if (!isDuplicate) {
+      this.carjanState.set("agentData", [...existingAgents, newAgent]);
+    }
+  },
+
   removeEntityFromGrid(row, col) {
     run.scheduleOnce("afterRender", this, function () {
       const gridElement = this.element.querySelector(
         `.grid-cell[data-row="${row}"][data-col="${col}"]`
       );
+
       if (gridElement) {
         gridElement.innerHTML = "";
         gridElement.removeAttribute("data-occupied");
@@ -1213,29 +1290,40 @@ export default Component.extend({
 
     const cellStatus = this.gridStatus[`${row},${col}`];
     console.log("cellStatus", cellStatus);
-    if (cellStatus && cellStatus.waypoints && cellStatus.waypoints.length > 0) {
+    if (cellStatus) {
       this.carjanState.set("currentCellStatus", cellStatus);
       this.carjanState.set("currentCellPosition", [row, col]);
-      this.carjanState.set("properties", "waypoint");
-    }
 
-    if (cellStatus) {
-      if (cellStatus.entityType === "Pedestrian") {
-        console.log("Pedestrian clicked", row, col);
-        this.carjanState.set("currentCellStatus", cellStatus);
-        this.carjanState.set("currentCellPosition", [row, col]);
-        this.carjanState.set("properties", "pedestrian");
-      } else if (cellStatus.entityType === "Vehicle") {
-        console.log("Vehicle clicked", row, col);
-        this.carjanState.set("currentCellStatus", cellStatus);
-        this.carjanState.set("currentCellPosition", [row, col]);
-        this.carjanState.set("properties", "vehicle");
-      } else if (cellStatus.entityType === "autonomous") {
-        console.log("Autonomous clicked", row, col);
-      } else if (cellStatus.entityType === "obstacle") {
-        console.log("Obstacle clicked", row, col);
+      if (cellStatus.waypoints && cellStatus.waypoints.length > 0) {
+        this.carjanState.set("properties", "waypoint");
       } else {
-        console.log("Unknown entity clicked", cellStatus);
+        switch (cellStatus.entityType) {
+          case "Pedestrian":
+          case "pedestrian":
+            console.log("Pedestrian clicked", row, col);
+            const agents = this.carjanState.get("agentData");
+            const agent = agents.find(
+              (agent) => agent.x === row && agent.y === col
+            );
+            if (!agent) {
+              this.addEntityToState("Pedestrian", row, col);
+              break;
+            }
+            this.carjanState.set("properties", "pedestrian");
+            break;
+          case "Vehicle":
+            console.log("Vehicle clicked", row, col);
+            this.carjanState.set("properties", "vehicle");
+            break;
+          case "autonomous":
+            console.log("Autonomous clicked", row, col);
+            break;
+          case "obstacle":
+            console.log("Obstacle clicked", row, col);
+            break;
+          default:
+            console.log("Unknown entity clicked", cellStatus);
+        }
       }
     }
     const isEntityCell = cellStatus && cellStatus.occupied;

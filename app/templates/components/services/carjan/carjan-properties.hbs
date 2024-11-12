@@ -183,14 +183,11 @@
           </label>
           {{input
             type="text"
-            placeholder=this.pedestrian.description
-            value=this.pedestrian.description
-            oninput=(action
-              (mut this.pedestrian.description) value="target.value"
-            )
-            focus-out=(action "inputFocusOut")
-            focus-in=(action "inputFocusIn")
-            key-up=(action "checkPathDescription")
+            placeholder="Carla"
+            value=this.pedestrianInput
+            oninput=(action (mut this.pedestrianInput) value="target.value")
+            focus-out=(action "inputFocusOutPedestrian")
+            focus-in=(action "inputFocusInPedestrian")
           }}
         </div>
         {{#if hasError}}
@@ -205,8 +202,8 @@
       </div>
 
       <!-- Dropdown für followsPath Auswahl -->
-      <div class="ui segment form">
 
+      <div class="ui form">
         <div local-class="pad">
           <div class="field">
             <label>
@@ -254,92 +251,100 @@
         </div>
       </div>
 
-      <!-- Dropdown für heading Auswahl -->
-      <div class="ui segment">
-        <label>Select Heading</label>
-        <div
-          class="ui fluid selection dropdown
-            {{if (not-eq this.selectedPath null) 'disabled'}}"
-          onmouseenter={{action "showTooltip"}}
-          onmouseleave={{action "hideTooltip"}}
-        >
-          <input type="hidden" name="heading" />
-          <i class="dropdown icon"></i>
-          <div class="default text">{{if
-              (not-eq this.selectedPath null)
-              "Path"
-              "Select Heading"
-            }}</div>
-          <div class="menu" style="overflow: hidden;">
-            {{#each this.headings as |heading|}}
-              <div
-                class="item"
-                data-value="{{heading.value}}"
-                {{action
-                  "selectHeading"
-                  heading
-                  disabled=(not-eq this.selectedPath null)
-                }}
-              >
-                {{heading.label}}
+      <!-- Dropdown für Direction Auswahl -->
+      <div class="ui form">
+        <div local-class="pad">
+          <div class="field">
+            <label>
+              <i class="icon arrows alternate"></i>
+              Select Heading Direction
+            </label>
+            <div
+              class="ui fluid selection dropdown
+                {{if (not-eq this.selectedPath null) 'disabled'}}"
+              onmouseenter={{action "showTooltip"}}
+              onmouseleave={{action "hideTooltip"}}
+            >
+              <input type="hidden" name="heading" />
+              <i class="dropdown icon"></i>
+              <div class="default text">{{if
+                  (not-eq this.selectedPath null)
+                  "Path"
+                  "Select Heading"
+                }}</div>
+              <div class="menu" style="overflow: hidden;">
+                {{#each this.headings as |heading|}}
+                  <div
+                    class="item"
+                    data-value="{{heading.value}}"
+                    {{action
+                      "selectHeading"
+                      heading
+                      disabled=(not-eq this.selectedPath null)
+                    }}
+                  >
+                    {{heading.label}}
+                  </div>
+                {{/each}}
               </div>
-            {{/each}}
+            </div>
+            {{#if (not-eq this.selectedPath null)}}
+              <div
+                class="ui pointing blue basic label"
+                local-class="tooltip"
+                hidden={{this.isTooltipHidden}}
+              >
+                When a path is assigned, entities automatically face the first
+                waypoint.
+              </div>
+            {{/if}}
           </div>
         </div>
-        {{#if (not-eq this.selectedPath null)}}
-          <div
-            class="ui pointing blue basic label"
-            local-class="tooltip"
-            hidden={{this.isTooltipHidden}}
-          >
-            When a path is assigned, entities automatically face the first
-            waypoint.
-          </div>
-        {{/if}}
       </div>
-
-      <!-- Dropdown für Pedestrian Model -->
-      <div class="ui segment">
-        <label>Choose a <b>CARLA</b> Pedestrian Model</label>
-        <div class="ui fluid search selection dropdown">
-          <input type="hidden" name="pedestrianModel" />
-          <i class="dropdown icon"></i>
-          <div class="default text">Select Pedestrian Model</div>
-          <div class="menu" style="overflow: hidden">
-            {{#each pedestrianModels as |model|}}
-              <div
-                class="item"
-                data-value="{{model.id}}"
-                {{action "selectModel" model}}
-                style="overflow: hidden;"
-              >
-                <img class="ui avatar image" src="{{model.imageUrl}}" />
-                {{model.name}}
-              </div>
-            {{/each}}
+      {{#if false}}
+        <!-- Dropdown für Pedestrian Model -->
+        <div class="ui segment">
+          <label>Choose a <b>CARLA</b> Pedestrian Model</label>
+          <div class="ui fluid search selection dropdown">
+            <input type="hidden" name="pedestrianModel" />
+            <i class="dropdown icon"></i>
+            <div class="default text">Select Pedestrian Model</div>
+            <div class="menu" style="overflow: hidden">
+              {{#each pedestrianModels as |model|}}
+                <div
+                  class="item"
+                  data-value="{{model.id}}"
+                  {{action "selectModel" model}}
+                  style="overflow: hidden;"
+                >
+                  <img class="ui avatar image" src="{{model.imageUrl}}" />
+                  {{model.name}}
+                </div>
+              {{/each}}
+            </div>
           </div>
+
+          {{#if selectedModel}}
+            <div class="ui segment">
+              <img
+                src="{{selectedModel.imageUrl}}"
+                alt="{{selectedModel.name}}"
+                class="ui medium rounded image"
+              />
+              <p>{{selectedModel.name}}</p>
+            </div>
+          {{/if}}
+
+          <p style="color: grey;">
+            You can visit CARLA's documentation on the pedestrian catalogue.
+            <a
+              href="https://carla.readthedocs.io/en/0.9.15/catalogue_pedestrians/"
+              target="_blank"
+              style="color: #0097ee; text-decoration: underline;"
+            >See more models</a>
+          </p>
         </div>
-
-        {{#if selectedModel}}
-          <div class="ui segment">
-            <img
-              src="{{selectedModel.imageUrl}}"
-              alt="{{selectedModel.name}}"
-              class="ui medium rounded image"
-            />
-            <p>{{selectedModel.name}}</p>
-          </div>
-        {{/if}}
-
-        <p style="color: grey;">
-          You can visit CARLA's documentation on the pedestrian catalogue.
-          <a
-            href="https://carla.readthedocs.io/en/0.9.15/catalogue_pedestrians/"
-            target="_blank"
-            style="color: #0097ee; text-decoration: underline;"
-          >See more models</a>
-        </p>
-      </div>
+      {{/if}}
 
     </div>
   {{/if}}

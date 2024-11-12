@@ -33,6 +33,7 @@ export default Component.extend({
   isTooltipHidden: true,
   selectedPath: null,
   selectedHeading: null,
+  pedestrianInput: null,
 
   headings: [
     { label: "North", value: "N" },
@@ -70,14 +71,6 @@ export default Component.extend({
       motorcycleModels: models.find((m) => m.category === "Motorcycle").items,
       bicycleModels: models.find((m) => m.category === "Bicycle").items,
     });
-
-    // Debug-Ausgaben zur Überprüfung
-    console.log("carModels", this.get("carModels"));
-    console.log("truckModels", this.get("truckModels"));
-    console.log("vanModels", this.get("vanModels"));
-    console.log("busModels", this.get("busModels"));
-    console.log("motorcycleModels", this.get("motorcycleModels"));
-    console.log("bicycleModels", this.get("bicycleModels"));
   },
 
   backgroundColor: computed("cellPosition", "carjanState.mapData", function () {
@@ -96,7 +89,6 @@ export default Component.extend({
   }),
 
   showProperties: computed("carjanState.properties", function () {
-    console.log("this carjanstate paths", this.carjanState.paths);
     switch (this.carjanState.properties) {
       case "path":
         this.set("selectedPath", this.carjanState.selectedPath);
@@ -665,13 +657,35 @@ export default Component.extend({
   },
 
   actions: {
+    // Methode zum Finden des aktuellen Entities in carjanState basierend auf der currentCellPosition
+    findCurrentEntity() {
+      const [row, col] = this.carjanState.currentCellPosition || [];
+      return this.carjanState.entities.find(
+        (entity) => entity.x === row.toString() && entity.y === col.toString()
+      );
+    },
+
+    // Dropdown-Methoden mit Aktualisierung des Entity-Objekts
+
     selectPath(path) {
       this.set("selectedPath", path);
+
+      // Finde das Entity und setze das followsPath-Attribut
+      const currentEntity = this.findCurrentEntity();
+      if (currentEntity) {
+        currentEntity.followsPath = path;
+      }
     },
+
     clearSelectedPath() {
       this.set("selectedPath", null);
+
+      const currentEntity = this.findCurrentEntity();
+      if (currentEntity) {
+        currentEntity.followsPath = null;
+      }
+
       const dropdownElement = this.$("#pathDropdown");
-      console.log("dropdownElement", dropdownElement);
       if (dropdownElement && dropdownElement.length) {
         dropdownElement.dropdown("clear");
       }
@@ -679,6 +693,20 @@ export default Component.extend({
 
     selectHeading(heading) {
       this.set("selectedHeading", heading);
+
+      const currentEntity = this.findCurrentEntity();
+      if (currentEntity) {
+        currentEntity.heading = heading;
+      }
+    },
+
+    selectModel(model) {
+      this.set("selectedModel", model);
+
+      const currentEntity = this.findCurrentEntity();
+      if (currentEntity) {
+        currentEntity.model = model;
+      }
     },
 
     showTooltip() {
@@ -754,6 +782,45 @@ export default Component.extend({
 
         this.carjanState.set("paths", updatedPaths);
       }
+    },
+    inputFocusOutPedestrian() {
+      const [currentX, currentY] = this.carjanState.currentCellPosition || [];
+
+      const matchingEntity = this.carjanState.agentData.find(
+        (entity) => entity.x == currentX && entity.y == currentY
+      );
+
+      if (matchingEntity) {
+        matchingEntity.label = this.pedestrianInput;
+      } else {
+        if (currentX !== undefined && currentY !== undefined) {
+          const entityId =
+            String(currentX).padStart(2, "0") +
+            String(currentY).padStart(2, "0");
+
+          const newPedestrian = {
+            entity: `http://example.com/carla-scenario#Entity${entityId}`,
+            type: "Pedestrian",
+            x: currentX,
+            y: currentY,
+            label: this.pedestrianInput,
+          };
+
+          this.carjanState.set("agentData", [
+            ...this.carjanState.agentData,
+            newPedestrian,
+          ]);
+        }
+      }
+    },
+
+    inputFocusInPedestrian() {
+      const [currentX, currentY] = this.carjanState.currentCellPosition || [];
+
+      const matchingEntity = this.carjanState.agentData.find(
+        (entity) => entity.x == currentX && entity.y == currentY
+      );
+      console.log("matchingEntity", matchingEntity);
     },
 
     async openDeletePathDialog(path) {

@@ -29,6 +29,7 @@ export default Component.extend({
   hasError: false,
   isNameEmpty: true,
   loading: true,
+  updating: false,
   isDisabled: computed("hasError", "isNameEmpty", function () {
     return this.hasError || this.isNameEmpty;
   }),
@@ -37,6 +38,9 @@ export default Component.extend({
     this._super(...arguments);
     self = this;
     rdfGraph.set(rdf.dataset());
+    if (this.mode !== "fileSelection") {
+      this.loadGrid();
+    }
   },
 
   updateObserver: observer("carjanState.updateStatements", async function () {
@@ -62,7 +66,10 @@ export default Component.extend({
 
       existingDataset.scenarios.push(...parsedStatements);
 
-      this.updateWithResult(existingDataset);
+      if (!this.updating) {
+        this.updating = true;
+        this.updateWithResult(existingDataset);
+      }
     } catch (error) {
       console.error("Error in updateObserver:", error);
     }
@@ -73,11 +80,10 @@ export default Component.extend({
       const scenarios = [];
       let currentScenario = null;
 
-      const entitiesMap = {}; // Map zur Speicherung der Entitäten anhand ihrer URI
-      const waypointsMap = {}; // Map zur Speicherung der Waypoints
-      const pathsMap = {}; // Map zur Speicherung der Paths
+      const entitiesMap = {};
+      const waypointsMap = {};
+      const pathsMap = {};
 
-      // Erste Iteration: Szenarien, Entitäten, Waypoints und Paths erfassen
       quads.forEach((quad) => {
         const subject = quad.subject.value;
         const predicate = quad.predicate.value;
@@ -250,7 +256,6 @@ export default Component.extend({
         }
       });
 
-      // Zweite Iteration: Waypoints den Paths zuordnen
       quads.forEach((quad) => {
         const subject = quad.subject.value;
         const predicate = quad.predicate.value;
@@ -300,14 +305,10 @@ export default Component.extend({
         }
       });
 
-      // Überprüfung der Entitäten und Error-Handling für nicht gefundene Pfade
       Object.keys(entitiesMap).forEach((entityURI) => {
         const entity = entitiesMap[entityURI];
         if (entity.followsPath && !pathsMap[entity.followsPath]) {
-          console.error(
-            `Entity ${entityURI} follows path ${entity.followsPath}, but the path was not found in pathsMap.`
-          );
-          entity.followsPath = null; // Lösche ungültige Pfadzuweisungen
+          entity.followsPath = null;
         }
       });
 
@@ -378,27 +379,6 @@ export default Component.extend({
 
   didInsertElement() {
     this._super(...arguments);
-    this.loadGrid();
-    this.fetchAgentDataFromRepo().then(({ scenarios }) => {
-      if (scenarios && scenarios.length > 0) {
-        let sortedScenarios = scenarios.sort((a, b) => a.localeCompare(b));
-        const firstScenario = sortedScenarios[0];
-        this.set("selectedValue", firstScenario);
-        this.set("availableScenarios", sortedScenarios);
-
-        Ember.run.scheduleOnce("afterRender", this, function () {
-          this.$(".ui.dropdown")
-            .dropdown({
-              onChange: (value) => {
-                this.send("scenarioSelected", value);
-              },
-            })
-            .dropdown("set selected", firstScenario);
-        });
-      } else {
-        console.error("No scenarios found in repository");
-      }
-    });
     // after 1s
     setTimeout(() => {
       this.loading = false;
@@ -442,7 +422,7 @@ export default Component.extend({
         this.deleteScenarioFromRepository(selectedScenario).then((result) => {
           this.updateWithResult(result).then(() => {
             setTimeout(() => {
-              window.location.reload(true);
+              // window.location.reload(true);
             }, 1000);
           });
         });
@@ -570,7 +550,7 @@ export default Component.extend({
     triggerSaveScenario() {
       this.carjanState.saveRequest();
       setTimeout(() => {
-        window.location.reload(true);
+        //window.location.reload(true);
       }, 1000);
     },
 
@@ -649,7 +629,7 @@ export default Component.extend({
     this.updateCarjanRepo(result).then(() => {
       this.loadGrid();
       setTimeout(() => {
-        window.location.reload(true);
+        //  window.location.reload(true);
       }, 1000);
     });
   },
@@ -663,7 +643,11 @@ export default Component.extend({
         existingScenario.scenarioName.split("#")[1] === scenarioName
     );
 
-    this.carjanState.setScenario(existingDataset);
+    if (existingDataset.scenarios.length > 0) {
+      this.carjanState.setScenario(existingDataset);
+    } else {
+      console.warn("No scenario found in repository for name:", scenarioName);
+    }
   },
 
   async addScenarioToRepository(newScenarioContent) {
@@ -695,6 +679,7 @@ export default Component.extend({
       throw error;
     }
   },
+
   async deleteScenarioFromRepository(scenarioLabelToDelete) {
     const existingRepositoryContent = await this.downloadRepository();
     const existingDataset = await this.parseTrig(existingRepositoryContent);
@@ -705,6 +690,7 @@ export default Component.extend({
 
     return existingDataset;
   },
+
   async downloadRepository(flag = false) {
     try {
       const { scenarios } = await this.fetchAgentDataFromRepo();
@@ -805,17 +791,20 @@ export default Component.extend({
     });
   },
 
-  async loadMapAndAgents(scenarioName) {
+  async loadMapAndAgents(scenarioName = null) {
     try {
       const { scenarios, scenarioData } = await this.fetchAgentDataFromRepo(
         scenarioName
       );
 
-      if (!scenarioData) {
-        return;
+      if (scenarioName === null) {
+        console.log("Setting selected value to first scenario", scenarios);
+        this.set("selectedValue", scenarios[0]);
+        scenarioName = scenarios[0];
       }
 
       const agents = this.extractAgentsData(scenarioData);
+      console.log("agents", agents);
       const { mapName, cameraPosition } =
         this.extractScenarioData(scenarioData);
       const map = mapName
@@ -825,9 +814,6 @@ export default Component.extend({
       this.carjanState.setMapData(map);
       this.carjanState.setAgentData(agents);
       this.carjanState.setCameraPosition(cameraPosition);
-
-      // Optional: Aktualisieren der verfügbaren Szenarien
-      this.carjanState.setAvailableScenarios(scenarios);
 
       this.updateCarjanState(scenarioName);
     } catch (error) {
@@ -927,6 +913,22 @@ export default Component.extend({
           if (item["http://example.com/carla-scenario#y"]) {
             currentItemContent += `      carjan:y "${item["http://example.com/carla-scenario#y"][0]["@value"]}"^^xsd:integer ;\n`;
           }
+
+          if (item["http://example.com/carla-scenario#heading"]) {
+            currentItemContent += `      carjan:heading "${item["http://example.com/carla-scenario#heading"][0]["@value"]}";\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#followsPath"]) {
+            currentItemContent += `      carjan:followsPath :${item["http://example.com/carla-scenario#followsPath"][0]["@value"]} ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#label"]) {
+            currentItemContent += `      carjan:label "${item["http://example.com/carla-scenario#label"][0]["@value"]}" ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#color"]) {
+            currentItemContent += `      carjan:color "${item["http://example.com/carla-scenario#color"][0]["@value"]}" ;\n`;
+          }
         }
 
         // Füge die Pfade hinzu
@@ -1025,8 +1027,10 @@ export default Component.extend({
       await this.addRDFStatements(scenario);
     }
     this.addGlobalConfig(scenarioURIs);
+    setTimeout(() => {
+      console.log("rdfGraph", rdfGraph);
+    }, 1200);
     await this.updateRepo();
-    rdfGraph.set(rdf.dataset());
   },
 
   addGlobalConfig(scenarioURIs) {
@@ -1219,6 +1223,51 @@ export default Component.extend({
             entityURI,
             this.namedNode("carjan:y"),
             rdf.literal(entity.y, this.namedNode("xsd:integer")),
+            graph
+          )
+        );
+      }
+
+      if (entity.label !== undefined) {
+        console.log("entity.label", entity.label);
+        rdfGraph.add(
+          rdf.quad(
+            entityURI,
+            this.namedNode("carjan:label"),
+            rdf.literal(entity.label),
+            graph
+          )
+        );
+      }
+
+      if (entity.color !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            entityURI,
+            this.namedNode("carjan:color"),
+            rdf.literal(entity.color),
+            graph
+          )
+        );
+      }
+
+      if (entity.heading !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            entityURI,
+            this.namedNode("carjan:heading"),
+            rdf.literal(entity.heading),
+            graph
+          )
+        );
+      }
+
+      if (entity.followsPath !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            entityURI,
+            this.namedNode("carjan:followsPath"),
+            rdf.literal(entity.followsPath),
             graph
           )
         );
@@ -1589,7 +1638,6 @@ export default Component.extend({
       const data = await response.json();
 
       const scenarios = this.extractScenariosList(data);
-
       let scenarioData = null;
 
       if (scenarioName) {
@@ -1598,8 +1646,10 @@ export default Component.extend({
             item["@graph"] &&
             item["@id"] === `http://example.com/carla-scenario#${scenarioName}`
         );
+      } else {
+        scenarioData = data[1];
       }
-
+      console.log("scenarioData:", scenarioData);
       return { data, scenarios, scenarioData };
     } catch (error) {
       console.error("Error fetching agent data from Triplestore:", error);
@@ -1668,27 +1718,55 @@ export default Component.extend({
               ? graphItem["http://example.com/carla-scenario#y"][0]["@value"]
               : null;
 
-          let entityType = "unknown";
-          if (
-            graphItem["@type"].some(
-              (type) => type === "http://example.com/carla-scenario#Pedestrian"
-            )
-          ) {
-            entityType = "pedestrian";
-          } else if (
-            graphItem["@type"].some(
-              (type) => type === "http://example.com/carla-scenario#Vehicle"
-            )
-          ) {
-            entityType = "vehicle";
-          } else if (
-            graphItem["@type"].some(
-              (type) =>
-                type === "http://example.com/carla-scenario#AutonomousVehicle"
-            )
-          ) {
-            entityType = "autonomous";
-          }
+          const label =
+            graphItem["http://example.com/carla-scenario#label"] &&
+            graphItem["http://example.com/carla-scenario#label"][0]
+              ? graphItem["http://example.com/carla-scenario#label"][0][
+                  "@value"
+                ]
+              : null;
+
+          const color =
+            graphItem["http://example.com/carla-scenario#color"] &&
+            graphItem["http://example.com/carla-scenario#color"][0]
+              ? graphItem["http://example.com/carla-scenario#color"][0][
+                  "@value"
+                ]
+              : null;
+
+          const heading =
+            graphItem["http://example.com/carla-scenario#heading"] &&
+            graphItem["http://example.com/carla-scenario#heading"][0]
+              ? graphItem["http://example.com/carla-scenario#heading"][0][
+                  "@value"
+                ]
+              : null;
+
+          const followsPath =
+            graphItem["http://example.com/carla-scenario#followsPath"] &&
+            graphItem["http://example.com/carla-scenario#followsPath"][0]
+              ? graphItem["http://example.com/carla-scenario#followsPath"][0][
+                  "@value"
+                ]
+              : null;
+
+          const entityType = graphItem["@type"].reduce((type, currentType) => {
+            if (
+              currentType === "http://example.com/carla-scenario#Pedestrian"
+            ) {
+              return "pedestrian";
+            } else if (
+              currentType === "http://example.com/carla-scenario#Vehicle"
+            ) {
+              return "vehicle";
+            } else if (
+              currentType ===
+              "http://example.com/carla-scenario#AutonomousVehicle"
+            ) {
+              return "autonomous";
+            }
+            return type;
+          }, "unknown");
 
           if (x !== null && y !== null) {
             agents.push({
@@ -1696,6 +1774,10 @@ export default Component.extend({
               x: parseInt(x, 10),
               y: parseInt(y, 10),
               type: entityType,
+              label: "null" ? null : label,
+              color: "null" ? null : color,
+              heading: "null" ? null : heading,
+              followsPath: "null" ? null : followsPath,
             });
           }
         }

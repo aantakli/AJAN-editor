@@ -56,7 +56,7 @@ export default Component.extend({
     closePathwayEditor() {
       const mainElement = document.getElementById("main");
       mainElement.innerHTML = "";
-      this.carjanState.setPathEditor(false);
+      this.carjanState.setProperties("scenario");
     },
   },
 

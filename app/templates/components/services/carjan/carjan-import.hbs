@@ -3,29 +3,39 @@
   <div class="ui segment">
     <label>
       <i class="folder outline icon" />
-      <b>Scenario</b>
+      <b>Repository</b>
     </label>
     <div class="ui grid">
-
       <div class="ui twelve wide column">
-
-        {{#ui-dropdown
-          class="fluid search selection bt-selection"
+        <div
+          class="ui dropdown fluid search selection bt-selection"
           style="border-radius: 10px;"
-          allowAdditions=false
-          fullTextSearch=true
-          sortSelected=true
-          onChange=(action "scenarioSelected")
-        }}
+          allowAdditions="false"
+          sortSelected="true"
+          id="scenarioDropdown"
+        >
           <i class="folder open outline icon" local-class="icon-bright"></i>
-          <div class="default text">Select Scenario</div>
           <i class="dropdown icon"></i>
+          <div class="text">
+            {{#if this.carjanState.scenarioName}}
+              {{this.carjanState.scenarioName}}
+            {{else}}
+              <div class="default text">Select a Scenario</div>
+            {{/if}}
+          </div>
           <div class="menu">
-            {{#each availableScenarios as |scenario|}}
-              <div class="item" data-value="{{scenario}}">{{scenario}}</div>
+            {{#each carjanState.repository.scenarios as |scenario|}}
+              <div
+                {{action "scenarioSelected" scenario}}
+                class="item"
+                data-value="{{scenario.displayName}}"
+              >
+                {{scenario.displayName}}
+              </div>
             {{/each}}
           </div>
-        {{/ui-dropdown}}
+        </div>
+
       </div>
       <div class="ui four wide column">
         <button
@@ -59,7 +69,7 @@
     />
 
     <p class="node-adder-class title-behaviors">
-      <i class="save icon" />
+      <i class="file outline icon" />
       <b>Scenario</b>
     </p>
 
@@ -87,7 +97,7 @@
     </div>
 
     <p class="node-adder-class title-behaviors">
-      <i class="save icon" />
+      <i class="server icon" />
       <b>File Management</b>
     </p>
 
@@ -126,6 +136,42 @@
         </div>
       </div>
     </div>
+
+    {{#if isGithubModalOpen}}
+      <div class="ui modal">
+        <div class="header">GitHub Repository Einstellungen</div>
+        <div class="content">
+          <form class="ui form">
+            <div class="field">
+              <label>GitHub Repository URL</label>
+              {{input
+                type="text"
+                value=githubRepo
+                placeholder="z.B. https://github.com/username/repo"
+              }}
+            </div>
+            <div class="field">
+              <label>GitHub Token</label>
+              {{input
+                type="password"
+                value=githubToken
+                placeholder="GitHub Token"
+              }}
+            </div>
+          </form>
+        </div>
+        <div class="actions">
+          <button
+            class="ui green icon github button"
+            {{action "saveGithubInfo"}}
+          >Speichern</button>
+          <button
+            class="ui red cancel icon github button"
+            {{action "closeGithubModal"}}
+          >Abbrechen</button>
+        </div>
+      </div>
+    {{/if}}
 
     {{#if isDialogOpen}}
       <div class="ui dimmer modals page">
@@ -172,6 +218,66 @@
               Cancel
             </button>
           </div>
+        </div>
+      </div>
+    {{/if}}
+
+    <button
+      id="openModalButton"
+      class="ui button"
+      style="display: none;"
+      {{action "openSwitchScenarioDialog"}}
+    >
+      Open Modal
+    </button>
+
+    {{#if isSwitchScenarioDialogOpen}}
+      <div class="ui dimmer modals page">
+        <div class="ui small basic modal transition" local-class="center-modal">
+
+          <div class="ui blue inverted segment">
+            <h2 class="ui centered header">
+              <i class="exchange icon"></i>
+              Switching Scenario
+            </h2>
+          </div>
+
+          <div class="content">
+            <div class="ui padded segment">
+              <div class="ui icon message">
+                <i class="save icon"></i>
+                <div class="content">
+                  <div class="header">
+                    Continue with all changes?
+                  </div>
+                  <p>Would you like to save changes before switching to another
+                    scenario?</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ui clearing divider"></div>
+
+          <div class="actions">
+            <button
+              class="ui primary inverted cancel button"
+              {{action "confirmSwitchScenario"}}
+            >
+              <i class="save outline icon"></i>
+              Save and Continue
+            </button>
+
+            <button
+              class="ui inverted cancel button"
+              {{action "discardSwitchScenario"}}
+            >
+              <i class="trash icon"></i>
+              Discard and Switch
+            </button>
+
+          </div>
+
         </div>
       </div>
     {{/if}}

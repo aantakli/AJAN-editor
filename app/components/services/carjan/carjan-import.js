@@ -10,8 +10,6 @@ import rdf from "npm:rdf-ext";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import stringToStream from "npm:string-to-stream";
 
-let self;
-
 const prefixes = {
   rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
   carjan: "http://example.com/carla-scenario#",
@@ -25,18 +23,23 @@ export default Component.extend({
   carjanState: service(),
   isDialogOpen: false,
   isDeleteDialogOpen: false,
+  isSwitchScenarioDialogOpen: false,
   scenarioName: "",
   hasError: false,
   isNameEmpty: true,
   loading: true,
   updating: false,
+  githubRepo: "",
+  githubToken: "",
   isDisabled: computed("hasError", "isNameEmpty", function () {
     return this.hasError || this.isNameEmpty;
   }),
 
-  init() {
+  async init() {
     this._super(...arguments);
-    self = this;
+
+    await this.getEnviromentData("SELECTED_SCENARIO");
+
     rdfGraph.set(rdf.dataset());
     if (this.mode !== "fileSelection") {
       this.loadGrid();
@@ -74,6 +77,34 @@ export default Component.extend({
       console.error("Error in updateObserver:", error);
     }
   }),
+
+  scenarioNameObserver: observer("carjanState.scenarioName", function () {
+    console.log("neues Szenario:", this.carjanState.scenarioName);
+    this.set("scenarioName", this.carjanState.scenarioName);
+  }),
+
+  thisselectedValueObserver: observer("selectedValue", function () {
+    console.log("== selectedValue:", this.selectedValue);
+  }),
+
+  async getEnviromentData(envType) {
+    fetch("http://localhost:4204/api/get_environment_variable", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ type: envType }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.selectedValue) {
+          this.set("selectedValue", data.selectedValue);
+        } else {
+          console.warn("Selected value not found in environment.");
+        }
+      })
+      .catch((error) => console.error("Error fetching selected value:", error));
+  },
 
   async parseQuadsToScenarios(quads) {
     try {
@@ -387,21 +418,74 @@ export default Component.extend({
 
   didInsertElement() {
     this._super(...arguments);
-    // after 1s
+
     setTimeout(() => {
       this.loading = false;
     }, 1000);
   },
 
+  closeDialog() {
+    this.$(".ui.modal").modal("hide");
+    this.set("isDialogOpen", false);
+    this.set("scenarioName", "");
+    this.set("hasError", false);
+  },
+
+  showModal(modalSelector) {
+    console.log("Show modal:", modalSelector);
+    this.set("isSwitchScenarioDialogOpen", true);
+    next(() => {
+      this.$(modalSelector)
+        .modal({
+          closable: false,
+          transition: "scale",
+          duration: 500,
+          dimmerSettings: { duration: { show: 500, hide: 500 } },
+        })
+        .modal("show");
+    });
+  },
+
+  async saveSelectedScenario(scenarioName) {
+    await fetch("http://localhost:4204/api/save_environment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        type: "SELECTED_SCENARIO",
+        value: scenarioName,
+      }),
+    });
+  },
+
   actions: {
-    scenarioSelected(value) {
-      this.scenarioName = value;
-      this.set("selectedValue", value);
-      if (value) {
-        this.loadMapAndAgents(value);
-        this.loadGrid();
-        this.carjanState.setScenarioName(value);
+    async saveGithubInfo() {
+      try {
+        const response = await fetch("/api/save_environment", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            token: this.get("githubToken"),
+            repo: this.get("githubRepo"),
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Fehler beim Speichern der GitHub Informationen.");
+        }
+        alert("GitHub Informationen erfolgreich gespeichert.");
+        this.send("closeGithubModal");
+      } catch (error) {
+        console.error("Fehler beim Speichern der GitHub Informationen:", error);
+        alert("Fehler: GitHub Informationen konnten nicht gespeichert werden.");
       }
+    },
+
+    closeGithubModal() {
+      set(this, "isGithubModalOpen", false);
     },
 
     async downloadScenario() {
@@ -430,7 +514,7 @@ export default Component.extend({
         this.deleteScenarioFromRepository(selectedScenario).then((result) => {
           this.updateWithResult(result).then(() => {
             setTimeout(() => {
-              // window.location.reload(true);
+              window.location.reload(true);
             }, 1000);
           });
         });
@@ -447,19 +531,38 @@ export default Component.extend({
       this.set("scenarioName", "");
       this.set("hasError", false);
 
-      next(() => {
-        this.$(".ui.basic.modal")
-          .modal({
-            closable: false,
-            transition: "scale",
-            duration: 500,
-            dimmerSettings: { duration: { show: 500, hide: 500 } },
-          })
-          .modal("show");
-      });
+      this.showModal(".ui.basic.modal");
 
       const { scenarios } = await this.fetchAgentDataFromRepo();
       this.set("existingScenarioNames", scenarios);
+    },
+
+    async scenarioSelected(value) {
+      if (value) {
+        this.set("isSwitchScenarioDialogOpen", true);
+        await this.saveSelectedScenario(value.displayName);
+        document.getElementById("openModalButton").click();
+      } else {
+        console.log("No scenario selected.");
+      }
+    },
+
+    async openSwitchScenarioDialog() {
+      console.log("openSwitchScenarioDialog");
+      this.set("isSwitchScenarioDialogOpen", true);
+      this.showModal(".ui.basic.modal");
+    },
+
+    confirmSwitchScenario() {
+      this.carjanState.setLoading(true);
+      this.carjanState.saveRequest();
+    },
+
+    discardSwitchScenario() {
+      this.carjanState.setLoading(true);
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 1000);
     },
 
     closeNewScenarioDialog() {
@@ -558,7 +661,7 @@ export default Component.extend({
     triggerSaveScenario() {
       this.carjanState.saveRequest();
       setTimeout(() => {
-        //window.location.reload(true);
+        window.location.reload(true);
       }, 1000);
     },
 
@@ -627,7 +730,7 @@ export default Component.extend({
     this.updateCarjanRepo(result).then(() => {
       this.loadGrid();
       setTimeout(() => {
-        //  window.location.reload(true);
+        window.location.reload(true);
       }, 1000);
     });
   },
@@ -635,6 +738,12 @@ export default Component.extend({
   async updateCarjanState(scenarioName) {
     const existingRepositoryContent = await this.downloadRepository();
     const existingDataset = await this.parseTrig(existingRepositoryContent);
+
+    const copiedDataset = JSON.parse(JSON.stringify(existingDataset));
+    copiedDataset.scenarios.forEach((scenario) => {
+      scenario.displayName = scenario.scenarioName.split("#")[1];
+    });
+    this.carjanState.setRepository(copiedDataset);
 
     existingDataset.scenarios = existingDataset.scenarios.filter(
       (existingScenario) =>
@@ -779,6 +888,7 @@ export default Component.extend({
   async loadGrid() {
     this.checkRepository().then(() => {
       setTimeout(() => {
+        console.log("Selected value:", this.get("selectedValue"));
         this.loadMapAndAgents(this.get("selectedValue"));
       }, 200);
     });
@@ -1505,7 +1615,7 @@ export default Component.extend({
 
     try {
       // Verwenden Sie actions.saveAgentGraph, um die RDF-Daten hochzuladen
-      actions.saveAgentGraph(ajax, repoUrl, self.dataBus, onEnd);
+      actions.saveAgentGraph(ajax, repoUrl, this.dataBus, onEnd);
     } catch (error) {
       console.error("Error updating repository:", error);
     }

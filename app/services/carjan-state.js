@@ -23,6 +23,17 @@ export default Service.extend({
   propertyPanel: null,
   color: null,
   chevronDirection: null,
+  repository: null,
+  loading: null,
+
+  setLoading(loading) {
+    set(this, "loading", loading);
+  },
+
+  setRepository(repository) {
+    console.log("Repository: ", repository);
+    set(this, "repository", repository);
+  },
 
   setPathColor(color) {
     set(this.selectedPath, "color", color);
@@ -129,6 +140,7 @@ export default Service.extend({
   },
 
   setScenario(dataset) {
+    console.log("dataset: ", dataset);
     const scenario = dataset.scenarios[0];
     if (scenario.scenarioName) {
       this.setScenarioName(scenario.scenarioName.split("#")[1]);

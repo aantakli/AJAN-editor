@@ -41,6 +41,7 @@ export default Component.extend({
   reloadFlag: true,
   draggingEnttiy: null,
   draggingEntityPosition: null,
+  previousIcon: null,
 
   didInsertElement() {
     this._super(...arguments);
@@ -142,7 +143,9 @@ export default Component.extend({
         if (entityType === "waypoint") {
           this.addSingleWaypoint(row, col, "top-left");
         } else {
-          this.moveEntityState(row, col);
+          if (this.draggingEntityPosition) {
+            this.moveEntityState(row, col);
+          }
           this.addEntityToGrid(entityType, row, col);
         }
       }
@@ -235,7 +238,6 @@ export default Component.extend({
     async function () {
       const currentMap = this.carjanState.mapData;
       const currentAgents = this.carjanState.agentData;
-      // TODO
       if (
         (this.previousMap !== currentMap ||
           this.previousAgents !== currentAgents) &&
@@ -303,6 +305,30 @@ export default Component.extend({
     }
   }),
 
+  entityColorObserver: function () {
+    console.log("entityColorObserver");
+    setTimeout(() => {
+      const icon = this.previousIcon;
+      if (icon) {
+        console.log("Icon found", icon);
+        const [row, col] = this.carjanState.currentCellPosition;
+        const agent = this.carjanState.agentData.find(
+          (agent) => agent.x === row && agent.y === col
+        );
+        if (agent && agent.color) {
+          if (agent.color === "#000000") {
+            icon.style.color = "#000";
+            icon.style.textShadow = "none";
+          } else {
+            console.log("color changed by the observer!");
+            icon.style.color = agent.color;
+          }
+        }
+        this.previousIcon = icon;
+      }
+    }, 200);
+  }.observes("carjanState.color"),
+
   drawMainPathLines() {
     if (this.carjanState.selectedPath && !this.carjanState.pathMode) {
       this.pathIcons = [];
@@ -316,6 +342,26 @@ export default Component.extend({
           this.pathIcons.push(waypointElement);
         }
       });
+      if (this.pathIcons.length > 1) {
+        this.pathIcons[0].style.color = this.carjanState.selectedPath.color;
+        this.pathIcons[0].style.textShadow = "1px 2px 3px black";
+        this.pathIcons[0].style.transform = "scale(1.5)";
+        this.pathIcons[0].style.zIndex = 1000;
+
+        // hightlight the lastwaypoint and replace it with a flag
+        const lastWaypoint = this.pathIcons[this.pathIcons.length - 1];
+        lastWaypoint.style.color = this.carjanState.selectedPath.color;
+        // scale it
+        lastWaypoint.style.transform = "scale(1.5)";
+        // highlight with a harsh black shadow
+        lastWaypoint.style.textShadow = "1px 2px 3px black";
+
+        lastWaypoint.style.zIndex = 1000;
+        lastWaypoint.classList.remove("map", "marker", "alternate");
+        lastWaypoint.classList.add("flag", "outline");
+        console.log("lastWaypoint", lastWaypoint);
+      }
+
       this.drawPathLines();
     }
   },
@@ -503,7 +549,11 @@ export default Component.extend({
           )
         );
 
-        if (["Pedestrian", "pedestrian"].includes(cellStatus.entityType)) {
+        if (
+          ["Pedestrian", "pedestrian", "Vehicle", "vehicle"].includes(
+            cellStatus.entityType
+          )
+        ) {
           const agents = this.carjanState.get("agentData");
           console.log("agents", agents);
           const agent = agents.find(
@@ -520,6 +570,46 @@ export default Component.extend({
                     agent.label.charAt(0).toUpperCase() + agent.label.slice(1)
                   }`
                 )
+              )
+            );
+          }
+
+          if (agent && agent.color) {
+            rdfGraph.add(
+              rdf.quad(
+                entityURI,
+                rdf.namedNode("http://example.com/carla-scenario#color"),
+                rdf.literal(agent.color)
+              )
+            );
+          }
+
+          if (agent && agent.followsPath) {
+            rdfGraph.add(
+              rdf.quad(
+                entityURI,
+                rdf.namedNode("http://example.com/carla-scenario#followsPath"),
+                rdf.namedNode(`${agent.followsPath}`)
+              )
+            );
+          }
+
+          if (agent && agent.heading) {
+            rdfGraph.add(
+              rdf.quad(
+                entityURI,
+                rdf.namedNode("http://example.com/carla-scenario#heading"),
+                rdf.literal(agent.heading)
+              )
+            );
+          }
+
+          if (agent && agent.model) {
+            rdfGraph.add(
+              rdf.quad(
+                entityURI,
+                rdf.namedNode("http://example.com/carla-scenario#model"),
+                rdf.literal(agent.model)
               )
             );
           }
@@ -1294,24 +1384,42 @@ export default Component.extend({
       this.carjanState.set("currentCellStatus", cellStatus);
       this.carjanState.set("currentCellPosition", [row, col]);
 
+      if (this.previousIcon) {
+        this.previousIcon.style.color = "#000";
+        this.previousIcon.style.textShadow = "none";
+      }
+
       if (cellStatus.waypoints && cellStatus.waypoints.length > 0) {
         this.carjanState.set("properties", "waypoint");
       } else {
+        const agents = this.carjanState.get("agentData");
+        const agent = agents.find(
+          (agent) => agent.x.toString() === row && agent.y.toString() === col
+        );
+
+        const agentIcon = targetCell.querySelector(".icon");
+
+        if (agentIcon) {
+          if (agent && agent.color !== "#000") {
+            agentIcon.style.color = agent && agent.color ? agent.color : "#000";
+            agentIcon.style.textShadow = "1px 2px 3px black";
+          }
+        }
+
+        this.previousIcon = agentIcon || null;
+
         switch (cellStatus.entityType) {
           case "Pedestrian":
           case "pedestrian":
-            console.log("Pedestrian clicked", row, col);
-            const agents = this.carjanState.get("agentData");
-            const agent = agents.find(
-              (agent) => agent.x === row && agent.y === col
-            );
             if (!agent) {
               this.addEntityToState("Pedestrian", row, col);
               break;
             }
+            console.log("Pedestrian clicked", row, col);
             this.carjanState.set("properties", "pedestrian");
             break;
           case "Vehicle":
+          case "vehicle":
             console.log("Vehicle clicked", row, col);
             this.carjanState.set("properties", "vehicle");
             break;
@@ -1323,6 +1431,8 @@ export default Component.extend({
             break;
           default:
             console.log("Unknown entity clicked", cellStatus);
+            this.carjanState.set("properties", "scenario");
+            break;
         }
       }
     }

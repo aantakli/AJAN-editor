@@ -1,0 +1,52 @@
+{
+  "Car": [
+    { "name": "Audi - A2", "imageUrl": "vehicle01.webp" },
+    { "name": "Audi - E-Tron", "imageUrl": "vehicle02.webp" },
+    { "name": "Audi - TT", "imageUrl": "vehicle03.webp" },
+    { "name": "BMW - Gran Tourer", "imageUrl": "vehicle04.webp" },
+    { "name": "Chevrolet - Impala", "imageUrl": "vehicle05.webp" },
+    { "name": "Citroen - C3", "imageUrl": "vehicle06.webp" },
+    { "name": "Dodge - Charger 2020", "imageUrl": "vehicle07.webp" },
+    { "name": "Dodge - Police Charger 2020", "imageUrl": "vehicle08.webp" },
+    { "name": "Dodge - Police Charger", "imageUrl": "vehicle09.webp" },
+    { "name": "Ford - Crown (taxi)", "imageUrl": "vehicle10.webp" },
+    { "name": "Ford - Mustang", "imageUrl": "vehicle11.webp" },
+    { "name": "Jeep - Wrangler Rubicon", "imageUrl": "vehicle12.webp" },
+    { "name": "Lincoln - MKZ 2017", "imageUrl": "vehicle13.webp" },
+    { "name": "Lincoln - MKZ 2020", "imageUrl": "vehicle14.webp" },
+    { "name": "Mercedes - Coupe 2020", "imageUrl": "vehicle15.webp" },
+    { "name": "Mercedes - Coupe", "imageUrl": "vehicle16.webp" },
+    { "name": "Micro - Microlino", "imageUrl": "vehicle17.webp" },
+    { "name": "Mini - Cooper S", "imageUrl": "vehicle18.webp" },
+    { "name": "Mini - Cooper S 2021", "imageUrl": "vehicle19.webp" },
+    { "name": "Nissan - Micra", "imageUrl": "vehicle20.webp" },
+    { "name": "Nissan - Patrol", "imageUrl": "vehicle21.webp" },
+    { "name": "Nissan - Patrol 2021", "imageUrl": "vehicle22.webp" },
+    { "name": "Seat - Leon", "imageUrl": "vehicle23.webp" },
+    { "name": "Toyota - Prius", "imageUrl": "vehicle24.webp" }
+  ],
+  "Truck": [
+    { "name": "CARLA Motors - CarlaCola", "imageUrl": "vehicle25.webp" },
+    { "name": "CARLA Motors - European HGV", "imageUrl": "vehicle26.webp" },
+    { "name": "CARLA Motors - Firetruck", "imageUrl": "vehicle27.webp" },
+    { "name": "Tesla - Cybertruck", "imageUrl": "vehicle28.webp" }
+  ],
+  "Van": [
+    { "name": "Ford - Ambulance", "imageUrl": "vehicle29.webp" },
+    { "name": "Mercedes - Sprinter", "imageUrl": "vehicle30.webp" },
+    { "name": "Volkswagen - T2", "imageUrl": "vehicle31.webp" },
+    { "name": "Volkswagen - T2 2021", "imageUrl": "vehicle32.webp" }
+  ],
+  "Bus": [{ "name": "Mitsubishi - Fusorosa", "imageUrl": "vehicle33.webp" }],
+  "Motorcycle": [
+    { "name": "Harley Davidson - Low Rider", "imageUrl": "vehicle34.webp" },
+    { "name": "Kawasaki - Ninja", "imageUrl": "vehicle35.webp" },
+    { "name": "Vespa - ZX 125", "imageUrl": "vehicle36.webp" },
+    { "name": "Yamaha - YZF", "imageUrl": "vehicle37.webp" }
+  ],
+  "Bicycle": [
+    { "name": "BH - Crossbike", "imageUrl": "vehicle38.webp" },
+    { "name": "Diamondback - Century", "imageUrl": "vehicle39.webp" },
+    { "name": "Gazelle - Omafiets", "imageUrl": "vehicle40.webp" }
+  ]
+}

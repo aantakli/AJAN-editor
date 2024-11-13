@@ -16,16 +16,32 @@
       >
 
         <div id="overlay" local-class="overlay" hidden></div>
+
         <div local-class="column-numbers">
           {{#each (range 0 this.gridCols) as |col|}}
             <div local-class="col-number">{{col}}</div>
           {{/each}}
+          <button
+            class="ui white icon button"
+            style="background-color: white; margin-bottom: 10px; position: relative; top: -4px;  pointer-events: none;"
+          >
+            <i class="icon long arrow alternate right"></i>
+            y-axis
+          </button>
         </div>
 
         <div local-class="row-numbers">
           {{#each (range 0 this.gridRows) as |row|}}
             <div local-class="row-number">{{row}}</div>
           {{/each}}
+          <button
+            class="ui white icon button"
+            style="background-color: white; text-color: black;
+            position: relative; top: 5px; left: 8px; pointer-events: none;"
+          >
+            <i class="icon long arrow alternate down"></i>
+            x-axis
+          </button>
         </div>
         <svg
           id={{gridId}}

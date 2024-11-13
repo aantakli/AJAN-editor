@@ -157,3 +157,21 @@
   text-align: right;
   width: 40px;
 }
+
+/* Button-Container */
+.axis-icon-button {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  color: #333;
+  font-weight: bold;
+  padding: 8px;
+}
+
+/* Position für die X-Achse */
+.x-axis {
+  position: absolute;
+  top: 20px; /* Beispielposition für X-Achse */
+  left: 50%;
+  transform: translateX(-50%);
+}

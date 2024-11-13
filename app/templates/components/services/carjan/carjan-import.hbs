@@ -235,15 +235,8 @@
       <div class="ui dimmer modals page">
         <div class="ui small basic modal transition" local-class="center-modal">
 
-          <div class="ui blue inverted segment">
-            <h2 class="ui centered header">
-              <i class="exchange icon"></i>
-              Switching Scenario
-            </h2>
-          </div>
-
           <div class="content">
-            <div class="ui padded segment">
+            <div class="ui padded blue inverted segment">
               <div class="ui icon message">
                 <i class="save icon"></i>
                 <div class="content">
@@ -263,6 +256,7 @@
             <button
               class="ui primary inverted cancel button"
               {{action "confirmSwitchScenario"}}
+              id="saveAndContinueModalButton"
             >
               <i class="save outline icon"></i>
               Save and Continue

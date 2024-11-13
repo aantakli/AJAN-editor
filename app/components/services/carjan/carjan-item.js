@@ -342,16 +342,12 @@ export default Component.extend({
   }),
 
   headingObserver: observer("carjanState.chevronDirection", function () {
-    console.log("headingObserver");
-
     const icon = this.previousIcon;
     if (icon) {
-      // remove this.previousChevron
       if (this.previousChevron) {
         this.previousChevron.remove();
       }
 
-      console.log("Icon found", icon);
       const [row, col] = this.carjanState.currentCellPosition;
 
       const gridElement = this.element.querySelector(
@@ -381,11 +377,9 @@ export default Component.extend({
   }),
 
   entityColorObserver: function () {
-    console.log("entityColorObserver");
     setTimeout(() => {
       const icon = this.previousIcon;
       if (icon) {
-        console.log("Icon found", icon);
         const [row, col] = this.carjanState.currentCellPosition;
         const agent = this.carjanState.agentData.find(
           (agent) => agent.x === row && agent.y === col
@@ -395,7 +389,6 @@ export default Component.extend({
             icon.style.color = "#000";
             icon.style.textShadow = "none";
           } else {
-            console.log("color changed by the observer!");
             icon.style.color = agent.color;
           }
         }
@@ -434,7 +427,6 @@ export default Component.extend({
         lastWaypoint.style.zIndex = 1000;
         lastWaypoint.classList.remove("map", "marker", "alternate");
         lastWaypoint.classList.add("flag", "outline");
-        console.log("lastWaypoint", lastWaypoint);
       }
 
       this.drawPathLines();
@@ -452,7 +444,6 @@ export default Component.extend({
       x
     ).padStart(2, "0")}${String(y).padStart(2, "0")}`;
     this.draggingEntityPosition = null;
-    console.log("this.carjanState.agentData", this.carjanState.agentData);
   },
 
   deleteAllEntites() {
@@ -630,7 +621,6 @@ export default Component.extend({
           )
         ) {
           const agents = this.carjanState.get("agentData");
-          console.log("agents", agents);
           const agent = agents.find(
             (agent) => agent.x === row && agent.y === col
           );
@@ -1420,7 +1410,6 @@ export default Component.extend({
       e.target.classList.contains("alternate") &&
       this.carjanState.pathMode
     ) {
-      console.log("e.target", e.target);
       const positionInCell = e.target.getAttribute("data-position-in-cell");
       const x = e.target.getAttribute("data-x").toString();
       const y = e.target.getAttribute("data-y").toString();
@@ -1454,7 +1443,6 @@ export default Component.extend({
     const col = targetCell.dataset.col;
 
     const cellStatus = this.gridStatus[`${row},${col}`];
-    console.log("cellStatus", cellStatus);
     if (cellStatus) {
       this.carjanState.set("currentCellStatus", cellStatus);
       this.carjanState.set("currentCellPosition", [row, col]);
@@ -1475,7 +1463,7 @@ export default Component.extend({
         const agentIcon = targetCell.querySelector(".icon");
 
         if (agentIcon) {
-          if (agent && agent.color !== "#000") {
+          if (agent && agent.followsPath && agent.followsPath !== "null") {
             agentIcon.style.color = agent && agent.color ? agent.color : "#000";
             agentIcon.style.textShadow = "1px 2px 3px black";
           }
@@ -1490,12 +1478,10 @@ export default Component.extend({
               this.addEntityToState("Pedestrian", row, col);
               break;
             }
-            console.log("Pedestrian clicked", row, col);
             this.carjanState.set("properties", "pedestrian");
             break;
           case "Vehicle":
           case "vehicle":
-            console.log("Vehicle clicked", row, col);
             this.carjanState.set("properties", "vehicle");
             break;
           case "autonomous":
@@ -1505,7 +1491,6 @@ export default Component.extend({
             console.log("Obstacle clicked", row, col);
             break;
           default:
-            console.log("Unknown entity clicked", cellStatus);
             this.carjanState.set("properties", "scenario");
             break;
         }
@@ -1523,7 +1508,6 @@ export default Component.extend({
         this.isPanning = false;
         this.isDragging = true;
       } else {
-        console.log("isEntityCell", isEntityCell);
         drag.state = true;
         drag.x = e.pageX;
         drag.y = e.pageY;

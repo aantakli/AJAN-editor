@@ -155,12 +155,16 @@ export default Component.extend({
         this.set("selectedModel", entityAtPosition.model);
       }
 
-      console.log("this.selectedModel", this.selectedModel);
       const entityPath = this.carjanState.paths.find(
         (path) => path.path === entityAtPosition.followsPath
       );
       if (entityPath) {
         this.set("selectedPath", entityPath);
+      } else {
+        this.set("selectedPath", null);
+      }
+      if (entityAtPosition.heading) {
+        this.set("entity.heading", entityAtPosition.heading);
       }
     }
 
@@ -548,64 +552,72 @@ export default Component.extend({
     },
 
     inputFocusIn() {
-      if (this.changeOriginalFlag) {
+      if (this.changeOriginalFlag && this.selectedPath) {
         this.original = this.selectedPath.description;
       }
       this.changeOriginalFlag = false;
     },
+
     checkPathDescription() {
-      const pathDescription = this.selectedPath.description.trim();
-      const isDescriptionEmpty = pathDescription.trim() === "";
-      this.set("isDescriptionEmpty", isDescriptionEmpty);
+      if (this.selectedPath) {
+        const pathDescription = this.selectedPath.description.trim();
+        const isDescriptionEmpty = pathDescription.trim() === "";
+        this.set("isDescriptionEmpty", isDescriptionEmpty);
 
-      if (isDescriptionEmpty) {
-        this.set("hasError", true);
-        this.set(
-          "errorMessage",
-          "Empty path description. Please enter a description."
-        );
-        return;
+        if (isDescriptionEmpty) {
+          this.set("hasError", true);
+          this.set(
+            "errorMessage",
+            "Empty path description. Please enter a description."
+          );
+          return;
+        }
+
+        const isValidDescription = /^[a-zA-Z0-9_ ]+$/.test(pathDescription);
+        if (!isValidDescription) {
+          this.set("hasError", true);
+          this.set(
+            "errorMessage",
+            "Invalid path description. Only letters, numbers, spaces, and underscores are allowed."
+          );
+          return;
+        }
+        const paths = this.carjanState.paths || [];
+        const trimmedDescription = pathDescription.trim();
+
+        const isDuplicateDescription = paths.some((path) => {
+          const isSameDescription =
+            path.description.trim() === trimmedDescription;
+
+          return (
+            isSameDescription && trimmedDescription !== this.original.trim()
+          );
+        });
+
+        if (isDuplicateDescription) {
+          this.set("hasError", true);
+          this.set(
+            "errorMessage",
+            "Duplicate path description found. Please use a unique description."
+          );
+          return;
+        }
+
+        this.set("hasError", false);
+        this.set("errorMessage", "");
       }
-
-      const isValidDescription = /^[a-zA-Z0-9_ ]+$/.test(pathDescription);
-      if (!isValidDescription) {
-        this.set("hasError", true);
-        this.set(
-          "errorMessage",
-          "Invalid path description. Only letters, numbers, spaces, and underscores are allowed."
-        );
-        return;
-      }
-      const paths = this.carjanState.paths || [];
-      const trimmedDescription = pathDescription.trim();
-
-      const isDuplicateDescription = paths.some((path) => {
-        const isSameDescription =
-          path.description.trim() === trimmedDescription;
-
-        return isSameDescription && trimmedDescription !== this.original.trim();
-      });
-
-      if (isDuplicateDescription) {
-        this.set("hasError", true);
-        this.set(
-          "errorMessage",
-          "Duplicate path description found. Please use a unique description."
-        );
-        return;
-      }
-
-      this.set("hasError", false);
-      this.set("errorMessage", "");
     },
 
     inputFocusOut() {
       if (!this.hasError) {
         let allPaths = this.carjanState.paths;
 
-        let updatedPaths = allPaths.map((path) =>
-          path.path === this.selectedPath.path ? this.selectedPath : path
-        );
+        let updatedPaths = allPaths;
+        if (this.selectedPath) {
+          allPaths.map((path) =>
+            path.path === this.selectedPath.path ? this.selectedPath : path
+          );
+        }
 
         this.carjanState.set("paths", updatedPaths);
       }

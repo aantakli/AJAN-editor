@@ -284,11 +284,15 @@
             >
               <input type="hidden" name="heading" />
               <i class="dropdown icon"></i>
-              <div class="default text">{{if
-                  (not-eq this.selectedPath null)
-                  "Path"
-                  "Select Heading"
-                }}</div>
+              {{#if entity.heading}}
+                <div class="text" style="color: black;">
+                  {{entity.heading}}
+                </div>
+              {{else}}
+                <div class="default text">
+                  {{if (not-eq this.selectedPath null) "Path" "Select Heading"}}
+                </div>
+              {{/if}}
               <div class="menu" style="overflow: hidden;">
                 {{#each this.headings as |heading|}}
                   <div
@@ -530,11 +534,15 @@
             >
               <input type="hidden" name="heading" />
               <i class="dropdown icon"></i>
-              <div class="default text">{{if
-                  (not-eq this.selectedPath null)
-                  "Path"
-                  "Select Heading"
-                }}</div>
+              {{#if entity.heading}}
+                <div class="text" style="color: black;">
+                  {{entity.heading}}
+                </div>
+              {{else}}
+                <div class="default text">
+                  {{if (not-eq this.selectedPath null) "Path" "Select Heading"}}
+                </div>
+              {{/if}}
               <div class="menu" style="overflow: hidden;">
                 {{#each this.headings as |heading|}}
                   <div

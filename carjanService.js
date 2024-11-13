@@ -120,7 +120,7 @@ async function stopFlaskService() {
     }
   } else {
     console.log("No Flask process to stop.");
-    return false;
+    process.exit(1);
   }
 }
 
@@ -139,37 +139,87 @@ async function waitForFlaskToBeReady() {
       }
     } catch (error) {
       console.log(`Flask not ready, attempt ${attempt}...`);
+      return;
     }
     await new Promise((resolve) => setTimeout(resolve, delay));
   }
   return false;
 }
 
+function shutdownServer() {
+  return new Promise((resolve) => {
+    server.close(() => {
+      console.log("Server closed.");
+      resolve();
+    });
+  });
+}
+
+function loadEnvVariables(envFilePath) {
+  if (fs.existsSync(envFilePath)) {
+    return dotenv.parse(fs.readFileSync(envFilePath));
+  }
+  return {};
+}
+
+const validTypes = [
+  "CARLA_PATH",
+  "GITHUB_TOKEN",
+  "GITHUB_PATH",
+  "SELECTED_SCENARIO",
+];
+
 app.use(cors());
 app.use(express.json());
 
-app.post("/api/save_carla_path", (req, res) => {
-  const carlaPath = req.body.path;
-  if (!carlaPath) {
-    return res.status(400).json({ error: "CARLA path is required" });
+app.post("/api/save_environment", (req, res) => {
+  const { type, value } = req.body;
+  if (!validTypes.includes(type)) {
+    return res.status(400).json({ error: `Invalid type: ${type}` });
+  }
+
+  if (!value) {
+    return res.status(400).json({ error: `${type} value is required` });
   }
 
   const envFilePath = path.join(__dirname, "app", "services", "carjan", ".env");
+  const currentEnvVars = loadEnvVariables(envFilePath);
 
-  fs.writeFile(
-    envFilePath,
-    `CARLA_PATH=${carlaPath}\n`,
-    { flag: "w" },
-    (err) => {
-      if (err) {
-        console.error("Failed to write CARLA path to .env file:", err);
-        return res.status(500).json({ error: "Failed to save CARLA path" });
-      }
+  currentEnvVars[type] = value;
 
-      console.log("CARLA path saved to .env file in app/services/carjan");
-      res.json({ status: "CARLA path saved successfully" });
+  const newEnvContent = Object.entries(currentEnvVars)
+    .map(([key, val]) => `${key}=${val}`)
+    .join("\n");
+  fs.writeFile(envFilePath, newEnvContent, { flag: "w" }, (err) => {
+    if (err) {
+      console.error(`Failed to write ${type} to .env file:`, err);
+      return res.status(500).json({ error: `Failed to save ${type}` });
     }
-  );
+
+    res.json({ status: `${type} saved successfully` });
+  });
+});
+
+app.post("/api/get_environment_variable", (req, res) => {
+  const { type } = req.body;
+
+  if (!validTypes.includes(type)) {
+    return res.status(400).json({ error: "Invalid environment variable type" });
+  }
+
+  const envFilePath = path.join(__dirname, "app", "services", "carjan", ".env");
+  if (!fs.existsSync(envFilePath)) {
+    return res.status(404).json({ error: ".env file not found" });
+  }
+
+  const envConfig = dotenv.parse(fs.readFileSync(envFilePath));
+  const selectedValue = envConfig[type];
+
+  if (selectedValue) {
+    res.json({ selectedValue });
+  } else {
+    res.status(404).json({ error: "Environment variable not found" });
+  }
 });
 
 app.post("/api/start_flask", async (req, res) => {
@@ -293,10 +343,10 @@ app.post("/api/reset-carla", async (req, res) => {
   }
 });
 
-app.get("/shutdown", (req, res) => {
+app.get("/shutdown", async (req, res) => {
   console.log("Shutting down server...");
   res.send("Shutting down server...");
-  stopFlaskService();
+  await stopFlaskService();
   process.exit();
 });
 
@@ -369,14 +419,11 @@ app.post("/api/start_agent", async (req, res) => {
   }
 });
 
-process.on("SIGINT", () => {
+process.on("SIGINT", async () => {
   console.log("Received SIGINT. Shutting down...");
-  stopFlaskService().then(() => {
-    server.close(() => {
-      console.log("Server closed.");
-      process.exit(0);
-    });
-  });
+  await stopFlaskService();
+  await shutdownServer();
+  process.exit(0);
 });
 
 function forwardToFlask(endpoint, body = null) {

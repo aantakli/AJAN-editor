@@ -151,7 +151,6 @@ export default Component.extend({
 
     dropOnCell(event) {
       event.preventDefault();
-      this.isDragging = false;
       const row = event.target.dataset.row;
       const col = event.target.dataset.col;
       let targetCellStatus;
@@ -173,18 +172,21 @@ export default Component.extend({
       const entityType = this.draggingEntityType
         ? this.draggingEntityType
         : event.dataTransfer.getData("text");
-      this.draggingEntityType = null;
 
       if (row && col) {
         if (entityType === "waypoint") {
           this.addSingleWaypoint(row, col, "top-left");
         } else {
-          if (this.draggingEntityPosition) {
+          if (this.isDragging) {
             this.moveEntityState(row, col);
+            console.log("dropped on cell");
           }
           this.addEntityToGrid(entityType, row, col);
+          console.log("dropped on cell 2");
         }
       }
+      this.isDragging = false;
+      this.draggingEntityType = null;
     },
 
     dropOnBackground(event) {
@@ -286,6 +288,15 @@ export default Component.extend({
       }
     }
   ),
+
+  loadingObserver: observer("carjanState.loading", function () {
+    if (this.carjanState.loading) {
+      console.log("loading");
+      this.set("reloadFlag", true);
+    } else {
+      this.set("reloadFlag", false);
+    }
+  }),
 
   pathModeObserver: observer("carjanState.pathMode", function () {
     if (this.carjanState.pathMode) {
@@ -438,11 +449,13 @@ export default Component.extend({
     const entity = this.carjanState.agentData.find(
       (agent) => agent.x === row && agent.y === col
     );
-    entity.x = x;
-    entity.y = y;
-    entity.entity = `http://example.com/carla-scenario#Entity${String(
-      x
-    ).padStart(2, "0")}${String(y).padStart(2, "0")}`;
+    if (entity) {
+      entity.x = x;
+      entity.y = y;
+      entity.entity = `http://example.com/carla-scenario#Entity${String(
+        x
+      ).padStart(2, "0")}${String(y).padStart(2, "0")}`;
+    }
     this.draggingEntityPosition = null;
   },
 

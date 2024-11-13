@@ -85,7 +85,7 @@ export default Component.extend({
     try {
       const carlaPath = this.get("carlaPath").replace(/"/g, "");
       const response = await fetch(
-        "http://localhost:4204/api/save_carla_path",
+        "http://localhost:4204/api/save_environment",
         {
           method: "POST",
           headers: {

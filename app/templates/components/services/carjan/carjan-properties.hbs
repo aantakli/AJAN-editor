@@ -469,7 +469,12 @@
               {{/if}}
             </label>
 
-            <div class="ui fluid search selection dropdown" id="pathDropdown">
+            <div
+              class="ui fluid search selection dropdown"
+              id="pathDropdown"
+              onmouseenter={{action "displayPath"}}
+              onmouseleave={{action "clearPathDrawing"}}
+            >
               <input type="hidden" name="followsPath" />
               <i class="dropdown icon"></i>
 

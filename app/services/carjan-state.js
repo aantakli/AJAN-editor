@@ -22,6 +22,7 @@ export default Service.extend({
   pathInProgress: null,
   propertyPanel: null,
   color: null,
+  chevronDirection: null,
 
   setPathColor(color) {
     set(this.selectedPath, "color", color);

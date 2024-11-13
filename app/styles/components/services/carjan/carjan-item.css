@@ -87,6 +87,10 @@
   transition: transform 0.2s ease-in-out;
 }
 
+:global(i.icon.chevron.up) {
+  background-color: transparent !important;
+}
+
 :global(i.icon.map.marker.alternate:hover) {
   transform: scale(1.5);
   cursor: pointer;

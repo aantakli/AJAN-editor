@@ -37,11 +37,47 @@ export default Component.extend({
     void: "#333333",
   },
   currentWaypoints: [],
-  chevrons: [],
   reloadFlag: true,
   draggingEnttiy: null,
   draggingEntityPosition: null,
   previousIcon: null,
+  previousChevron: null,
+  headings: [
+    "North",
+    "North-East",
+    "East",
+    "South-East",
+    "South",
+    "South-West",
+    "West",
+    "North-West",
+  ],
+
+  rotationMap: {
+    North: 0,
+    "North-East": 45,
+    East: 90,
+    "South-East": 135,
+    South: 180,
+    "South-West": 225,
+    West: 270,
+    "North-West": 315,
+  },
+
+  offsetMap: {
+    North: { x: 17, y: -8 },
+    "North-East": { x: 37, y: -2 },
+    East: { x: 45, y: 14 },
+    "South-East": { x: 37, y: 31 },
+    South: { x: 17, y: 38 },
+    "South-West": { x: -2, y: 31 },
+    West: { x: -10, y: 14 },
+    "North-West": { x: -2, y: -2 },
+  },
+
+  headingChevron: 0,
+  offsetX: 0,
+  offsetY: 0,
 
   didInsertElement() {
     this._super(...arguments);
@@ -302,6 +338,45 @@ export default Component.extend({
   pathInProgressObserver: observer("carjanState.pathInProgress", function () {
     if (this.carjanState.pathInProgress.waypoints.length === 0) {
       this.pathIcons = [];
+    }
+  }),
+
+  headingObserver: observer("carjanState.chevronDirection", function () {
+    console.log("headingObserver");
+
+    const icon = this.previousIcon;
+    if (icon) {
+      // remove this.previousChevron
+      if (this.previousChevron) {
+        this.previousChevron.remove();
+      }
+
+      console.log("Icon found", icon);
+      const [row, col] = this.carjanState.currentCellPosition;
+
+      const gridElement = this.element.querySelector(
+        `.grid-cell[data-row="${row}"][data-col="${col}"]`
+      );
+
+      const agent = this.carjanState.agentData.find(
+        (agent) => agent.x.toString() === row && agent.y.toString() === col
+      );
+
+      const chevronIcon = document.createElement("i");
+      chevronIcon.classList.add("icon", "chevron", "up");
+      chevronIcon.style.position = "absolute";
+      chevronIcon.style.fontSize = "20px";
+      chevronIcon.style.color = "grey";
+      chevronIcon.style.pointerEvents = "none";
+
+      gridElement.appendChild(chevronIcon);
+      this.previousChevron = chevronIcon;
+      chevronIcon.style.transform = `rotate(${
+        this.rotationMap[agent.heading]
+      }deg)`;
+      const offset = this.offsetMap[agent.heading];
+      chevronIcon.style.left = `${offset.x}px`;
+      chevronIcon.style.top = `${offset.y}px`;
     }
   }),
 

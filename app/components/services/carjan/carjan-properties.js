@@ -523,8 +523,8 @@ export default Component.extend({
     selectHeading(heading) {
       this.set("selectedHeading", heading);
       this.set("entity.heading", heading);
-      console.log("Heading", heading);
       this.updateMatchingEntity();
+      this.carjanState.set("chevronDirection", heading);
     },
 
     selectModel(model) {

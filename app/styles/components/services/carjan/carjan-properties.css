@@ -227,3 +227,24 @@
   border-radius: 50%;
   margin-right: 10px;
 }
+
+.img-zoom-container {
+  width: 100px;
+  height: 100px;
+  overflow: hidden;
+  position: relative;
+  border-radius: 50%;
+}
+
+.img-zoom-result {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(2.5);
+  transform-origin: 40% 10%;
+}
+
+.children-zoom {
+  transform-origin: 45% 60%;
+  scale: 1.5;
+}

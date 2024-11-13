@@ -21,6 +21,7 @@ export default Service.extend({
   pathMode: false,
   pathInProgress: null,
   propertyPanel: null,
+  color: null,
 
   setPathColor(color) {
     set(this.selectedPath, "color", color);
@@ -80,7 +81,6 @@ export default Service.extend({
   },
 
   setAgentData(agents) {
-    console.trace("Setting agent data: ", agents);
     set(this, "agentData", agents);
   },
 

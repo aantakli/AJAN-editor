@@ -34,16 +34,22 @@ export default Component.extend({
   selectedPath: null,
   selectedHeading: null,
   pedestrianInput: null,
+  entity: null,
+  backupPath: null,
+  pedestrianList: Array.from({ length: 49 }, (_, i) => {
+    const id = String(i + 1).padStart(4, "0");
+    return `pedestrian_${id}`;
+  }),
 
   headings: [
-    { label: "North", value: "N" },
-    { label: "North-East", value: "NE" },
-    { label: "East", value: "E" },
-    { label: "South-East", value: "SE" },
-    { label: "South", value: "S" },
-    { label: "South-West", value: "SW" },
-    { label: "West", value: "W" },
-    { label: "North-West", value: "NW" },
+    "North",
+    "North-East",
+    "East",
+    "South-East",
+    "South",
+    "South-West",
+    "West",
+    "North-West",
   ],
 
   colors: {
@@ -56,20 +62,17 @@ export default Component.extend({
     void: "#333333",
   },
 
-  init() {
+  async init() {
     this._super(...arguments);
     this.setupGrid();
-    this.set("pedestrianModels", this.generateModelList());
-
-    // Modelle aus der generierten Liste abrufen und nach Kategorie aufteilen
-    const models = this.generateCarModelList();
+    await this.loadCarModels();
     this.setProperties({
-      carModels: models.find((m) => m.category === "Car").items,
-      truckModels: models.find((m) => m.category === "Truck").items,
-      vanModels: models.find((m) => m.category === "Van").items,
-      busModels: models.find((m) => m.category === "Bus").items,
-      motorcycleModels: models.find((m) => m.category === "Motorcycle").items,
-      bicycleModels: models.find((m) => m.category === "Bicycle").items,
+      carModels: this.carModels.Car,
+      truckModels: this.carModels.Truck,
+      vanModels: this.carModels.Van,
+      busModels: this.carModels.Bus,
+      motorcycleModels: this.carModels.Motorcycle,
+      bicycleModels: this.carModels.Bicycle,
     });
   },
 
@@ -106,7 +109,7 @@ export default Component.extend({
     return this.carjanState.properties;
   }),
 
-  selectedPathObserver: function () {
+  selectedPathColorObserver: function () {
     this.set("selectedPath", this.carjanState.selectedPath);
   }.observes("carjanState.selectedPath.color"),
 
@@ -115,262 +118,54 @@ export default Component.extend({
     this.displayWaypointsInCell();
   }.observes("carjanState.waypoints"),
 
+  selectedPathObserver: function () {
+    if (
+      this.showProperties === "pedestrian" ||
+      this.showProperties === "vehicle"
+    ) {
+      if (this.selectedPath) {
+        this.set("entity.color", this.selectedPath.color);
+        this.set("carjanState.color", this.selectedPath.color);
+        this.set("entity.heading", "path");
+      } else {
+        this.set("entity.color", null);
+        this.set("carjanState.color", null);
+      }
+      this.updateMatchingEntity();
+    }
+  }.observes("selectedPath"),
+
   positionObserver: function () {
     let position = this.carjanState.get("currentCellPosition");
 
     this.set("cellPosition", [position[0], position[1]]);
+    const entityAtPosition = this.carjanState.agentData.find(
+      (entity) =>
+        entity.x.toString() === position[0] &&
+        entity.y.toString() === position[1]
+    );
+    if (entityAtPosition) {
+      this.set("entity", entityAtPosition);
+      if (entityAtPosition.type === "Vehicle") {
+        this.set(
+          "selectedModel",
+          this.carModels.find((model) => model.name === entityAtPosition.model)
+        );
+      } else if (entityAtPosition.type === "Pedestrian") {
+        this.set("selectedModel", entityAtPosition.model);
+      }
+
+      console.log("this.selectedModel", this.selectedModel);
+      const entityPath = this.carjanState.paths.find(
+        (path) => path.path === entityAtPosition.followsPath
+      );
+      if (entityPath) {
+        this.set("selectedPath", entityPath);
+      }
+    }
+
     this.displayWaypointsInCell();
   }.observes("carjanState.currentCellPosition"),
-
-  generateModelList() {
-    const models = [];
-    for (let i = 1; i < 50; i++) {
-      const id = i.toString().padStart(4, "0");
-      models.push({
-        id,
-        name: `pedestrian_${id}`,
-        imageUrl: `https://carla.readthedocs.io/en/0.9.15/img/catalogue/pedestrians/pedestrian_${id}.webp`,
-      });
-    }
-    return models;
-  },
-
-  generateCarModelList() {
-    const models = [
-      {
-        category: "Car",
-        items: [
-          {
-            name: "Audi - A2",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/audi_a2.webp",
-          },
-          {
-            name: "Audi - E-Tron",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/audi_etron.webp",
-          },
-          {
-            name: "Audi - TT",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/audi_tt.webp",
-          },
-          {
-            name: "BMW - Gran Tourer",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/bmw_grantourer.webp",
-          },
-          {
-            name: "Chevrolet - Impala",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/chevrolet_impala.webp",
-          },
-          {
-            name: "Citroen - C3",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/citroen_c3.webp",
-          },
-          {
-            name: "Dodge - Charger 2020",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/dodge_charger_2020.webp",
-          },
-          {
-            name: "Dodge - Police Charger 2020",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/dodge_charger_police_2020.webp",
-          },
-          {
-            name: "Dodge - Police Charger",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/dodge_charger_police_2020.webp",
-          },
-          {
-            name: "Ford - Crown (taxi)",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/ford_crown.webp",
-          },
-          {
-            name: "Ford - Mustang",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/ford_mustang.webp",
-          },
-          {
-            name: "Jeep - Wrangler Rubicon",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/jeep_wrangler_rubicon.webp",
-          },
-          {
-            name: "Lincoln - MKZ 2017",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/lincoln_mkz_2017.webp",
-          },
-          {
-            name: "Lincoln - MKZ 2020",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/lincoln_mkz_2020.webp",
-          },
-          {
-            name: "Mercedes - Coupe 2020",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/mercedes_coupe_2020.webp",
-          },
-          {
-            name: "Mercedes - Coupe",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/mercedes_coupe.webp",
-          },
-          {
-            name: "Micro - Microlino",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/micro_microlino.webp",
-          },
-          {
-            name: "Mini - Cooper S",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/mini_cooper_s.webp",
-          },
-          {
-            name: "Mini - Cooper S 2021",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/mini_cooper_s_2021.webp",
-          },
-          {
-            name: "Nissan - Micra",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/nissan_micra.webp",
-          },
-          {
-            name: "Nissan - Patrol",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/nissan_patrol.webp",
-          },
-          {
-            name: "Nissan - Patrol 2021",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/nissan_patrol_2021.webp",
-          },
-          {
-            name: "Seat - Leon",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/seat_leon.webp",
-          },
-          {
-            name: "Toyota - Prius",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/toyota_prius.webp",
-          },
-        ].sort((a, b) => a.name.localeCompare(b.name)),
-      },
-      {
-        category: "Truck",
-        items: [
-          {
-            name: "CARLA Motors - CarlaCola",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/carlamotors_carlacola.webp",
-          },
-          {
-            name: "CARLA Motors - European HGV",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/carlamotors_european_hgv.webp",
-          },
-          {
-            name: "CARLA Motors - Firetruck",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/carlamotors_firetruck.webp",
-          },
-          {
-            name: "Tesla - Cybertruck",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/tesla_cybertruck.webp",
-          },
-        ].sort((a, b) => a.name.localeCompare(b.name)),
-      },
-      {
-        category: "Van",
-        items: [
-          {
-            name: "Ford - Ambulance",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/ford_ambulance.webp",
-          },
-          {
-            name: "Mercedes - Sprinter",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/mercedes_sprinter.webp",
-          },
-          {
-            name: "Volkswagen - T2",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/volkswagen_t2.webp",
-          },
-          {
-            name: "Volkswagen - T2 2021",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/volkswagen_t2_2021.webp",
-          },
-        ].sort((a, b) => a.name.localeCompare(b.name)),
-      },
-      {
-        category: "Bus",
-        items: [
-          {
-            name: "Mitsubishi - Fusorosa",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/mitsubishi_fusorosa.webp",
-          },
-        ],
-      },
-      {
-        category: "Motorcycle",
-        items: [
-          {
-            name: "Harley Davidson - Low Rider",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/harley-davidson_low_rider.webp",
-          },
-          {
-            name: "Kawasaki - Ninja",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/kawasaki_ninja.webp",
-          },
-          {
-            name: "Vespa - ZX 125",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/vespa_zx125.webp",
-          },
-          {
-            name: "Yamaha - YZF",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/yamaha_yzf.webp",
-          },
-        ].sort((a, b) => a.name.localeCompare(b.name)),
-      },
-      {
-        category: "Bicycle",
-        items: [
-          {
-            name: "BH - Crossbike",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/bh_crossbike.webp",
-          },
-          {
-            name: "Diamondback - Century",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/diamondback_century.webp",
-          },
-          {
-            name: "Gazelle - Omafiets",
-            imageUrl:
-              "https://carla.readthedocs.io/en/0.9.15/img/catalogue/vehicles/gazelle_omafiets.webp",
-          },
-        ].sort((a, b) => a.name.localeCompare(b.name)),
-      },
-    ];
-
-    return models;
-  },
 
   getNumericPositionIndex(positionInCell) {
     const positionMap = {
@@ -385,6 +180,12 @@ export default Component.extend({
       "bottom-right": 8,
     };
     return positionMap[positionInCell] ? positionMap[positionInCell] : 0;
+  },
+
+  async loadCarModels() {
+    const response = await fetch("/assets/carjan/car_models.json");
+    const carModels = await response.json();
+    this.carModels = carModels;
   },
 
   updatePath() {
@@ -656,8 +457,21 @@ export default Component.extend({
     return closestCell;
   },
 
+  updateMatchingEntity() {
+    const [currentX, currentY] = this.carjanState.currentCellPosition || [];
+    const matchingEntityIndex = this.carjanState.agentData.findIndex(
+      (entity) =>
+        entity.x.toString() === currentX && entity.y.toString() === currentY
+    );
+    if (matchingEntityIndex !== -1) {
+      this.carjanState.agentData[matchingEntityIndex] = {
+        ...this.carjanState.agentData[matchingEntityIndex],
+        ...this.entity,
+      };
+    }
+  },
+
   actions: {
-    // Methode zum Finden des aktuellen Entities in carjanState basierend auf der currentCellPosition
     findCurrentEntity() {
       const [row, col] = this.carjanState.currentCellPosition || [];
       return this.carjanState.entities.find(
@@ -665,25 +479,40 @@ export default Component.extend({
       );
     },
 
-    // Dropdown-Methoden mit Aktualisierung des Entity-Objekts
+    displayPath() {
+      this.carjanState.setSelectedPath(this.selectedPath);
+      this.set("backupPath", this.selectedPath);
+    },
+
+    clearPathDrawing() {
+      const mainElement = document.getElementById("main");
+      mainElement.innerHTML = "";
+      this.carjanState.setSelectedPath(null);
+      this.set("selectedPath", this.backupPath);
+      const allWaypoints = document.querySelectorAll(
+        ".map.marker.alternate, .flag.outline"
+      );
+      allWaypoints.forEach((waypointIcon) => {
+        waypointIcon.classList.remove("flag", "outline");
+        waypointIcon.classList.remove("map", "marker", "alternate");
+        waypointIcon.classList.add("map", "marker", "alternate");
+        waypointIcon.style.color = "#000";
+        waypointIcon.style.transform = "scale(1)";
+        waypointIcon.style.textShadow = "none";
+      });
+    },
 
     selectPath(path) {
       this.set("selectedPath", path);
-
-      // Finde das Entity und setze das followsPath-Attribut
-      const currentEntity = this.findCurrentEntity();
-      if (currentEntity) {
-        currentEntity.followsPath = path;
-      }
+      this.set("backupPath", path);
+      this.set("entity.followsPath", path.path);
+      this.updateMatchingEntity();
     },
 
     clearSelectedPath() {
       this.set("selectedPath", null);
-
-      const currentEntity = this.findCurrentEntity();
-      if (currentEntity) {
-        currentEntity.followsPath = null;
-      }
+      this.set("entity.followsPath", null);
+      this.updateMatchingEntity();
 
       const dropdownElement = this.$("#pathDropdown");
       if (dropdownElement && dropdownElement.length) {
@@ -693,20 +522,21 @@ export default Component.extend({
 
     selectHeading(heading) {
       this.set("selectedHeading", heading);
-
-      const currentEntity = this.findCurrentEntity();
-      if (currentEntity) {
-        currentEntity.heading = heading;
-      }
+      this.set("entity.heading", heading);
+      console.log("Heading", heading);
+      this.updateMatchingEntity();
     },
 
     selectModel(model) {
       this.set("selectedModel", model);
-
-      const currentEntity = this.findCurrentEntity();
-      if (currentEntity) {
-        currentEntity.model = model;
+      if (this.entity) {
+        if (typeof model === "string") {
+          this.set("entity.model", model);
+        } else if (model) {
+          this.set("entity.model", model.name);
+        }
       }
+      this.updateMatchingEntity();
     },
 
     showTooltip() {
@@ -715,9 +545,6 @@ export default Component.extend({
 
     hideTooltip() {
       this.set("isTooltipHidden", true);
-    },
-    selectModel(model) {
-      this.set("selectedModel", model);
     },
 
     inputFocusIn() {
@@ -783,6 +610,7 @@ export default Component.extend({
         this.carjanState.set("paths", updatedPaths);
       }
     },
+
     inputFocusOutPedestrian() {
       const [currentX, currentY] = this.carjanState.currentCellPosition || [];
 
@@ -791,7 +619,7 @@ export default Component.extend({
       );
 
       if (matchingEntity) {
-        matchingEntity.label = this.pedestrianInput;
+        matchingEntity.label = this.entity.label;
       } else {
         if (currentX !== undefined && currentY !== undefined) {
           const entityId =
@@ -803,7 +631,7 @@ export default Component.extend({
             type: "Pedestrian",
             x: currentX,
             y: currentY,
-            label: this.pedestrianInput,
+            label: this.entity.label,
           };
 
           this.carjanState.set("agentData", [
@@ -820,7 +648,6 @@ export default Component.extend({
       const matchingEntity = this.carjanState.agentData.find(
         (entity) => entity.x == currentX && entity.y == currentY
       );
-      console.log("matchingEntity", matchingEntity);
     },
 
     async openDeletePathDialog(path) {

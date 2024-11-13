@@ -140,7 +140,6 @@ export default Service.extend({
   },
 
   setScenario(dataset) {
-    console.log("dataset: ", dataset);
     const scenario = dataset.scenarios[0];
     if (scenario.scenarioName) {
       this.setScenarioName(scenario.scenarioName.split("#")[1]);

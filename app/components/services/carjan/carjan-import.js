@@ -432,8 +432,6 @@ export default Component.extend({
   },
 
   showModal(modalSelector) {
-    console.log("Show modal:", modalSelector);
-    this.set("isSwitchScenarioDialogOpen", true);
     next(() => {
       this.$(modalSelector)
         .modal({

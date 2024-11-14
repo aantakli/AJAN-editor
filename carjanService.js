@@ -46,24 +46,15 @@ function startFlaskService() {
   broadcastMessage("=== Carjan Service ===");
 
   flaskProcess.stdout.on("data", (data) => {
-    const message = `> \n${data.toString()}`;
-
-    console.log(message);
-    broadcastMessage(message);
+    const messageText = data.toString().trim(); // Konvertiere Buffer zu String
+    console.log(messageText);
+    broadcastMessage(messageText);
   });
 
   flaskProcess.stderr.on("data", (data) => {
     const messageText = data.toString().trim();
-    let message;
-
-    if (messageText.toLowerCase().includes("warning")) {
-      message = `[Warning] ${messageText}`;
-    } else if (messageText.toLowerCase().includes("warning")) {
-      message = `[Error] ${messageText}`;
-    }
-
-    console.error(message);
-    broadcastMessage(message);
+    console.error(messageText);
+    broadcastMessage(messageText);
   });
 
   flaskProcess.on("close", (code) => {
@@ -121,12 +112,11 @@ async function stopFlaskService() {
     }
   } else {
     console.log("No Flask process to stop.");
-    process.exit(1);
   }
 }
 
 async function waitForFlaskToBeReady() {
-  const maxAttempts = 10;
+  const maxAttempts = 3;
   const delay = 1000;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -134,16 +124,20 @@ async function waitForFlaskToBeReady() {
       const response = await forwardToFlask("/health_check");
       console.log("Flask response:", response);
 
-      if (response && response.status === "OK") {
-        console.log("Flask is ready.");
+      if (
+        response &&
+        response.status === 200 &&
+        response.data.status === "OK"
+      ) {
         return true;
       }
     } catch (error) {
       console.log(`Flask not ready, attempt ${attempt}...`);
-      return;
     }
+
     await new Promise((resolve) => setTimeout(resolve, delay));
   }
+  console.warn("Flask did not become ready within the maximum attempts.");
   return false;
 }
 
@@ -331,6 +325,7 @@ app.post("/api/start_flask", async (req, res) => {
     startFlaskService();
     console.log("Flask process started. Waiting for it to be ready...");
 
+    await new Promise((resolve) => setTimeout(resolve, 3000));
     const flaskReady = await waitForFlaskToBeReady();
 
     if (flaskReady) {
@@ -451,7 +446,7 @@ app.get("/shutdown", async (req, res) => {
   console.log("Shutting down server...");
   res.send("Shutting down server...");
   await stopFlaskService();
-  process.exit();
+  process.exit(0);
 });
 
 app.get("/api/shutdownFlask", async (req, res) => {
@@ -460,7 +455,7 @@ app.get("/api/shutdownFlask", async (req, res) => {
   if (success) {
     res.status(200).json({ status: "Flask service stopped successfully" });
   } else {
-    res.status(500).json({ error: "Failed to stop Flask service" });
+    res.status(200).json({ error: "Failed to stop Flask service" });
   }
 });
 
@@ -468,20 +463,21 @@ app.get("/api/health_check", async (req, res) => {
   try {
     const flaskResponse = await forwardToFlask("/health_check");
 
-    if (!flaskResponse.ok) {
-      throw new Error(`Flask server returned status ${flaskResponse.status}`);
+    if (flaskResponse.status !== 200) {
+      console.warn("Flask connection issue:", flaskResponse.data.error);
+      return res.json({
+        status: "Flask is not ready",
+        flaskError: flaskResponse.data.error,
+      });
     }
-
-    const flaskData = await flaskResponse.json();
-    console.log("Flask Health-Check response:", flaskData);
 
     res.json({
       status: "Flask is ready",
-      flaskData: flaskData,
+      flaskData: flaskResponse.data,
     });
   } catch (error) {
-    console.error("Error forwarding Health-Check to Flask:", error);
-    res.status(500).json({ error: "Flask is not ready" });
+    console.error("Unexpected error in Health-Check:", error);
+    res.status(500).json({ error: "Unexpected server error" });
   }
 });
 
@@ -501,7 +497,7 @@ app.post("/api/start_carla", async (req, res) => {
     });
   } catch (error) {
     console.error("Error forwarding to Flask:", error);
-    res.status(500).json({ error: "Failed to load scenario" });
+    res.status(500).json({ error: "Failed to start carla (service)" });
   }
 });
 
@@ -526,15 +522,13 @@ app.post("/api/start_agent", async (req, res) => {
 process.on("SIGINT", async () => {
   console.log("Received SIGINT. Shutting down...");
   await stopFlaskService();
-  await shutdownServer();
-  process.exit(0);
+  process.exit(1);
 });
 
 function forwardToFlask(endpoint, body = null) {
   return new Promise((resolve, reject) => {
     const method = body ? "POST" : "GET";
-    console.log("Forwarding to Flask:", endpoint);
-    console.log("method:", method);
+    console.log("Forwarding to Flask:", method, endpoint);
     const options = {
       hostname: "localhost",
       port: 5000,
@@ -554,19 +548,30 @@ function forwardToFlask(endpoint, body = null) {
 
       res.on("end", () => {
         try {
-          const jsonData = JSON.parse(data);
-          resolve(jsonData);
+          // Prüfen, ob die Antwort JSON ist
+          if (res.headers["content-type"] === "application/json") {
+            const jsonData = JSON.parse(data);
+            resolve({ status: res.statusCode, data: jsonData });
+          } else {
+            console.error("Non-JSON response from Flask:", data);
+            reject({
+              status: res.statusCode,
+              error: "Invalid JSON received from Flask",
+            });
+          }
         } catch (error) {
           console.error("Error parsing JSON from Flask:", error);
-          console.log("Received response:", data);
-          reject("Invalid JSON received from Flask");
+          reject({
+            status: res.statusCode,
+            error: "Error parsing JSON from Flask",
+          });
         }
       });
     });
 
     req.on("error", (e) => {
       console.error(`Problem with request: ${e.message}`);
-      reject(e);
+      reject({ status: 502, error: e.message });
     });
 
     if (body) {

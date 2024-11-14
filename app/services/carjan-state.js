@@ -31,7 +31,6 @@ export default Service.extend({
   },
 
   setRepository(repository) {
-    console.log("Repository: ", repository);
     set(this, "repository", repository);
   },
 
@@ -158,7 +157,6 @@ export default Service.extend({
     }
     if (scenario.entities) {
       this.setAgentData(scenario.entities);
-      console.log("Entities: ", scenario.entities);
     }
 
     if (scenario.paths) {

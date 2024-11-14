@@ -2,7 +2,7 @@ import $ from "jquery";
 import actions from "ajan-editor/helpers/carjan/actions";
 import Component from "@ember/component";
 import N3Parser from "npm:rdf-parser-n3";
-import { computed } from "@ember/object";
+import { computed, set } from "@ember/object";
 import { debounce, next } from "@ember/runloop";
 import { observer } from "@ember/object";
 import { inject as service } from "@ember/service";
@@ -24,13 +24,17 @@ export default Component.extend({
   isDialogOpen: false,
   isDeleteDialogOpen: false,
   isSwitchScenarioDialogOpen: false,
+  isMachineModalOpen: false,
+  isGithubModalOpen: false,
   scenarioName: "",
   hasError: false,
   isNameEmpty: true,
   loading: true,
   updating: false,
-  githubRepo: "",
+  githubRepoUsername: "",
+  githubRepoRepository: "",
   githubToken: "",
+  hideToken: true,
   isDisabled: computed("hasError", "isNameEmpty", function () {
     return this.hasError || this.isNameEmpty;
   }),
@@ -38,7 +42,8 @@ export default Component.extend({
   async init() {
     this._super(...arguments);
 
-    await this.getEnviromentData("SELECTED_SCENARIO");
+    const selectedValue = await this.getEnvironmentData("SELECTED_SCENARIO");
+    this.set("selectedValue", selectedValue);
 
     rdfGraph.set(rdf.dataset());
     if (this.mode !== "fileSelection") {
@@ -79,7 +84,6 @@ export default Component.extend({
   }),
 
   scenarioNameObserver: observer("carjanState.scenarioName", function () {
-    console.log("neues Szenario:", this.carjanState.scenarioName);
     this.set("scenarioName", this.carjanState.scenarioName);
   }),
 
@@ -87,23 +91,29 @@ export default Component.extend({
     console.log("== selectedValue:", this.selectedValue);
   }),
 
-  async getEnviromentData(envType) {
-    fetch("http://localhost:4204/api/get_environment_variable", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ type: envType }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.selectedValue) {
-          this.set("selectedValue", data.selectedValue);
-        } else {
-          console.warn("Selected value not found in environment.");
+  async getEnvironmentData(envType) {
+    try {
+      const response = await fetch(
+        "http://localhost:4204/api/get_environment_variable",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ type: envType }),
         }
-      })
-      .catch((error) => console.error("Error fetching selected value:", error));
+      );
+
+      if (!response.ok) {
+        throw new Error("Error fetching environment data");
+      }
+
+      const data = await response.json();
+      return data.selectedValue;
+    } catch (error) {
+      console.error("Error fetching environment data:", error);
+      return null;
+    }
   },
 
   async parseQuadsToScenarios(quads) {
@@ -460,25 +470,197 @@ export default Component.extend({
   actions: {
     async saveGithubInfo() {
       try {
-        const response = await fetch("/api/save_environment", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            token: this.get("githubToken"),
-            repo: this.get("githubRepo"),
-          }),
-        });
+        // Hilfsfunktion zum Speichern einer Umgebungsvariablen
+        const saveEnvironmentVariable = async (type, value) => {
+          const response = await fetch(
+            "http://localhost:4204/api/save_environment",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ type, value }),
+            }
+          );
+          if (!response.ok) {
+            throw new Error(`Fehler beim Speichern von ${type}.`);
+          }
+          return response;
+        };
 
-        if (!response.ok) {
-          throw new Error("Fehler beim Speichern der GitHub Informationen.");
-        }
-        alert("GitHub Informationen erfolgreich gespeichert.");
-        this.send("closeGithubModal");
+        // Speichere GitHub-Daten
+        await saveEnvironmentVariable(
+          "GITHUB_REPO_USERNAME",
+          this.githubRepoUsername
+        );
+        await saveEnvironmentVariable(
+          "GITHUB_REPO_REPOSITORY",
+          this.githubRepoRepository
+        );
+        await saveEnvironmentVariable("GITHUB_TOKEN", this.githubToken);
+
+        console.log("GitHub Informationen erfolgreich gespeichert.");
+
+        // Setze den Flag, um die zusätzlichen Buttons anzuzeigen
+        this.set("areCredentialsValid", true);
       } catch (error) {
         console.error("Fehler beim Speichern der GitHub Informationen:", error);
-        alert("Fehler: GitHub Informationen konnten nicht gespeichert werden.");
+      }
+    },
+
+    openMachineModal() {
+      this.set("isMachineModalOpen", true);
+      this.showModal(".ui.basic.modal");
+    },
+
+    closeMachineModal() {
+      this.set("isMachineModalOpen", false);
+    },
+
+    showToken() {
+      document.getElementById("githubTokenInput").type = "text";
+      this.set("hideToken", false);
+    },
+    hideToken() {
+      document.getElementById("githubTokenInput").type = "password";
+      this.set("hideToken", true);
+    },
+
+    openGithubModal() {
+      this.set("areCredentialsValid", false);
+      this.set("isGithubModalOpen", true);
+      this.showModal(".ui.basic.modal");
+      this.getEnvironmentData("GITHUB_REPO_USERNAME").then((data) => {
+        this.set("githubRepoUsername", data);
+        console.log("data:", data);
+      });
+      this.getEnvironmentData("GITHUB_REPO_REPOSITORY").then((data) => {
+        this.set("githubRepoRepository", data);
+        console.log("data1:", data);
+      });
+      this.getEnvironmentData("GITHUB_TOKEN").then((data) => {
+        this.set("githubToken", data);
+        console.log("data2:", data);
+      });
+    },
+
+    async uploadScenarioToGithub(scenarioName) {
+      try {
+        const trigContent = await this.downloadScenarioAsTrig(
+          scenarioName,
+          true,
+          false
+        );
+        const response = await fetch(
+          "http://localhost:4204/api/upload_to_github",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              content: trigContent,
+              name: `${scenarioName}`,
+            }),
+          }
+        );
+        const result = await response.json();
+        console.log("Upload result:", result);
+      } catch (error) {
+        console.error("Error uploading scenario:", error);
+      }
+    },
+
+    async downloadScenarioFromGithub(scenarioName) {
+      try {
+        const response = await fetch(
+          "http://localhost:4204/api/download_from_github",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              scenarioName,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            "Fehler beim Herunterladen des Szenarios von GitHub."
+          );
+        }
+
+        const data = await response.text();
+        console.log("Downloaded scenario content:", data);
+        if (data) {
+          this.addScenarioToRepository(data).then((result) => {
+            this.updateWithResult(result);
+          });
+        }
+      } catch (error) {
+        console.error("Error downloading scenario im frontend!:", error);
+      }
+    },
+
+    async uploadRepositoryToGithub() {
+      try {
+        const trigContent = await this.downloadRepository();
+        const response = await fetch(
+          "http://localhost:4204/api/upload_to_github",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              content: trigContent,
+              name: `repository_backup`,
+            }),
+          }
+        );
+
+        const result = await response.json();
+        console.log("Upload des gesamten Repositories:", result);
+      } catch (error) {
+        console.error("Fehler beim Hochladen des Repositories:", error);
+      }
+    },
+
+    async downloadRepositoryFromGithub() {
+      try {
+        const response = await fetch(
+          "http://localhost:4204/api/download_from_github",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              scenarioName: "repository_backup",
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            "Fehler beim Herunterladen des Repositories von GitHub."
+          );
+        }
+
+        const trigContent = await response.text();
+        console.log("Heruntergeladenes Repository:", trigContent);
+
+        if (trigContent) {
+          const parsedData = await this.parseTrig(trigContent);
+          this.updateWithResult(parsedData);
+        }
+      } catch (error) {
+        console.error(
+          "Fehler beim Herunterladen des gesamten Repositories:",
+          error
+        );
       }
     },
 
@@ -540,13 +722,10 @@ export default Component.extend({
         this.set("isSwitchScenarioDialogOpen", true);
         await this.saveSelectedScenario(value.displayName);
         document.getElementById("openModalButton").click();
-      } else {
-        console.log("No scenario selected.");
       }
     },
 
     async openSwitchScenarioDialog() {
-      console.log("openSwitchScenarioDialog");
       this.set("isSwitchScenarioDialogOpen", true);
       this.showModal(".ui.basic.modal");
     },
@@ -886,7 +1065,6 @@ export default Component.extend({
   async loadGrid() {
     this.checkRepository().then(() => {
       setTimeout(() => {
-        console.log("Selected value:", this.get("selectedValue"));
         this.loadMapAndAgents(this.get("selectedValue"));
       }, 200);
     });
@@ -1022,10 +1200,6 @@ export default Component.extend({
           }
 
           if (item["http://example.com/carla-scenario#model"]) {
-            console.log(
-              "Model:",
-              item["http://example.com/carla-scenario#model"]
-            );
             currentItemContent += `      carjan:model "${item["http://example.com/carla-scenario#model"][0]["@value"]}" ;\n`;
           }
 
@@ -1378,7 +1552,6 @@ export default Component.extend({
       }
 
       if (entity.model !== undefined) {
-        console.log("entity.model not undefined:", entity.model);
         rdfGraph.add(
           rdf.quad(
             entityURI,

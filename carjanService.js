@@ -7,6 +7,7 @@ const dotenv = require("dotenv");
 const path = require("path");
 const fs = require("fs");
 const WebSocket = require("ws");
+const fetch = require("node-fetch");
 
 const {
   initializeCarjanRepository,
@@ -165,12 +166,115 @@ function loadEnvVariables(envFilePath) {
 const validTypes = [
   "CARLA_PATH",
   "GITHUB_TOKEN",
-  "GITHUB_PATH",
+  "GITHUB_REPO_USERNAME",
+  "GITHUB_REPO_REPOSITORY",
   "SELECTED_SCENARIO",
 ];
 
 app.use(cors());
 app.use(express.json());
+
+app.post("/api/download_from_github", async (req, res) => {
+  const { scenarioName } = req.body;
+  console.log("Scenario name:", scenarioName);
+  const envFilePath = path.join(__dirname, "app", "services", "carjan", ".env");
+  const currentEnvVars = loadEnvVariables(envFilePath);
+  const GITHUB_USERNAME = currentEnvVars.GITHUB_REPO_USERNAME;
+  const GITHUB_REPO = currentEnvVars.GITHUB_REPO_REPOSITORY;
+  const GITHUB_TOKEN = currentEnvVars.GITHUB_TOKEN;
+
+  if (!scenarioName) {
+    return res.status(400).json({ error: "Scenario name is required" });
+  }
+
+  const filePath = `${scenarioName}.trig`;
+  const githubApiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filePath}`;
+
+  try {
+    const response = await fetch(githubApiUrl, {
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Accept: "application/vnd.github.v3.raw",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch scenario from GitHub: ${response.statusText}`
+      );
+    }
+
+    const trigContent = await response.text();
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${scenarioName}.trig"`
+    );
+    res.setHeader("Content-Type", "application/octet-stream");
+    res.send(trigContent);
+  } catch (error) {
+    console.error("Error downloading scenario from GitHub:", error);
+    res.status(500).json({ error: "Failed to download scenario from GitHub" });
+  }
+});
+
+app.post("/api/upload_to_github", async (req, res) => {
+  const envFilePath = path.join(__dirname, "app", "services", "carjan", ".env");
+  const currentEnvVars = loadEnvVariables(envFilePath);
+  const GITHUB_USERNAME = currentEnvVars.GITHUB_REPO_USERNAME;
+  const GITHUB_REPO = currentEnvVars.GITHUB_REPO_REPOSITORY;
+  const GITHUB_TOKEN = currentEnvVars.GITHUB_TOKEN;
+
+  if (!GITHUB_USERNAME || !GITHUB_REPO || !GITHUB_TOKEN) {
+    return res
+      .status(500)
+      .json({ error: "GitHub username, repository, or token is undefined." });
+  }
+
+  const BASE_URL = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents`;
+
+  const { content, name } = req.body;
+  const fileName = name ? `${name}.trig` : "default_scenario.trig";
+
+  if (!content) {
+    return res.status(400).json({ error: "Content is required." });
+  }
+
+  try {
+    const encodedContent = Buffer.from(content).toString("base64");
+    const fileUrl = `${BASE_URL}/${fileName}`;
+
+    const getFileResponse = await fetch(fileUrl, {
+      headers: {
+        Authorization: `token ${GITHUB_TOKEN}`,
+      },
+    });
+    const getFileData = await getFileResponse.json();
+    const sha = getFileData.sha || undefined;
+
+    const response = await fetch(fileUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `token ${GITHUB_TOKEN}`,
+      },
+      body: JSON.stringify({
+        message: `Upload scenario file ${fileName}`,
+        content: encodedContent,
+        sha,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to upload file: ${response.statusText}`);
+    }
+
+    res.json({ message: `File ${fileName} uploaded successfully.` });
+  } catch (error) {
+    console.error("Error uploading to GitHub:", error);
+    res.status(500).json({ error: "Failed to upload scenario to GitHub" });
+  }
+});
 
 app.post("/api/save_environment", (req, res) => {
   const { type, value } = req.body;

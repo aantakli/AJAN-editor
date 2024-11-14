@@ -68,32 +68,7 @@
       style="display: none;"
     />
 
-    <p class="node-adder-class title-behaviors">
-      <i class="file outline icon" />
-      <b>Scenario</b>
-    </p>
-
     <div class="title composite-selection">
-    </div>
-
-    <div local-class="button-container" style="margin-top: 0px;">
-      <div class="ui horizontal segments">
-        <div class="ui segment">
-          <button
-            class="ui secondary button"
-            {{action "openNewScenarioDialog"}}
-          >
-            <i class="plus icon" />
-            New Scenario
-          </button>
-        </div>
-        <div class="ui segment">
-          <button class="ui red button" {{action "openDeleteDialog"}}>
-            <i class="trash icon" />
-            Delete Scenario
-          </button>
-        </div>
-      </div>
     </div>
 
     <p class="node-adder-class title-behaviors">
@@ -101,74 +76,266 @@
       <b>File Management</b>
     </p>
 
-    <div local-class="button-container">
-      <div class="ui horizontal segments">
-        <div class="ui segment">
-          <button class="ui primary button" {{action "uploadFile"}}>
-            <i class="upload icon" />
-            Upload Repository
-          </button>
+    <div class="ui placeholder segment" style="min-height: 9rem;">
+      <div class="ui two column very relaxed stackable grid">
+        <div class="middle aligned column">
+          <div class="ui big teal button" {{action "openMachineModal"}}>
+            <i class="hdd icon"></i>
+            Local Machine
+          </div>
         </div>
-        <div class="ui segment">
-          <button class="ui button" {{action "uploadScenario"}}>
-            <i class="upload icon" />
-            Upload Scenario
-          </button>
+        <div class="middle aligned column">
+          <div class="ui big secondary button" {{action "openGithubModal"}}>
+            <i class="github icon"></i>
+            GitHub
+          </div>
         </div>
-
       </div>
+      <div class="ui vertical divider">
+        Or
+      </div>
+    </div>
 
-      <div class="ui horizontal segments">
-        <div class="ui segment">
-          <button
-            class="ui primary button sticky-save"
-            {{action "downloadAll"}}
-          >
-            <i class="download icon"></i>
-            Download Repository
+    <p class="node-adder-class title-behaviors">
+      <i class="file outline icon" />
+      <b>Scenario</b>
+    </p>
+
+    <div class="ui placeholder segment" style="min-height: 9rem;">
+      <div class="ui two column very relaxed stackable grid">
+        <div class="middle aligned column">
+          <button class="ui big blue button" {{action "openNewScenarioDialog"}}>
+            <i class="icons">
+              <i class="icon copy outline" />
+            </i>
+            New Scenario
           </button>
         </div>
-        <div class="ui segment">
-          <button class="ui button sticky-save" {{action "downloadScenario"}}>
-            <i class="download icon"></i>
-            Download Scenario
+        <div class="middle aligned column">
+          <button class="ui big red button" {{action "openDeleteDialog"}}>
+            <i class="trash icon" />
+            Delete Scenario
           </button>
         </div>
+      </div>
+      <div class="ui vertical divider">
+        Or
       </div>
     </div>
 
     {{#if isGithubModalOpen}}
-      <div class="ui modal">
-        <div class="header">GitHub Repository Einstellungen</div>
-        <div class="content">
-          <form class="ui form">
-            <div class="field">
-              <label>GitHub Repository URL</label>
-              {{input
-                type="text"
-                value=githubRepo
-                placeholder="z.B. https://github.com/username/repo"
-              }}
+      <div class="ui dimmer modals page">
+        <div class="ui basic modal transition" local-class="center-modal">
+
+          <div class="header">
+            <i class="github icon"></i>
+            GitHub Repository
+          </div>
+          <div class="content">
+
+            <div class="ui segment" style="background-color: transparent;">
+              <div class="ui two column very relaxed stackable grid">
+                <!-- Left Column - Form Fields -->
+                <div class="column">
+                  <div class="ui form">
+                    <div class="field">
+                      <label style="color: whitesmoke">GitHub Repository
+                        Username</label>
+                      <div class="ui left icon input">
+                        <input
+                          type="text"
+                          placeholder="Username"
+                          value={{this.githubRepoUsername}}
+                          oninput={{action
+                            (mut this.githubRepoUsername)
+                            value="target.value"
+                          }}
+                        />
+                        <i class="user icon"></i>
+                      </div>
+                    </div>
+
+                    <div class="field">
+                      <label style="color: whitesmoke">GitHub Repository Name</label>
+                      <div class="ui left icon input">
+                        <input
+                          type="text"
+                          placeholder="Repository Name"
+                          value={{this.githubRepoRepository}}
+                          oninput={{action
+                            (mut this.githubRepoRepository)
+                            value="target.value"
+                          }}
+                        />
+                        <i class="github icon"></i>
+                      </div>
+                    </div>
+
+                    <div class="field">
+                      <label style="color: whitesmoke">GitHub Token</label>
+                      <div class="ui left icon action input">
+                        <input
+                          type="password"
+                          placeholder="Token"
+                          value={{this.githubToken}}
+                          oninput={{action
+                            (mut this.githubToken)
+                            value="target.value"
+                          }}
+                          onmousedown={{action "showToken"}}
+                          onmouseup={{action "hideToken"}}
+                          onmouseleave={{action "hideToken"}}
+                          id="githubTokenInput"
+                        />
+                        <i class="lock icon"></i>
+                        <button
+                          class="ui icon button"
+                          style="cursor: pointer; margin-left: 5px;"
+                          onmousedown={{action "showToken"}}
+                          onmouseup={{action "hideToken"}}
+                          onmouseleave={{action "hideToken"}}
+                        >
+                          {{#if this.hideToken}}
+                            <i class="eye slash icon"></i>
+                          {{else}}
+                            <i class="eye icon"></i>
+                          {{/if}}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      class="ui green inverted submit button"
+                      {{action "saveGithubInfo"}}
+                    >
+                      <i class="paper plane icon"></i>
+                      Save and Continue
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Right Column - Additional Actions -->
+
+                {{#if areCredentialsValid}}
+                  <div local-class="animated-buttons">
+                    <div
+                      local-class="middle aligned column"
+                      style="text-align: center;"
+                    >
+                      <div
+                        class="ui right labeled input"
+                        style="margin-bottom: 1em;"
+                      >
+                        <input
+                          type="text"
+                          placeholder="Enter file name"
+                          value={{fileName}}
+                        />
+                        <div class="ui label">.TriG</div>
+                      </div>
+                      <h1></h1>
+                      <div
+                        class="ui vertical stackable buttons"
+                        style="display: inline-block; text-align: left;"
+                      >
+                        <button
+                          class="ui large green inverted button"
+                          {{action "uploadScenarioToGithub" fileName}}
+                          style="margin-bottom: 1em;"
+                        >
+                          <i class="upload icon"></i>
+                          Upload Scenario
+                        </button>
+
+                        <button
+                          class="ui large orange inverted button"
+                          {{action "downloadScenarioFromGithub" fileName}}
+                          style="margin-bottom: 1em;"
+                        >
+                          <i class="download icon"></i>
+                          Download Scenario
+                        </button>
+
+                        <button
+                          class="ui large blue inverted button"
+                          {{action "uploadRepositoryToGithub"}}
+                          style="margin-bottom: 1em;"
+                        >
+                          <i class="cloud upload icon"></i>
+                          Upload Repository
+                        </button>
+
+                        <button
+                          class="ui large violet inverted button"
+                          {{action "downloadRepositoryFromGithub"}}
+                        >
+                          <i class="cloud download icon"></i>
+                          Download Repository
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Divider -->
+                  <div class="ui vertical divider"></div>
+                {{/if}}
+              </div>
             </div>
-            <div class="field">
-              <label>GitHub Token</label>
-              {{input
-                type="password"
-                value=githubToken
-                placeholder="GitHub Token"
-              }}
-            </div>
-          </form>
+          </div>
         </div>
-        <div class="actions">
-          <button
-            class="ui green icon github button"
-            {{action "saveGithubInfo"}}
-          >Speichern</button>
-          <button
-            class="ui red cancel icon github button"
-            {{action "closeGithubModal"}}
-          >Abbrechen</button>
+      </div>
+    {{/if}}
+
+    {{#if isMachineModalOpen}}
+      <div class="ui dimmer modals page">
+        <div class="ui small basic modal transition" local-class="center-modal">
+          <div class="header">
+            <i class="hdd icon"></i>
+            File Management
+          </div>
+          <div class="ui placeholder segment content">
+            <p>Select an action to manage your repository or scenario files.</p>
+            <div class="ui horizontal segments" style="margin-top: 15px;">
+              <div class="ui segment">
+                <button class="ui teal button" {{action "uploadFile"}}>
+                  <i class="database icon"></i>
+                  Upload Repository
+                </button>
+                <h2></h2>
+              </div>
+              <div class="ui segment">
+                <button class="ui teal button" {{action "uploadScenario"}}>
+                  <i class="file outline icon"></i>
+                  Upload Scenario
+                </button>
+              </div>
+            </div>
+            <div class="ui horizontal segments" style="margin-top: 15px;">
+              <div class="ui segment">
+                <button
+                  class="ui black button sticky-save"
+                  {{action "downloadAll"}}
+                >
+                  <i class="database icon"></i>
+                  Download Repository
+                </button>
+              </div>
+              <div class="ui segment">
+                <button
+                  class="ui black button sticky-save"
+                  {{action "downloadScenario"}}
+                >
+                  <i class="file outline icon"></i>
+                  Download Scenario
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="ui cancel button" {{action "closeMachineModal"}}>
+              <i class="times icon"></i>
+              Close
+            </button>
+          </div>
         </div>
       </div>
     {{/if}}

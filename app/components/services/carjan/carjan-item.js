@@ -543,9 +543,18 @@ export default Component.extend({
       );
     }
 
+    const showGrid = this.carjanState.get("showGridInCarla") || "false";
     const weather = this.carjanState.get("weather") || "Clear";
     const category = this.carjanState.get("category") || "Urban";
     const cameraPosition = this.carjanState.get("cameraPosition") || "up";
+
+    rdfGraph.add(
+      rdf.quad(
+        scenarioURI,
+        rdf.namedNode("http://example.com/carla-scenario#showGrid"),
+        rdf.literal(showGrid)
+      )
+    );
 
     rdfGraph.add(
       rdf.quad(

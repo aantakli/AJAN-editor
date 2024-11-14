@@ -25,6 +25,12 @@ export default Service.extend({
   chevronDirection: null,
   repository: null,
   loading: null,
+  showGridInCarla: false,
+
+  setGridInCarla(bool) {
+    set(this, "showGridInCarla", bool);
+    console.log("showGridInCarla", this.showGridInCarla);
+  },
 
   setLoading(loading) {
     set(this, "loading", loading);
@@ -148,6 +154,9 @@ export default Service.extend({
     }
     if (scenario.weather) {
       this.setWeather(scenario.weather);
+    }
+    if (scenario.gridInCarla) {
+      this.setGridInCarla(scenario.gridInCarla);
     }
     if (scenario.cameraPosition) {
       this.setCameraPosition(scenario.cameraPosition);

@@ -476,6 +476,12 @@ export default Component.extend({
   },
 
   actions: {
+    toggleGridInCarla(event) {
+      const isChecked = event.target.checked;
+      console.log("isChecked", isChecked);
+      this.carjanState.setGridInCarla(isChecked.toString());
+    },
+
     findCurrentEntity() {
       const [row, col] = this.carjanState.currentCellPosition || [];
       return this.carjanState.entities.find(
@@ -868,6 +874,7 @@ export default Component.extend({
     this._super(...arguments);
     run.scheduleOnce("afterRender", this, function () {
       this.$(".ui.dropdown").dropdown({});
+      this.$(".ui.toggle.checkbox").checkbox();
     });
   },
 

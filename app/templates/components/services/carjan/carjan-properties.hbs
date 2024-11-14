@@ -770,7 +770,28 @@
           </div>
         </div>
       </div>
-      <div style="margin: 25px;"></div>
+      <h2></h2>
+      <div local-class="pad">
+        <div class="field">
+          <div
+            class="ui toggle checkbox"
+            style="display: flex; align-items: center;"
+          >
+            <input
+              type="checkbox"
+              checked={{this.carjanState.setGridInCarla}}
+              onchange={{action "toggleGridInCarla"}}
+            />
+            <label style="display: flex; align-items: center; gap: 0.5em;">
+              <i
+                class="icon green th"
+                style="position: relative; top: -2px;"
+              ></i>
+              Show Grid in Carla Simulation
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
   {{/if}}
 {{/if}}

@@ -48,6 +48,7 @@ export default Component.extend({
     rdfGraph.set(rdf.dataset());
     if (this.mode !== "fileSelection") {
       this.loadGrid();
+      await this.stopFlask();
     }
   },
 
@@ -87,9 +88,41 @@ export default Component.extend({
     this.set("scenarioName", this.carjanState.scenarioName);
   }),
 
-  thisselectedValueObserver: observer("selectedValue", function () {
-    console.log("== selectedValue:", this.selectedValue);
-  }),
+  async stopFlask() {
+    try {
+      await fetch("http://localhost:4204/api/shutdownFlask", {
+        method: "GET",
+      });
+    } catch (error) {
+      console.error("Failed to stop Flask service:", error);
+    }
+  },
+
+  async pingFlask() {
+    try {
+      const response = await fetch("http://localhost:4204/api/health_check", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.status === 200 && data.status === "Flask is ready") {
+        return true;
+      } else {
+        console.warn(
+          "Flask connection issue:",
+          data.flaskError || "Unknown error"
+        );
+        return false;
+      }
+    } catch (error) {
+      console.error("Error fetching ping flask data:", error);
+      return false;
+    }
+  },
 
   async getEnvironmentData(envType) {
     try {
@@ -499,9 +532,6 @@ export default Component.extend({
         );
         await saveEnvironmentVariable("GITHUB_TOKEN", this.githubToken);
 
-        console.log("GitHub Informationen erfolgreich gespeichert.");
-
-        // Setze den Flag, um die zusätzlichen Buttons anzuzeigen
         this.set("areCredentialsValid", true);
       } catch (error) {
         console.error("Fehler beim Speichern der GitHub Informationen:", error);
@@ -532,15 +562,12 @@ export default Component.extend({
       this.showModal(".ui.basic.modal");
       this.getEnvironmentData("GITHUB_REPO_USERNAME").then((data) => {
         this.set("githubRepoUsername", data);
-        console.log("data:", data);
       });
       this.getEnvironmentData("GITHUB_REPO_REPOSITORY").then((data) => {
         this.set("githubRepoRepository", data);
-        console.log("data1:", data);
       });
       this.getEnvironmentData("GITHUB_TOKEN").then((data) => {
         this.set("githubToken", data);
-        console.log("data2:", data);
       });
     },
 
@@ -565,7 +592,6 @@ export default Component.extend({
           }
         );
         const result = await response.json();
-        console.log("Upload result:", result);
       } catch (error) {
         console.error("Error uploading scenario:", error);
       }
@@ -593,7 +619,6 @@ export default Component.extend({
         }
 
         const data = await response.text();
-        console.log("Downloaded scenario content:", data);
         if (data) {
           this.addScenarioToRepository(data).then((result) => {
             this.updateWithResult(result);
@@ -622,7 +647,6 @@ export default Component.extend({
         );
 
         const result = await response.json();
-        console.log("Upload des gesamten Repositories:", result);
       } catch (error) {
         console.error("Fehler beim Hochladen des Repositories:", error);
       }

@@ -722,35 +722,38 @@ def health_check():
 @app.route("/start_carla", methods=["GET"])
 def start_carla():
     try:
+        print("Starting CARLA server...")
         if is_port_in_use(2000):
-              print("Port 2000 is in use. Attempting to clear it.")
-              kill_process_on_port(2000)
-              time.sleep(2)
+            print("Port 2000 is in use. Attempting to clear it.")
+            kill_process_on_port(2000)
+            time.sleep(2)
 
+        # Laden der Umgebungsvariable für den CARLA-Pfad
         dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
         load_dotenv(dotenv_path=dotenv_path)
         carla_path = os.getenv("CARLA_PATH")
-        time.sleep(1)
 
+        # Pfad-Überprüfung
         if not carla_path:
+            print("Error: CARLA path is not defined in .env file.")
             return jsonify({"error": "CARLA path is not defined in .env file"}), 400
 
+        # CARLA-Server starten
         try:
             subprocess.Popen(carla_path)
-            print("CarlaUE4.exe started successfully.")
+            print("CARLA client started successfully.")
         except FileNotFoundError:
             print("Failed to start CARLA: Invalid path.")
             return jsonify({"error": "Invalid CARLA path. Please check the file path."}), 400
+        except Exception as e:
+            print(f"Unexpected error while starting CARLA: {e}")
+            return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
 
-
-        # Versuche, den CARLA-Client zu initialisieren
         try:
             time.sleep(10)
             client = carla.Client("localhost", 2000)
-            client.set_timeout(20.0)  # Timeout für Verbindungsversuch
-            world = client.get_world()  # Versuche, die Welt zu laden
-
-            # Wenn die Verbindung erfolgreich ist, kehre mit 200 zurück
+            client.set_timeout(20.0)
+            world = client.get_world()
             print("Connected to CARLA server.")
             return jsonify({"status": "CARLA started and connected successfully."}), 200
 
@@ -758,10 +761,9 @@ def start_carla():
             print(f"Failed to connect to CARLA: {e}")
             return jsonify({"error": "CARLA started, but connection to server failed. Please check the server status."}), 500
 
-        return jsonify({"status": "CARLA started and connected successfully."}), 200
     except Exception as e:
-        print("Failed to start CARLA or establish connection:", e)
-        return jsonify({"error": str(e)}), 500
+        print(f"An error occurred in start_carla: {e}")
+        return jsonify({"error": "Internal server error occurred while starting CARLA.", "details": str(e)}), 500
 
 @app.route('/load_scenario', methods=['GET'])
 def load_scenario():

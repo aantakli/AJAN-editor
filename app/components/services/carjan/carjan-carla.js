@@ -5,7 +5,7 @@ import { observer } from "@ember/object";
 
 export default Component.extend({
   websockets: service(),
-
+  carjanState: service(),
   carlaPath: "",
   errorMessage: "",
   isDialogOpen: false,
@@ -173,26 +173,7 @@ export default Component.extend({
 
   async loadScenario() {
     this.set("step3Status", "loading");
-    try {
-      const response = await fetch("http://localhost:4204/api/carla-scenario", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log(result);
-
-      this.set("step3Status", "completed");
-    } catch (error) {
-      this.set("step3Status", "error");
-      console.error("Failed to load Scenario.", error);
-    }
+    this.carjanState.setUploadScenarioToCarla(true);
   },
 
   actions: {

@@ -395,7 +395,13 @@ app.get("/", (req, res) => {
 
 app.post("/api/carla-scenario", async (req, res) => {
   try {
-    const flaskResponse = await forwardToFlask("/load_scenario");
+    const scenarioData = req.body;
+
+    if (!scenarioData) {
+      return res.status(400).json({ error: "No scenario data provided" });
+    }
+
+    const flaskResponse = await forwardToFlask("/load_scenario", scenarioData);
 
     console.log("Flask response:", flaskResponse);
 

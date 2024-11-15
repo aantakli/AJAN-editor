@@ -765,60 +765,52 @@ def start_carla():
         print(f"An error occurred in start_carla: {e}")
         return jsonify({"error": "Internal server error occurred while starting CARLA.", "details": str(e)}), 500
 
-@app.route('/load_scenario', methods=['GET'])
+@app.route('/load_scenario', methods=['POST'])
 def load_scenario():
-    rdf_url = "http://localhost:8090/rdf4j/repositories/carjan/statements"
-
     try:
-        response = requests.get(rdf_url)
-        if response.status_code == 200:
-            rdf_data = response.text
-        else:
-            return jsonify({"error": "Failed to load scenario data"}), 500
+        data = request.get_json()
 
-        print("RDF data loaded successfully", flush=True)
-        print(rdf_data, flush=True)
+        main_scenario_name = data.get("scenarioName")
+        scenario_list = data.get("scenario", {}).get("scenarios", [])
 
-        g = Graph()
-        g.parse(data=rdf_data)
+        scenario = next(
+            (s for s in scenario_list if s.get("scenarioName", "").split("#")[-1] == main_scenario_name),
+            None
+        )
 
-        scenario = URIRef("http://example.com/carla-scenario#CurrentScenario")
-        entities = []
-        scenario_map = None
+        if scenario is None:
+            return jsonify({"error": "Scenario not found in the provided data"}), 404
 
-        # Extrahiere die Map-Informationen
-        for s, p, o in g.triples((scenario, URIRef("http://example.com/carla-scenario#hasMap"), None)):
-            scenario_map = str(o).split("#")[-1]
-            print(f"Map found: {scenario_map}", flush=True)
+        scenario_name = scenario.get("scenarioName")
+        scenario_map = scenario.get("scenarioMap")
+        entities = scenario.get("entities", [])
+        waypoints = scenario.get("waypoints", [])
+        paths = scenario.get("paths", [])
+        camera_position = scenario.get("cameraPosition")
+        weather = scenario.get("weather")
+        show_grid = scenario.get("showGrid", "false")
 
-        # Suche nach allen Entitäten-Typen (Vehicle, Pedestrian, etc.)
-        for entity_type in ["Vehicle", "AutonomousVehicle", "Pedestrian"]:
-            for entity_uri in g.subjects(predicate=URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), object=URIRef(f"http://example.com/carla-scenario#{entity_type}")):
-                spawn_x = None
-                spawn_y = None
+        print(f"Scenario Name: {scenario_name}", flush=True)
+        print(f"Scenario Map: {scenario_map}", flush=True)
+        print(f"Entities: {entities}", flush=True)
+        print(f"Waypoints: {waypoints}", flush=True)
+        print(f"Paths: {paths}", flush=True)
+        print(f"Camera Position: {camera_position}", flush=True)
+        print(f"Weather: {weather}", flush=True)
+        print(f"Show Grid: {show_grid}", flush=True)
 
-                for _, _, x in g.triples((entity_uri, URIRef("http://example.com/carla-scenario#spawnPointX"), None)):
-                    spawn_x = str(x)
-                for _, _, y in g.triples((entity_uri, URIRef("http://example.com/carla-scenario#spawnPointY"), None)):
-                    spawn_y = str(y)
-
-                if spawn_x and spawn_y:
-                    entities.append({
-                        "entity": str(entity_uri).split("#")[-1],
-                        "type": entity_type,
-                        "spawnPointX": spawn_x,
-                        "spawnPointY": spawn_y
-                    })
-
-        print(f"Entities found: {entities}", flush=True)
-        entityList = entities
-        # Welt und Gitter basierend auf den extrahierten Daten laden
+        # Lade die Welt basierend auf der Map und den Entitäten
         load_world(entities, scenario_map)
+
+        # Initialisiere den AI-Controller für Fußgänger
         for entity in entities:
             if entity["type"] == "Pedestrian":
-              print("Starting AI controller for pedestrian with ID: ", entity["entity"])
-              generate_actor(entity["entity"])
-        load_grid()
+                print("Starting AI controller for pedestrian with ID:", entity["entity"])
+                generate_actor(entity["entity"])
+
+        # Füge das Gitter hinzu, falls gewünscht
+        if show_grid == "true":
+            load_grid()
 
         return jsonify({"status": "success", "map": scenario_map, "entities": entities}), 200
 

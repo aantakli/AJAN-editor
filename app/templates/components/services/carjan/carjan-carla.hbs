@@ -9,7 +9,7 @@
       <button
         {{action "openCarlaModal"}}
         local-class="button-panel"
-        class="ui green button"
+        class="ui big green button"
       >
         <i class="play icon"></i>
         Simulate in CARLA
@@ -27,7 +27,9 @@
 {{#if isDialogOpen}}
   <div class="ui dimmer modals page">
     <div class="ui small basic modal transition" local-class="center-modal">
-      <div class="header">Starting Services</div>
+      <div class="header">
+        <i class="icon cogs"></i>
+        Starting Services</div>
       <div class="content">
         <div local-class="stepper">
           <!-- Step 1: Starting Flask -->
@@ -35,9 +37,9 @@
             {{#if (eq step1Status "loading")}}
               <div class="ui active inline loader"></div>
             {{else if (eq step1Status "completed")}}
-              <i class="check icon"></i>
+              <i class="check green icon"></i>
             {{else if (eq step1Status "error")}}
-              <i class="exclamation triangle icon"></i>
+              <i class="exclamation triangle orange icon"></i>
             {{else if (eq step1Status "idle")}}
               <i class="ellipsis horizontal icon"></i>
             {{/if}}
@@ -51,9 +53,9 @@
             {{else if (eq step2Status "idle")}}
               <i class="ellipsis horizontal icon"></i>
             {{else if (eq step2Status "completed")}}
-              <i class="check icon"></i>
+              <i class="check green icon"></i>
             {{else if (eq step2Status "error")}}
-              <i class="exclamation triangle icon"></i>
+              <i class="exclamation triangle orange icon"></i>
               <div class="ui red message">{{errorMessage}}</div>
               <div class="field">
                 <div class="ui form">
@@ -83,9 +85,9 @@
             {{else if (eq step3Status "idle")}}
               <i class="ellipsis horizontal icon"></i>
             {{else if (eq step3Status "completed")}}
-              <i class="check icon"></i>
+              <i class="check green icon"></i>
             {{else if (eq step3Status "error")}}
-              <i class="exclamation triangle icon"></i>
+              <i class="exclamation triangle orange icon"></i>
             {{/if}}
             <span>Loading Scenario</span>
           </div>
@@ -93,7 +95,9 @@
         </div>
         <!-- Terminal Log -->
         <div class="ui segment log-terminal">
-          <label>Carla Connection Server</label>
+          <label style="color: black">
+            <i class="icon terminal"></i>
+            Carla Connection Server</label>
           <div
             class="ui inverted segment"
             id="carla-terminal"
@@ -110,10 +114,9 @@
         </div>
       </div>
       <div class="actions">
-        <button
-          class="ui red cancel button"
-          {{action "closeCarlaDialog"}}
-        >Cancel</button>
+        <button class="ui red cancel button" {{action "closeCarlaDialog"}}>
+          Cancel
+        </button>
       </div>
     </div>
   </div>

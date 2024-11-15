@@ -26,10 +26,14 @@ export default Service.extend({
   repository: null,
   loading: null,
   showGridInCarla: false,
+  uploadScenarioToCarla: false,
+
+  setUploadScenarioToCarla(bool) {
+    set(this, "uploadScenarioToCarla", bool);
+  },
 
   setGridInCarla(bool) {
     set(this, "showGridInCarla", bool);
-    console.log("showGridInCarla", this.showGridInCarla);
   },
 
   setLoading(loading) {
@@ -146,8 +150,10 @@ export default Service.extend({
 
   setScenario(dataset) {
     const scenario = dataset.scenarios[0];
+    console.log(JSON.stringify(scenario, null, 2));
     if (scenario.scenarioName) {
       this.setScenarioName(scenario.scenarioName.split("#")[1]);
+      console.log("Scenario Name: ", this.scenarioName);
     }
     if (scenario.scenarioMap) {
       this.setMapName(scenario.scenarioMap);

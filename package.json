@@ -90,6 +90,7 @@
     "sparqljs": "^2.2.3",
     "split.js": "^1.6.5",
     "string-to-stream": "^1.1.1",
+    "wrtc": "^0.4.7",
     "zip-js-webpack": "^1.0.0"
   }
 }

@@ -325,7 +325,7 @@
 
       <!-- Dropdown für Pedestrian Model -->
       <div class="ui segment">
-        <label>Choose a <b>CARLA</b> Pedestrian Model</label>
+        <label>Choose a <b>CARLA </b> Pedestrian 3D-Model</label>
         <div class="ui fluid search selection dropdown">
           <input type="hidden" name="pedestrianModel" />
           <i class="dropdown icon"></i>
@@ -575,7 +575,7 @@
 
       <!-- Dropdown für Model Auswahl -->
       <div class="ui segment">
-        <label>Choose a <b>CARLA</b> Vehicle Model</label>
+        <label>Choose a <b>CARLA</b> Vehicle 3D-Model</label>
         <div class="ui fluid search selection dropdown">
           <input type="hidden" name="vehicleModel" />
           <i class="dropdown icon"></i>
@@ -713,19 +713,30 @@
             <i class="dropdown icon" />
             <div class="text">
               {{#if (eq carjanState.weather "Clear")}}
+                <i class="sun icon"></i>
                 Clear
+              {{else if (eq carjanState.weather "Cloudy")}}
+                <i class="cloud icon"></i>
+                Cloudy
               {{else if (eq carjanState.weather "Rainy")}}
+                <i class="icon tint"></i>
                 Rainy
-              {{else if (eq carjanState.weather "Foggy")}}
-                Foggy
               {{else}}
                 Select Weather
               {{/if}}
             </div>
             <div class="menu">
-              <div class="item" data-value="Clear">Clear</div>
-              <div class="item" data-value="Rainy">Rainy</div>
-              <div class="item" data-value="Foggy">Foggy</div>
+              <div class="item" data-value="Clear">
+                <i class="sun icon"></i>
+                Clear</div>
+              <div class="item" data-value="Cloudy">
+                <i class="cloud icon"></i>
+                Cloudy
+              </div>
+              <div class="item" data-value="Rainy">
+                <i class="icon tint"></i>
+                Rainy
+              </div>
             </div>
           </div>
         </div>

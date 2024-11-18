@@ -20,8 +20,16 @@ import socket
 import psutil
 from math import factorial
 import math
+import json
+# import keyboard
 
 app = Flask(__name__)
+
+car_models_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'public', 'assets', 'carjan', 'car_models.json')
+
+with open(car_models_path, 'r') as f:
+    vehicle_models = json.load(f)
+
 app_data = {}
 turtle_data_store = Graph()
 app.logger.setLevel(logging.INFO)
@@ -47,6 +55,24 @@ BASE = Namespace("http://carla.org/")
 def comb(n, k):
     return factorial(n) // (factorial(k) * factorial(n - k))
 
+def get_blueprint_id(vehicle_name):
+    for category in vehicle_models.values():
+        for vehicle in category:
+            if vehicle['name'] == vehicle_name:
+                return vehicle['blueprintId']
+    return None
+
+
+def get_spectator_coordinates():
+    # Angenommen, du hast bereits ein `world`-Objekt in CARLA
+    spectator = world.get_spectator()  # Spectator-Kamera aus der CARLA-Welt holen
+    location = spectator.get_location()  # Hole die Position der Kamera
+    print(f"Spectator coordinates: x={location.x}, y={location.y}, z={location.z}")
+
+def listen_for_enter_key():
+    while True:
+        if keyboard.is_pressed('enter'):
+            get_spectator_coordinates()
 
 def set_anchor_point(map_name):
     """
@@ -59,10 +85,10 @@ def set_anchor_point(map_name):
     global anchor_point, world
 
     if map_name == "map04":
-        anchor_point = carla.Location(x=240, y=57.5, z=0.1)
+        anchor_point = carla.Location(x=102.7, y=131.35, z=0.1)
     else:
         # Fallback für unbekannte Karten
-        anchor_point = carla.Location(x=0, y=0, z=0)
+        anchor_point = carla.Location(x=240, y=57.5, z=0.1)
 
     # Debug-Punkt anzeigen
     world.debug.draw_point(
@@ -87,7 +113,6 @@ def kill_process_on_port(port):
                 print(f"Killing process {proc.info['name']} (PID {proc.info['pid']}) on port {port}")
                 proc.kill()
                 break
-
 
 def getInformation(request):
   pedestrian_id = None
@@ -217,7 +242,7 @@ def load_world(weather, camera_position):
         print(f"Error in load_world: {e}")
         return False
 
-def load_entities(entities):
+def load_entities(entities, paths):
     global world, anchor_point
     blueprint_library = world.get_blueprint_library()
     cell_width = 4.0  # Einheitsgröße für die Breite der Zellen
@@ -260,41 +285,88 @@ def load_entities(entities):
             persistent_lines=False
         )
 
+        # Bestimme die Rotation (Heading)
+        heading = entity.get("heading", None)
+        print("heading: ", heading)
+        rotation = carla.Rotation(pitch=0, yaw=0)
+
+        if heading:
+            if heading == "North":
+                rotation = carla.Rotation(pitch=0, yaw=0)
+            elif heading == "North-East":
+                rotation = carla.Rotation(pitch=0, yaw=-45)
+            elif heading == "East":
+                rotation = carla.Rotation(pitch=0, yaw=-90)
+            elif heading == "South-East":
+                rotation = carla.Rotation(pitch=0, yaw=-135)
+            elif heading == "South":
+                rotation = carla.Rotation(pitch=0, yaw=-180)
+            elif heading == "South-West":
+                rotation = carla.Rotation(pitch=0, yaw=-225)
+            elif heading == "West":
+                rotation = carla.Rotation(pitch=0, yaw=-270)
+            elif heading == "North-West":
+                rotation = carla.Rotation(pitch=0, yaw=-315)
+            elif heading == "path":
+                # Wenn der Entity "path" folgt, dann berechne die Richtung des ersten Waypoints des Pfades
+                follows_path = entity.get("followsPath", None)
+                if follows_path:
+                    # Finde den zugehörigen Pfad
+                    path = next((p for p in paths if p["path"] == follows_path), None)
+                    if path and path["waypoints"]:
+                        # Hole den ersten Waypoint des Pfades
+                        first_waypoint = path["waypoints"][0]
+                        print("First waypoint: ", first_waypoint)
+                        waypoint_x = (float(first_waypoint["y"]) + offset_y) * cell_height + half_cell_offset_y
+                        waypoint_y = (float(first_waypoint["x"]) + offset_x) * cell_width + half_cell_offset_x
+                        waypoint_location = carla.Location(
+                            x=anchor_point.x + waypoint_y,
+                            y=anchor_point.y - waypoint_x,
+                            z=anchor_point.z + 0.5  # Leicht über dem Boden
+                        )
+                        print("Waypoint location: ", waypoint_location)
+                        world.debug.draw_string(
+                            waypoint_location,
+                            "O",
+                            draw_shadow=False,
+                            color=carla.Color(255, 0, 200),
+                            life_time=1000  # Dauerhaft sichtbar
+                        )
+
+                        # Berechne die Richtung (Yaw) zum ersten Waypoint
+                        direction_x = waypoint_location.x - spawn_location.x
+                        direction_y = waypoint_location.y - spawn_location.y
+                        yaw = math.degrees(math.atan2(direction_y, direction_x))  # Berechne den Winkel (Yaw)
+                        rotation = carla.Rotation(pitch=0, yaw=yaw)
+                        print(f"Calculated rotation: {rotation}")
+
+        # Spawne die Entität (Pedestrian oder Vehicle)
         if entity["type"] == "Pedestrian":
-            # Dynamische Modellzuordnung für Pedestrian
             model_suffix = entity["model"][-4:] if len(entity["model"]) >= 4 else "0001"
             pedestrian_model = f"walker.pedestrian.{model_suffix}"
             pedestrian_blueprint = blueprint_library.find(pedestrian_model)
 
-            pedestrian_transform = carla.Transform(spawn_location)
+            pedestrian_transform = carla.Transform(spawn_location, rotation)
             pedestrian_actor = world.try_spawn_actor(pedestrian_blueprint, pedestrian_transform)
 
             if pedestrian_actor:
-                print(f"Pedestrian '{entity['label']}' spawned at: {spawn_location}")
+                print(f"Pedestrian '{entity['label']}' spawned at: {spawn_location} with rotation: {rotation}")
                 spawned_entities.add(entity_id)  # Markiere die Entity als gespawned
             else:
                 print(f"Failed to spawn Pedestrian '{entity['label']}' at: {spawn_location}")
 
         elif entity["type"] == "Vehicle":
-            vehicle_blueprint = blueprint_library.find('vehicle.micro.microlino')
-            vehicle_transform = carla.Transform(spawn_location)
+            vehicle_blueprint = blueprint_library.find(get_blueprint_id(entity["model"]))
+            vehicle_transform = carla.Transform(spawn_location, rotation)
             vehicle_actor = world.try_spawn_actor(vehicle_blueprint, vehicle_transform)
 
             if vehicle_actor:
-                print(f"Vehicle '{entity['label']}' spawned at: {spawn_location}")
+                print(f"Vehicle '{entity['label']}' spawned at: {spawn_location} with rotation: {rotation}")
                 spawned_entities.add(entity_id)  # Markiere die Entity als gespawned
             else:
                 print(f"Failed to spawn Vehicle '{entity['label']}' at: {spawn_location}")
 
-        # # Logge zugehörige Waypoints und Paths
-        # if entity.get("followsPath"):
-        #     entity_path = next((path for path in paths if path["path"] == entity["followsPath"]), None)
-        #     if entity_path:
-        #         print(f"Entity '{entity['label']}' follows Path: {entity_path['description']} (Color: {entity_path['color']})")
-        #         for waypoint in entity_path["waypoints"]:
-        #             print(f"  Waypoint: {waypoint['waypoint']} -> X: {waypoint['x']}, Y: {waypoint['y']}")
-
-        # print(f"Entity '{entity['label']}' processed.\n")
+        print(f"Entity '{entity['label']}' processed.\n")
 
 def cubic_bezier_curve(p0, p1, p2, p3, num_points=100):
     """
@@ -319,8 +391,6 @@ def cubic_bezier_curve(p0, p1, p2, p3, num_points=100):
         curve_points.append(carla.Location(x, y, z))
 
     return curve_points
-
-
 
 def load_paths(paths, entities):
     global carla_client, world, anchor_point
@@ -517,6 +587,33 @@ def unload_stuff():
     for blueprint in world.get_blueprint_library().filter('static.prop.street.*'):
         print(f"Setting road texture to gray for {blueprint.id}")
         world.get_blueprint_library().find(blueprint.id).set_attribute('texture', 'none')
+
+# Beispiel-Mapping-Tabelle von Fahrzeugnamen zu Blueprint-IDs
+vehicle_model_mapping = {
+    "Micro - Microlino": "vehicle.micro.microlino",
+    "Tesla Model 3": "vehicle.tesla.model3",
+    "Ford Mustang": "vehicle.ford.mustang",
+    "Chevrolet Corvette": "vehicle.chevrolet.corvette",
+    # Weitere Modelle können hier hinzugefügt werden
+}
+
+def get_vehicle_blueprint(vehicle_name):
+    """
+    Gibt die Blueprint-ID für das angegebene Fahrzeugmodell zurück.
+
+    :param vehicle_name: Der Name des Fahrzeugmodells (z. B. "Micro - Microlino")
+    :return: Die Blueprint-ID des Fahrzeugs (z. B. "vehicle.micro.microlino")
+    """
+    # Standardmäßig wird None zurückgegeben, wenn das Modell nicht gefunden wird
+    blueprint_id = vehicle_model_mapping.get(vehicle_name)
+
+    if blueprint_id is None:
+        print(f"Vehicle model '{vehicle_name}' not found in mapping.")
+        return None
+
+    return blueprint_id
+
+
 
 def send_async_request(async_request_uri):
     print(f"Sending async request to {async_request_uri}")
@@ -984,7 +1081,6 @@ def health_check():
 def start_carla():
     global carla_client, world
     try:
-        print("Starting CARLA server...")
         if is_port_in_use(2000):
             print("Port 2000 is in use. Attempting to clear it.")
             kill_process_on_port(2000)
@@ -1068,8 +1164,6 @@ def load_scenario():
 
         unload_stuff()
 
-
-
         print("world loaded")
         # Lade die Waypoints und Pfade
         load_paths(paths, entities)
@@ -1078,13 +1172,13 @@ def load_scenario():
         print("paths loaded")
 
         # Lade Entitäten
-        load_entities(entities)
+        load_entities(entities, paths)
 
         print("entities loaded")
         # Lade die Kamera
         load_camera(camera_position)
-
         print("camera loaded")
+
 
         # # Initialisiere den AI-Controller für Fußgänger
         # for entity in entities:
@@ -1095,6 +1189,9 @@ def load_scenario():
         # Füge das Gitter hinzu, falls gewünscht
         if show_grid == "true":
             load_grid()
+
+        # listen_for_enter_key()
+
 
         return jsonify({"status": "success", "map": scenario_map, "entities": entities}), 200
 

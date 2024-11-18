@@ -18,6 +18,8 @@ import os
 from dotenv import load_dotenv
 import socket
 import psutil
+from math import factorial
+import math
 
 app = Flask(__name__)
 app_data = {}
@@ -41,6 +43,10 @@ VEHICLE = Namespace("http://carla.org/vehicle/")
 PEDESTRIAN = Namespace("http://carla.org/pedestrian/")
 LOCATION = Namespace("http://carla.org/location/")
 BASE = Namespace("http://carla.org/")
+
+def comb(n, k):
+    return factorial(n) // (factorial(k) * factorial(n - k))
+
 
 def set_anchor_point(map_name):
     """
@@ -290,7 +296,33 @@ def load_entities(entities):
 
         # print(f"Entity '{entity['label']}' processed.\n")
 
-def load_paths(paths):
+def cubic_bezier_curve(p0, p1, p2, p3, num_points=100):
+    """
+    Berechnet eine kubische Bezier-Kurve zwischen den Punkten p0, p1, p2 und p3.
+    Diese Kurve wird mit den klassischen Ease-In und Ease-Out Übergängen berechnet.
+
+    :param p0: Der Startpunkt der Kurve (carla.Location)
+    :param p1: Der erste Kontrollpunkt (carla.Location)
+    :param p2: Der zweite Kontrollpunkt (carla.Location)
+    :param p3: Der Endpunkt der Kurve (carla.Location)
+    :param num_points: Anzahl der Punkte auf der Bezierkurve
+    :return: Eine Liste von carla.Location-Punkten auf der Bezierkurve
+    """
+    curve_points = []
+
+    # Berechnung der Bezier-Kurve
+    for t in range(num_points):
+        t /= (num_points - 1)  # Normalisiere t zwischen 0 und 1
+        x = (1 - t)**3 * p0.x + 3 * (1 - t)**2 * t * p1.x + 3 * (1 - t) * t**2 * p2.x + t**3 * p3.x
+        y = (1 - t)**3 * p0.y + 3 * (1 - t)**2 * t * p1.y + 3 * (1 - t) * t**2 * p2.y + t**3 * p3.y
+        z = (1 - t)**3 * p0.z + 3 * (1 - t)**2 * t * p1.z + 3 * (1 - t) * t**2 * p2.z + t**3 * p3.z
+        curve_points.append(carla.Location(x, y, z))
+
+    return curve_points
+
+
+
+def load_paths(paths, entities):
     global carla_client, world, anchor_point
     cell_width = 4.0  # Einheitsgröße für die Breite der Zellen
     cell_height = 4.0  # Einheitsgröße für die Höhe der Zellen
@@ -302,9 +334,19 @@ def load_paths(paths):
     half_cell_offset_y = -cell_width / 2
     half_cell_offset_x = 0
 
-    print(f"Processing paths: {paths}")
+    # Filtern der Pfade, die von den Entitäten verfolgt werden
+    follows_paths = set()  # Set zum Speichern der Pfade, die von den Entitäten verfolgt werden
+    for entity in entities:
+        # Überprüfe, ob 'followsPath' ein String ist
+        if isinstance(entity.get('followsPath', None), str):
+            follows_paths.add(entity['followsPath'])  # Füge die Pfad-ID zum Set hinzu
 
-    for path in paths:
+    # Nur die Pfade berücksichtigen, die von den Entitäten verfolgt werden
+    filtered_paths = [path for path in paths if path["path"] in follows_paths]
+
+    print(f"Processing filtered paths: {filtered_paths}")
+
+    for path in filtered_paths:
         path_color_hex = path.get("color")  # Farbe des Pfads
         print(f"Processing path: {path['description']} with color: {path_color_hex}")
         path_color_rgb = hex_to_rgb(path_color_hex)  # Farbe von Hex nach RGB umwandeln
@@ -337,18 +379,52 @@ def load_paths(paths):
                 life_time=1000  # Dauerhaft sichtbar
             )
 
-        # Zweiter Durchlauf: Zeichne Linien zwischen aufeinanderfolgenden Wegpunkten
-        for i in range(len(waypoint_locations) - 1):
-            start = waypoint_locations[i]
-            end = waypoint_locations[i + 1]
+        # Berechne die Bezier-Kurve und zeichne sie
+        if len(waypoint_locations) > 1:
+            for i in range(len(waypoint_locations) - 1):
+                start_point = waypoint_locations[i]
+                end_point = waypoint_locations[i + 1]
 
-            world.debug.draw_line(
-                start,
-                end,
-                thickness=0.1,
-                color=path_color,
-                life_time=1000  # Dauerhaft sichtbar
-            )
+                # Berechne den Richtungsvektor zwischen den beiden Punkten
+                direction_x = end_point.x - start_point.x
+                direction_y = end_point.y - start_point.y
+
+                # Berechne die Länge des Richtungsvektors
+                length = math.sqrt(direction_x**2 + direction_y**2)
+
+                # Normalisiere den Richtungsvektor
+                direction_x /= length
+                direction_y /= length
+
+                # Berechne die Kontrollpunkte, basierend auf der Drittelregel
+                cp1_x = start_point.x + (end_point.x - start_point.x) / 2
+                cp1_y = start_point.y  # Y bleibt konstant
+
+                cp2_x = end_point.x - (end_point.x - start_point.x) / 2
+                cp2_y = end_point.y  # Y bleibt konstant
+
+                control_point_1 = carla.Location(cp1_x, cp1_y, start_point.z)
+                control_point_2 = carla.Location(cp2_x, cp2_y, end_point.z)
+
+                # Zeichne die Kontrollpunkte als rote "O"s
+                world.debug.draw_string(control_point_1, "O", draw_shadow=False, color=carla.Color(255, 0, 0), life_time=1000)
+                world.debug.draw_string(control_point_2, "O", draw_shadow=False, color=carla.Color(255, 0, 0), life_time=1000)
+
+                # Berechne die Punkte auf der Bezierkurve für das Segment
+                curve_points = cubic_bezier_curve(start_point, control_point_1, control_point_2, end_point)
+
+                # Zeichne die Linie zwischen den Punkten der Bezierkurve
+                for j in range(len(curve_points) - 1):
+                    start = curve_points[j]
+                    end = curve_points[j + 1]
+
+                    world.debug.draw_line(
+                        start,
+                        end,
+                        thickness=0.1,
+                        color=path_color,
+                        life_time=1000  # Dauerhaft sichtbar
+                    )
 
         print(f"Path '{path['description']}' processed with color {path_color_hex}.\n")
 
@@ -996,7 +1072,7 @@ def load_scenario():
 
         print("world loaded")
         # Lade die Waypoints und Pfade
-        load_paths(paths)
+        load_paths(paths, entities)
 
 
         print("paths loaded")

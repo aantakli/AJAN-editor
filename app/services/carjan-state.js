@@ -27,6 +27,11 @@ export default Service.extend({
   loading: null,
   showGridInCarla: false,
   uploadScenarioToCarla: false,
+  step3Status: "idle",
+
+  setStep3Status(status) {
+    set(this, "step3Status", status);
+  },
 
   setUploadScenarioToCarla(bool) {
     set(this, "uploadScenarioToCarla", bool);

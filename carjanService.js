@@ -2,7 +2,7 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const { spawn } = require("child_process");
+const { spawn, exec } = require("child_process");
 const dotenv = require("dotenv");
 const path = require("path");
 const fs = require("fs");
@@ -19,6 +19,9 @@ const app = express();
 const port = 4204;
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
+
+app.use(bodyParser.json());
+app.use(cors());
 
 let flaskProcess = null;
 let flaskPid = null;
@@ -156,6 +159,23 @@ function loadEnvVariables(envFilePath) {
   }
   return {};
 }
+
+const runDockerCommand = async () => {
+  return new Promise((resolve, reject) => {
+    const dockerCommand =
+      "docker run -d -p 7080-7081:8080-8081 carlaviz-carjan --simulator_host host.docker.internal --simulator_port 2000";
+
+    exec(dockerCommand, (error, stdout, stderr) => {
+      if (error) {
+        reject(`Error executing Docker command: ${error}`);
+      }
+      if (stderr) {
+        reject(`stderr: ${stderr}`);
+      }
+      resolve(stdout);
+    });
+  });
+};
 
 const validTypes = [
   "CARLA_PATH",
@@ -386,9 +406,6 @@ app.options("/api/carla", (req, res) => {
   res.sendStatus(204);
 });
 
-app.use(bodyParser.json());
-app.use(cors());
-
 app.get("/", (req, res) => {
   res.send("Yes! Carjan Service is running.");
 });
@@ -404,6 +421,9 @@ app.post("/api/carla-scenario", async (req, res) => {
     const flaskResponse = await forwardToFlask("/load_scenario", scenarioData);
 
     console.log("Flask response:", flaskResponse);
+
+    // const dockerOutput = await runDockerCommand();
+    // console.log("Docker output:", dockerOutput);
 
     res.json({
       status: "Scenario loaded from Flask",

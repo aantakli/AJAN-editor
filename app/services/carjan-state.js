@@ -1,5 +1,5 @@
 import Service from "@ember/service";
-import { set } from "@ember/object";
+import { set, observer } from "@ember/object";
 
 export default Service.extend({
   mapData: null,

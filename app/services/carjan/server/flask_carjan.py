@@ -19,30 +19,14 @@ from dotenv import load_dotenv
 import socket
 import psutil
 
-
-def is_port_in_use(port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex(('localhost', port)) == 0
-
-def kill_process_on_port(port):
-    for proc in psutil.process_iter(['pid', 'name', 'connections']):
-        for conn in proc.info['connections']:
-            if conn.laddr.port == port:
-                print(f"Killing process {proc.info['name']} (PID {proc.info['pid']}) on port {port}")
-                proc.kill()
-                break
-
 app = Flask(__name__)
 app_data = {}
 turtle_data_store = Graph()
 app.logger.setLevel(logging.INFO)
 actor_list = []
 
-
-
-# Globale Variablen für CARLA-Verbindung
-#carla_path = None
-client = None
+anchor_point = None
+carla_client = None
 world = None
 blueprint_library = None
 current_map = None
@@ -57,6 +41,47 @@ VEHICLE = Namespace("http://carla.org/vehicle/")
 PEDESTRIAN = Namespace("http://carla.org/pedestrian/")
 LOCATION = Namespace("http://carla.org/location/")
 BASE = Namespace("http://carla.org/")
+
+def set_anchor_point(map_name):
+    """
+    Setzt den Ankerpunkt basierend auf dem Karten-Namen und zeigt einen blauen Debug-Punkt an.
+
+    :param world: Die CARLA-Weltinstanz
+    :param map_name: Der Name der Karte
+    :return: Der Ankerpunkt als carla.Location
+    """
+    global anchor_point, world
+
+    if map_name == "map04":
+        anchor_point = carla.Location(x=240, y=57.5, z=0.1)
+    else:
+        # Fallback für unbekannte Karten
+        anchor_point = carla.Location(x=0, y=0, z=0)
+
+    # Debug-Punkt anzeigen
+    world.debug.draw_point(
+        anchor_point,
+        size=1.0,  # Größe des Punktes
+        color=carla.Color(0, 0, 255),  # Blau
+        life_time=60.0,  # Lebensdauer des Punktes in Sekunden
+        persistent_lines=True  # Linie bleibt sichtbar
+    )
+
+    print(f"Anchor point set to: x={anchor_point.x}, y={anchor_point.y}, z={anchor_point.z}")
+    return anchor_point
+
+def is_port_in_use(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('localhost', port)) == 0
+
+def kill_process_on_port(port):
+    for proc in psutil.process_iter(['pid', 'name', 'connections']):
+        for conn in proc.info['connections']:
+            if conn.laddr.port == port:
+                print(f"Killing process {proc.info['name']} (PID {proc.info['pid']}) on port {port}")
+                proc.kill()
+                break
+
 
 def getInformation(request):
   pedestrian_id = None
@@ -94,6 +119,11 @@ def getInformation(request):
 
   return pedestrian_id, async_request_uri
 
+def hex_to_rgb(hex_color):
+    """Hilfsfunktion zur Konvertierung von Hex-Farbwerten in RGB-Werte für CARLA."""
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+
 def set_spectator_view(world, location, rotation):
     spectator = world.get_spectator()
     transform = carla.Transform(location, rotation)
@@ -104,10 +134,10 @@ def get_anchor_point(mapName):
     if mapName == "map01":
         return carla.Location(x=240, y=57.5, z=0.1)
 
-def load_grid(grid_width=12, grid_height=8, cw=4.5, ch=5):
+def load_grid(grid_width=12, grid_height=12, cw=5, ch=5):
+    global carla_client, world, anchor_point
     try:
-        client.set_timeout(10.0)
-        world = client.get_world()
+        carla_client.set_timeout(10.0)
         cell_width = cw*0.8
         cell_height = ch*0.8
         # Farben
@@ -117,8 +147,6 @@ def load_grid(grid_width=12, grid_height=8, cw=4.5, ch=5):
         spectator = world.get_spectator()
         camera_transform = spectator.get_transform()
         camera_location = camera_transform.location
-
-        anchor_point = get_anchor_point("map01")
 
         if anchor_point:
             center_x = anchor_point.x
@@ -148,68 +176,228 @@ def load_grid(grid_width=12, grid_height=8, cw=4.5, ch=5):
             end_loc = carla.Location(start_x, end_y, center_z)
             world.debug.draw_line(start_loc, end_loc, thickness=0.02, color=grid_color)
 
-        return {"status": "Grid drawn successfully with 5:6 ratio, adjusted size and corrected axes"}
+        return {"status": "Grid drawn successfully with 1:1 ratio, adjusted size and corrected axes"}
 
     except Exception as e:
         print(f"Error in load_grid: {str(e)}")
         return {"error": str(e)}
 
-def load_world(entities, map_name):
+def load_world(weather, camera_position):
+    global carla_client, world
     try:
-        client = carla.Client("localhost", 2000)
-        client.set_timeout(10.0)
-        world = client.load_world('Town01_Opt')
-        world.set_weather(carla.WeatherParameters.CloudySunset)
+        if carla_client is None:
+            raise ValueError("CARLA client is not initialized. Start CARLA first.")
 
-        blueprint_library = world.get_blueprint_library()
-        unload_stuff(client)
+        # Lade die Welt
+        world = carla_client.load_world('Town01_Opt')
 
-        scale_x = 3.6
-        scale_y = 4.2
+        # Setze das Wetter
+        if weather == "Clear":
+            world.set_weather(carla.WeatherParameters.ClearNoon)
+        elif weather == "Rainy":
+            world.set_weather(carla.WeatherParameters.WetCloudyNoon)
+        elif weather == "Cloudy":
+            world.set_weather(carla.WeatherParameters.CloudySunset)
+        else:
+            raise ValueError(f"Invalid weather type: {weather}")
 
+        print(f"Weather set to: {weather}")
 
-        anchor_point = get_anchor_point(map_name)
-        anchor = carla.Location(x=anchor_point.x - (5*scale_x) - (scale_x/2), y=anchor_point.y + (3.5*scale_y), z=0.1)
-
-        for entity in entities:
-            new_x = float(entity["spawnPointY"]) * scale_x #vertikal
-            new_y = float(entity["spawnPointX"]) * scale_y #horizontal
-            print(f"New X: {new_x}, New Y: {new_y}")
-            spawn_location = carla.Location(
-                x=anchor.x + new_x,
-                y=anchor.y - new_y,
-                z=anchor.z + 0.5
-            )
-
-            if entity["type"] == "Pedestrian":
-                pedestrian_blueprint = blueprint_library.find('walker.pedestrian.0001')
-                pedestrian_transform = carla.Transform(spawn_location)
-                world.try_spawn_actor(pedestrian_blueprint, pedestrian_transform)
-                print(f"Pedestrian spawned at: {spawn_location}")
-
-            elif entity["type"] == "Vehicle":
-                vehicle_blueprint = blueprint_library.find('vehicle.audi.a2')
-                vehicle_transform = carla.Transform(spawn_location)
-                world.try_spawn_actor(vehicle_blueprint, vehicle_transform)
-                print(f"Vehicle spawned at: {spawn_location}")
-
-            elif entity["type"] == "AutonomousVehicle":
-                autonomous_blueprint = blueprint_library.find('vehicle.tesla.model3')
-                autonomous_transform = carla.Transform(spawn_location)
-                world.try_spawn_actor(autonomous_blueprint, autonomous_transform)
-                print(f"Autonomous vehicle spawned at: {spawn_location}")
-
-        # Set the spectator view
-        set_spectator_view(world, carla.Location(x=anchor_point.x + 20, y=anchor_point.y, z=15), carla.Rotation(pitch=-30, yaw=-180, roll=0))
-
-        return {"status": "Entities spawned successfully"}
+        # Kamera-Position könnte hier angepasst werden, falls benötigt
+        print(f"Camera position set to: {camera_position}")
+        return True
 
     except Exception as e:
-        print(f"Error in load_world: {str(e)}")
-        return {"error": str(e)}
+        print(f"Error in load_world: {e}")
+        return False
 
-def unload_stuff(client):
-    world = client.get_world()
+def load_entities(entities, waypoints, paths):
+    global world, anchor_point
+    blueprint_library = world.get_blueprint_library()
+    cell_width = 4.0  # Einheitsgröße für die Breite der Zellen
+    cell_height = 4.0  # Einheitsgröße für die Höhe der Zellen
+
+    offset_x = -5.5  # Basierend auf der Grid-Verschiebung in X-Richtung
+    offset_y = -3.0  # Basierend auf der Grid-Verschiebung in Y-Richtung
+
+    # Initiale halbe Zellenverschiebung, um die Entitäten in der Mitte der Zellen zu platzieren
+    half_cell_offset_x = - cell_width / 2
+    half_cell_offset_y = 0
+
+    spawned_entities = set()  # Verhindert doppelte Spawns
+
+    print(f"Processing entities: {entities}")
+
+    for entity in entities:
+        entity_id = entity["entity"]
+
+        # Überprüfen, ob die Entity schon gespawned wurde
+        if entity_id in spawned_entities:
+            print(f"Skipping duplicate entity: {entity_id}")
+            continue
+
+        # Berechne neue Position basierend auf dem Ankerpunkt, den Skalierungsfaktoren und dem Offset
+        new_x = (float(entity["y"]) + offset_y) * cell_height + half_cell_offset_y  # Vertikal (spawnPointY -> y + Offset)
+        new_y = (float(entity["x"]) + offset_x) * cell_width + half_cell_offset_x  # Horizontal (spawnPointX -> x + Offset)
+        spawn_location = carla.Location(
+            x=anchor_point.x + new_y,  # x-Offset
+            y=anchor_point.y - new_x,  # y-Offset (invertiert für CARLA-Koordinaten)
+            z=anchor_point.z + 0.5  # Leicht über dem Boden
+        )
+
+        # Zeichne einen Debug-Kreis an der Spawnposition
+        world.debug.draw_point(
+            spawn_location,
+            size=0.3,
+            color=carla.Color(0, 0, 255),  # Blau
+            life_time=10.0,  # Sichtbar für 10 Sekunden
+            persistent_lines=False
+        )
+
+        if entity["type"] == "Pedestrian":
+            # Dynamische Modellzuordnung für Pedestrian
+            model_suffix = entity["model"][-4:] if len(entity["model"]) >= 4 else "0001"
+            pedestrian_model = f"walker.pedestrian.{model_suffix}"
+            pedestrian_blueprint = blueprint_library.find(pedestrian_model)
+
+            pedestrian_transform = carla.Transform(spawn_location)
+            pedestrian_actor = world.try_spawn_actor(pedestrian_blueprint, pedestrian_transform)
+
+            if pedestrian_actor:
+                print(f"Pedestrian '{entity['label']}' spawned at: {spawn_location}")
+                spawned_entities.add(entity_id)  # Markiere die Entity als gespawned
+            else:
+                print(f"Failed to spawn Pedestrian '{entity['label']}' at: {spawn_location}")
+
+        elif entity["type"] == "Vehicle":
+            vehicle_blueprint = blueprint_library.find('vehicle.micro.microlino')
+            vehicle_transform = carla.Transform(spawn_location)
+            vehicle_actor = world.try_spawn_actor(vehicle_blueprint, vehicle_transform)
+
+            if vehicle_actor:
+                print(f"Vehicle '{entity['label']}' spawned at: {spawn_location}")
+                spawned_entities.add(entity_id)  # Markiere die Entity als gespawned
+            else:
+                print(f"Failed to spawn Vehicle '{entity['label']}' at: {spawn_location}")
+
+        # # Logge zugehörige Waypoints und Paths
+        # if entity.get("followsPath"):
+        #     entity_path = next((path for path in paths if path["path"] == entity["followsPath"]), None)
+        #     if entity_path:
+        #         print(f"Entity '{entity['label']}' follows Path: {entity_path['description']} (Color: {entity_path['color']})")
+        #         for waypoint in entity_path["waypoints"]:
+        #             print(f"  Waypoint: {waypoint['waypoint']} -> X: {waypoint['x']}, Y: {waypoint['y']}")
+
+        # print(f"Entity '{entity['label']}' processed.\n")
+
+def load_paths(paths):
+    global carla_client, world, anchor_point
+    cell_width = 4.0  # Einheitsgröße für die Breite der Zellen
+    cell_height = 4.0  # Einheitsgröße für die Höhe der Zellen
+
+    offset_x = -5.5  # Basierend auf der Grid-Verschiebung in X-Richtung
+    offset_y = -3.0  # Basierend auf der Grid-Verschiebung in Y-Richtung
+
+    # Initiale halbe Zellenverschiebung, um die Entitäten in der Mitte der Zellen zu platzieren
+    half_cell_offset_y = -cell_width / 2
+    half_cell_offset_x = 0
+
+    print(f"Processing paths: {paths}")
+
+    for path in paths:
+        path_color_hex = path.get("color")  # Farbe des Pfads
+        print(f"Processing path: {path['description']} with color: {path_color_hex}")
+        path_color_rgb = hex_to_rgb(path_color_hex)  # Farbe von Hex nach RGB umwandeln
+
+        # Extrahiere r, g, b und caste sie als int
+        r, g, b = path_color_rgb
+        path_color = carla.Color(r, g, b)
+
+        waypoint_locations = []  # Liste für alle Wegpunkt-Positionen
+
+        # Erster Durchlauf: Berechne Wegpunkt-Positionen und speichere sie
+        for waypoint in path["waypoints"]:
+            waypoint_x = (float(waypoint["y"]) + offset_y) * cell_height + half_cell_offset_y
+            waypoint_y = (float(waypoint["x"]) + offset_x) * cell_width + half_cell_offset_x
+            waypoint_location = carla.Location(
+                x=anchor_point.x + waypoint_y,
+                y=anchor_point.y - waypoint_x,
+                z=anchor_point.z + 0.5  # Leicht über dem Boden
+            )
+
+            # Füge die Wegpunkt-Position zur Liste hinzu
+            waypoint_locations.append(waypoint_location)
+
+            # Zeichne den Debug-Punkt für diesen Wegpunkt
+            world.debug.draw_string(
+                waypoint_location,
+                "O",
+                draw_shadow=False,
+                color=path_color,
+                life_time=1000  # Dauerhaft sichtbar
+            )
+
+        # Zweiter Durchlauf: Zeichne Linien zwischen aufeinanderfolgenden Wegpunkten
+        for i in range(len(waypoint_locations) - 1):
+            start = waypoint_locations[i]
+            end = waypoint_locations[i + 1]
+
+            world.debug.draw_line(
+                start,
+                end,
+                thickness=0.1,
+                color=path_color,
+                life_time=1000  # Dauerhaft sichtbar
+            )
+
+        print(f"Path '{path['description']}' processed with color {path_color_hex}.\n")
+
+def load_camera(camera_position):
+    global world, anchor_point
+    """
+    Setzt die Kameraposition relativ zum gegebenen anchor_point.
+
+    :param world: Die CARLA-Weltinstanz
+    :param anchor_point: Der global definierte Ankerpunkt als carla.Transform
+    :param camera_position: Die gewünschte Kameraposition ('up', 'down', 'left', 'right', 'birdseye')
+    """
+    spectator = world.get_spectator()  # Zugriff auf den CARLA Spectator (Kamera)
+
+    # Die Position des Ankerpunkts abrufen
+    base_transform = anchor_point  # anchor_point ist bereits carla.Transform, also direkt verwenden
+
+    # Positionen definieren
+    if camera_position == 'up':
+        # Kamera nach oben verschieben
+        new_location = carla.Location(base_transform.location.x, base_transform.location.y, base_transform.location.z + 10)
+
+    elif camera_position == 'down':
+        # Kamera nach unten verschieben
+        new_location = carla.Location(base_transform.location.x, base_transform.location.y, base_transform.location.z - 10)
+
+    elif camera_position == 'left':
+        # Kamera nach links verschieben
+        new_location = carla.Location(base_transform.location.x - 10, base_transform.location.y, base_transform.location.z)
+
+    elif camera_position == 'right':
+        # Kamera nach rechts verschieben
+        new_location = carla.Location(base_transform.location.x + 10, base_transform.location.y, base_transform.location.z)
+
+    elif camera_position == 'birdseye':
+        # Vogelperspektive: Kamera von oben
+        new_location = carla.Location(base_transform.location.x, base_transform.location.y, base_transform.location.z + 30)
+
+    else:
+        # Standard: Keine Verschiebung
+        new_location = base_transform.location
+
+    # Die neue Transformation für den Spectator
+    spectator.set_transform(carla.Transform(new_location, base_transform.rotation))
+    print(f"Camera set to {camera_position} position: {new_location}")
+
+def unload_stuff():
+    global world
+    print("Unloading stuff...")
     unloadList = [
             carla.MapLayer.NONE,
             carla.MapLayer.Buildings,
@@ -227,9 +415,8 @@ def unload_stuff(client):
     for layer in unloadList:
         world.unload_map_layer(layer)
 
-    def disable_specific_objects(client):
-        world = client.get_world()
-
+    def disable_specific_objects():
+        global world
         # Deaktivieren der entsprechenden Objektkategorien
         object_labels = [
             carla.CityObjectLabel.Other,  # Dies könnte Bushaltestellen, Mülleimer, usw. umfassen
@@ -250,7 +437,7 @@ def unload_stuff(client):
             except RuntimeError as e:
                 print(f"Error disabling objects of type {label}: {e}")
 
-    disable_specific_objects(client)
+    disable_specific_objects()
 
     # Set roads to gray color
     for blueprint in world.get_blueprint_library().filter('static.prop.street.*'):
@@ -721,6 +908,7 @@ def health_check():
 
 @app.route("/start_carla", methods=["GET"])
 def start_carla():
+    global carla_client, world
     try:
         print("Starting CARLA server...")
         if is_port_in_use(2000):
@@ -751,9 +939,9 @@ def start_carla():
 
         try:
             time.sleep(10)
-            client = carla.Client("localhost", 2000)
-            client.set_timeout(20.0)
-            world = client.get_world()
+            carla_client = carla.Client("localhost", 2000)
+            carla_client.set_timeout(20.0)
+            world = carla_client.get_world()
             print("Connected to CARLA server.")
             return jsonify({"status": "CARLA started and connected successfully."}), 200
 
@@ -768,19 +956,27 @@ def start_carla():
 @app.route('/load_scenario', methods=['POST'])
 def load_scenario():
     try:
+        # Empfange JSON-Daten vom Request
         data = request.get_json()
+        print("JSON data received successfully", flush=True)
+        print(data, flush=True)
 
-        main_scenario_name = data.get("scenarioName")
+
+        # Extrahiere die Hauptszenarionamen und Szenariodetails
+        scenario_name = data.get("scenarioName")
         scenario_list = data.get("scenario", {}).get("scenarios", [])
 
+        # Finde das spezifische Szenario in der Liste, das 'scenarioName' entspricht
         scenario = next(
-            (s for s in scenario_list if s.get("scenarioName", "").split("#")[-1] == main_scenario_name),
+            (s for s in scenario_list if s.get("scenarioName", "").split("#")[-1] == scenario_name),
             None
         )
 
+        # Fehlerbehandlung, falls kein passendes Szenario gefunden wurde
         if scenario is None:
             return jsonify({"error": "Scenario not found in the provided data"}), 404
 
+        # Extrahiere die benötigten Felder
         scenario_name = scenario.get("scenarioName")
         scenario_map = scenario.get("scenarioMap")
         entities = scenario.get("entities", [])
@@ -790,23 +986,37 @@ def load_scenario():
         weather = scenario.get("weather")
         show_grid = scenario.get("showGrid", "false")
 
-        print(f"Scenario Name: {scenario_name}", flush=True)
-        print(f"Scenario Map: {scenario_map}", flush=True)
-        print(f"Entities: {entities}", flush=True)
-        print(f"Waypoints: {waypoints}", flush=True)
-        print(f"Paths: {paths}", flush=True)
-        print(f"Camera Position: {camera_position}", flush=True)
-        print(f"Weather: {weather}", flush=True)
-        print(f"Show Grid: {show_grid}", flush=True)
 
         # Lade die Welt basierend auf der Map und den Entitäten
-        load_world(entities, scenario_map)
+        load_world(weather, scenario_map)
 
-        # Initialisiere den AI-Controller für Fußgänger
-        for entity in entities:
-            if entity["type"] == "Pedestrian":
-                print("Starting AI controller for pedestrian with ID:", entity["entity"])
-                generate_actor(entity["entity"])
+        set_anchor_point(scenario_map)
+
+        unload_stuff()
+
+
+
+        print("world loaded")
+        # Lade die Waypoints und Pfade
+        load_paths(paths)
+
+
+        print("paths loaded")
+
+        # Lade Entitäten
+        load_entities(entities, waypoints, paths)
+
+        print("entities loaded")
+        # Lade die Kamera
+        load_camera(camera_position)
+
+        print("camera loaded")
+
+        # # Initialisiere den AI-Controller für Fußgänger
+        # for entity in entities:
+        #     if entity["type"] == "Pedestrian":
+        #         print("Starting AI controller for pedestrian with ID:", entity["entity"])
+        #         generate_actor(entity["entity"])
 
         # Füge das Gitter hinzu, falls gewünscht
         if show_grid == "true":
@@ -830,12 +1040,13 @@ def send_data():
 
 @app.route('/reset_carla', methods=['GET'])
 def reset_carla():
+    global carla_client
     try:
-        world = client.reload_world()
+        world = carla_client.reload_world()
 
         # Setze die Karte zurück (lädt die Standardkarte)
         map_name = "Town01"  # Du kannst hier eine andere Standardkarte festlegen, falls nötig
-        client.load_world(map_name)
+        carla_client.load_world(map_name)
 
         # Setze das Wetter zurück (auf klare Bedingungen)
         weather = carla.WeatherParameters.ClearNoon

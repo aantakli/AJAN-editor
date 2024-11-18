@@ -2,9 +2,8 @@ import $ from "jquery";
 import actions from "ajan-editor/helpers/carjan/actions";
 import Component from "@ember/component";
 import N3Parser from "npm:rdf-parser-n3";
-import { computed, set } from "@ember/object";
-import { debounce, next } from "@ember/runloop";
-import { observer } from "@ember/object";
+import { computed, set, observer } from "@ember/object";
+import { next } from "@ember/runloop";
 import { inject as service } from "@ember/service";
 import rdf from "npm:rdf-ext";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
@@ -47,59 +46,57 @@ export default Component.extend({
 
     rdfGraph.set(rdf.dataset());
     if (this.mode !== "fileSelection") {
+      console.log("mode nicht fileSelection");
       this.loadGrid();
       await this.stopFlask();
+    } else {
+      console.log("mode ist fileSelection");
     }
   },
 
   uploadObserver: observer(
     "carjanState.uploadScenarioToCarla",
     async function () {
-      if (this.carjanState.uploadScenarioToCarla) {
+      if (
+        this.carjanState.uploadScenarioToCarla === true &&
+        this.mode !== "fileSelection"
+      ) {
         this.set("step3Status", "loading");
-        console.log(
-          "Uploading scenario to Carla...",
-          this.carjanState.scenarioName
+        const trigContent = await this.downloadScenarioAsTrig(
+          this.carjanState.scenarioName,
+          true,
+          false
         );
-        try {
-          const trigContent = await this.downloadScenarioAsTrig(
-            this.carjanState.scenarioName,
-            true,
-            false
-          );
 
-          if (!trigContent) {
-            throw new Error("Failed to download trig content.");
-          }
-          // parse trig content to scenarios
-          const scenario = await this.parseTrig(trigContent);
-
-          const response = await fetch(
-            "http://localhost:4204/api/carla-scenario",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                scenarioName: this.carjanState.scenarioName,
-                scenario: scenario,
-              }),
-            }
-          );
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-
-          const result = await response.json();
-          console.log(result);
-
-          this.set("step3Status", "completed");
-        } catch (error) {
-          this.set("step3Status", "error");
-          console.error("Failed to load Scenario.", error);
+        if (!trigContent) {
+          throw new Error("Failed to download trig content.");
         }
+        // parse trig content to scenarios
+        const scenario = await this.parseTrig(trigContent);
+
+        const response = await fetch(
+          "http://localhost:4204/api/carla-scenario",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              scenarioName: this.carjanState.scenarioName,
+              scenario: scenario,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log(result);
+
+        this.set("step3Status", "completed");
+        this.carjanState.setUploadScenarioToCarla(false);
       }
     }
   ),

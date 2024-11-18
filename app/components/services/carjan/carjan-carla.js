@@ -150,6 +150,7 @@ export default Component.extend({
         throw new Error(errorData.error || "Failed to start CARLA.");
       }
       this.set("step2Status", "completed");
+      console.log("Step 2 completed, executing step 3...");
       this.loadScenario();
     } catch (error) {
       this.set("step2Status", "error");
@@ -166,12 +167,12 @@ export default Component.extend({
           this.startCarla();
         }
       } catch (error) {
-        console.log("Flask ist noch nicht bereit, versuche es erneut...");
+        console.log("Flask not ready yet...");
       }
     }, 500);
   },
 
-  async loadScenario() {
+  loadScenario() {
     this.set("step3Status", "loading");
     this.carjanState.setUploadScenarioToCarla(true);
   },

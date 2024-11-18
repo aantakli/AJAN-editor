@@ -211,7 +211,7 @@ def load_world(weather, camera_position):
         print(f"Error in load_world: {e}")
         return False
 
-def load_entities(entities, waypoints, paths):
+def load_entities(entities):
     global world, anchor_point
     blueprint_library = world.get_blueprint_library()
     cell_width = 4.0  # Einheitsgröße für die Breite der Zellen
@@ -221,8 +221,8 @@ def load_entities(entities, waypoints, paths):
     offset_y = -3.0  # Basierend auf der Grid-Verschiebung in Y-Richtung
 
     # Initiale halbe Zellenverschiebung, um die Entitäten in der Mitte der Zellen zu platzieren
-    half_cell_offset_x = - cell_width / 2
-    half_cell_offset_y = 0
+    half_cell_offset_y = -cell_width / 2
+    half_cell_offset_x = 0
 
     spawned_entities = set()  # Verhindert doppelte Spawns
 
@@ -242,7 +242,7 @@ def load_entities(entities, waypoints, paths):
         spawn_location = carla.Location(
             x=anchor_point.x + new_y,  # x-Offset
             y=anchor_point.y - new_x,  # y-Offset (invertiert für CARLA-Koordinaten)
-            z=anchor_point.z + 0.5  # Leicht über dem Boden
+            z=anchor_point.z + 1  # Leicht über dem Boden
         )
 
         # Zeichne einen Debug-Kreis an der Spawnposition
@@ -358,42 +358,40 @@ def load_camera(camera_position):
     Setzt die Kameraposition relativ zum gegebenen anchor_point.
 
     :param world: Die CARLA-Weltinstanz
-    :param anchor_point: Der global definierte Ankerpunkt als carla.Transform
+    :param anchor_point: Der global definierte Ankerpunkt als carla.Location
     :param camera_position: Die gewünschte Kameraposition ('up', 'down', 'left', 'right', 'birdseye')
     """
-    spectator = world.get_spectator()  # Zugriff auf den CARLA Spectator (Kamera)
+    spectator = world.get_spectator()
+    print(anchor_point)
 
-    # Die Position des Ankerpunkts abrufen
-    base_transform = anchor_point  # anchor_point ist bereits carla.Transform, also direkt verwenden
+    base_location = anchor_point
 
-    # Positionen definieren
     if camera_position == 'up':
-        # Kamera nach oben verschieben
-        new_location = carla.Location(base_transform.location.x, base_transform.location.y, base_transform.location.z + 10)
+        new_location = carla.Location(base_location.x - 40, base_location.y, base_location.z + 20)
+        rotation = carla.Rotation(pitch=-25, yaw=0)
 
     elif camera_position == 'down':
-        # Kamera nach unten verschieben
-        new_location = carla.Location(base_transform.location.x, base_transform.location.y, base_transform.location.z - 10)
+        new_location = carla.Location(base_location.x + 40, base_location.y, base_location.z + 20)
+        rotation = carla.Rotation(pitch=-25, yaw=180)
 
     elif camera_position == 'left':
-        # Kamera nach links verschieben
-        new_location = carla.Location(base_transform.location.x - 10, base_transform.location.y, base_transform.location.z)
+        new_location = carla.Location(base_location.x, base_location.y + 30, base_location.z + 10)
+        rotation = carla.Rotation(pitch=-10, yaw=-90)
 
     elif camera_position == 'right':
-        # Kamera nach rechts verschieben
-        new_location = carla.Location(base_transform.location.x + 10, base_transform.location.y, base_transform.location.z)
+        new_location = carla.Location(base_location.x, base_location.y - 30, base_location.z+ 10)
+        rotation = carla.Rotation(pitch=-10, yaw=90)
 
     elif camera_position == 'birdseye':
-        # Vogelperspektive: Kamera von oben
-        new_location = carla.Location(base_transform.location.x, base_transform.location.y, base_transform.location.z + 30)
+        new_location = carla.Location(base_location.x, base_location.y, base_location.z + 50)
+        rotation = carla.Rotation(pitch=-90, yaw=0)
 
     else:
-        # Standard: Keine Verschiebung
-        new_location = base_transform.location
+        new_location = base_location
+        rotation = carla.Rotation(pitch=0, yaw=0)
 
-    # Die neue Transformation für den Spectator
-    spectator.set_transform(carla.Transform(new_location, base_transform.rotation))
-    print(f"Camera set to {camera_position} position: {new_location}")
+    spectator.set_transform(carla.Transform(new_location, rotation))
+    print(f"Camera set to {camera_position} position: {new_location} with rotation: {rotation}")
 
 def unload_stuff():
     global world
@@ -1004,7 +1002,7 @@ def load_scenario():
         print("paths loaded")
 
         # Lade Entitäten
-        load_entities(entities, waypoints, paths)
+        load_entities(entities)
 
         print("entities loaded")
         # Lade die Kamera

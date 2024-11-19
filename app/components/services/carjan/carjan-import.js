@@ -241,6 +241,7 @@ export default Component.extend({
             weather: "",
             showGrid: "",
             showPaths: "",
+            loadLayers: "",
           };
         }
 
@@ -268,6 +269,10 @@ export default Component.extend({
 
           if (predicate === "http://example.com/carla-scenario#showPaths") {
             currentScenario.showPaths = object;
+          }
+
+          if (predicate === "http://example.com/carla-scenario#loadLayers") {
+            currentScenario.loadLayers = object;
           }
 
           if (
@@ -925,8 +930,9 @@ export default Component.extend({
             carjan:map "map01" ;
             carjan:cameraPosition "down" ;
             carjan:weather "Clear" .
-            carjan:showGrid "false" .
-            carjan:showPaths "false" .
+            carjan:showGrid "true" .
+            carjan:showPaths "true" .
+            carjan:loadLayers "false" .
         }
         `;
 
@@ -1261,8 +1267,14 @@ export default Component.extend({
       }
 
       const agents = this.extractAgentsData(scenarioData);
-      const { mapName, cameraPosition, weather, showGrid, showPaths } =
-        this.extractScenarioData(scenarioData);
+      const {
+        mapName,
+        cameraPosition,
+        weather,
+        showGrid,
+        showPaths,
+        loadLayers,
+      } = this.extractScenarioData(scenarioData);
       const map = mapName
         ? await this.getMap(mapName)
         : await this.getDefaultMap();
@@ -1272,6 +1284,7 @@ export default Component.extend({
       this.carjanState.setWeather(weather);
       this.carjanState.setGridInCarla(showGrid);
       this.carjanState.setPathsInCarla(showPaths);
+      this.carjanState.setLoadLayersInCarla(loadLayers);
       this.carjanState.setCameraPosition(cameraPosition);
 
       this.updateCarjanState(scenarioName);
@@ -1327,6 +1340,10 @@ export default Component.extend({
 
           if (item["http://example.com/carla-scenario#showPaths"]) {
             currentItemContent += `      carjan:showPaths "${item["http://example.com/carla-scenario#showPaths"][0]["@value"]}" ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#loadLayers"]) {
+            currentItemContent += `      carjan:loadLayers "${item["http://example.com/carla-scenario#loadLayers"][0]["@value"]}" ;\n`;
           }
 
           // Entitäten hinzufügen
@@ -1668,6 +1685,17 @@ export default Component.extend({
           scenarioURI,
           this.namedNode("carjan:showPaths"),
           rdf.literal(scenario.showPaths),
+          graph
+        )
+      );
+    }
+
+    if (scenario.loadLayers) {
+      rdfGraph.add(
+        rdf.quad(
+          scenarioURI,
+          this.namedNode("carjan:loadLayers"),
+          rdf.literal(scenario.loadLayers),
           graph
         )
       );
@@ -2045,6 +2073,7 @@ export default Component.extend({
     let weather = null;
     let showGrid = null;
     let showPaths = null;
+    let loadLayers = null;
 
     if (scenarioData && scenarioData["@graph"]) {
       scenarioData["@graph"].forEach((graphItem) => {
@@ -2090,11 +2119,24 @@ export default Component.extend({
                 "@value"
               ];
           }
+
+          if (graphItem["http://example.com/carla-scenario#loadLayers"]) {
+            loadLayers =
+              graphItem["http://example.com/carla-scenario#loadLayers"][0][
+                "@value"
+              ];
+          }
         }
       });
     }
-    // Return both mapName and cameraPosition
-    return { mapName, cameraPosition, weather, showGrid, showPaths };
+    return {
+      mapName,
+      cameraPosition,
+      weather,
+      showGrid,
+      showPaths,
+      loadLayers,
+    };
   },
 
   extractAgentsData(scenarioData) {

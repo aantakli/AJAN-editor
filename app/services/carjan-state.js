@@ -27,6 +27,7 @@ export default Service.extend({
   loading: null,
   showGridInCarla: "true",
   showPathsInCarla: "true",
+  loadLayersInCarla: "false",
   uploadScenarioToCarla: false,
   step3Status: "idle",
 
@@ -36,6 +37,10 @@ export default Service.extend({
 
   setUploadScenarioToCarla(bool) {
     set(this, "uploadScenarioToCarla", bool);
+  },
+
+  setLoadLayersInCarla(bool) {
+    set(this, "loadLayersInCarla", bool);
   },
 
   setPathsInCarla(bool) {

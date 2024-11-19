@@ -487,6 +487,12 @@ export default Component.extend({
       this.carjanState.setPathsInCarla(isChecked.toString());
     },
 
+    toggleLoadLayersCarla(event) {
+      const isChecked = event.target.checked;
+      console.log("isChecked", isChecked);
+      this.carjanState.setLoadLayersInCarla(isChecked.toString());
+    },
+
     findCurrentEntity() {
       const [row, col] = this.carjanState.currentCellPosition || [];
       return this.carjanState.entities.find(

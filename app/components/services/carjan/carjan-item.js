@@ -545,6 +545,7 @@ export default Component.extend({
 
     const showGrid = this.carjanState.get("showGridInCarla") || "false";
     const showPaths = this.carjanState.get("showPathsInCarla") || "false";
+    const loadLayers = this.carjanState.get("loadLayersInCarla") || "false";
     const weather = this.carjanState.get("weather") || "Clear";
     const category = this.carjanState.get("category") || "Urban";
     const cameraPosition = this.carjanState.get("cameraPosition") || "up";
@@ -562,6 +563,14 @@ export default Component.extend({
         scenarioURI,
         rdf.namedNode("http://example.com/carla-scenario#showPaths"),
         rdf.literal(showPaths)
+      )
+    );
+
+    rdfGraph.add(
+      rdf.quad(
+        scenarioURI,
+        rdf.namedNode("http://example.com/carla-scenario#loadLayers"),
+        rdf.literal(loadLayers)
       )
     );
 

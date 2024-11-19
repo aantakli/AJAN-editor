@@ -837,6 +837,28 @@
               Show Paths in Carla Simulation
             </label>
           </div>
+          <h2></h2>
+          <div
+            class="ui toggle checkbox"
+            style="display: flex; align-items: center;"
+          >
+            <input
+              type="checkbox"
+              checked={{eq carjanState.loadLayersInCarla "true"}}
+              onchange={{action "toggleLoadLayersCarla"}}
+            />
+            <label style="display: flex; align-items: center; gap: 0.5em;">
+              <i
+                class="{{if
+                    (eq carjanState.loadLayersInCarla 'true')
+                    'icon blue home'
+                    'icon grey home'
+                  }}"
+                style="position: relative; top: -2px;"
+              ></i>
+              Load all layers in Carla
+            </label>
+          </div>
         </div>
       </div>
     </div>

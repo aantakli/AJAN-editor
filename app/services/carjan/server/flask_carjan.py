@@ -40,8 +40,8 @@ carla_client = None
 world = None
 blueprint_library = None
 current_map = None
-
 entityList = []
+
 seen_actors = set()
 
 global_async_uri = None
@@ -52,6 +52,10 @@ PEDESTRIAN = Namespace("http://carla.org/pedestrian/")
 LOCATION = Namespace("http://carla.org/location/")
 BASE = Namespace("http://carla.org/")
 
+# ! Helpers and Utilities
+# * Implements helper functions and utilities
+# * for the CARJAN Scenario loaders
+
 def comb(n, k):
     return factorial(n) // (factorial(k) * factorial(n - k))
 
@@ -61,7 +65,6 @@ def get_blueprint_id(vehicle_name):
             if vehicle['name'] == vehicle_name:
                 return vehicle['blueprintId']
     return None
-
 
 def get_spectator_coordinates():
     # Angenommen, du hast bereits ein `world`-Objekt in CARLA
@@ -164,6 +167,9 @@ def set_spectator_view(world, location, rotation):
 def get_anchor_point(mapName):
     if mapName == "map01":
         return carla.Location(x=240, y=57.5, z=0.1)
+
+# ! Loaders
+# * Implement different parts of loading the CARJAN Scenario
 
 def load_grid(grid_width=12, grid_height=12, cw=5, ch=5):
     global carla_client, world, anchor_point
@@ -595,39 +601,18 @@ def unload_stuff():
         print(f"Setting road texture to gray for {blueprint.id}")
         world.get_blueprint_library().find(blueprint.id).set_attribute('texture', 'none')
 
-# Beispiel-Mapping-Tabelle von Fahrzeugnamen zu Blueprint-IDs
-vehicle_model_mapping = {
-    "Micro - Microlino": "vehicle.micro.microlino",
-    "Tesla Model 3": "vehicle.tesla.model3",
-    "Ford Mustang": "vehicle.ford.mustang",
-    "Chevrolet Corvette": "vehicle.chevrolet.corvette",
-    # Weitere Modelle können hier hinzugefügt werden
-}
+# ! Actions
+# * Implements actions for Behavior Tree Node Endpoints
+# TODO Implement actions
 
-def get_vehicle_blueprint(vehicle_name):
-    """
-    Gibt die Blueprint-ID für das angegebene Fahrzeugmodell zurück.
-
-    :param vehicle_name: Der Name des Fahrzeugmodells (z. B. "Micro - Microlino")
-    :return: Die Blueprint-ID des Fahrzeugs (z. B. "vehicle.micro.microlino")
-    """
-    # Standardmäßig wird None zurückgegeben, wenn das Modell nicht gefunden wird
-    blueprint_id = vehicle_model_mapping.get(vehicle_name)
-
-    if blueprint_id is None:
-        print(f"Vehicle model '{vehicle_name}' not found in mapping.")
-        return None
-
-    return blueprint_id
-
-
-
+# * async uri
 def send_async_request(async_request_uri):
     print(f"Sending async request to {async_request_uri}")
     data = '<http://carla.org/pedestrian> <http://at> <http://waypoint> .'
     headers = {'Content-Type': 'text/turtle'}
     return requests.post(async_request_uri, data=data, headers=headers)
 
+# ? rather in behavior tree?
 def isUnsafe(pedestrian, vehicle, async_request_uri):
 
     def obstacle_callback(event):
@@ -674,24 +659,20 @@ def walking(pedestrian_id):
     print("Walking to bus station 3")
     return
 
+# * distance check
 def distance_check(actor, target_location, threshold):
     actor_location = actor.get_location()
     distance = actor_location.distance(target_location)
     return distance < threshold
 
-def get_nearest_road_id(actor):
-    actor_location = actor.get_location()
-    waypoint = world.get_map().get_waypoint(actor_location)
-    road_id = waypoint.road_id
-
-    return road_id
-
+# * pedestrian on road
 def is_pedestrian_on_road(pedestrian):
     pedestrian_location = pedestrian.get_location()
     waypoint = current_map.get_waypoint(pedestrian_location)
 
     return waypoint and waypoint.lane_type == carla.LaneType.Driving
 
+# * sprint
 def sprint_to(pedestrian, location, speed):
 
     print(f'Pedestrian location: {pedestrian.get_location()}')
@@ -715,6 +696,7 @@ def sprint_to(pedestrian, location, speed):
     while pedestrian.get_location().distance(location) > 1:
         time.sleep(0.1)
 
+# * steer direction
 def getDirection(pedestrian, waypoint):
     pedestrian_location = pedestrian.get_location()
     direction = carla.Vector3D(
@@ -767,40 +749,6 @@ def walkToWaypoint(pedestrian, waypoint, async_request_uri):
             break
         time.sleep(0.1)
 
-def json_to_turtle(data):
-    g = Graph()
-    if 'type' in data and 'vehicle' in data['type']:
-        vehicle = URIRef(f"http://carla.org/vehicle/{data['id']}")
-        g.add((vehicle, RDF.type, VEHICLE.Vehicle))
-        g.add((vehicle, VEHICLE.id, Literal(data['id'])))
-        g.add((vehicle, VEHICLE.type, Literal(data['type'])))
-        g.add((vehicle, VEHICLE.timestamp, Literal(data['timestamp'])))
-    elif 'type' in data and 'pedestrian' in data['type']:
-        pedestrian = URIRef(f"http://carla.org/pedestrian/{data['id']}")
-        g.add((pedestrian, RDF.type, PEDESTRIAN.Pedestrian))
-        g.add((pedestrian, PEDESTRIAN.id, Literal(data['id'])))
-        g.add((pedestrian, PEDESTRIAN.type, Literal(data['type'])))
-        g.add((pedestrian, PEDESTRIAN.timestamp, Literal(data['timestamp'])))
-
-    location = URIRef(f"http://carla.org/location/{data['id']}")
-    g.add((location, LOCATION.x, Literal(data['location']['x'])))
-    g.add((location, LOCATION.y, Literal(data['location']['y'])))
-    g.add((location, LOCATION.z, Literal(data['location']['z'])))
-
-    if 'type' in data and 'vehicle' in data['type']:
-        g.add((vehicle, VEHICLE.location, location))
-    elif 'type' in data and 'pedestrian' in data['type']:
-        g.add((pedestrian, PEDESTRIAN.location, location))
-
-    return g
-
-def reset_settings():
-    world = client.get_world()
-    settings = world.get_settings()
-    settings.synchronous_mode = False
-    settings.fixed_delta_seconds = None
-    world.apply_settings(settings)
-
 def get_actor_blueprints(world, filter, generation):
     bps = world.get_blueprint_library().filter(filter)
 
@@ -836,6 +784,7 @@ def execMain():
         print(response.text)
         print(response.status_code)
 
+# * start random walk or follow path
 def aiController(pedestrian_id):
     all_id = []
     world = client.get_world()
@@ -874,7 +823,6 @@ def aiController(pedestrian_id):
 
 
     finally:
-        reset_settings()
         time.sleep(0.5)
 
 @app.route('/set_async_uri', methods=['POST'])
@@ -966,111 +914,8 @@ def walkToBus():
         action_thread.start()
     return Response('<http://carla.org> <http://walk> <http://toBus> .', mimetype='text/turtle', status=200)
 
-'''
-@app.route('/walk_to_bus_station', methods=['POST'])
-def walk_to_bus_station():
-    request_data = request.data.decode('utf-8')
-    print(f"Received request data: {request_data}")
-
-    # Parsen der RDF-Daten mit rdflib
-    g = rdflib.Graph()
-    g.parse(data=request_data, format='turtle')
-
-    # Extrahieren der asynchronen Request URI
-    query_uri = """
-    PREFIX actn: <http://www.ajan.de/actn#>
-    SELECT ?requestURI WHERE {
-        ?action actn:asyncRequestURI ?requestURI .
-    }
-    """
-    uri_result = g.query(query_uri)
-    for row in uri_result:
-        async_request_uri = row.requestURI
-        print(f"Async Request URI: {async_request_uri}")
-
-    # Extrahieren der Pedestrian ID
-    query_id = """
-    SELECT ?id WHERE {
-        ?s <http://carla.org/pedestrian/id> ?id .
-    }
-    """
-    id_result = g.query(query_id)
-    pedestrian_id = None
-    for row in id_result:
-        pedestrian_id = int(row.pedestrianId)
-        print(f"Pedestrian ID: {pedestrian_id}")
-
-    if pedestrian_id is not None:
-        print("Walking to bus station")
-        pedestrian = world.get_actor(pedestrian_id)
-        walk_to_waypoint(pedestrian, waypoint1, async_request_uri)
-
-    # Antwort auf den asynchronen Request senden
-    response = requests.post(async_request_uri, data='<http://carla.org> <http://walk> <http://toBus> .', headers={'Content-Type': 'text/turtle'})
-    print(f"Response status: {response.status_code}")
-
-    return Response('<http://carla.org> <http://walk> <http://toBus> .', mimetype='text/turtle', status=200)
-
-
-@app.route('/run_to_bus_station', methods=['POST'])
-def run_to_bus_station():
-    try:
-        pedestrian_data = request.get_data(as_text=True).split("\r\n")[1].split(" ")[2]
-        pedestrian_id = int(pedestrian_data[1:-1])
-        pedestrian = world.get_actor(pedestrian_id)
-        print("Running to bus station")
-        sprint_to(pedestrian, bus_stop, speed=5.0)
-    finally:
-        return Response('<http://carla.org> <http://run> <http://toBus> .', mimetype='text/turtle', status=200)
-
-@app.route('/wants_bus', methods=['GET', 'POST'])
-def wants_bus():
-    print("Pedestrian wants bus")
-    return Response('<http://carla.org> "wantsBus" "True" .', mimetype='text/turtle', status=200)
-
-@app.route('/start_random_walk', methods=['POST'])
-def start_random_walk():
-    try:
-        print("Starting random walk")
-
-        pedestrian_data = request.get_data(as_text=True).split("\r\n")[1].split(" ")[2]
-        pedestrian_id = int(pedestrian_data[1:-1])
-
-        if not pedestrian_id:
-            return Response('<http://carla.org> "hasResponse" "No Pedestrian ID" .', mimetype='text/turtle', status=400)
-
-        aiController(pedestrian_id)
-    finally:
-        reset_settings()
-        pedestrian = world.get_actor(pedestrian_id)
-        pedestrian.apply_control(carla.WalkerControl(speed=0.0))
-        return Response('<http://example.org> <http://has> <http://data.org> .', mimetype='text/turtle', status=200)
-
-@app.route('/trigger_toBus', methods=['GET', 'POST'])
-def trigger_toBus():
-    if(request.method == 'POST'):
-        data = request.data
-        print(data)
-        return Response('<http://example.org> <http://has> <http://data.org> .', mimetype='text/turtle', status=200)
-    elif(request.method == 'GET'):
-        # get the worlds pedestrian
-        all_actors = world.get_actors()
-        pedestrians = all_actors.filter('walker.pedestrian.*')
-        vehicles = all_actors.filter('vehicle.*')
-        pedestrian = pedestrians[0]
-        vehicle = vehicles[0]
-        while True:
-            time.sleep(1)  # Warte 1 Sekunde
-            sprint_to(pedestrian, vehicle.get_location(), speed=5.0)
-            if pedestrian.get_location().distance(vehicle.get_location()) < 10:
-                pedestrian.apply_control(carla.WalkerControl(speed=0.0))  # Sprinten mit 5.0 m/s
-                vehicle.set_autopilot(False)
-                break
-        return jsonify({'status': 'Running!', 'vehicle_id': vehicle.id})
-'''
 @app.route('/idle_wait', methods=['POST'])
 def idleWait():
-    reset_settings()
     print("Idle Wait for 5 seconds")
 
     time.sleep(5)
@@ -1083,129 +928,6 @@ def hi():
 @app.route('/health_check', methods=['GET'])
 def health_check():
     return jsonify({"status": "OK"}), 200
-
-@app.route("/start_carla", methods=["GET"])
-def start_carla():
-    global carla_client, world
-    try:
-        if is_port_in_use(2000):
-            print("Port 2000 is in use. Attempting to clear it.")
-            kill_process_on_port(2000)
-            time.sleep(2)
-
-        # Laden der Umgebungsvariable für den CARLA-Pfad
-        dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
-        load_dotenv(dotenv_path=dotenv_path)
-        carla_path = os.getenv("CARLA_PATH")
-
-        # Pfad-Überprüfung
-        if not carla_path:
-            print("Error: CARLA path is not defined in .env file.")
-            return jsonify({"error": "CARLA path is not defined in .env file"}), 400
-
-        # CARLA-Server starten
-        try:
-            subprocess.Popen(carla_path)
-            print("CARLA client started successfully.")
-        except FileNotFoundError:
-            print("Failed to start CARLA: Invalid path.")
-            return jsonify({"error": "Invalid CARLA path. Please check the file path."}), 400
-        except Exception as e:
-            print(f"Unexpected error while starting CARLA: {e}")
-            return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
-
-        try:
-            time.sleep(10)
-            carla_client = carla.Client("localhost", 2000)
-            carla_client.set_timeout(20.0)
-            world = carla_client.get_world()
-            print("Connected to CARLA server.")
-            return jsonify({"status": "CARLA started and connected successfully."}), 200
-
-        except Exception as e:
-            print(f"Failed to connect to CARLA: {e}")
-            return jsonify({"error": "CARLA started, but connection to server failed. Please check the server status."}), 500
-
-    except Exception as e:
-        print(f"An error occurred in start_carla: {e}")
-        return jsonify({"error": "Internal server error occurred while starting CARLA.", "details": str(e)}), 500
-
-@app.route('/load_scenario', methods=['POST'])
-def load_scenario():
-    try:
-        # Empfange JSON-Daten vom Request
-        data = request.get_json()
-        print("JSON data received successfully", flush=True)
-        print(data, flush=True)
-
-
-        # Extrahiere die Hauptszenarionamen und Szenariodetails
-        scenario_name = data.get("scenarioName")
-        scenario_list = data.get("scenario", {}).get("scenarios", [])
-
-        # Finde das spezifische Szenario in der Liste, das 'scenarioName' entspricht
-        scenario = next(
-            (s for s in scenario_list if s.get("scenarioName", "").split("#")[-1] == scenario_name),
-            None
-        )
-
-        # Fehlerbehandlung, falls kein passendes Szenario gefunden wurde
-        if scenario is None:
-            return jsonify({"error": "Scenario not found in the provided data"}), 404
-
-        # Extrahiere die benötigten Felder
-        scenario_name = scenario.get("scenarioName")
-        scenario_map = scenario.get("scenarioMap")
-        entities = scenario.get("entities", [])
-        waypoints = scenario.get("waypoints", [])
-        paths = scenario.get("paths", [])
-        camera_position = scenario.get("cameraPosition")
-        weather = scenario.get("weather")
-        show_paths = scenario.get("showPaths", "false")
-        show_grid = scenario.get("showGrid", "false")
-
-
-        # Lade die Welt basierend auf der Map und den Entitäten
-        load_world(weather, scenario_map)
-
-        set_anchor_point(scenario_map)
-
-        unload_stuff()
-
-        print("world loaded")
-        # Lade die Waypoints und Pfade
-        load_paths(paths, entities, show_paths)
-
-
-        print("paths loaded")
-
-        # Lade Entitäten
-        load_entities(entities, paths)
-
-        print("entities loaded")
-        # Lade die Kamera
-        load_camera(camera_position)
-        print("camera loaded")
-
-
-        # Initialisiere den AI-Controller für Fußgänger
-        for entity in entities:
-            if entity["type"] == "Pedestrian":
-                print("Starting AI controller for pedestrian with ID:", entity["entity"])
-                generate_actor(entity["entity"])
-
-        # Füge das Gitter hinzu, falls gewünscht
-        if show_grid == "true":
-            load_grid()
-
-        # listen_for_enter_key()
-
-
-        return jsonify({"status": "success", "map": scenario_map, "entities": entities}), 200
-
-    except Exception as e:
-        print(f"Error in load_scenario: {str(e)}", flush=True)
-        return jsonify({"error": str(e)}), 500
 
 @app.route('/send_data', methods=['GET'])
 def send_data():
@@ -1277,12 +999,149 @@ def start_agent():
         print(f"Error in send_data: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route('/destroy_actors', methods=['GET'])
-def destroy():
-    for entity in entityList:
+# ! Main Functions / Routes
+# * Implements the main functions of the pipeline.
+
+# * Starts the CARLA client and connects to it.
+@app.route("/start_carla", methods=["GET"])
+def start_carla():
+    global carla_client, world
+    try:
+        if is_port_in_use(2000):
+            print("Port 2000 is in use. Attempting to clear it.")
+            kill_process_on_port(2000)
+            time.sleep(2)
+
+        # Laden der Umgebungsvariable für den CARLA-Pfad
+        dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+        load_dotenv(dotenv_path=dotenv_path)
+        carla_path = os.getenv("CARLA_PATH")
+
+        # Pfad-Überprüfung
+        if not carla_path:
+            print("Error: CARLA path is not defined in .env file.")
+            return jsonify({"error": "CARLA path is not defined in .env file"}), 400
+
+        try:
+            subprocess.Popen(carla_path)
+            print("CARLA client started successfully.")
+        except FileNotFoundError:
+            print("Failed to start CARLA: Invalid path.")
+            return jsonify({"error": "Invalid CARLA path. Please check the file path."}), 400
+        except Exception as e:
+            print(f"Unexpected error while starting CARLA: {e}")
+            return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
+
+        try:
+            time.sleep(10)
+            carla_client = carla.Client("localhost", 2000)
+            carla_client.set_timeout(20.0)
+            world = carla_client.get_world()
+            print("Connected to CARLA server on Port 2000.")
+            return jsonify({"status": "CARLA started and connected successfully."}), 200
+
+        except Exception as e:
+            print(f"Failed to connect to CARLA: {e}")
+            return jsonify({"error": "CARLA client started, but connection to server failed. Please check the server status."}), 500
+
+    except Exception as e:
+        print(f"An error occurred in start_carla: {e}")
+        return jsonify({"error": "Internal server error occurred while starting CARLA.", "details": str(e)}), 500
+
+# * Loads all scenario information into the CARLA world.
+@app.route('/load_scenario', methods=['POST'])
+def load_scenario():
+    global carla_client, entityList
+    try:
+        # Empfange JSON-Daten vom Request
+        data = request.get_json()
+        print("JSON data received successfully", flush=True)
+        print(data, flush=True)
+
+
+        # Extrahiere die Hauptszenarionamen und Szenariodetails
+        scenario_name = data.get("scenarioName")
+        scenario_list = data.get("scenario", {}).get("scenarios", [])
+
+        # Finde das spezifische Szenario in der Liste, das 'scenarioName' entspricht
+        scenario = next(
+            (s for s in scenario_list if s.get("scenarioName", "").split("#")[-1] == scenario_name),
+            None
+        )
+
+        # Fehlerbehandlung, falls kein passendes Szenario gefunden wurde
+        if scenario is None:
+            return jsonify({"error": "Scenario not found in the provided data"}), 404
+
+        # Extrahiere die benötigten Felder
+        scenario_name = scenario.get("scenarioName")
+        scenario_map = scenario.get("scenarioMap")
+        entities = scenario.get("entities", [])
+        entityList = entities
+        waypoints = scenario.get("waypoints", [])
+        paths = scenario.get("paths", [])
+        camera_position = scenario.get("cameraPosition")
+        weather = scenario.get("weather")
+        show_paths = scenario.get("showPaths", "false")
+        show_grid = scenario.get("showGrid", "false")
+
+
+        # Lade die Welt basierend auf der Map und den Entitäten
+        load_world(weather, scenario_map)
+        unload_stuff()
+        print("world loaded")
+
+        # Setze den Ankerpunkt für die Karte
+        set_anchor_point(scenario_map)
+
+        # Lade die Waypoints und Pfade
+        load_paths(paths, entities, show_paths)
+        print("paths loaded")
+
+        # Lade Entitäten
+        load_entities(entities, paths)
+        print("entities loaded")
+
+        # Lade die Kamera
+        load_camera(camera_position)
+        print("camera loaded")
+
+        # Füge das Gitter hinzu, falls gewünscht
+        if show_grid == "true":
+            load_grid()
+            print("grid loaded")
+
+        # Initialisiere den AI-Controller für Fußgänger
+        for entity in entities:
             if entity["type"] == "Pedestrian":
-              print("Removing AI controller for pedestrian with ID: ", entity["entity"])
-              destroy_actor(entity["entity"])
+                print("Starting AI controller for pedestrian with ID:", entity["entity"])
+                generate_actor(entity["label"] or entity["entity"])
+        # listen_for_enter_key()
+
+        time.sleep(5)
+        print("Destroying actors")
+        time.sleep(1)
+        destroy_actors()
+
+        return jsonify({"status": "success", "map": scenario_map, "entities": entities}), 200
+
+    except Exception as e:
+        print(f"Error in load_scenario: {str(e)}", flush=True)
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/destroy_actors', methods=['GET'])
+def destroy_actors():
+    global entityList
+    try:
+        for entity in entityList:
+            entity_id = entity.get("label")
+            destroy_actor(entity_id)
+        entityLabels = [entity.get("label") for entity in entityList]
+
+        return jsonify({"status": "success", "message": f"Actors {entityLabels}"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host="127.0.0.1", port=5000)

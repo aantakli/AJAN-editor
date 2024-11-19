@@ -403,7 +403,6 @@ def load_entities(entities, paths):
         # AJAN Agent
         actor_id = pedestrian_actor.id if pedestrian_actor else vehicle_actor.id if vehicle_actor else None
 
-
 def generate_agent_for_entity(entity):
     agent_name = entity.get("label", "unknown")
     result = generate_actor(agent_name)
@@ -447,7 +446,6 @@ def make_walker_move_forward(ajan_entity_id, speed=1.5):
     # Steuerung auf den Walker anwenden
     walker.apply_control(walker_control)
     print(f"Walker mit ID '{carla_entity_id}' läuft vorwärts mit Geschwindigkeit {speed} m/s.")
-
 
 def cubic_bezier_curve(p0, p1, p2, p3, num_points=100):
     """

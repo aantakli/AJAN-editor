@@ -40,7 +40,6 @@ def json_to_turtle(data, bool = False):
 
     return f"@prefix ajan: <http://www.ajan.de/ajan-ns#> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix carla: <http://carla.org/> .\n\n{triples}"
 
-
 def generate_actor(name):
     url = 'http://localhost:8080/ajan/agents/'
     data = f'''@prefix ajan: <http://www.ajan.de/ajan-ns#> .
@@ -75,7 +74,6 @@ def generate_actor(name):
     except requests.exceptions.RequestException as e:
         print(f'Error generating actor {name}: {e}')
         return {"status": "error", "message": str(e)}
-
 
 # Deletes the agent
 def destroy_actor(eid):
@@ -120,7 +118,6 @@ def send_atBusStation(id):
         print('POST > send_atBusStation successful')
     else:
         print('POST > send_atBusStation failed')
-
 
 def send_reachedBusStation():
     print("Pedestrian at station")

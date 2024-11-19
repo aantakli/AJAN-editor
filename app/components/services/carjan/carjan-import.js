@@ -563,37 +563,33 @@ export default Component.extend({
     });
   },
 
+  async saveEnvironmentVariable(type, value) {
+    const response = await fetch("http://localhost:4204/api/save_environment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ type, value }),
+    });
+    if (!response.ok) {
+      throw new Error(`Fehler beim Speichern von ${type}.`);
+    }
+    return response;
+  },
+
   actions: {
     async saveGithubInfo() {
       try {
-        // Hilfsfunktion zum Speichern einer Umgebungsvariablen
-        const saveEnvironmentVariable = async (type, value) => {
-          const response = await fetch(
-            "http://localhost:4204/api/save_environment",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ type, value }),
-            }
-          );
-          if (!response.ok) {
-            throw new Error(`Fehler beim Speichern von ${type}.`);
-          }
-          return response;
-        };
-
         // Speichere GitHub-Daten
-        await saveEnvironmentVariable(
+        await this.saveEnvironmentVariable(
           "GITHUB_REPO_USERNAME",
           this.githubRepoUsername
         );
-        await saveEnvironmentVariable(
+        await this.saveEnvironmentVariable(
           "GITHUB_REPO_REPOSITORY",
           this.githubRepoRepository
         );
-        await saveEnvironmentVariable("GITHUB_TOKEN", this.githubToken);
+        await this.saveEnvironmentVariable("GITHUB_TOKEN", this.githubToken);
 
         this.set("areCredentialsValid", true);
       } catch (error) {
@@ -627,7 +623,11 @@ export default Component.extend({
       this.renameScenarioToRepository(
         this.oldScenarioName,
         this.scenarioName
-      ).then((result) => {
+      ).then(async (result) => {
+        await this.saveEnvironmentVariable(
+          "SELECTED_SCENARIO",
+          this.scenarioName
+        );
         this.updateWithResult(result).then(() => {
           setTimeout(() => {
             // window.location.reload(true);
@@ -1098,11 +1098,9 @@ export default Component.extend({
         existingDataset.scenarios.push(scenarioToRename);
       }
 
-      console.log("existingDataset", existingDataset);
-      debugger;
+      return existingDataset;
 
       // Das aktualisierte Dataset zurückgeben
-      return existingDataset;
     } catch (error) {
       console.error("Error in renameScenarioToRepository:", error);
       throw error;
@@ -1484,6 +1482,8 @@ export default Component.extend({
 
   async updateWithStatements(statements) {
     const scenarioURIs = [];
+    console.log("Statements", statements);
+    debugger;
     for (const scenario of statements.scenarios) {
       scenarioURIs.push(scenario.scenarioName);
       await this.addRDFStatements(scenario);

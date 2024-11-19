@@ -292,21 +292,21 @@ def load_entities(entities, paths):
 
         if heading:
             if heading == "North":
-                rotation = carla.Rotation(pitch=0, yaw=0)
+              rotation = carla.Rotation(pitch=0, yaw=-180)
             elif heading == "North-East":
-                rotation = carla.Rotation(pitch=0, yaw=-45)
+              rotation = carla.Rotation(pitch=0, yaw=-135)
             elif heading == "East":
-                rotation = carla.Rotation(pitch=0, yaw=-90)
+              rotation = carla.Rotation(pitch=0, yaw=-90)
             elif heading == "South-East":
-                rotation = carla.Rotation(pitch=0, yaw=-135)
+              rotation = carla.Rotation(pitch=0, yaw=-45)
             elif heading == "South":
-                rotation = carla.Rotation(pitch=0, yaw=-180)
+              rotation = carla.Rotation(pitch=0, yaw=0)
             elif heading == "South-West":
-                rotation = carla.Rotation(pitch=0, yaw=-225)
+              rotation = carla.Rotation(pitch=0, yaw=45)
             elif heading == "West":
-                rotation = carla.Rotation(pitch=0, yaw=-270)
+              rotation = carla.Rotation(pitch=0, yaw=90)
             elif heading == "North-West":
-                rotation = carla.Rotation(pitch=0, yaw=-315)
+              rotation = carla.Rotation(pitch=0, yaw=135)
             elif heading == "path":
                 # Wenn der Entity "path" folgt, dann berechne die Richtung des ersten Waypoints des Pfades
                 follows_path = entity.get("followsPath", None)
@@ -342,6 +342,10 @@ def load_entities(entities, paths):
 
         # Spawne die Entität (Pedestrian oder Vehicle)
         if entity["type"] == "Pedestrian":
+            model = entity.get("model")
+            if model is None or model == "null":
+                model = "0001"
+            entity["model"] = model
             model_suffix = entity["model"][-4:] if len(entity["model"]) >= 4 else "0001"
             pedestrian_model = f"walker.pedestrian.{model_suffix}"
             pedestrian_blueprint = blueprint_library.find(pedestrian_model)
@@ -350,7 +354,8 @@ def load_entities(entities, paths):
             pedestrian_actor = world.try_spawn_actor(pedestrian_blueprint, pedestrian_transform)
 
             if pedestrian_actor:
-                print(f"Pedestrian '{entity['label']}' spawned at: {spawn_location} with rotation: {rotation}")
+                if(entity["label"]):
+                  print(f"Pedestrian '{entity['label']}' spawned at: {spawn_location} with rotation: {rotation}")
                 spawned_entities.add(entity_id)  # Markiere die Entity als gespawned
             else:
                 print(f"Failed to spawn Pedestrian '{entity['label']}' at: {spawn_location}")
@@ -529,7 +534,7 @@ def load_camera(camera_position):
         rotation = carla.Rotation(pitch=-10, yaw=90)
 
     elif camera_position == 'birdseye':
-        new_location = carla.Location(base_location.x, base_location.y, base_location.z + 50)
+        new_location = carla.Location(base_location.x, base_location.y, base_location.z + 30)
         rotation = carla.Rotation(pitch=-90, yaw=0)
 
     else:

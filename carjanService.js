@@ -93,6 +93,7 @@ async function destroyActors() {
 async function stopFlaskService() {
   if (flaskProcess) {
     try {
+      await destroyActors();
       flaskProcess.kill();
       console.log("Flask service stopped.");
       flaskProcess = null;
@@ -125,7 +126,6 @@ async function waitForFlaskToBeReady() {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const response = await forwardToFlask("/health_check");
-      console.log("Flask response:", response);
 
       if (
         response &&

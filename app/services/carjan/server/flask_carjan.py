@@ -118,40 +118,39 @@ def kill_process_on_port(port):
                 break
 
 def getInformation(request):
-  pedestrian_id = None
-  async_request_uri = None
+    ajan_entity_id = None
+    async_request_uri = None
 
-  request_data = request.data.decode('utf-8')
+    request_data = request.data.decode('utf-8')
 
-  # Parsen der RDF-Daten mit rdflib
-  g = rdflib.Graph()
-  g.parse(data=request_data, format='turtle')
+    # Parsen der RDF-Daten mit rdflib
+    g = rdflib.Graph()
+    g.parse(data=request_data, format='turtle')
 
-  # Extrahieren der asynchronen Request URI
-  query_uri = """
-  PREFIX actn: <http://www.ajan.de/actn#>
-  SELECT ?requestURI WHERE {
-      ?action actn:asyncRequestURI ?requestURI .
-  }
-  """
-  uri_result = g.query(query_uri)
-  for row in uri_result:
-      async_request_uri = row.requestURI
-      print(f"Async Request URI: {async_request_uri}")
-  # Extrahieren der Pedestrian ID
-  query_id = """
-  PREFIX ajan: <http://www.ajan.de/ajan-ns#>
-  SELECT ?id WHERE {
-      ?s ajan:agentId ?id
-  }
-  """
-  id_result = g.query(query_id)
-  pedestrian_id = None
-  for row in id_result:
-      pedestrian_id = str(row.id)
-      print(f"Pedestrian ID: {pedestrian_id}")
+    # Extrahiere die asynchrone Request-URI
+    query_uri = """
+    PREFIX actn: <http://www.ajan.de/actn#>
+    SELECT ?requestURI WHERE {
+        ?action actn:asyncRequestURI ?requestURI .
+    }
+    """
+    uri_result = g.query(query_uri)
+    for row in uri_result:
+        async_request_uri = row.requestURI
 
-  return pedestrian_id, async_request_uri
+    # Extrahiere die Pedestrian-ID
+    query_id = """
+    PREFIX ajan: <http://www.ajan.de/ajan-ns#>
+    SELECT ?id WHERE {
+        ?s ajan:agentId ?id
+    }
+    """
+    id_result = g.query(query_id)
+    ajan_entity_id = None
+    for row in id_result:
+        ajan_entity_id = str(row.id)
+
+    return ajan_entity_id, async_request_uri
 
 def hex_to_rgb(hex_color):
     """Hilfsfunktion zur Konvertierung von Hex-Farbwerten in RGB-Werte für CARLA."""
@@ -249,7 +248,7 @@ def load_world(weather, camera_position):
         return False
 
 def load_entities(entities, paths):
-    global world, anchor_point
+    global world, anchor_point, actor_list
     blueprint_library = world.get_blueprint_library()
     cell_width = 4.0  # Einheitsgröße für die Breite der Zellen
     cell_height = 4.0  # Einheitsgröße für die Höhe der Zellen
@@ -291,6 +290,8 @@ def load_entities(entities, paths):
             persistent_lines=False
         )
 
+
+
         # Bestimme die Rotation (Heading)
         heading = entity.get("heading", None)
         print("heading: ", heading)
@@ -322,7 +323,6 @@ def load_entities(entities, paths):
                     if path and path["waypoints"]:
                         # Hole den ersten Waypoint des Pfades
                         first_waypoint = path["waypoints"][0]
-                        print("First waypoint: ", first_waypoint)
                         waypoint_x = (float(first_waypoint["y"]) + offset_y) * cell_height + half_cell_offset_y
                         waypoint_y = (float(first_waypoint["x"]) + offset_x) * cell_width + half_cell_offset_x
                         waypoint_location = carla.Location(
@@ -330,7 +330,6 @@ def load_entities(entities, paths):
                             y=anchor_point.y - waypoint_x,
                             z=anchor_point.z + 0.5  # Leicht über dem Boden
                         )
-                        print("Waypoint location: ", waypoint_location)
                         world.debug.draw_string(
                             waypoint_location,
                             "O",
@@ -346,6 +345,9 @@ def load_entities(entities, paths):
                         rotation = carla.Rotation(pitch=0, yaw=yaw)
                         print(f"Calculated rotation: {rotation}")
 
+        pedestrian_actor = None
+        vehicle_actor = None
+
         # Spawne die Entität (Pedestrian oder Vehicle)
         if entity["type"] == "Pedestrian":
             model = entity.get("model")
@@ -359,6 +361,15 @@ def load_entities(entities, paths):
             pedestrian_transform = carla.Transform(spawn_location, rotation)
             pedestrian_actor = world.try_spawn_actor(pedestrian_blueprint, pedestrian_transform)
 
+            ajan_agent_id = generate_agent_for_entity(entity)
+            if ajan_agent_id:
+                actor_list.append({
+                    "carla_entity_id": pedestrian_actor.id,
+                    "ajan_agent_id": ajan_agent_id
+                })
+                print(f"Mapped CARLA entity {pedestrian_actor.id} to AJAN agent {ajan_agent_id}")
+                print(f"\nActor list: {actor_list}")
+
             if pedestrian_actor:
                 if(entity["label"]):
                   print(f"Pedestrian '{entity['label']}' spawned at: {spawn_location} with rotation: {rotation}")
@@ -371,13 +382,72 @@ def load_entities(entities, paths):
             vehicle_transform = carla.Transform(spawn_location, rotation)
             vehicle_actor = world.try_spawn_actor(vehicle_blueprint, vehicle_transform)
 
+            ajan_agent_id = generate_agent_for_entity(entity)
+            if ajan_agent_id:
+                actor_list.append({
+                    "carla_entity_id": vehicle_actor.id,
+                    "ajan_agent_id": ajan_agent_id
+                })
+                print(f"Mapped CARLA entity {vehicle_actor.id} to AJAN agent {ajan_agent_id}")
+                print(f"\nActor list: {actor_list}")
+
+
             if vehicle_actor:
                 print(f"Vehicle '{entity['label']}' spawned at: {spawn_location} with rotation: {rotation}")
                 spawned_entities.add(entity_id)  # Markiere die Entity als gespawned
             else:
                 print(f"Failed to spawn Vehicle '{entity['label']}' at: {spawn_location}")
 
-        print(f"Entity '{entity['label']}' processed.\n")
+        print("Pedestrian actor id: ", pedestrian_actor.id)
+
+        # AJAN Agent
+        actor_id = pedestrian_actor.id if pedestrian_actor else vehicle_actor.id if vehicle_actor else None
+
+
+def generate_agent_for_entity(entity):
+    agent_name = entity.get("label", "unknown")
+    result = generate_actor(agent_name)
+
+    if result["status"] == "success":
+        return agent_name
+    else:
+        print(f"Failed to generate AJAN agent for entity {entity['entity']}: {result['message']}")
+        return None
+
+def get_carla_entity_by_ajan_id(ajan_entity_id):
+    global actor_list
+    for mapping in actor_list:
+        if mapping["ajan_agent_id"] == ajan_entity_id:
+            return mapping["carla_entity_id"]
+    return None
+
+def make_walker_move_forward(ajan_entity_id, speed=1.5):
+    global actor_list, carla_client
+    print("actor list: ", actor_list)
+    world = carla_client.get_world()
+    print("Carla actors list: ", world.get_actors())
+    # Abrufen der CARLA-Entitäts-ID
+    carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
+
+    if not carla_entity_id:
+        print(f"Kein CARLA-Entity mit AJAN-Agent-ID '{ajan_entity_id}' gefunden.")
+        return
+
+    # Abrufen des CARLA-Agenten (Walker)
+    walker = world.get_actor(carla_entity_id)
+
+    if not walker:
+        print(f"CARLA-Agent mit ID '{carla_entity_id}' existiert nicht in der Welt.")
+        return
+
+    # Vorwärtsbewegung des Walkers definieren
+    direction = carla.Vector3D(1.0, 0.0, 0.0)  # Vorwärts in X-Richtung
+    walker_control = carla.WalkerControl(direction=direction, speed=speed)
+
+    # Steuerung auf den Walker anwenden
+    walker.apply_control(walker_control)
+    print(f"Walker mit ID '{carla_entity_id}' läuft vorwärts mit Geschwindigkeit {speed} m/s.")
+
 
 def cubic_bezier_curve(p0, p1, p2, p3, num_points=100):
     """
@@ -425,11 +495,9 @@ def load_paths(paths, entities, show_paths):
     # Nur die Pfade berücksichtigen, die von den Entitäten verfolgt werden
     filtered_paths = [path for path in paths if path["path"] in follows_paths]
 
-    print(f"Processing filtered paths: {filtered_paths}")
 
     for path in filtered_paths:
         path_color_hex = path.get("color")  # Farbe des Pfads
-        print(f"Processing path: {path['description']} with color: {path_color_hex}")
         path_color_rgb = hex_to_rgb(path_color_hex)  # Farbe von Hex nach RGB umwandeln
 
         # Extrahiere r, g, b und caste sie als int
@@ -460,8 +528,7 @@ def load_paths(paths, entities, show_paths):
                 life_time=1000  # Dauerhaft sichtbar
             )
 
-
-        if show_paths:
+        if show_paths == "true":
           # Berechne die Bezier-Kurve und zeichne sie
           if len(waypoint_locations) > 1:
               for i in range(len(waypoint_locations) - 1):
@@ -521,15 +588,14 @@ def load_camera(camera_position):
     :param camera_position: Die gewünschte Kameraposition ('up', 'down', 'left', 'right', 'birdseye')
     """
     spectator = world.get_spectator()
-    print(anchor_point)
 
     base_location = anchor_point
 
-    if camera_position == 'up':
+    if camera_position == 'down':
         new_location = carla.Location(base_location.x - 40, base_location.y, base_location.z + 20)
         rotation = carla.Rotation(pitch=-25, yaw=0)
 
-    elif camera_position == 'down':
+    elif camera_position == 'up':
         new_location = carla.Location(base_location.x + 40, base_location.y, base_location.z + 20)
         rotation = carla.Rotation(pitch=-25, yaw=180)
 
@@ -554,7 +620,6 @@ def load_camera(camera_position):
 
 def unload_stuff():
     global world
-    print("Unloading stuff...")
     unloadList = [
             carla.MapLayer.NONE,
             carla.MapLayer.Buildings,
@@ -647,17 +712,6 @@ def isUnsafe(pedestrian, vehicle, async_request_uri):
             break
         time.sleep(0.1)
     '''
-
-def walking(pedestrian_id):
-    # walk to crosswalk, then to crosswalk 2 and then the bus stop
-    pedestrian = world.get_actor(pedestrian_id)
-    sprint_to(pedestrian, crosswalk2.location, speed=2.0)
-    print("Walking to bus station 1")
-    sprint_to(pedestrian, crosswalk.location, speed=2.0)
-    print("Walking to bus station 2")
-    sprint_to(pedestrian, bus_stop.location, speed=2.0)
-    print("Walking to bus station 3")
-    return
 
 # * distance check
 def distance_check(actor, target_location, threshold):
@@ -784,46 +838,8 @@ def execMain():
         print(response.text)
         print(response.status_code)
 
-# * start random walk or follow path
-def aiController(pedestrian_id):
-    all_id = []
-    world = client.get_world()
-    settings = world.get_settings()
-
-    try:
-        pedestrian = world.get_actor(pedestrian_id)
-        if not pedestrian:
-            raise ValueError("No pedestrian with the specified ID found.")
-
-        if not settings.synchronous_mode:
-            settings.synchronous_mode = True
-            settings.fixed_delta_seconds = 0.05
-            world.apply_settings(settings)
-
-        print("Spawning AI controller for the pedestrian.")
-
-        walker_controller_bp = blueprint_library.find('controller.ai.walker')
-        controller = world.spawn_actor(walker_controller_bp, carla.Transform(), pedestrian)
-
-        if not controller:
-            raise ValueError("Couldn't spawn AI controller for the pedestrian.")
-
-        all_id.append(controller.id)
-        all_id.append(pedestrian.id)
-
-        world.tick()
-
-        controller.start()
-        controller.go_to_location(world.get_random_location_from_navigation())
-        controller.set_max_speed(1.0)
-
-        for _ in range(1000):
-            world.tick()
-            time.sleep(0.0001)
-
-
-    finally:
-        time.sleep(0.5)
+# ! Routes
+# * Implements routes for Behavior Tree Node Endpoints
 
 @app.route('/set_async_uri', methods=['POST'])
 def set_async_uri():
@@ -853,18 +869,6 @@ def walk_to_waypoint():
   print("Walking to waypoint PLACEHOLDER")
   return Response('<http://carla.org> <http://walk> <http://toWaypoint> .', mimetype='text/turtle', status=200)
 
-@app.route('/cross', methods=['POST'])
-def cross():
-    pedestrian, vehicle, async_request_uri = getInformation(request)
-    if pedestrian and vehicle and async_request_uri:
-        print("Crossing the street")
-        action_thread = threading.Thread(target=walkToWaypoint, args=(pedestrian, waypoint2, async_request_uri))
-        action_thread.start()
-        print(f"Pedestrian location: {pedestrian.get_location()}")
-    else:
-        print("Not crossing the street")
-    return Response('<http://carla.org> <http://cross> <http://street> .', mimetype='text/turtle', status=200)
-
 @app.route('/walk_random', methods=['POST'])
 def walk_random():
     pedestrian, vehicle, async_request_uri = getInformation(request)
@@ -885,17 +889,26 @@ def walk_random():
 
 @app.route('/revert', methods=['POST'])
 def revert():
-    pedestrian, vehicle, async_request_uri = getInformation(request)
-    if pedestrian and vehicle and async_request_uri:
-        print("Reverting crossing")
-        action_thread = threading.Thread(target=walkToWaypoint, args=(pedestrian, waypoint3, async_request_uri))
-        action_thread.start()
-    return Response('<http://carla.org> <http://revert> <http://action> .', mimetype='text/turtle', status=200)
+    global actor_list
+    ajan_entity, async_request_uri = getInformation(request)
+    print("AJAN Entity: ", ajan_entity)
+    print("Async request URI: ", async_request_uri)
+    actor = get_carla_entity_by_ajan_id(ajan_entity)
+    print("\n ======= CARLA Entity by AJAN ID: ", actor)
+    make_walker_move_forward(ajan_entity)
+    return Response('<http://carla.org> <http://confirm> <http://action> .', mimetype='text/turtle', status=200)
+    # pedestrian, vehicle, async_request_uri = getInformation(request)
+    # if pedestrian and vehicle and async_request_uri:
+    #     print("Reverting crossing")
+    #     action_thread = threading.Thread(target=walkToWaypoint, args=(pedestrian, waypoint3, async_request_uri))
+    #     action_thread.start()
+    # return Response('<http://carla.org> <http://revert> <http://action> .', mimetype='text/turtle', status=200)
 
 @app.route('/restart', methods=['POST'])
 def restart():
     return Response('<http://carla.org> <http://restart> <http://tree> .', mimetype='text/turtle', status=200)
 
+# ? Optimize
 @app.route('/unsafe', methods=['POST'])
 def unsafe():
     pedestrian, vehicle, async_request_uri = getInformation(request)
@@ -914,9 +927,12 @@ def walkToBus():
         action_thread.start()
     return Response('<http://carla.org> <http://walk> <http://toBus> .', mimetype='text/turtle', status=200)
 
+# ? Add variable for timer
 @app.route('/idle_wait', methods=['POST'])
 def idleWait():
-    print("Idle Wait for 5 seconds")
+    ajan_entity, async_request_uri = getInformation(request)
+    print("AJAN entity: ", ajan_entity)
+    print("Async request URI: ", async_request_uri)
 
     time.sleep(5)
     return Response('<http://example.org> <http://has> <http://data2.org> .', mimetype='text/turtle', status=200)
@@ -999,6 +1015,29 @@ def start_agent():
         print(f"Error in send_data: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# TODO
+@app.route('/follow_path', methods=['POST'])
+def follow_path():
+    return
+@app.route('/follow_sidewalk', methods=['POST'])
+
+@app.route('/adjust_speed', methods=['POST'])
+
+@app.route('/check_decision_point', methods=['POST'])
+
+@app.route('/check_decision_box', methods=['POST'])
+
+@app.route('/check_vehicle_proximity', methods=['POST'])
+
+@app.route('/check_first_waypoint_proximity', methods=['POST'])
+
+@app.route('/check_last_waypoint_proximity', methods=['POST'])
+
+@app.route('/turn_head', methods=['POST'])
+
+@app.route('/look_around', methods=['POST'])
+
+
 # ! Main Functions / Routes
 # * Implements the main functions of the pipeline.
 
@@ -1056,8 +1095,6 @@ def load_scenario():
         # Empfange JSON-Daten vom Request
         data = request.get_json()
         print("JSON data received successfully", flush=True)
-        print(data, flush=True)
-
 
         # Extrahiere die Hauptszenarionamen und Szenariodetails
         scenario_name = data.get("scenarioName")
@@ -1111,19 +1148,9 @@ def load_scenario():
             load_grid()
             print("grid loaded")
 
-        # Initialisiere den AI-Controller für Fußgänger
-        for entity in entities:
-            if entity["type"] == "Pedestrian":
-                print("Starting AI controller for pedestrian with ID:", entity["entity"])
-                generate_actor(entity["label"] or entity["entity"])
         # listen_for_enter_key()
 
-        time.sleep(5)
-        print("Destroying actors")
-        time.sleep(1)
-        destroy_actors()
-
-        return jsonify({"status": "success", "map": scenario_map, "entities": entities}), 200
+        return jsonify({"status": "Loaded scenario successfully."}), 200
 
     except Exception as e:
         print(f"Error in load_scenario: {str(e)}", flush=True)

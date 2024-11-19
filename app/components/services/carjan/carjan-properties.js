@@ -478,8 +478,13 @@ export default Component.extend({
   actions: {
     toggleGridInCarla(event) {
       const isChecked = event.target.checked;
-      console.log("isChecked", isChecked);
       this.carjanState.setGridInCarla(isChecked.toString());
+    },
+
+    togglePathsInCarla(event) {
+      const isChecked = event.target.checked;
+      console.log("isChecked", isChecked);
+      this.carjanState.setPathsInCarla(isChecked.toString());
     },
 
     findCurrentEntity() {

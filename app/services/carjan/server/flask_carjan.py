@@ -397,7 +397,7 @@ def cubic_bezier_curve(p0, p1, p2, p3, num_points=100):
 
     return curve_points
 
-def load_paths(paths, entities):
+def load_paths(paths, entities, show_paths):
     global carla_client, world, anchor_point
     cell_width = 4.0  # Einheitsgröße für die Breite der Zellen
     cell_height = 4.0  # Einheitsgröße für die Höhe der Zellen
@@ -454,54 +454,56 @@ def load_paths(paths, entities):
                 life_time=1000  # Dauerhaft sichtbar
             )
 
-        # Berechne die Bezier-Kurve und zeichne sie
-        if len(waypoint_locations) > 1:
-            for i in range(len(waypoint_locations) - 1):
-                start_point = waypoint_locations[i]
-                end_point = waypoint_locations[i + 1]
 
-                # Berechne den Richtungsvektor zwischen den beiden Punkten
-                direction_x = end_point.x - start_point.x
-                direction_y = end_point.y - start_point.y
+        if show_paths:
+          # Berechne die Bezier-Kurve und zeichne sie
+          if len(waypoint_locations) > 1:
+              for i in range(len(waypoint_locations) - 1):
+                  start_point = waypoint_locations[i]
+                  end_point = waypoint_locations[i + 1]
 
-                # Berechne die Länge des Richtungsvektors
-                length = math.sqrt(direction_x**2 + direction_y**2)
+                  # Berechne den Richtungsvektor zwischen den beiden Punkten
+                  direction_x = end_point.x - start_point.x
+                  direction_y = end_point.y - start_point.y
 
-                # Normalisiere den Richtungsvektor
-                direction_x /= length
-                direction_y /= length
+                  # Berechne die Länge des Richtungsvektors
+                  length = math.sqrt(direction_x**2 + direction_y**2)
 
-                # Berechne die Kontrollpunkte, basierend auf der Drittelregel
-                cp1_x = start_point.x + (end_point.x - start_point.x) / 2
-                cp1_y = start_point.y  # Y bleibt konstant
+                  # Normalisiere den Richtungsvektor
+                  direction_x /= length
+                  direction_y /= length
 
-                cp2_x = end_point.x - (end_point.x - start_point.x) / 2
-                cp2_y = end_point.y  # Y bleibt konstant
+                  # Berechne die Kontrollpunkte, basierend auf der Drittelregel
+                  cp1_x = start_point.x + (end_point.x - start_point.x) / 2
+                  cp1_y = start_point.y  # Y bleibt konstant
 
-                control_point_1 = carla.Location(cp1_x, cp1_y, start_point.z)
-                control_point_2 = carla.Location(cp2_x, cp2_y, end_point.z)
+                  cp2_x = end_point.x - (end_point.x - start_point.x) / 2
+                  cp2_y = end_point.y  # Y bleibt konstant
 
-                # Zeichne die Kontrollpunkte als rote "O"s
-                # world.debug.draw_string(control_point_1, "O", draw_shadow=False, color=carla.Color(255, 0, 0), life_time=1000)
-                # world.debug.draw_string(control_point_2, "O", draw_shadow=False, color=carla.Color(255, 0, 0), life_time=1000)
+                  control_point_1 = carla.Location(cp1_x, cp1_y, start_point.z)
+                  control_point_2 = carla.Location(cp2_x, cp2_y, end_point.z)
 
-                # Berechne die Punkte auf der Bezierkurve für das Segment
-                curve_points = cubic_bezier_curve(start_point, control_point_1, control_point_2, end_point)
+                  # Zeichne die Kontrollpunkte als rote "O"s
+                  # world.debug.draw_string(control_point_1, "O", draw_shadow=False, color=carla.Color(255, 0, 0), life_time=1000)
+                  # world.debug.draw_string(control_point_2, "O", draw_shadow=False, color=carla.Color(255, 0, 0), life_time=1000)
 
-                # Zeichne die Linie zwischen den Punkten der Bezierkurve
-                for j in range(len(curve_points) - 1):
-                    start = curve_points[j]
-                    end = curve_points[j + 1]
+                  # Berechne die Punkte auf der Bezierkurve für das Segment
+                  curve_points = cubic_bezier_curve(start_point, control_point_1, control_point_2, end_point)
 
-                    world.debug.draw_line(
-                        start,
-                        end,
-                        thickness=0.1,
-                        color=path_color,
-                        life_time=1000  # Dauerhaft sichtbar
-                    )
+                  # Zeichne die Linie zwischen den Punkten der Bezierkurve
+                  for j in range(len(curve_points) - 1):
+                      start = curve_points[j]
+                      end = curve_points[j + 1]
 
-        print(f"Path '{path['description']}' processed with color {path_color_hex}.\n")
+                      world.debug.draw_line(
+                          start,
+                          end,
+                          thickness=0.1,
+                          color=path_color,
+                          life_time=1000  # Dauerhaft sichtbar
+                      )
+
+          print(f"Path '{path['description']}' processed with color {path_color_hex}.\n")
 
 def load_camera(camera_position):
     global world, anchor_point
@@ -1159,6 +1161,7 @@ def load_scenario():
         paths = scenario.get("paths", [])
         camera_position = scenario.get("cameraPosition")
         weather = scenario.get("weather")
+        show_paths = scenario.get("showPaths", "false")
         show_grid = scenario.get("showGrid", "false")
 
 
@@ -1171,7 +1174,7 @@ def load_scenario():
 
         print("world loaded")
         # Lade die Waypoints und Pfade
-        load_paths(paths, entities)
+        load_paths(paths, entities, show_paths)
 
 
         print("paths loaded")

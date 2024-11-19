@@ -240,6 +240,7 @@ export default Component.extend({
             category: "",
             weather: "",
             showGrid: "",
+            showPaths: "",
           };
         }
 
@@ -263,6 +264,10 @@ export default Component.extend({
 
           if (predicate === "http://example.com/carla-scenario#showGrid") {
             currentScenario.showGrid = object;
+          }
+
+          if (predicate === "http://example.com/carla-scenario#showPaths") {
+            currentScenario.showPaths = object;
           }
 
           if (
@@ -921,6 +926,7 @@ export default Component.extend({
             carjan:cameraPosition "down" ;
             carjan:weather "Clear" .
             carjan:showGrid "false" .
+            carjan:showPaths "false" .
         }
         `;
 
@@ -1255,7 +1261,7 @@ export default Component.extend({
       }
 
       const agents = this.extractAgentsData(scenarioData);
-      const { mapName, cameraPosition, weather, showGrid } =
+      const { mapName, cameraPosition, weather, showGrid, showPaths } =
         this.extractScenarioData(scenarioData);
       const map = mapName
         ? await this.getMap(mapName)
@@ -1265,6 +1271,7 @@ export default Component.extend({
       this.carjanState.setAgentData(agents);
       this.carjanState.setWeather(weather);
       this.carjanState.setGridInCarla(showGrid);
+      this.carjanState.setPathsInCarla(showPaths);
       this.carjanState.setCameraPosition(cameraPosition);
 
       this.updateCarjanState(scenarioName);
@@ -1316,6 +1323,10 @@ export default Component.extend({
 
           if (item["http://example.com/carla-scenario#showGrid"]) {
             currentItemContent += `      carjan:showGrid "${item["http://example.com/carla-scenario#showGrid"][0]["@value"]}" ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#showPaths"]) {
+            currentItemContent += `      carjan:showPaths "${item["http://example.com/carla-scenario#showPaths"][0]["@value"]}" ;\n`;
           }
 
           // Entitäten hinzufügen
@@ -1482,8 +1493,6 @@ export default Component.extend({
 
   async updateWithStatements(statements) {
     const scenarioURIs = [];
-    console.log("Statements", statements);
-    debugger;
     for (const scenario of statements.scenarios) {
       scenarioURIs.push(scenario.scenarioName);
       await this.addRDFStatements(scenario);
@@ -1648,6 +1657,17 @@ export default Component.extend({
           scenarioURI,
           this.namedNode("carjan:showGrid"),
           rdf.literal(scenario.showGrid),
+          graph
+        )
+      );
+    }
+
+    if (scenario.showPaths) {
+      rdfGraph.add(
+        rdf.quad(
+          scenarioURI,
+          this.namedNode("carjan:showPaths"),
+          rdf.literal(scenario.showPaths),
           graph
         )
       );
@@ -2024,6 +2044,7 @@ export default Component.extend({
     let cameraPosition = null;
     let weather = null;
     let showGrid = null;
+    let showPaths = null;
 
     if (scenarioData && scenarioData["@graph"]) {
       scenarioData["@graph"].forEach((graphItem) => {
@@ -2062,11 +2083,18 @@ export default Component.extend({
                 "@value"
               ];
           }
+
+          if (graphItem["http://example.com/carla-scenario#showPaths"]) {
+            showPaths =
+              graphItem["http://example.com/carla-scenario#showPaths"][0][
+                "@value"
+              ];
+          }
         }
       });
     }
     // Return both mapName and cameraPosition
-    return { mapName, cameraPosition, weather, showGrid };
+    return { mapName, cameraPosition, weather, showGrid, showPaths };
   },
 
   extractAgentsData(scenarioData) {

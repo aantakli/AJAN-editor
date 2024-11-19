@@ -25,7 +25,8 @@ export default Service.extend({
   chevronDirection: null,
   repository: null,
   loading: null,
-  showGridInCarla: false,
+  showGridInCarla: "true",
+  showPathsInCarla: "true",
   uploadScenarioToCarla: false,
   step3Status: "idle",
 
@@ -35,6 +36,10 @@ export default Service.extend({
 
   setUploadScenarioToCarla(bool) {
     set(this, "uploadScenarioToCarla", bool);
+  },
+
+  setPathsInCarla(bool) {
+    set(this, "showPathsInCarla", bool);
   },
 
   setGridInCarla(bool) {

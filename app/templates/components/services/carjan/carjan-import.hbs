@@ -1,12 +1,13 @@
 {{#if (eq this.mode "fileSelection")}}
 
   <div class="ui segment">
-    <label>
+    <label style="position: relative; top: -5px;">
       <i class="folder outline icon" />
       <b>Repository</b>
+
     </label>
     <div class="ui grid">
-      <div class="ui twelve wide column">
+      <div class="ui eleven wide column">
         <div
           class="ui dropdown fluid search selection bt-selection"
           style="border-radius: 10px;"
@@ -37,10 +38,19 @@
         </div>
 
       </div>
-      <div class="ui four wide column">
+      <div class="ui two wide column">
+        <button
+          class="ui inverted icon pink button"
+          {{action "openRenameModal"}}
+        >
+          <i class="edit white icon"></i>
+        </button>
+      </div>
+      <div class="ui two wide column">
         <button
           class="node-adder-class title-behaviors ui primary button"
           local-class="button-hover"
+          style="margin-left: -10px;"
           {{action "triggerSaveScenario"}}
         >
           <i class="save icon" />
@@ -49,6 +59,50 @@
       </div>
     </div>
   </div>
+  {{#if isRenameModalOpen}}
+    <div class="ui dimmer modals page">
+      <div class="ui small basic modal transition" local-class="center-modal">
+        <div class="header"><i class="pencil alternate icon"></i>
+          Rename your Scenario
+        </div>
+        <div class="content">
+          <div class="ui form">
+            <div class="field {{if hasError 'error'}}">
+              <p>
+                <i class="edit icon" />
+                Enter a new name for your Scenario.
+              </p>
+              {{input
+                value=scenarioName
+                placeholder="Scenario Name"
+                key-up=(action "checkScenarioName")
+              }}
+              {{#if hasError}}
+                <div class="ui pointing red basic label">
+                  <i class="exclamation triangle icon" />
+                  {{errorMessage}}
+                </div>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button
+            class="ui green cancel button"
+            {{action "saveScenarioName"}}
+            disabled={{isDisabled}}
+          >
+            <i class="check icon"></i>
+            Confirm
+          </button>
+
+          <button class="ui cancel button" {{action "closeNewScenarioDialog"}}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  {{/if}}
 {{else}}
 
   <div>
@@ -471,5 +525,6 @@
         </div>
       </div>
     {{/if}}
+
   </div>
 {{/if}}

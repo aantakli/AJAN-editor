@@ -800,15 +800,41 @@
           >
             <input
               type="checkbox"
-              checked={{this.carjanState.setGridInCarla}}
+              checked={{eq carjanState.showGridInCarla "true"}}
               onchange={{action "toggleGridInCarla"}}
             />
             <label style="display: flex; align-items: center; gap: 0.5em;">
               <i
-                class="icon green th"
+                class="{{if
+                    (eq carjanState.showGridInCarla 'true')
+                    'icon green th'
+                    'icon grey th'
+                  }}"
                 style="position: relative; top: -2px;"
               ></i>
               Show Grid in Carla Simulation
+            </label>
+          </div>
+          <h2></h2>
+          <div
+            class="ui toggle checkbox"
+            style="display: flex; align-items: center;"
+          >
+            <input
+              type="checkbox"
+              checked={{eq carjanState.showPathsInCarla "true"}}
+              onchange={{action "togglePathsInCarla"}}
+            />
+            <label style="display: flex; align-items: center; gap: 0.5em;">
+              <i
+                class="{{if
+                    (eq carjanState.showPathsInCarla 'true')
+                    'icon purple share alternate'
+                    'icon grey share alternate'
+                  }}"
+                style="position: relative; top: -2px;"
+              ></i>
+              Show Paths in Carla Simulation
             </label>
           </div>
         </div>

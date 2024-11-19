@@ -996,49 +996,49 @@ export default Component.extend({
           cameraIcon.classList.remove(className);
         }
       });
+
+      const gridWidth = gridContainer.offsetWidth;
+      const gridHeight = gridContainer.offsetHeight;
+
+      const margin = -50;
+
+      let top = 0;
+      let left = 0;
+
+      switch (cameraPosition) {
+        case "up":
+          top = gridHeight - cameraIcon.offsetHeight - margin;
+          left = gridWidth / 2 - cameraIcon.offsetWidth / 2;
+          cameraIcon.classList.add("rotated");
+          cameraIcon.classList.add("counterclockwise");
+          break;
+
+        case "down":
+          top = margin;
+          left = gridWidth / 2 - cameraIcon.offsetWidth / 2;
+          cameraIcon.classList.add("rotated");
+          cameraIcon.classList.add("clockwise");
+          break;
+
+        case "left":
+          top = gridHeight / 2 - cameraIcon.offsetHeight / 2;
+          left = gridWidth - cameraIcon.offsetWidth - margin * 1.5;
+          cameraIcon.classList.add("flipped");
+          cameraIcon.classList.add("horizontally");
+          break;
+
+        case "right":
+          top = gridHeight / 2 - cameraIcon.offsetHeight / 2;
+          left = margin * 1.5;
+          break;
+      }
+
+      cameraIcon.style.lineHeight = "36px";
+      cameraIcon.style.fontSize = "36px";
+      cameraIcon.style.position = "absolute";
+      cameraIcon.style.top = `${top}px`;
+      cameraIcon.style.left = `${left}px`;
     }
-
-    const gridWidth = gridContainer.offsetWidth;
-    const gridHeight = gridContainer.offsetHeight;
-
-    const margin = -50;
-
-    let top = 0;
-    let left = 0;
-
-    switch (cameraPosition) {
-      case "up":
-        top = gridHeight - cameraIcon.offsetHeight - margin;
-        left = gridWidth / 2 - cameraIcon.offsetWidth / 2;
-        cameraIcon.classList.add("rotated");
-        cameraIcon.classList.add("counterclockwise");
-        break;
-
-      case "down":
-        top = margin;
-        left = gridWidth / 2 - cameraIcon.offsetWidth / 2;
-        cameraIcon.classList.add("rotated");
-        cameraIcon.classList.add("clockwise");
-        break;
-
-      case "left":
-        top = gridHeight / 2 - cameraIcon.offsetHeight / 2;
-        left = gridWidth - cameraIcon.offsetWidth - margin * 1.5;
-        cameraIcon.classList.add("flipped");
-        cameraIcon.classList.add("horizontally");
-        break;
-
-      case "right":
-        top = gridHeight / 2 - cameraIcon.offsetHeight / 2;
-        left = margin * 1.5;
-        break;
-    }
-
-    cameraIcon.style.lineHeight = "36px";
-    cameraIcon.style.fontSize = "36px";
-    cameraIcon.style.position = "absolute";
-    cameraIcon.style.top = `${top}px`;
-    cameraIcon.style.left = `${left}px`;
   },
 
   async addSingleWaypoint(row, col, positionInCell) {

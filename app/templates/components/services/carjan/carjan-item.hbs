@@ -63,7 +63,9 @@
             ondragstart={{action "dragStart"}}
           />
         {{/each}}
-        <i class="video icon" id="cameraIcon"></i>
+        {{#if (not (eq carjanState.cameraPosition "birdseye"))}}
+          <i class="video icon" id="cameraIcon"></i>
+        {{/if}}
       </div>
     </div>
   </div>

@@ -477,8 +477,8 @@ def load_paths(paths, entities):
                 control_point_2 = carla.Location(cp2_x, cp2_y, end_point.z)
 
                 # Zeichne die Kontrollpunkte als rote "O"s
-                world.debug.draw_string(control_point_1, "O", draw_shadow=False, color=carla.Color(255, 0, 0), life_time=1000)
-                world.debug.draw_string(control_point_2, "O", draw_shadow=False, color=carla.Color(255, 0, 0), life_time=1000)
+                # world.debug.draw_string(control_point_1, "O", draw_shadow=False, color=carla.Color(255, 0, 0), life_time=1000)
+                # world.debug.draw_string(control_point_2, "O", draw_shadow=False, color=carla.Color(255, 0, 0), life_time=1000)
 
                 # Berechne die Punkte auf der Bezierkurve für das Segment
                 curve_points = cubic_bezier_curve(start_point, control_point_1, control_point_2, end_point)
@@ -1180,11 +1180,11 @@ def load_scenario():
         print("camera loaded")
 
 
-        # # Initialisiere den AI-Controller für Fußgänger
-        # for entity in entities:
-        #     if entity["type"] == "Pedestrian":
-        #         print("Starting AI controller for pedestrian with ID:", entity["entity"])
-        #         generate_actor(entity["entity"])
+        # Initialisiere den AI-Controller für Fußgänger
+        for entity in entities:
+            if entity["type"] == "Pedestrian":
+                print("Starting AI controller for pedestrian with ID:", entity["entity"])
+                generate_actor(entity["entity"])
 
         # Füge das Gitter hinzu, falls gewünscht
         if show_grid == "true":

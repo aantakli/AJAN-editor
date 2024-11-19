@@ -25,6 +25,7 @@ export default Component.extend({
   isSwitchScenarioDialogOpen: false,
   isMachineModalOpen: false,
   isGithubModalOpen: false,
+  isRenameModalOpen: false,
   scenarioName: "",
   hasError: false,
   isNameEmpty: true,
@@ -33,6 +34,7 @@ export default Component.extend({
   githubRepoUsername: "",
   githubRepoRepository: "",
   githubToken: "",
+  oldScenarioName: "",
   hideToken: true,
   isDisabled: computed("hasError", "isNameEmpty", function () {
     return this.hasError || this.isNameEmpty;
@@ -535,8 +537,9 @@ export default Component.extend({
   },
 
   showModal(modalSelector) {
+    console.log("showModal");
     next(() => {
-      this.$(modalSelector)
+      Ember.$(modalSelector)
         .modal({
           closable: false,
           transition: "scale",
@@ -603,8 +606,34 @@ export default Component.extend({
       this.showModal(".ui.basic.modal");
     },
 
+    async openRenameModal() {
+      this.set("isRenameModalOpen", true);
+      this.set("oldScenarioName", this.scenarioName);
+      console.log("isRenameModalOpen", this.isRenameModalOpen);
+      const { scenarios } = await this.fetchAgentDataFromRepo();
+      this.set("existingScenarioNames", scenarios);
+      this.showModal(".ui.basic.modal");
+    },
+
+    closeRenameModal() {
+      this.set("isRenameModalOpen", false);
+    },
+
     closeMachineModal() {
       this.set("isMachineModalOpen", false);
+    },
+
+    async saveScenarioName() {
+      this.renameScenarioToRepository(
+        this.oldScenarioName,
+        this.scenarioName
+      ).then((result) => {
+        this.updateWithResult(result).then(() => {
+          setTimeout(() => {
+            // window.location.reload(true);
+          }, 1000);
+        });
+      });
     },
 
     showToken() {
@@ -855,20 +884,21 @@ export default Component.extend({
         return;
       }
 
-      const existingScenarioNames = this.existingScenarioNames.map((name) =>
-        name.toLowerCase()
-      );
-      const nameTaken = existingScenarioNames.includes(
-        scenarioName.toLowerCase()
-      );
-
-      if (nameTaken) {
-        this.set("hasError", true);
-        this.set("errorMessage", "Scenario name already taken.");
-      } else {
-        this.set("hasError", false);
-        this.set("errorMessage", "");
+      if (this.existingScenarioNames) {
+        const existingScenarioNames = this.existingScenarioNames.map((name) =>
+          name.toLowerCase()
+        );
+        const nameTaken = existingScenarioNames.includes(
+          scenarioName.toLowerCase()
+        );
+        if (nameTaken) {
+          this.set("hasError", true);
+          this.set("errorMessage", "Scenario name already taken.");
+          return;
+        }
       }
+      this.set("hasError", false);
+      this.set("errorMessage", "");
     },
 
     async generateNewScenario() {
@@ -1016,6 +1046,66 @@ export default Component.extend({
       this.carjanState.setScenario(existingDataset);
     } else {
       console.warn("No scenario found in repository for name:", scenarioName);
+    }
+  },
+
+  async renameScenarioToRepository(oldScenarioName, newScenarioName) {
+    try {
+      console.log("oldScenarioName", oldScenarioName);
+      console.log("newScenarioName", newScenarioName);
+      // Repository-Inhalte herunterladen
+      let existingRepositoryContent = await this.downloadRepository();
+      existingRepositoryContent = existingRepositoryContent || [];
+
+      // Repository-Inhalte parsen
+      const existingDataset = await this.parseTrig(existingRepositoryContent);
+
+      // Szenarien-Label extrahieren
+      const scenarioLabels = existingDataset.scenarios.map(
+        (scenario) => scenario.scenarioName
+      );
+
+      // Überprüfen, ob das Szenario existiert und umbenennen
+      const scenarioToRename = existingDataset.scenarios.find(
+        (scenario) =>
+          scenario.scenarioName ===
+          `http://example.com/carla-scenario#${oldScenarioName}`
+      );
+
+      if (scenarioToRename) {
+        // Szenario umbenennen
+        scenarioToRename.scenarioName = `http://example.com/carla-scenario#${newScenarioName}`;
+
+        // Entferne das alte Szenario (falls es noch existiert)
+        existingDataset.scenarios = existingDataset.scenarios.filter(
+          (scenario) =>
+            scenario.scenarioName !==
+            `http://example.com/carla-scenario#${oldScenarioName}`
+        );
+      } else {
+        console.log("scenarioToRename", scenarioToRename);
+        console.log("Scenario labels", scenarioLabels);
+        console.error(`Scenario with name ${oldScenarioName} not found`);
+        throw new Error(`Scenario with name ${oldScenarioName} not found`);
+      }
+
+      // Sicherstellen, dass das neue Szenario nur hinzugefügt wird, wenn es nicht schon existiert
+      if (
+        !scenarioLabels.includes(
+          `http://example.com/carla-scenario#${newScenarioName}`
+        )
+      ) {
+        existingDataset.scenarios.push(scenarioToRename);
+      }
+
+      console.log("existingDataset", existingDataset);
+      debugger;
+
+      // Das aktualisierte Dataset zurückgeben
+      return existingDataset;
+    } catch (error) {
+      console.error("Error in renameScenarioToRepository:", error);
+      throw error;
     }
   },
 

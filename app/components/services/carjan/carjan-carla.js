@@ -186,6 +186,18 @@ export default Component.extend({
       }, 1000);
     },
 
+    async startSimulation() {
+      try {
+        console.log("Starting simulation...");
+        await fetch("http://localhost:4204/api/startSimulation", {
+          method: "GET",
+        });
+        console.log("Simulation started.");
+      } catch (error) {
+        console.error("Failed to start Simulation:", error);
+      }
+    },
+
     async openCarlaModal() {
       this.setProperties({
         isDialogOpen: true,

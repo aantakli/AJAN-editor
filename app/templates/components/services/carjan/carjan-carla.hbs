@@ -114,6 +114,15 @@
         </div>
       </div>
       <div class="actions">
+        <button
+          class="ui green button"
+          {{action "startSimulation"}}
+          disabled={{not (eq carjanState.step3Status "completed")}}
+        >
+
+          <i class="play icon"></i>
+          Start Simulation
+        </button>
         <button class="ui red cancel button" {{action "closeCarlaDialog"}}>
           Cancel
         </button>

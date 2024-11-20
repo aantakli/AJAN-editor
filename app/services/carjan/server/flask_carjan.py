@@ -173,7 +173,6 @@ def generate_agent_for_entity(entity):
 
 def get_carla_entity_by_ajan_id(ajan_entity_id):
     global actor_list
-    print("actor list: ", actor_list)
     for mapping in actor_list:
         if mapping["ajan_agent_id"] == ajan_entity_id:
             return mapping["carla_entity_id"]
@@ -230,55 +229,44 @@ def cubic_bezier_curve(p0, p1, p2, p3, num_points=100):
 
     return curve_points
 
-def get_next_waypoint(path, walker_location):
+def get_next_waypoint(path, walker_location, ajan_entity_id):
+    global pathsPerEntity
     """
-    Bestimmt den nächsten Wegpunkt im Pfad basierend auf der aktuellen Position des Walkers.
+    Bestimmt den nächsten Wegpunkt im Pfad basierend auf der aktuellen Position des Walkers
+    und gibt die Carla Location des Wegpunkts zurück.
     """
-    print("\n in get_next_waypoint: \n")
-    print("path: ", path)
-    print("walker_location: ", walker_location)
-    waypoints = path.get("waypoints", [])
-    if not waypoints:
-        return None, None
+    print("\n--- In get_next_waypoint ---")
+    print(f"Path: {path}")
+    print(f"Walker location: {walker_location}")
+    print(f"Paths per entity: {pathsPerEntity}")
 
-    closest_index = None
-    closest_distance = float("inf")
+    if ajan_entity_id not in pathsPerEntity or not pathsPerEntity[ajan_entity_id]:
+        print(f"No path found for AJAN entity ID '{ajan_entity_id}' or path is empty.")
+        return None
 
-    # Finde den nächsten Wegpunkt basierend auf der Entfernung
-    for i, waypoint in enumerate(waypoints):
-        waypoint_location = carla.Location(
-            x=float(waypoint["x"]),
-            y=float(waypoint["y"]),
-            z=walker_location.z  # Halte die Z-Koordinate konstant
-        )
-        distance = walker_location.distance(waypoint_location)
-        if distance < closest_distance:
-            closest_distance = distance
-            closest_index = i
+    # Hole den nächsten Wegpunkt aus pathsPerEntity
+    next_waypoint = pathsPerEntity[ajan_entity_id].pop(0)
 
-    # Überprüfe, ob ein nächster Wegpunkt existiert
-    if closest_index is not None and closest_index < len(waypoints) - 1:
-        next_waypoint_index = closest_index + 1
-        next_waypoint = waypoints[next_waypoint_index]
-        return next_waypoint_index, next_waypoint
+    # Berechne die Carla Location des nächsten Wegpunkts
+    try:
+        next_waypoint_location = calculate_waypoint_location(next_waypoint)
+        return next_waypoint_location
+    except Exception as e:
+        print(f"Error calculating Carla location for waypoint: {e}")
+        return None
 
-    # Wenn wir am Ende des Pfads sind
-    return None, None
-
-def follow_bezier_curve(walker, bezier_points, speed):
+def follow_bezier_curve(walker, bezier_points, speed=1.5):
+    """
+    Lässt den Walker entlang einer Bezier-Kurve laufen.
+    """
     for point in bezier_points:
-        direction = carla.Vector3D(
-            x=point.x - walker.get_location().x,
-            y=point.y - walker.get_location().y,
-            z=point.z - walker.get_location().z
-        )
-        length = math.sqrt(direction.x**2 + direction.y**2 + direction.z**2)
-        direction.x /= length
-        direction.y /= length
-        direction.z /= length
-
+        direction = get_direction(walker.get_location(), point)
         walker.apply_control(carla.WalkerControl(direction=direction, speed=speed))
-        time.sleep(0.1)  # Kontrollintervall
+        while walker.get_location().distance(point) > 0.5:  # Warte, bis der Walker den Punkt erreicht
+            time.sleep(0.1)
+
+    print(f"Walker '{walker}' hat das Ende des Pfads erreicht.")
+    return True
 
 def get_follows_path_for_entity(ajan_entity_id):
     global entityList, paths
@@ -314,6 +302,40 @@ def parse_agents(response_text):
         agents.append({"url": agent_url, "id": agent_id})
 
     return agents
+
+def calculate_waypoint_location(waypoint):
+    """
+    Berechnet die Carla Location eines Wegpunkts basierend auf den Offsets und Transformationen.
+    """
+    global anchor_point
+    cell_width = 4.0
+    cell_height = 4.0
+    offset_x = -5.5
+    offset_y = -3.0
+    half_cell_offset_y = -cell_width / 2
+    half_cell_offset_x = 0
+
+    # Berechne die Carla-Koordinaten des Wegpunkts
+    waypoint_x = (float(waypoint["y"]) + offset_y) * cell_height + half_cell_offset_y
+    waypoint_y = (float(waypoint["x"]) + offset_x) * cell_width + half_cell_offset_x
+    waypoint_location = carla.Location(
+        x=anchor_point.x + waypoint_y,
+        y=anchor_point.y - waypoint_x,
+        z=anchor_point.z + 0.5  # Leicht über dem Boden
+    )
+
+    # Zeichne den Wegpunkt als grünes "O" in der Simulation
+    world.debug.draw_string(
+        waypoint_location,
+        "O",
+        draw_shadow=False,
+        color=carla.Color(255, 255, 255),
+        life_time=1000  # Dauerhaft sichtbar
+    )
+
+    print(f"Berechnete Carla-Location für Wegpunkt: {waypoint_location}")
+    return waypoint_location
+
 
 # ! Loaders
 # * Implement different parts of loading the CARJAN Scenario
@@ -541,8 +563,8 @@ def load_entities(entities, paths):
             matching_path = next((p for p in paths if p["path"] == follows_path), None)
 
             if matching_path:
-                pathsPerEntity[entity["entity"]] = list(matching_path["waypoints"])
-                print(f"Pfad '{follows_path}' für Entity '{entity['entity']}' zugeordnet.")
+                pathsPerEntity[entity["label"]] = list(matching_path["waypoints"])
+                print(f"Pfad '{follows_path}' für Entity '{entity['label']}' zugeordnet.")
         print("Pedestrian actor id: ", pedestrian_actor.id)
 
     print(f"Pfade pro Entity: {pathsPerEntity}")
@@ -1095,8 +1117,11 @@ def start_agent():
 def follow_path():
     global actor_list, pathsPerEntity, paths, entityList
     print("\n ==== Following path ==== \n")
-    print("Actor list: ", actor_list)
-    print("Paths per entity: ", pathsPerEntity)
+
+    if len(actor_list) == 0:
+        print(" !=!=!=!=!=! Keine Actor-Liste vorhanden.")
+    if len(pathsPerEntity) == 0:
+        print(" !=!=!=!=!=! Keine Pfade pro Entity vorhanden.")
 
     # Extrahiere die AJAN-Agent-ID und andere Informationen aus der Anfrage
     ajan_entity_id, async_request_uri = getInformation(request)
@@ -1115,45 +1140,56 @@ def follow_path():
 
     # Finde den aktuellen Pfad, den der Agent verfolgt
     path = get_follows_path_for_entity(ajan_entity_id)
-    print(f"Path for AJAN agent ID '{ajan_entity_id}': {path}")
     if not path or len(path["waypoints"]) < 2:
         print(f"Pfad für AJAN-Agent-ID '{ajan_entity_id}' ist leer oder ungültig.")
         return jsonify({"status": "error", "message": "Invalid path"}), 400
 
-
-    print("Found path to follow: \n", path)
-
     # Finde den aktuellen Standort des Fußgängers
     walker_location = walker.get_location()
+    print("\nWalker location: ", walker_location)
 
-    # Finde den nächsten Wegpunkt
-    next_waypoint_index, next_waypoint = get_next_waypoint(path, walker_location)
-    if not next_waypoint:
-        print(f"Kein nächster Wegpunkt für AJAN-Agent-ID '{ajan_entity_id}' gefunden.")
-        return jsonify({"status": "error", "message": "No next waypoint"}), 404
+    end_point = get_next_waypoint(path["waypoints"], walker_location, ajan_entity_id)
 
-    # Bewege den Walker zum nächsten Wegpunkt
-    end_point = carla.Location(
-        x=float(next_waypoint["x"]),
-        y=float(next_waypoint["y"]),
-        z=walker_location.z
+    start_point = walker_location
+
+
+
+    print(f"Start point: {start_point}")
+    print(f"End point: {end_point}")
+
+    control_point_1 = carla.Location(
+            x=start_point.x + (end_point.x - start_point.x) / 3,
+            y=start_point.y,
+            z=start_point.z
+        )
+    control_point_2 = carla.Location(
+        x=end_point.x - (end_point.x - start_point.x) / 3,
+        y=end_point.y,
+        z=end_point.z
     )
-    walker.apply_control(carla.WalkerControl(
-        direction=get_direction(walker_location, end_point),
-        speed=1.5
-    ))
 
-    # Warte, bis der Walker den Ziel-Wegpunkt erreicht
-    while walker.get_location().distance(end_point) > 1.0:
-        time.sleep(0.1)
+    print(f"Control point 1: {control_point_1}")
+    print(f"Control point 2: {control_point_2}")
 
-    # Walker hat den Wegpunkt erreicht, sende ein Signal an die async URI
-    if async_request_uri:
-        send_async_request(async_request_uri)
-        print(f"Signal an Async-URI gesendet: {async_request_uri}")
+    # Berechne die Punkte auf der Bezier-Kurve
+    bezier_points = cubic_bezier_curve(start_point, control_point_1, control_point_2, end_point)
 
-    print(f"Walker '{carla_entity_id}' hat den Wegpunkt '{next_waypoint}' erreicht.")
-    return jsonify({"status": "success", "message": "Walker reached the waypoint"}), 200
+    # Zeichne die Bezier-Kurve in Weiß
+    for i in range(len(bezier_points) - 1):
+        world.debug.draw_line(
+            bezier_points[i],
+            bezier_points[i + 1],
+            thickness=0.1,
+            color=carla.Color(255, 255, 255),  # Weiß
+            life_time=10.0
+        )
+
+    # Steuerung des Fußgängers entlang der Kurve
+    if follow_bezier_curve(walker, bezier_points, speed=1.5):
+      return jsonify({"status": "success", "message": "Walker is following the path"}), 200
+    else:
+      return jsonify({"status": "error", "message": "Failed to follow the path"}), 500
+
 
 @app.route('/follow_sidewalk', methods=['POST'])
 

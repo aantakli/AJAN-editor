@@ -117,7 +117,13 @@
         <button
           class="ui green button"
           {{action "startSimulation"}}
-          disabled={{not (eq carjanState.step3Status "completed")}}
+          disabled={{not
+            (and
+              (eq step1Status "completed")
+              (eq step2Status "completed")
+              (eq carjanState.step3Status "completed")
+            )
+          }}
         >
 
           <i class="play icon"></i>

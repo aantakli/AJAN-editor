@@ -221,6 +221,9 @@ export default Component.extend({
     closeCarlaDialog() {
       this.stopFlask();
       console.log("Closing dialog...");
+      this.set("step1Status", "idle");
+      this.set("step2Status", "idle");
+      this.carjanState.set("step3Status", "idle");
       this.$(".ui.modal").modal("hide");
       this.set("isDialogOpen", false);
     },

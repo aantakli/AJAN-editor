@@ -83,7 +83,7 @@ async function destroyActors() {
 
     console.log("Flask response:", flaskResponse);
 
-    res.json({});
+    return { status: 200, data: flaskResponse };
   } catch (error) {
     console.error("Error forwarding to Flask:", error);
     res.status(500).json({ error: "Failed to load scenario" });
@@ -93,7 +93,6 @@ async function destroyActors() {
 async function stopFlaskService() {
   if (flaskProcess) {
     try {
-      await destroyActors();
       flaskProcess.kill();
       console.log("Flask service stopped.");
       flaskProcess = null;
@@ -350,6 +349,7 @@ app.post("/api/start_flask", async (req, res) => {
 
     if (flaskReady) {
       console.log("Flask is ready.");
+      await destroyActors();
       res.json({
         status: "Flask started",
       });

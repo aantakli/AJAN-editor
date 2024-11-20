@@ -21,6 +21,7 @@ import psutil
 from math import factorial
 import math
 import json
+import re
 # import keyboard
 
 app = Flask(__name__)
@@ -41,6 +42,8 @@ world = None
 blueprint_library = None
 current_map = None
 entityList = []
+paths = []
+pathsPerEntity = {}
 
 seen_actors = set()
 
@@ -92,15 +95,6 @@ def set_anchor_point(map_name):
     else:
         # Fallback für unbekannte Karten
         anchor_point = carla.Location(x=240, y=57.5, z=0.1)
-
-    # Debug-Punkt anzeigen
-    world.debug.draw_point(
-        anchor_point,
-        size=1.0,  # Größe des Punktes
-        color=carla.Color(0, 0, 255),  # Blau
-        life_time=60.0,  # Lebensdauer des Punktes in Sekunden
-        persistent_lines=True  # Linie bleibt sichtbar
-    )
 
     print(f"Anchor point set to: x={anchor_point.x}, y={anchor_point.y}, z={anchor_point.z}")
     return anchor_point
@@ -166,6 +160,160 @@ def set_spectator_view(world, location, rotation):
 def get_anchor_point(mapName):
     if mapName == "map01":
         return carla.Location(x=240, y=57.5, z=0.1)
+
+def generate_agent_for_entity(entity):
+    agent_name = entity.get("label", "unknown")
+    result = generate_actor(agent_name)
+
+    if result["status"] == "success":
+        return agent_name
+    else:
+        print(f"Failed to generate AJAN agent for entity {entity['entity']}: {result['message']}")
+        return None
+
+def get_carla_entity_by_ajan_id(ajan_entity_id):
+    global actor_list
+    print("actor list: ", actor_list)
+    for mapping in actor_list:
+        if mapping["ajan_agent_id"] == ajan_entity_id:
+            return mapping["carla_entity_id"]
+    return None
+
+def make_walker_move_forward(ajan_entity_id, speed=1.5):
+    global actor_list, carla_client
+    print("actor list: ", actor_list)
+    world = carla_client.get_world()
+    print("Carla actors list: ", world.get_actors())
+    # Abrufen der CARLA-Entitäts-ID
+    carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
+
+    if not carla_entity_id:
+        print(f"Kein CARLA-Entity mit AJAN-Agent-ID '{ajan_entity_id}' gefunden.")
+        return
+
+    # Abrufen des CARLA-Agenten (Walker)
+    walker = world.get_actor(carla_entity_id)
+
+    if not walker:
+        print(f"CARLA-Agent mit ID '{carla_entity_id}' existiert nicht in der Welt.")
+        return
+
+    # Vorwärtsbewegung des Walkers definieren
+    direction = carla.Vector3D(1.0, 0.0, 0.0)  # Vorwärts in X-Richtung
+    walker_control = carla.WalkerControl(direction=direction, speed=speed)
+
+    # Steuerung auf den Walker anwenden
+    walker.apply_control(walker_control)
+    print(f"Walker mit ID '{carla_entity_id}' läuft vorwärts mit Geschwindigkeit {speed} m/s.")
+
+def cubic_bezier_curve(p0, p1, p2, p3, num_points=100):
+    """
+    Berechnet eine kubische Bezier-Kurve zwischen den Punkten p0, p1, p2 und p3.
+    Diese Kurve wird mit den klassischen Ease-In und Ease-Out Übergängen berechnet.
+
+    :param p0: Der Startpunkt der Kurve (carla.Location)
+    :param p1: Der erste Kontrollpunkt (carla.Location)
+    :param p2: Der zweite Kontrollpunkt (carla.Location)
+    :param p3: Der Endpunkt der Kurve (carla.Location)
+    :param num_points: Anzahl der Punkte auf der Bezierkurve
+    :return: Eine Liste von carla.Location-Punkten auf der Bezierkurve
+    """
+    curve_points = []
+
+    # Berechnung der Bezier-Kurve
+    for t in range(num_points):
+        t /= (num_points - 1)  # Normalisiere t zwischen 0 und 1
+        x = (1 - t)**3 * p0.x + 3 * (1 - t)**2 * t * p1.x + 3 * (1 - t) * t**2 * p2.x + t**3 * p3.x
+        y = (1 - t)**3 * p0.y + 3 * (1 - t)**2 * t * p1.y + 3 * (1 - t) * t**2 * p2.y + t**3 * p3.y
+        z = (1 - t)**3 * p0.z + 3 * (1 - t)**2 * t * p1.z + 3 * (1 - t) * t**2 * p2.z + t**3 * p3.z
+        curve_points.append(carla.Location(x, y, z))
+
+    return curve_points
+
+def get_next_waypoint(path, walker_location):
+    """
+    Bestimmt den nächsten Wegpunkt im Pfad basierend auf der aktuellen Position des Walkers.
+    """
+    print("\n in get_next_waypoint: \n")
+    print("path: ", path)
+    print("walker_location: ", walker_location)
+    waypoints = path.get("waypoints", [])
+    if not waypoints:
+        return None, None
+
+    closest_index = None
+    closest_distance = float("inf")
+
+    # Finde den nächsten Wegpunkt basierend auf der Entfernung
+    for i, waypoint in enumerate(waypoints):
+        waypoint_location = carla.Location(
+            x=float(waypoint["x"]),
+            y=float(waypoint["y"]),
+            z=walker_location.z  # Halte die Z-Koordinate konstant
+        )
+        distance = walker_location.distance(waypoint_location)
+        if distance < closest_distance:
+            closest_distance = distance
+            closest_index = i
+
+    # Überprüfe, ob ein nächster Wegpunkt existiert
+    if closest_index is not None and closest_index < len(waypoints) - 1:
+        next_waypoint_index = closest_index + 1
+        next_waypoint = waypoints[next_waypoint_index]
+        return next_waypoint_index, next_waypoint
+
+    # Wenn wir am Ende des Pfads sind
+    return None, None
+
+def follow_bezier_curve(walker, bezier_points, speed):
+    for point in bezier_points:
+        direction = carla.Vector3D(
+            x=point.x - walker.get_location().x,
+            y=point.y - walker.get_location().y,
+            z=point.z - walker.get_location().z
+        )
+        length = math.sqrt(direction.x**2 + direction.y**2 + direction.z**2)
+        direction.x /= length
+        direction.y /= length
+        direction.z /= length
+
+        walker.apply_control(carla.WalkerControl(direction=direction, speed=speed))
+        time.sleep(0.1)  # Kontrollintervall
+
+def get_follows_path_for_entity(ajan_entity_id):
+    global entityList, paths
+    print("\n in get_follows_path_for_entity: \n")
+    print("entity list: ", entityList)
+    print("paths: ", paths)
+    entity = next((entity for entity in entityList if entity["label"] == ajan_entity_id), None)
+    if entity:
+        return next((path for path in paths if path["path"] == entity["followsPath"]), None)
+
+def get_direction(start, end):
+    direction = carla.Vector3D(
+        x=end.x - start.x,
+        y=end.y - start.y,
+        z=end.z - start.z
+    )
+    length = math.sqrt(direction.x**2 + direction.y**2 + direction.z**2)
+    if length > 0:
+        direction.x /= length
+        direction.y /= length
+        direction.z /= length
+    return direction
+
+def parse_agents(response_text):
+    agent_pattern = re.compile(
+        r"Agent\(url=(?P<url>http://[^\s,]+), id=(?P<id>[^\s,]+),"
+    )
+
+    agents = []
+    for match in agent_pattern.finditer(response_text):
+        agent_url = match.group("url")
+        agent_id = match.group("id")
+        agents.append({"url": agent_url, "id": agent_id})
+
+    return agents
 
 # ! Loaders
 # * Implement different parts of loading the CARJAN Scenario
@@ -248,7 +396,7 @@ def load_world(weather, camera_position):
         return False
 
 def load_entities(entities, paths):
-    global world, anchor_point, actor_list
+    global world, anchor_point, actor_list, pathsPerEntity
     blueprint_library = world.get_blueprint_library()
     cell_width = 4.0  # Einheitsgröße für die Breite der Zellen
     cell_height = 4.0  # Einheitsgröße für die Höhe der Zellen
@@ -280,17 +428,6 @@ def load_entities(entities, paths):
             y=anchor_point.y - new_x,  # y-Offset (invertiert für CARLA-Koordinaten)
             z=anchor_point.z + 1  # Leicht über dem Boden
         )
-
-        # Zeichne einen Debug-Kreis an der Spawnposition
-        world.debug.draw_point(
-            spawn_location,
-            size=0.3,
-            color=carla.Color(0, 0, 255),  # Blau
-            life_time=10.0,  # Sichtbar für 10 Sekunden
-            persistent_lines=False
-        )
-
-
 
         # Bestimme die Rotation (Heading)
         heading = entity.get("heading", None)
@@ -398,78 +535,17 @@ def load_entities(entities, paths):
             else:
                 print(f"Failed to spawn Vehicle '{entity['label']}' at: {spawn_location}")
 
+
+        if ("followsPath" in entity):
+            follows_path = entity["followsPath"]
+            matching_path = next((p for p in paths if p["path"] == follows_path), None)
+
+            if matching_path:
+                pathsPerEntity[entity["entity"]] = list(matching_path["waypoints"])
+                print(f"Pfad '{follows_path}' für Entity '{entity['entity']}' zugeordnet.")
         print("Pedestrian actor id: ", pedestrian_actor.id)
 
-        # AJAN Agent
-        actor_id = pedestrian_actor.id if pedestrian_actor else vehicle_actor.id if vehicle_actor else None
-
-def generate_agent_for_entity(entity):
-    agent_name = entity.get("label", "unknown")
-    result = generate_actor(agent_name)
-
-    if result["status"] == "success":
-        return agent_name
-    else:
-        print(f"Failed to generate AJAN agent for entity {entity['entity']}: {result['message']}")
-        return None
-
-def get_carla_entity_by_ajan_id(ajan_entity_id):
-    global actor_list
-    for mapping in actor_list:
-        if mapping["ajan_agent_id"] == ajan_entity_id:
-            return mapping["carla_entity_id"]
-    return None
-
-def make_walker_move_forward(ajan_entity_id, speed=1.5):
-    global actor_list, carla_client
-    print("actor list: ", actor_list)
-    world = carla_client.get_world()
-    print("Carla actors list: ", world.get_actors())
-    # Abrufen der CARLA-Entitäts-ID
-    carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
-
-    if not carla_entity_id:
-        print(f"Kein CARLA-Entity mit AJAN-Agent-ID '{ajan_entity_id}' gefunden.")
-        return
-
-    # Abrufen des CARLA-Agenten (Walker)
-    walker = world.get_actor(carla_entity_id)
-
-    if not walker:
-        print(f"CARLA-Agent mit ID '{carla_entity_id}' existiert nicht in der Welt.")
-        return
-
-    # Vorwärtsbewegung des Walkers definieren
-    direction = carla.Vector3D(1.0, 0.0, 0.0)  # Vorwärts in X-Richtung
-    walker_control = carla.WalkerControl(direction=direction, speed=speed)
-
-    # Steuerung auf den Walker anwenden
-    walker.apply_control(walker_control)
-    print(f"Walker mit ID '{carla_entity_id}' läuft vorwärts mit Geschwindigkeit {speed} m/s.")
-
-def cubic_bezier_curve(p0, p1, p2, p3, num_points=100):
-    """
-    Berechnet eine kubische Bezier-Kurve zwischen den Punkten p0, p1, p2 und p3.
-    Diese Kurve wird mit den klassischen Ease-In und Ease-Out Übergängen berechnet.
-
-    :param p0: Der Startpunkt der Kurve (carla.Location)
-    :param p1: Der erste Kontrollpunkt (carla.Location)
-    :param p2: Der zweite Kontrollpunkt (carla.Location)
-    :param p3: Der Endpunkt der Kurve (carla.Location)
-    :param num_points: Anzahl der Punkte auf der Bezierkurve
-    :return: Eine Liste von carla.Location-Punkten auf der Bezierkurve
-    """
-    curve_points = []
-
-    # Berechnung der Bezier-Kurve
-    for t in range(num_points):
-        t /= (num_points - 1)  # Normalisiere t zwischen 0 und 1
-        x = (1 - t)**3 * p0.x + 3 * (1 - t)**2 * t * p1.x + 3 * (1 - t) * t**2 * p2.x + t**3 * p3.x
-        y = (1 - t)**3 * p0.y + 3 * (1 - t)**2 * t * p1.y + 3 * (1 - t) * t**2 * p2.y + t**3 * p3.y
-        z = (1 - t)**3 * p0.z + 3 * (1 - t)**2 * t * p1.z + 3 * (1 - t) * t**2 * p2.z + t**3 * p3.z
-        curve_points.append(carla.Location(x, y, z))
-
-    return curve_points
+    print(f"Pfade pro Entity: {pathsPerEntity}")
 
 def load_paths(paths, entities, show_paths):
     global carla_client, world, anchor_point
@@ -479,14 +555,11 @@ def load_paths(paths, entities, show_paths):
     offset_x = -5.5  # Basierend auf der Grid-Verschiebung in X-Richtung
     offset_y = -3.0  # Basierend auf der Grid-Verschiebung in Y-Richtung
 
-    # Initiale halbe Zellenverschiebung, um die Entitäten in der Mitte der Zellen zu platzieren
     half_cell_offset_y = -cell_width / 2
     half_cell_offset_x = 0
 
-    # Filtern der Pfade, die von den Entitäten verfolgt werden
-    follows_paths = set()  # Set zum Speichern der Pfade, die von den Entitäten verfolgt werden
+    follows_paths = set()
     for entity in entities:
-        # Überprüfe, ob 'followsPath' ein String ist
         if isinstance(entity.get('followsPath', None), str):
             follows_paths.add(entity['followsPath'])  # Füge die Pfad-ID zum Set hinzu
 
@@ -894,6 +967,7 @@ def revert():
     actor = get_carla_entity_by_ajan_id(ajan_entity)
     print("\n ======= CARLA Entity by AJAN ID: ", actor)
     make_walker_move_forward(ajan_entity)
+    send_async_request(async_request_uri)
     return Response('<http://carla.org> <http://confirm> <http://action> .', mimetype='text/turtle', status=200)
     # pedestrian, vehicle, async_request_uri = getInformation(request)
     # if pedestrian and vehicle and async_request_uri:
@@ -1013,27 +1087,83 @@ def start_agent():
         print(f"Error in send_data: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# TODO
+# ! TODO
+#   TODO
+#   TODO
+
 @app.route('/follow_path', methods=['POST'])
 def follow_path():
-    return
+    global actor_list, pathsPerEntity, paths, entityList
+    print("\n ==== Following path ==== \n")
+    print("Actor list: ", actor_list)
+    print("Paths per entity: ", pathsPerEntity)
+
+    # Extrahiere die AJAN-Agent-ID und andere Informationen aus der Anfrage
+    ajan_entity_id, async_request_uri = getInformation(request)
+
+    # Finde die entsprechende CARLA-Entity
+    carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
+    if not carla_entity_id:
+        print(f"Kein CARLA-Entity mit AJAN-Agent-ID '{ajan_entity_id}' gefunden.")
+        return jsonify({"status": "error", "message": "CARLA Entity not found"}), 404
+
+    # Abrufen des Walkers
+    walker = world.get_actor(carla_entity_id)
+    if not walker:
+        print(f"Kein Walker mit CARLA-Entity-ID '{carla_entity_id}' gefunden.")
+        return jsonify({"status": "error", "message": "Walker not found"}), 404
+
+    # Finde den aktuellen Pfad, den der Agent verfolgt
+    path = get_follows_path_for_entity(ajan_entity_id)
+    print(f"Path for AJAN agent ID '{ajan_entity_id}': {path}")
+    if not path or len(path["waypoints"]) < 2:
+        print(f"Pfad für AJAN-Agent-ID '{ajan_entity_id}' ist leer oder ungültig.")
+        return jsonify({"status": "error", "message": "Invalid path"}), 400
+
+
+    print("Found path to follow: \n", path)
+
+    # Finde den aktuellen Standort des Fußgängers
+    walker_location = walker.get_location()
+
+    # Finde den nächsten Wegpunkt
+    next_waypoint_index, next_waypoint = get_next_waypoint(path, walker_location)
+    if not next_waypoint:
+        print(f"Kein nächster Wegpunkt für AJAN-Agent-ID '{ajan_entity_id}' gefunden.")
+        return jsonify({"status": "error", "message": "No next waypoint"}), 404
+
+    # Bewege den Walker zum nächsten Wegpunkt
+    end_point = carla.Location(
+        x=float(next_waypoint["x"]),
+        y=float(next_waypoint["y"]),
+        z=walker_location.z
+    )
+    walker.apply_control(carla.WalkerControl(
+        direction=get_direction(walker_location, end_point),
+        speed=1.5
+    ))
+
+    # Warte, bis der Walker den Ziel-Wegpunkt erreicht
+    while walker.get_location().distance(end_point) > 1.0:
+        time.sleep(0.1)
+
+    # Walker hat den Wegpunkt erreicht, sende ein Signal an die async URI
+    if async_request_uri:
+        send_async_request(async_request_uri)
+        print(f"Signal an Async-URI gesendet: {async_request_uri}")
+
+    print(f"Walker '{carla_entity_id}' hat den Wegpunkt '{next_waypoint}' erreicht.")
+    return jsonify({"status": "success", "message": "Walker reached the waypoint"}), 200
+
 @app.route('/follow_sidewalk', methods=['POST'])
 
 @app.route('/adjust_speed', methods=['POST'])
 
 @app.route('/check_decision_point', methods=['POST'])
 
-@app.route('/check_decision_box', methods=['POST'])
-
 @app.route('/check_vehicle_proximity', methods=['POST'])
 
-@app.route('/check_first_waypoint_proximity', methods=['POST'])
-
-@app.route('/check_last_waypoint_proximity', methods=['POST'])
-
 @app.route('/turn_head', methods=['POST'])
-
-@app.route('/look_around', methods=['POST'])
 
 
 # ! Main Functions / Routes
@@ -1088,7 +1218,7 @@ def start_carla():
 # * Loads all scenario information into the CARLA world.
 @app.route('/load_scenario', methods=['POST'])
 def load_scenario():
-    global carla_client, entityList
+    global carla_client, entityList, paths
     try:
         # Empfange JSON-Daten vom Request
         data = request.get_json()
@@ -1119,11 +1249,13 @@ def load_scenario():
         weather = scenario.get("weather")
         show_paths = scenario.get("showPaths", "false")
         show_grid = scenario.get("showGrid", "false")
+        load_layers = scenario.get("loadLayers", "false")
 
 
         # Lade die Welt basierend auf der Map und den Entitäten
         load_world(weather, scenario_map)
-        unload_stuff()
+        if (load_layers == "false"):
+            unload_stuff()
         print("world loaded")
 
         # Setze den Ankerpunkt für die Karte
@@ -1156,17 +1288,28 @@ def load_scenario():
 
 @app.route('/destroy_actors', methods=['GET'])
 def destroy_actors():
-    global entityList
     try:
-        for entity in entityList:
-            entity_id = entity.get("label")
-            destroy_actor(entity_id)
-        entityLabels = [entity.get("label") for entity in entityList]
+        agents_url = 'http://localhost:8080/ajan/agents'
+        response = requests.get(agents_url)
 
-        return jsonify({"status": "success", "message": f"Actors {entityLabels}"}), 200
+        if response.status_code != 200:
+            return jsonify({"status": "error", "message": "Failed to fetch agents"}), 500
 
+        agents = parse_agents(response.text)  # Verwende die parse_agents-Funktion
+        deleted_agents = []
+
+        for agent in agents:
+            delete_response = requests.delete(agent['url'])
+            if delete_response.status_code == 200:
+                deleted_agents.append(agent['id'])
+            else:
+                print(f"Failed to delete agent {agent['id']}: {delete_response.text}")
+
+        return jsonify({"status": "success", "deleted_agents": deleted_agents}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error in destroy_actors: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(host="127.0.0.1", port=5000)

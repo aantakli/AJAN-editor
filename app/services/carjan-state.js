@@ -27,7 +27,7 @@ export default Service.extend({
   loading: null,
   showGridInCarla: "true",
   showPathsInCarla: "true",
-  loadLayersInCarla: "false",
+  loadLayersInCarla: "true",
   uploadScenarioToCarla: false,
   step3Status: "idle",
 

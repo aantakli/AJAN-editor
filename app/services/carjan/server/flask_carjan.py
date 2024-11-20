@@ -18,11 +18,13 @@ import os
 from dotenv import load_dotenv
 import socket
 import psutil
-from math import factorial
-import math
 import json
-import re
+import math
+import asyncio
+import multiprocessing
 # import keyboard
+from helpers import hex_to_rgb, cubic_bezier_curve, get_direction, parse_agents
+from jumping import make_pedestrian_jump
 
 app = Flask(__name__)
 
@@ -59,9 +61,6 @@ BASE = Namespace("http://carla.org/")
 # * Implements helper functions and utilities
 # * for the CARJAN Scenario loaders
 
-def comb(n, k):
-    return factorial(n) // (factorial(k) * factorial(n - k))
-
 def get_blueprint_id(vehicle_name):
     for category in vehicle_models.values():
         for vehicle in category:
@@ -82,7 +81,7 @@ def listen_for_enter_key():
 
 def set_anchor_point(map_name):
     """
-    Setzt den Ankerpunkt basierend auf dem Karten-Namen und zeigt einen blauen Debug-Punkt an.
+    Setzt den Ankerpunkt basierend auf dem Karten-Namen and zeigt einen blauen Debug-Punkt an.
 
     :param world: Die CARLA-Weltinstanz
     :param map_name: Der Name der Karte
@@ -146,11 +145,6 @@ def getInformation(request):
 
     return ajan_entity_id, async_request_uri
 
-def hex_to_rgb(hex_color):
-    """Hilfsfunktion zur Konvertierung von Hex-Farbwerten in RGB-Werte für CARLA."""
-    hex_color = hex_color.lstrip('#')
-    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
-
 def set_spectator_view(world, location, rotation):
     spectator = world.get_spectator()
     transform = carla.Transform(location, rotation)
@@ -205,40 +199,12 @@ def make_walker_move_forward(ajan_entity_id, speed=1.5):
     walker.apply_control(walker_control)
     print(f"Walker mit ID '{carla_entity_id}' läuft vorwärts mit Geschwindigkeit {speed} m/s.")
 
-def cubic_bezier_curve(p0, p1, p2, p3, num_points=100):
-    """
-    Berechnet eine kubische Bezier-Kurve zwischen den Punkten p0, p1, p2 und p3.
-    Diese Kurve wird mit den klassischen Ease-In und Ease-Out Übergängen berechnet.
-
-    :param p0: Der Startpunkt der Kurve (carla.Location)
-    :param p1: Der erste Kontrollpunkt (carla.Location)
-    :param p2: Der zweite Kontrollpunkt (carla.Location)
-    :param p3: Der Endpunkt der Kurve (carla.Location)
-    :param num_points: Anzahl der Punkte auf der Bezierkurve
-    :return: Eine Liste von carla.Location-Punkten auf der Bezierkurve
-    """
-    curve_points = []
-
-    # Berechnung der Bezier-Kurve
-    for t in range(num_points):
-        t /= (num_points - 1)  # Normalisiere t zwischen 0 und 1
-        x = (1 - t)**3 * p0.x + 3 * (1 - t)**2 * t * p1.x + 3 * (1 - t) * t**2 * p2.x + t**3 * p3.x
-        y = (1 - t)**3 * p0.y + 3 * (1 - t)**2 * t * p1.y + 3 * (1 - t) * t**2 * p2.y + t**3 * p3.y
-        z = (1 - t)**3 * p0.z + 3 * (1 - t)**2 * t * p1.z + 3 * (1 - t) * t**2 * p2.z + t**3 * p3.z
-        curve_points.append(carla.Location(x, y, z))
-
-    return curve_points
-
 def get_next_waypoint(path, walker_location, ajan_entity_id):
     global pathsPerEntity
     """
     Bestimmt den nächsten Wegpunkt im Pfad basierend auf der aktuellen Position des Walkers
-    und gibt die Carla Location des Wegpunkts zurück.
+    and gibt die Carla Location des Wegpunkts zurück.
     """
-    print("\n--- In get_next_waypoint ---")
-    print(f"Path: {path}")
-    print(f"Walker location: {walker_location}")
-    print(f"Paths per entity: {pathsPerEntity}")
 
     if ajan_entity_id not in pathsPerEntity or not pathsPerEntity[ajan_entity_id]:
         print(f"No path found for AJAN entity ID '{ajan_entity_id}' or path is empty.")
@@ -255,17 +221,58 @@ def get_next_waypoint(path, walker_location, ajan_entity_id):
         print(f"Error calculating Carla location for waypoint: {e}")
         return None
 
-def follow_bezier_curve(walker, bezier_points, speed=1.5):
+def follow_bezier_curve(walker, bezier_points, async_request_uri):
     """
-    Lässt den Walker entlang einer Bezier-Kurve laufen.
+    Lässt den Walker entlang einer Bezier-Kurve laufen, überprüft auf Kollisionen und teleportiert ihn basierend auf seiner Blickrichtung.
     """
-    for point in bezier_points:
-        direction = get_direction(walker.get_location(), point)
-        walker.apply_control(carla.WalkerControl(direction=direction, speed=speed))
-        while walker.get_location().distance(point) > 0.5:  # Warte, bis der Walker den Punkt erreicht
-            time.sleep(0.1)
+    global carla_client
 
-    print(f"Walker '{walker}' hat das Ende des Pfads erreicht.")
+    # Collision Sensor erstellen und anhängen
+    blueprint_library = carla_client.get_world().get_blueprint_library()
+    collision_sensor_bp = blueprint_library.find('sensor.other.collision')
+    collision_sensor = carla_client.get_world().spawn_actor(collision_sensor_bp, carla.Transform(), attach_to=walker)
+
+    collision_detected = False
+
+    # Callback für Kollision
+    def on_collision(event):
+        nonlocal collision_detected
+        collision_detected = True
+        print("Kollision erkannt!")
+        print(f"Kollidiert mit: {event.other_actor.type_id}")
+        print(f"Impuls: {event.normal_impulse}")
+
+        # Walker-Position und Blickrichtung abrufen
+        current_transform = walker.get_transform()
+        current_location = current_transform.location
+        forward_vector = current_transform.get_forward_vector()  # Vorwärtsrichtung basierend auf der Blickrichtung
+
+        # Walker leicht nach vorne und oben teleportieren
+        walker.set_location(carla.Location(
+            x=current_location.x + forward_vector.x * 0.2,  # Nach vorne
+            y=current_location.y + forward_vector.y * 0.2,
+            z=current_location.z + 0.5  # Leicht nach oben
+        ))
+        collision_detected = False  # Zurücksetzen, um weiterzulaufen
+
+    collision_sensor.listen(on_collision)
+
+    # Walker der Bezier-Kurve folgen lassen
+    try:
+        for point in bezier_points:
+            direction = get_direction(walker.get_location(), point)
+            walker.apply_control(carla.WalkerControl(direction=direction, speed=1.5))
+
+            while walker.get_location().distance(point) > 1:  # Warte, bis der Walker den Punkt erreicht
+                if collision_detected:
+                    print("Walker wurde teleportiert, Bewegung wird fortgesetzt.")
+                time.sleep(0.1)
+
+        print(f"Walker '{walker}' hat das Ende des Pfads erreicht.")
+        send_async_request(async_request_uri)
+    finally:
+        collision_sensor.destroy()
+
     return True
 
 def get_follows_path_for_entity(ajan_entity_id):
@@ -277,35 +284,9 @@ def get_follows_path_for_entity(ajan_entity_id):
     if entity:
         return next((path for path in paths if path["path"] == entity["followsPath"]), None)
 
-def get_direction(start, end):
-    direction = carla.Vector3D(
-        x=end.x - start.x,
-        y=end.y - start.y,
-        z=end.z - start.z
-    )
-    length = math.sqrt(direction.x**2 + direction.y**2 + direction.z**2)
-    if length > 0:
-        direction.x /= length
-        direction.y /= length
-        direction.z /= length
-    return direction
-
-def parse_agents(response_text):
-    agent_pattern = re.compile(
-        r"Agent\(url=(?P<url>http://[^\s,]+), id=(?P<id>[^\s,]+),"
-    )
-
-    agents = []
-    for match in agent_pattern.finditer(response_text):
-        agent_url = match.group("url")
-        agent_id = match.group("id")
-        agents.append({"url": agent_url, "id": agent_id})
-
-    return agents
-
 def calculate_waypoint_location(waypoint):
     """
-    Berechnet die Carla Location eines Wegpunkts basierend auf den Offsets und Transformationen.
+    Berechnet die Carla Location eines Wegpunkts basierend auf den Offsets and Transformationen.
     """
     global anchor_point
     cell_width = 4.0
@@ -336,9 +317,21 @@ def calculate_waypoint_location(waypoint):
     print(f"Berechnete Carla-Location für Wegpunkt: {waypoint_location}")
     return waypoint_location
 
+def send_async_success(async_request_uri):
+    """
+    Sends a success response to the provided async request URI.
+    """
+    if async_request_uri:
+        data = '<http://carla.org> <http://hasStatus> <http://success> .'
+        headers = {'Content-Type': 'text/turtle'}
+        url = 'http://localhost:8080/ajan/agents/Carla?capability=' + async_request_uri
+        response = requests.post(url, data=data, headers=headers)
+        if response.status_code == 200:
+            print(f"Successfully sent success response to {async_request_uri}")
+        else:
+            print(f"Failed to send success response to {async_request_uri}: {response.status_code}")
 
 # ! Loaders
-# * Implement different parts of loading the CARJAN Scenario
 
 def load_grid(grid_width=12, grid_height=12, cw=5, ch=5):
     global carla_client, world, anchor_point
@@ -361,7 +354,7 @@ def load_grid(grid_width=12, grid_height=12, cw=5, ch=5):
         else:
             raise ValueError("Anchor point not found for the given map name.")
 
-        # Vertauschte Achsen und kleinere Zellen
+        # Vertauschte Achsen and kleinere Zellen
         for i in range(grid_height + 1):
             # Vertikale Linien (auf der Y-Achse)
             start_y = center_y + i * cell_height - (grid_height * cell_height / 2)
@@ -442,7 +435,7 @@ def load_entities(entities, paths):
             print(f"Skipping duplicate entity: {entity_id}")
             continue
 
-        # Berechne neue Position basierend auf dem Ankerpunkt, den Skalierungsfaktoren und dem Offset
+        # Berechne neue Position basierend auf dem Ankerpunkt, den Skalierungsfaktoren and dem Offset
         new_x = (float(entity["y"]) + offset_y) * cell_height + half_cell_offset_y  # Vertikal (spawnPointY -> y + Offset)
         new_y = (float(entity["x"]) + offset_x) * cell_width + half_cell_offset_x  # Horizontal (spawnPointX -> x + Offset)
         spawn_location = carla.Location(
@@ -507,7 +500,7 @@ def load_entities(entities, paths):
         pedestrian_actor = None
         vehicle_actor = None
 
-        # Spawne die Entität (Pedestrian oder Vehicle)
+        # Spawne die Entität (Pedestrian or Vehicle)
         if entity["type"] == "Pedestrian":
             model = entity.get("model")
             if model is None or model == "null":
@@ -593,13 +586,13 @@ def load_paths(paths, entities, show_paths):
         path_color_hex = path.get("color")  # Farbe des Pfads
         path_color_rgb = hex_to_rgb(path_color_hex)  # Farbe von Hex nach RGB umwandeln
 
-        # Extrahiere r, g, b und caste sie als int
+        # Extrahiere r, g, b and caste sie als int
         r, g, b = path_color_rgb
         path_color = carla.Color(r, g, b)
 
         waypoint_locations = []  # Liste für alle Wegpunkt-Positionen
 
-        # Erster Durchlauf: Berechne Wegpunkt-Positionen und speichere sie
+        # Erster Durchlauf: Berechne Wegpunkt-Positionen and speichere sie
         for waypoint in path["waypoints"]:
             waypoint_x = (float(waypoint["y"]) + offset_y) * cell_height + half_cell_offset_y
             waypoint_y = (float(waypoint["x"]) + offset_x) * cell_width + half_cell_offset_x
@@ -622,7 +615,7 @@ def load_paths(paths, entities, show_paths):
             )
 
         if show_paths == "true":
-          # Berechne die Bezier-Kurve und zeichne sie
+          # Berechne die Bezier-Kurve and zeichne sie
           if len(waypoint_locations) > 1:
               for i in range(len(waypoint_locations) - 1):
                   start_point = waypoint_locations[i]
@@ -741,7 +734,7 @@ def unload_stuff():
             carla.CityObjectLabel.RoadLines,  # Straßenmarkierungen
             carla.CityObjectLabel.Poles,  # Laternenpfähle, Verkehrsschilder, etc.
             carla.CityObjectLabel.TrafficSigns,  # Verkehrsschilder,
-            carla.CityObjectLabel.Dynamic,  # Dynamische Objekte wie Fahrzeuge und Fußgänger,
+            carla.CityObjectLabel.Dynamic,  # Dynamische Objekte wie Fahrzeuge and Fußgänger,
         ]
 
         for label in object_labels:
@@ -770,20 +763,17 @@ def send_async_request(async_request_uri):
     headers = {'Content-Type': 'text/turtle'}
     return requests.post(async_request_uri, data=data, headers=headers)
 
-# ? rather in behavior tree?
 def isUnsafe(pedestrian, vehicle, async_request_uri):
-
     def obstacle_callback(event):
-        if event.other_actor.id not in seen_actors:
-            print(f"Found new actor: ID={event.other_actor.id}, Type={event.other_actor.type_id}")
-            seen_actors.add(event.other_actor.id)
-            if event.other_actor.type_id == 'walker.pedestrian.0007':
-                action_thread = threading.Thread(target=walkToWaypoint, args=(pedestrian, waypoint3, async_request_uri))
-                action_thread.start()
-                print("Event callback for pedestrian")
-                time.sleep(0.5)
-                send_async_request(async_request_uri)
-
+      if event.other_actor.id not in seen_actors:
+          print(f"Found new actor: ID={event.other_actor.id}, Type={event.other_actor.type_id}")
+          seen_actors.add(event.other_actor.id)
+          if event.other_actor.type_id == 'walker.pedestrian.0007':
+              action_thread = threading.Thread(target=walkToWaypoint, args=(pedestrian, waypoint3, async_request_uri))
+              action_thread.start()
+              print("Event callback for pedestrian")
+              time.sleep(0.5)
+              send_async_request(async_request_uri)
     print("Checking if crossing is unsafe")
     obstacle_sensor_bp = blueprint_library.find('sensor.other.obstacle')
     obstacle_sensor_bp.set_attribute('distance', '100')
@@ -793,18 +783,7 @@ def isUnsafe(pedestrian, vehicle, async_request_uri):
     obstacle_sensor = world.spawn_actor(obstacle_sensor_bp, sensor_transform, attach_to=vehicle)
     actor_list.append(obstacle_sensor)
     obstacle_sensor.listen(obstacle_callback)
-    '''
-    while True:
-        if pedestrian.get_location().z < 1.05 and distance_check(pedestrian, vehicle.get_location(), 20):
-            print("Crossing is unsafe")
-            pedestrian.apply_control(carla.WalkerControl(speed=0.0))
-            print("Reverting crossing")
-            send_unsafe_info()
-            action_thread = threading.Thread(target=walkToWaypoint, args=(pedestrian, waypoint3, async_request_uri))
-            action_thread.start()
-            break
-        time.sleep(0.1)
-    '''
+
 
 # * distance check
 def distance_check(actor, target_location, threshold):
@@ -896,7 +875,9 @@ def walkToWaypoint(pedestrian, waypoint, async_request_uri):
             break
         time.sleep(0.1)
 
-def get_actor_blueprints(world, filter, generation):
+def get_actor_blueprints(filter, generation):
+    global carla_client
+    world = carla_client.get_world()
     bps = world.get_blueprint_library().filter(filter)
 
     if generation.lower() == "all":
@@ -946,81 +927,6 @@ def execute_main():
     execMain()
     return Response('<http://carla.org> <http://execute> <http://main> .', mimetype='text/turtle', status=200)
 
-@app.route('/walk_to_waypoint', methods=['POST'])
-def walk_to_waypoint():
-  pedestrian, async_request_uri = getInformation(request)
-  print(pedestrian)
-
-   # if pedestrian and vehicle and async_request_uri:
-    #    print("Walking to waypoint")
-        # Starten der Aktion in einem separaten Thread
-     #   action_thread = threading.Thread(target=walkToWaypoint, args=(pedestrian, waypoint1, async_request_uri))
-    #    action_thread.start()
-    #else:
-    #    print("Not walking to waypoint")
-
-  print("Walking to waypoint PLACEHOLDER")
-  return Response('<http://carla.org> <http://walk> <http://toWaypoint> .', mimetype='text/turtle', status=200)
-
-@app.route('/walk_random', methods=['POST'])
-def walk_random():
-    pedestrian, vehicle, async_request_uri = getInformation(request)
-    #waypoints = [waypoint1, waypoint2, waypoint3, waypoint_bus]
-    #pedestrian_location = pedestrian.get_location()
-    #nearest = min(waypoints, key=lambda x: pedestrian_location.distance(x))
-    # disregard nearest waypoint
-    #waypoints.remove(nearest)
-    # choose random between waypoint1, waypoint2, waypoint 3 and spawn point of pedestrian
-    if pedestrian and vehicle and async_request_uri:
-        print("Walking randomly")
-        #waypoint = np.random.choice(waypoints)
-        waypoint = waypoint2
-        action_thread = threading.Thread(target=walkToWaypoint, args=(pedestrian, waypoint, async_request_uri))
-        action_thread.start()
-
-    return Response('<http://carla.org> <http://walk> <http://random> .', mimetype='text/turtle', status=200)
-
-@app.route('/revert', methods=['POST'])
-def revert():
-    global actor_list
-    ajan_entity, async_request_uri = getInformation(request)
-    print("AJAN Entity: ", ajan_entity)
-    print("Async request URI: ", async_request_uri)
-    actor = get_carla_entity_by_ajan_id(ajan_entity)
-    print("\n ======= CARLA Entity by AJAN ID: ", actor)
-    make_walker_move_forward(ajan_entity)
-    send_async_request(async_request_uri)
-    return Response('<http://carla.org> <http://confirm> <http://action> .', mimetype='text/turtle', status=200)
-    # pedestrian, vehicle, async_request_uri = getInformation(request)
-    # if pedestrian and vehicle and async_request_uri:
-    #     print("Reverting crossing")
-    #     action_thread = threading.Thread(target=walkToWaypoint, args=(pedestrian, waypoint3, async_request_uri))
-    #     action_thread.start()
-    # return Response('<http://carla.org> <http://revert> <http://action> .', mimetype='text/turtle', status=200)
-
-@app.route('/restart', methods=['POST'])
-def restart():
-    return Response('<http://carla.org> <http://restart> <http://tree> .', mimetype='text/turtle', status=200)
-
-# ? Optimize
-@app.route('/unsafe', methods=['POST'])
-def unsafe():
-    pedestrian, vehicle, async_request_uri = getInformation(request)
-    if pedestrian and vehicle and async_request_uri:
-        print("===")
-        action_thread = threading.Thread(target=isUnsafe, args=(pedestrian, vehicle, async_request_uri))
-        action_thread.start()
-    return Response('<http://carla.org> <http://unsafe> <http://crossing> .', mimetype='text/turtle', status=200)
-
-@app.route('/walkToBus', methods=['POST'])
-def walkToBus():
-    pedestrian, vehicle, async_request_uri = getInformation(request)
-    if pedestrian and vehicle and async_request_uri:
-        print("Walking to bus station")
-        action_thread = threading.Thread(target=walkToWaypoint, args=(pedestrian, waypoint_bus, async_request_uri))
-        action_thread.start()
-    return Response('<http://carla.org> <http://walk> <http://toBus> .', mimetype='text/turtle', status=200)
-
 # ? Add variable for timer
 @app.route('/idle_wait', methods=['POST'])
 def idleWait():
@@ -1063,7 +969,7 @@ def reset_carla():
         weather = carla.WeatherParameters.ClearNoon
         world.set_weather(weather)
 
-        # Entferne alle vorhandenen Entities (Fahrzeuge und Fußgänger)
+        # Entferne alle vorhandenen Entities (Fahrzeuge and Fußgänger)
         actors = world.get_actors()
         for actor in actors:
             if actor.type_id.startswith('vehicle') or actor.type_id.startswith('walker.pedestrian'):
@@ -1117,79 +1023,80 @@ def start_agent():
 def follow_path():
     global actor_list, pathsPerEntity, paths, entityList
     print("\n ==== Following path ==== \n")
+    try:
+        if len(actor_list) == 0:
+            print(" !=!=!=!=!=! Keine Actor-Liste vorhanden.")
+        if len(pathsPerEntity) == 0:
+            print(" !=!=!=!=!=! Keine Pfade pro Entity vorhanden.")
 
-    if len(actor_list) == 0:
-        print(" !=!=!=!=!=! Keine Actor-Liste vorhanden.")
-    if len(pathsPerEntity) == 0:
-        print(" !=!=!=!=!=! Keine Pfade pro Entity vorhanden.")
+        # Extrahiere die AJAN-Agent-ID und andere Informationen aus der Anfrage
+        ajan_entity_id, async_request_uri = getInformation(request)
 
-    # Extrahiere die AJAN-Agent-ID und andere Informationen aus der Anfrage
-    ajan_entity_id, async_request_uri = getInformation(request)
+        carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
+        if not carla_entity_id:
+            print(f"Kein CARLA-Entity mit AJAN-Agent-ID '{ajan_entity_id}' gefunden.")
+            return jsonify({"status": "error", "message": "CARLA Entity not found"}), 404
 
-    # Finde die entsprechende CARLA-Entity
-    carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
-    if not carla_entity_id:
-        print(f"Kein CARLA-Entity mit AJAN-Agent-ID '{ajan_entity_id}' gefunden.")
-        return jsonify({"status": "error", "message": "CARLA Entity not found"}), 404
+        # Abrufen des Walkers
+        walker = world.get_actor(carla_entity_id)
+        if not walker:
+            print(f"Kein Walker mit CARLA-Entity-ID '{carla_entity_id}' gefunden.")
+            return jsonify({"status": "error", "message": "Walker not found"}), 404
 
-    # Abrufen des Walkers
-    walker = world.get_actor(carla_entity_id)
-    if not walker:
-        print(f"Kein Walker mit CARLA-Entity-ID '{carla_entity_id}' gefunden.")
-        return jsonify({"status": "error", "message": "Walker not found"}), 404
+        # Finde den aktuellen Pfad, den der Agent verfolgt
+        path = get_follows_path_for_entity(ajan_entity_id)
+        if not path or len(path["waypoints"]) < 2:
+            print(f"Pfad für AJAN-Agent-ID '{ajan_entity_id}' ist leer oder ungültig.")
+            return jsonify({"status": "error", "message": "Invalid path"}), 400
 
-    # Finde den aktuellen Pfad, den der Agent verfolgt
-    path = get_follows_path_for_entity(ajan_entity_id)
-    if not path or len(path["waypoints"]) < 2:
-        print(f"Pfad für AJAN-Agent-ID '{ajan_entity_id}' ist leer oder ungültig.")
-        return jsonify({"status": "error", "message": "Invalid path"}), 400
+        # Finde den aktuellen Standort des Fußgängers
+        walker_location = walker.get_location()
+        print("\nWalker location: ", walker_location)
 
-    # Finde den aktuellen Standort des Fußgängers
-    walker_location = walker.get_location()
-    print("\nWalker location: ", walker_location)
+        end_point = get_next_waypoint(path["waypoints"], walker_location, ajan_entity_id)
 
-    end_point = get_next_waypoint(path["waypoints"], walker_location, ajan_entity_id)
+        start_point = walker_location
 
-    start_point = walker_location
+        print(f"Start point: {start_point}")
+        print(f"End point: {end_point}")
 
-
-
-    print(f"Start point: {start_point}")
-    print(f"End point: {end_point}")
-
-    control_point_1 = carla.Location(
+        control_point_1 = carla.Location(
             x=start_point.x + (end_point.x - start_point.x) / 3,
             y=start_point.y,
             z=start_point.z
         )
-    control_point_2 = carla.Location(
-        x=end_point.x - (end_point.x - start_point.x) / 3,
-        y=end_point.y,
-        z=end_point.z
-    )
-
-    print(f"Control point 1: {control_point_1}")
-    print(f"Control point 2: {control_point_2}")
-
-    # Berechne die Punkte auf der Bezier-Kurve
-    bezier_points = cubic_bezier_curve(start_point, control_point_1, control_point_2, end_point)
-
-    # Zeichne die Bezier-Kurve in Weiß
-    for i in range(len(bezier_points) - 1):
-        world.debug.draw_line(
-            bezier_points[i],
-            bezier_points[i + 1],
-            thickness=0.1,
-            color=carla.Color(255, 255, 255),  # Weiß
-            life_time=10.0
+        control_point_2 = carla.Location(
+            x=end_point.x - (end_point.x - start_point.x) / 3,
+            y=end_point.y,
+            z=end_point.z
         )
 
-    # Steuerung des Fußgängers entlang der Kurve
-    if follow_bezier_curve(walker, bezier_points, speed=1.5):
-      return jsonify({"status": "success", "message": "Walker is following the path"}), 200
-    else:
-      return jsonify({"status": "error", "message": "Failed to follow the path"}), 500
+        print(f"Control point 1: {control_point_1}")
+        print(f"Control point 2: {control_point_2}")
 
+        # Berechne die Punkte auf der Bezier-Kurve
+        bezier_points = cubic_bezier_curve(start_point, control_point_1, control_point_2, end_point)
+
+        # Zeichne die Bezier-Kurve in Weiß
+        for i in range(len(bezier_points) - 1):
+            world.debug.draw_line(
+                bezier_points[i],
+                bezier_points[i + 1],
+                thickness=0.01,
+                color=carla.Color(255, 255, 255),  # Weiß
+                life_time=1000.0
+            )
+
+        # Start a new process for follow_bezier_curve
+        follow_line = threading.Thread(target=follow_bezier_curve, args=(walker, bezier_points, async_request_uri))
+        follow_line.start()
+
+        # Return an RDF triple immediately
+        return Response('<http://Agent> <http://follows> <http://path> .', mimetype='text/turtle', status=200)
+
+    except Exception as e:
+        print(f"Error in follow_path: {str(e)}")
+        return Response('<http://Agent> <http://followsNot> <http://path> .', mimetype='text/turtle', status=500)
 
 @app.route('/follow_sidewalk', methods=['POST'])
 
@@ -1260,7 +1167,7 @@ def load_scenario():
         data = request.get_json()
         print("JSON data received successfully", flush=True)
 
-        # Extrahiere die Hauptszenarionamen und Szenariodetails
+        # Extrahiere die Hauptszenarionamen and Szenariodetails
         scenario_name = data.get("scenarioName")
         scenario_list = data.get("scenario", {}).get("scenarios", [])
 
@@ -1288,7 +1195,7 @@ def load_scenario():
         load_layers = scenario.get("loadLayers", "false")
 
 
-        # Lade die Welt basierend auf der Map und den Entitäten
+        # Lade die Welt basierend auf der Map and den Entitäten
         load_world(weather, scenario_map)
         if (load_layers == "false"):
             unload_stuff()
@@ -1297,7 +1204,7 @@ def load_scenario():
         # Setze den Ankerpunkt für die Karte
         set_anchor_point(scenario_map)
 
-        # Lade die Waypoints und Pfade
+        # Lade die Waypoints and Pfade
         load_paths(paths, entities, show_paths)
         print("paths loaded")
 

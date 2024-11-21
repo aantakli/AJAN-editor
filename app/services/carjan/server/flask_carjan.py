@@ -1022,7 +1022,6 @@ def start_agent():
 @app.route('/follow_path', methods=['POST'])
 def follow_path():
     global actor_list, pathsPerEntity, paths, entityList
-    print("\n ==== Following path ==== \n")
     try:
         if len(actor_list) == 0:
             print(" !=!=!=!=!=! Keine Actor-Liste vorhanden.")
@@ -1097,6 +1096,49 @@ def follow_path():
     except Exception as e:
         print(f"Error in follow_path: {str(e)}")
         return Response('<http://Agent> <http://followsNot> <http://path> .', mimetype='text/turtle', status=500)
+
+@app.route('/wait', methods=['POST'])
+def wait():
+    ajan_entity_id, async_request_uri = getInformation(request)
+
+    # Get CARLA entity ID from mapping
+    carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
+    if not carla_entity_id:
+        print(f"No CARLA entity found with AJAN ID '{ajan_entity_id}'")
+        return jsonify({"status": "error", "message": "Entity not found"}), 404
+
+    # Get entity
+    entity = world.get_actor(carla_entity_id)
+    if not entity:
+        print(f"No entity found with CARLA ID '{carla_entity_id}'")
+        return jsonify({"status": "error", "message": "Entity not found"}), 404
+
+    def wait_and_stop(entity, async_request_uri):
+        while True:
+            # Check entity type and apply appropriate control
+            if isinstance(entity, carla.Walker):
+                # Handle pedestrian
+                entity.apply_control(carla.WalkerControl(
+                    speed=0.0,
+                    direction=carla.Vector3D(0,0,0),
+                    jump=False
+                ))
+
+            elif isinstance(entity, carla.Vehicle):
+                # Handle vehicle
+                vehicle_control = carla.VehicleControl()
+                vehicle_control.brake = 1.0
+                vehicle_control.throttle = 0.0
+                entity.apply_control(vehicle_control)
+
+            time.sleep(1)  # Wait for 1 second before checking again
+
+    # Start a new thread for waiting
+    wait_thread = threading.Thread(target=wait_and_stop, args=(entity, async_request_uri))
+    wait_thread.start()
+
+    # Return an RDF triple immediately
+    return Response('<http://Agent> <http://waits> <http://indefinitely> .', mimetype='text/turtle', status=200)
 
 @app.route('/follow_sidewalk', methods=['POST'])
 

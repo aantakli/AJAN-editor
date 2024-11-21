@@ -331,6 +331,147 @@ def send_async_success(async_request_uri):
         else:
             print(f"Failed to send success response to {async_request_uri}: {response.status_code}")
 
+def get_carla_location_from_waypoint(waypoint):
+
+    global anchor_point
+    cell_width = 4.0
+    cell_height = 4.0
+    offset_x = -5.5
+    offset_y = -3.0
+    half_cell_offset_y = -cell_width / 2
+    half_cell_offset_x = 0
+
+    # Berechne die Carla-Koordinaten des Wegpunkts
+    waypoint_x = (float(waypoint["y"]) + offset_y) * cell_height + half_cell_offset_y
+    waypoint_y = (float(waypoint["x"]) + offset_x) * cell_width + half_cell_offset_x
+
+    # Adjust the waypoint location based on the positionInCell attribute
+    position_in_cell = waypoint.get("positionInCell", "middle-center")
+    if position_in_cell == "top-left":
+        waypoint_x -= cell_height / 3
+        waypoint_y -= cell_width / 3
+    elif position_in_cell == "middle-left":
+        waypoint_x -= cell_height / 3
+    elif position_in_cell == "bottom-left":
+        waypoint_x -= cell_height / 3
+        waypoint_y += cell_width / 3
+    elif position_in_cell == "top-center":
+        waypoint_y -= cell_width / 3
+    elif position_in_cell == "bottom-center":
+        waypoint_y += cell_width / 3
+    elif position_in_cell == "top-right":
+        waypoint_x += cell_height / 3
+        waypoint_y -= cell_width / 3
+    elif position_in_cell == "middle-right":
+        waypoint_x += cell_height / 3
+    elif position_in_cell == "bottom-right":
+        waypoint_x += cell_height / 3
+        waypoint_y += cell_width / 3
+
+    waypoint_location = carla.Location(
+        x=anchor_point.x + waypoint_y,
+        y=anchor_point.y - waypoint_x,
+        z=anchor_point.z + 0.5
+    )
+
+    return waypoint_location
+
+def load_paths(paths, entities, show_paths):
+    global carla_client, world, anchor_point
+    cell_width = 4.0  # Einheitsgröße für die Breite der Zellen
+    cell_height = 4.0  # Einheitsgröße für die Höhe der Zellen
+
+    offset_x = -5.5  # Basierend auf der Grid-Verschiebung in X-Richtung
+    offset_y = -3.0  # Basierend auf der Grid-Verschiebung in Y-Richtung
+
+    half_cell_offset_y = -cell_width / 2
+    half_cell_offset_x = 0
+
+    follows_paths = set()
+    for entity in entities:
+        if isinstance(entity.get('followsPath', None), str):
+            follows_paths.add(entity['followsPath'])  # Füge die Pfad-ID zum Set hinzu
+
+    # Nur die Pfade berücksichtigen, die von den Entitäten verfolgt werden
+    filtered_paths = [path for path in paths if path["path"] in follows_paths]
+
+
+    for path in filtered_paths:
+        path_color_hex = path.get("color")  # Farbe des Pfads
+        path_color_rgb = hex_to_rgb(path_color_hex)  # Farbe von Hex nach RGB umwandeln
+
+        # Extrahiere r, g, b and caste sie als int
+        r, g, b = path_color_rgb
+        path_color = carla.Color(r, g, b)
+
+        waypoint_locations = []  # Liste für alle Wegpunkt-Positionen
+
+        # Erster Durchlauf: Berechne Wegpunkt-Positionen and speichere sie
+        for waypoint in path["waypoints"]:
+            waypoint_location = get_carla_location_from_waypoint(waypoint)
+
+            # Füge die Wegpunkt-Position zur Liste hinzu
+            waypoint_locations.append(waypoint_location)
+
+            # Zeichne den Debug-Punkt für diesen Wegpunkt
+            world.debug.draw_string(
+                waypoint_location,
+                "O",
+                draw_shadow=False,
+                color=carla.Color(255, 0, 200),
+                life_time=1000  # Dauerhaft sichtbar
+            )
+
+        if show_paths == "true":
+          # Berechne die Bezier-Kurve and zeichne sie
+          if len(waypoint_locations) > 1:
+              for i in range(len(waypoint_locations) - 1):
+                  start_point = waypoint_locations[i]
+                  end_point = waypoint_locations[i + 1]
+
+                  # Berechne den Richtungsvektor zwischen den beiden Punkten
+                  direction_x = end_point.x - start_point.x
+                  direction_y = end_point.y - start_point.y
+
+                  # Berechne die Länge des Richtungsvektors
+                  length = math.sqrt(direction_x**2 + direction_y**2)
+
+                  # Normalisiere den Richtungsvektor
+                  direction_x /= length
+                  direction_y /= length
+
+                  # Berechne die Kontrollpunkte, basierend auf der Drittelregel
+                  cp1_x = start_point.x + (end_point.x - start_point.x) / 2
+                  cp1_y = start_point.y  # Y bleibt konstant
+
+                  cp2_x = end_point.x - (end_point.x - start_point.x) / 2
+                  cp2_y = end_point.y  # Y bleibt konstant
+
+                  control_point_1 = carla.Location(cp1_x, cp1_y, start_point.z)
+                  control_point_2 = carla.Location(cp2_x, cp2_y, end_point.z)
+
+                  # Zeichne die Kontrollpunkte als rote "O"s
+                  # world.debug.draw_string(control_point_1, "O", draw_shadow=False, color=carla.Color(255, 0, 0), life_time=1000)
+                  # world.debug.draw_string(control_point_2, "O", draw_shadow=False, color=carla.Color(255, 0, 0), life_time=1000)
+
+                  # Berechne die Punkte auf der Bezierkurve für das Segment
+                  curve_points = cubic_bezier_curve(start_point, control_point_1, control_point_2, end_point)
+
+                  # Zeichne die Linie zwischen den Punkten der Bezierkurve
+                  for j in range(len(curve_points) - 1):
+                      start = curve_points[j]
+                      end = curve_points[j + 1]
+
+                      world.debug.draw_line(
+                          start,
+                          end,
+                          thickness=0.1,
+                          color=path_color,
+                          life_time=1000  # Dauerhaft sichtbar
+                      )
+
+          print(f"Path '{path['description']}' processed with color {path_color_hex}.\n")
+
 # ! Loaders
 
 def load_grid(grid_width=12, grid_height=12, cw=5, ch=5):
@@ -561,108 +702,6 @@ def load_entities(entities, paths):
         print("Pedestrian actor id: ", pedestrian_actor.id)
 
     print(f"Pfade pro Entity: {pathsPerEntity}")
-
-def load_paths(paths, entities, show_paths):
-    global carla_client, world, anchor_point
-    cell_width = 4.0  # Einheitsgröße für die Breite der Zellen
-    cell_height = 4.0  # Einheitsgröße für die Höhe der Zellen
-
-    offset_x = -5.5  # Basierend auf der Grid-Verschiebung in X-Richtung
-    offset_y = -3.0  # Basierend auf der Grid-Verschiebung in Y-Richtung
-
-    half_cell_offset_y = -cell_width / 2
-    half_cell_offset_x = 0
-
-    follows_paths = set()
-    for entity in entities:
-        if isinstance(entity.get('followsPath', None), str):
-            follows_paths.add(entity['followsPath'])  # Füge die Pfad-ID zum Set hinzu
-
-    # Nur die Pfade berücksichtigen, die von den Entitäten verfolgt werden
-    filtered_paths = [path for path in paths if path["path"] in follows_paths]
-
-
-    for path in filtered_paths:
-        path_color_hex = path.get("color")  # Farbe des Pfads
-        path_color_rgb = hex_to_rgb(path_color_hex)  # Farbe von Hex nach RGB umwandeln
-
-        # Extrahiere r, g, b and caste sie als int
-        r, g, b = path_color_rgb
-        path_color = carla.Color(r, g, b)
-
-        waypoint_locations = []  # Liste für alle Wegpunkt-Positionen
-
-        # Erster Durchlauf: Berechne Wegpunkt-Positionen and speichere sie
-        for waypoint in path["waypoints"]:
-            waypoint_x = (float(waypoint["y"]) + offset_y) * cell_height + half_cell_offset_y
-            waypoint_y = (float(waypoint["x"]) + offset_x) * cell_width + half_cell_offset_x
-            waypoint_location = carla.Location(
-                x=anchor_point.x + waypoint_y,
-                y=anchor_point.y - waypoint_x,
-                z=anchor_point.z + 0.5  # Leicht über dem Boden
-            )
-
-            # Füge die Wegpunkt-Position zur Liste hinzu
-            waypoint_locations.append(waypoint_location)
-
-            # Zeichne den Debug-Punkt für diesen Wegpunkt
-            world.debug.draw_string(
-                waypoint_location,
-                "O",
-                draw_shadow=False,
-                color=path_color,
-                life_time=1000  # Dauerhaft sichtbar
-            )
-
-        if show_paths == "true":
-          # Berechne die Bezier-Kurve and zeichne sie
-          if len(waypoint_locations) > 1:
-              for i in range(len(waypoint_locations) - 1):
-                  start_point = waypoint_locations[i]
-                  end_point = waypoint_locations[i + 1]
-
-                  # Berechne den Richtungsvektor zwischen den beiden Punkten
-                  direction_x = end_point.x - start_point.x
-                  direction_y = end_point.y - start_point.y
-
-                  # Berechne die Länge des Richtungsvektors
-                  length = math.sqrt(direction_x**2 + direction_y**2)
-
-                  # Normalisiere den Richtungsvektor
-                  direction_x /= length
-                  direction_y /= length
-
-                  # Berechne die Kontrollpunkte, basierend auf der Drittelregel
-                  cp1_x = start_point.x + (end_point.x - start_point.x) / 2
-                  cp1_y = start_point.y  # Y bleibt konstant
-
-                  cp2_x = end_point.x - (end_point.x - start_point.x) / 2
-                  cp2_y = end_point.y  # Y bleibt konstant
-
-                  control_point_1 = carla.Location(cp1_x, cp1_y, start_point.z)
-                  control_point_2 = carla.Location(cp2_x, cp2_y, end_point.z)
-
-                  # Zeichne die Kontrollpunkte als rote "O"s
-                  # world.debug.draw_string(control_point_1, "O", draw_shadow=False, color=carla.Color(255, 0, 0), life_time=1000)
-                  # world.debug.draw_string(control_point_2, "O", draw_shadow=False, color=carla.Color(255, 0, 0), life_time=1000)
-
-                  # Berechne die Punkte auf der Bezierkurve für das Segment
-                  curve_points = cubic_bezier_curve(start_point, control_point_1, control_point_2, end_point)
-
-                  # Zeichne die Linie zwischen den Punkten der Bezierkurve
-                  for j in range(len(curve_points) - 1):
-                      start = curve_points[j]
-                      end = curve_points[j + 1]
-
-                      world.debug.draw_line(
-                          start,
-                          end,
-                          thickness=0.1,
-                          color=path_color,
-                          life_time=1000  # Dauerhaft sichtbar
-                      )
-
-          print(f"Path '{path['description']}' processed with color {path_color_hex}.\n")
 
 def load_camera(camera_position):
     global world, anchor_point
@@ -1058,6 +1097,10 @@ def follow_path():
 
         print(f"Start point: {start_point}")
         print(f"End point: {end_point}")
+
+        if not end_point:
+            print("Am Ziel angekommen.")
+            return jsonify({"status": "error", "message": "No end point found"}), 400
 
         control_point_1 = carla.Location(
             x=start_point.x + (end_point.x - start_point.x) / 3,

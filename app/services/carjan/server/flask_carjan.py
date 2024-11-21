@@ -215,7 +215,7 @@ def get_next_waypoint(path, walker_location, ajan_entity_id):
 
     # Berechne die Carla Location des nächsten Wegpunkts
     try:
-        next_waypoint_location = calculate_waypoint_location(next_waypoint)
+        next_waypoint_location = get_carla_location_from_waypoint(next_waypoint)
         return next_waypoint_location
     except Exception as e:
         print(f"Error calculating Carla location for waypoint: {e}")
@@ -284,39 +284,6 @@ def get_follows_path_for_entity(ajan_entity_id):
     if entity:
         return next((path for path in paths if path["path"] == entity["followsPath"]), None)
 
-def calculate_waypoint_location(waypoint):
-    """
-    Berechnet die Carla Location eines Wegpunkts basierend auf den Offsets and Transformationen.
-    """
-    global anchor_point
-    cell_width = 4.0
-    cell_height = 4.0
-    offset_x = -5.5
-    offset_y = -3.0
-    half_cell_offset_y = -cell_width / 2
-    half_cell_offset_x = 0
-
-    # Berechne die Carla-Koordinaten des Wegpunkts
-    waypoint_x = (float(waypoint["y"]) + offset_y) * cell_height + half_cell_offset_y
-    waypoint_y = (float(waypoint["x"]) + offset_x) * cell_width + half_cell_offset_x
-    waypoint_location = carla.Location(
-        x=anchor_point.x + waypoint_y,
-        y=anchor_point.y - waypoint_x,
-        z=anchor_point.z + 0.5  # Leicht über dem Boden
-    )
-
-    # Zeichne den Wegpunkt als grünes "O" in der Simulation
-    world.debug.draw_string(
-        waypoint_location,
-        "O",
-        draw_shadow=False,
-        color=carla.Color(255, 255, 255),
-        life_time=1000  # Dauerhaft sichtbar
-    )
-
-    print(f"Berechnete Carla-Location für Wegpunkt: {waypoint_location}")
-    return waypoint_location
-
 def send_async_success(async_request_uri):
     """
     Sends a success response to the provided async request URI.
@@ -379,13 +346,6 @@ def get_carla_location_from_waypoint(waypoint):
 def load_paths(paths, entities, show_paths):
     global carla_client, world, anchor_point
     cell_width = 4.0  # Einheitsgröße für die Breite der Zellen
-    cell_height = 4.0  # Einheitsgröße für die Höhe der Zellen
-
-    offset_x = -5.5  # Basierend auf der Grid-Verschiebung in X-Richtung
-    offset_y = -3.0  # Basierend auf der Grid-Verschiebung in Y-Richtung
-
-    half_cell_offset_y = -cell_width / 2
-    half_cell_offset_x = 0
 
     follows_paths = set()
     for entity in entities:
@@ -1101,14 +1061,14 @@ def follow_path():
         if not end_point:
             print("Am Ziel angekommen.")
             return jsonify({"status": "error", "message": "No end point found"}), 400
-
+        #asdasd
         control_point_1 = carla.Location(
-            x=start_point.x + (end_point.x - start_point.x) / 3,
+            x=start_point.x + (end_point.x - start_point.x) / 2,
             y=start_point.y,
             z=start_point.z
         )
         control_point_2 = carla.Location(
-            x=end_point.x - (end_point.x - start_point.x) / 3,
+            x=end_point.x - (end_point.x - start_point.x) / 2,
             y=end_point.y,
             z=end_point.z
         )

@@ -36,8 +36,9 @@ with open(car_models_path, 'r') as f:
 app_data = {}
 turtle_data_store = Graph()
 app.logger.setLevel(logging.INFO)
-actor_list = []
 
+actor_list = []
+agent_speeds = {}
 anchor_point = None
 carla_client = None
 world = None
@@ -172,8 +173,8 @@ def get_carla_entity_by_ajan_id(ajan_entity_id):
             return mapping["carla_entity_id"]
     return None
 
-def make_walker_move_forward(ajan_entity_id, speed=1.5):
-    global actor_list, carla_client
+def make_walker_move_forward(ajan_entity_id):
+    global actor_list, carla_client, agent_speeds
     print("actor list: ", actor_list)
     world = carla_client.get_world()
     print("Carla actors list: ", world.get_actors())
@@ -193,6 +194,7 @@ def make_walker_move_forward(ajan_entity_id, speed=1.5):
 
     # Vorwärtsbewegung des Walkers definieren
     direction = carla.Vector3D(1.0, 0.0, 0.0)  # Vorwärts in X-Richtung
+    speed = agent_speeds.get(walker.id, 1.5)  # Standardgeschwindigkeit
     walker_control = carla.WalkerControl(direction=direction, speed=speed)
 
     # Steuerung auf den Walker anwenden
@@ -225,7 +227,7 @@ def follow_bezier_curve(walker, bezier_points, async_request_uri):
     """
     Lässt den Walker entlang einer Bezier-Kurve laufen, überprüft auf Kollisionen und teleportiert ihn basierend auf seiner Blickrichtung.
     """
-    global carla_client
+    global carla_client, agent_speeds
 
     # Collision Sensor erstellen und anhängen
     blueprint_library = carla_client.get_world().get_blueprint_library()
@@ -261,7 +263,8 @@ def follow_bezier_curve(walker, bezier_points, async_request_uri):
     try:
         for point in bezier_points:
             direction = get_direction(walker.get_location(), point)
-            walker.apply_control(carla.WalkerControl(direction=direction, speed=1.5))
+            speed = agent_speeds.get(walker.id, 1.5)
+            walker.apply_control(carla.WalkerControl(direction=direction, speed=speed))
 
             while walker.get_location().distance(point) > 1:  # Warte, bis der Walker den Punkt erreicht
                 if collision_detected:
@@ -532,7 +535,7 @@ def load_entities(entities, paths):
         entity_id = entity["entity"]
 
         # Überprüfen, ob die Entity schon gespawned wurde
-        if entity_id in spawned_entities:
+        if (entity_id in spawned_entities) or (entity["label"] == "null"):
             print(f"Skipping duplicate entity: {entity_id}")
             continue
 
@@ -622,6 +625,7 @@ def load_entities(entities, paths):
                 })
                 print(f"Mapped CARLA entity {pedestrian_actor.id} to AJAN agent {ajan_agent_id}")
                 print(f"\nActor list: {actor_list}")
+                agent_speeds[pedestrian_actor.id] = 1.5
 
             if pedestrian_actor:
                 if(entity["label"]):
@@ -644,10 +648,10 @@ def load_entities(entities, paths):
                 print(f"Mapped CARLA entity {vehicle_actor.id} to AJAN agent {ajan_agent_id}")
                 print(f"\nActor list: {actor_list}")
 
-
+            agent_speeds[vehicle_actor.id] = 5
             if vehicle_actor:
                 print(f"Vehicle '{entity['label']}' spawned at: {spawn_location} with rotation: {rotation}")
-                spawned_entities.add(entity_id)  # Markiere die Entity als gespawned
+                spawned_entities.add(entity_id)
             else:
                 print(f"Failed to spawn Vehicle '{entity['label']}' at: {spawn_location}")
 
@@ -790,36 +794,13 @@ def distance_check(actor, target_location, threshold):
     distance = actor_location.distance(target_location)
     return distance < threshold
 
+
 # * pedestrian on road
 def is_pedestrian_on_road(pedestrian):
     pedestrian_location = pedestrian.get_location()
     waypoint = current_map.get_waypoint(pedestrian_location)
 
     return waypoint and waypoint.lane_type == carla.LaneType.Driving
-
-# * sprint
-def sprint_to(pedestrian, location, speed):
-
-    print(f'Pedestrian location: {pedestrian.get_location()}')
-    print(f'Location: {location}')
-
-    # Berechne die Richtung zum Bus
-    pedestrian_location = pedestrian.get_location()
-    direction = carla.Vector3D(
-        x=location.x - pedestrian_location.x,
-        y=location.y - pedestrian_location.y,
-        z=location.z - pedestrian_location.z
-    )
-    # Normiere die Richtung
-    length = np.sqrt(direction.x**2 + direction.y**2 + direction.z**2)
-    direction.x /= length
-    direction.y /= length
-    direction.z /= length
-
-    # Setze die Geschwindigkeit des Fußgängers
-    pedestrian.apply_control(carla.WalkerControl(direction=direction, speed=speed))  # Sprinten mit 5.0 m/s
-    while pedestrian.get_location().distance(location) > 1:
-        time.sleep(0.1)
 
 # * steer direction
 def getDirection(pedestrian, waypoint):
@@ -863,12 +844,13 @@ def send_newCrossingRequest():
         print('POST > send_newCrossingRequest failed', response.status_code)
 
 def walkToWaypoint(pedestrian, waypoint, async_request_uri):
+    global carla_client, agent_speeds
     direction = getDirection(pedestrian, waypoint)
     # set pedestrian speed
-    pedestrian.apply_control(carla.WalkerControl(direction=direction, speed = 1.42))
+    speed = agent_speeds.get(pedestrian.id, 1.5)
+    pedestrian.apply_control(carla.WalkerControl(direction=direction, speed=speed))
     while True:
         if distance_check(pedestrian, waypoint, 1.0):
-            pedestrian.apply_control(carla.WalkerControl(speed=0.0))
             print("Pedestrian reached waypoint")
             send_async_request(async_request_uri)
             break
@@ -910,6 +892,31 @@ def execMain():
         print('Execute Main failed')
         print(response.text)
         print(response.status_code)
+
+def get_speed_information(request):
+    """
+    Parses the speed information from the request.
+    """
+    speed = None
+
+    request_data = request.data.decode('utf-8')
+
+    # Parsen der RDF-Daten mit rdflib
+    g = rdflib.Graph()
+    g.parse(data=request_data, format='turtle')
+
+    # Extrahiere die Speed-Information
+    query_speed = """
+    PREFIX actn: <http://www.ajan.de/actn#>
+    SELECT ?speed WHERE {
+        ?action actn:speed ?speed .
+    }
+    """
+    speed_result = g.query(query_speed)
+    for row in speed_result:
+        speed = float(row.speed)
+
+    return speed
 
 # ! Routes
 # * Implements routes for Behavior Tree Node Endpoints
@@ -1126,6 +1133,8 @@ def wait():
                     direction=carla.Vector3D(0,0,0),
                     jump=False
                 ))
+                send_async_request(async_request_uri)
+                break
 
             elif isinstance(entity, carla.Vehicle):
                 # Handle vehicle
@@ -1133,6 +1142,10 @@ def wait():
                 vehicle_control.brake = 1.0
                 vehicle_control.throttle = 0.0
                 entity.apply_control(vehicle_control)
+                while entity.get_velocity() > 0.1:
+                    time.sleep(0.1)
+                send_async_request(async_request_uri)
+                break
 
             time.sleep(1)  # Wait for 1 second before checking again
 
@@ -1146,6 +1159,30 @@ def wait():
 @app.route('/follow_sidewalk', methods=['POST'])
 
 @app.route('/adjust_speed', methods=['POST'])
+def adjust_speed():
+    global agent_speeds
+    try:
+        ajan_entity_id, ununsed = getInformation(request)
+
+        carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
+        print(f"Response information: {request.data}")
+
+        if not carla_entity_id:
+            print(f"No CARLA entity found with AJAN ID '{ajan_entity_id}'")
+            return jsonify({"status": "error", "message": "CARLA Entity not found"}), 404
+
+        new_speed = get_speed_information(request)
+
+        if new_speed is None or new_speed < 0:
+            print("Invalid speed value")
+            return jsonify({"status": "error", "message": "Invalid speed value"}), 400
+
+        agent_speeds[carla_entity_id] = new_speed
+
+        return Response('<http://Agent> <http://waits> <http://indefinitely> .', mimetype='text/turtle', status=200)
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/check_decision_point', methods=['POST'])
 

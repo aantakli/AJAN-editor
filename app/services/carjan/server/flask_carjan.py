@@ -918,6 +918,31 @@ def get_speed_information(request):
 
     return speed
 
+def get_direction_information(request):
+    """
+    Parses the direction information from the request.
+    """
+    direction = None
+
+    request_data = request.data.decode('utf-8')
+
+    # Parsen der RDF-Daten mit rdflib
+    g = rdflib.Graph()
+    g.parse(data=request_data, format='turtle')
+
+    # Extrahiere die Direction-Information
+    query_direction = """
+    PREFIX actn: <http://www.ajan.de/actn#>
+    SELECT ?direction WHERE {
+        ?action actn:direction ?direction .
+    }
+    """
+    direction_result = g.query(query_direction)
+    for row in direction_result:
+        direction = str(row.direction)
+
+    return direction
+
 # ! Routes
 # * Implements routes for Behavior Tree Node Endpoints
 
@@ -1156,7 +1181,59 @@ def wait():
     # Return an RDF triple immediately
     return Response('<http://Agent> <http://waits> <http://indefinitely> .', mimetype='text/turtle', status=200)
 
-@app.route('/follow_sidewalk', methods=['POST'])
+@app.route('/follow_direction', methods=['POST'])
+def follow_direction():
+    global carla_client
+    try:
+        # Extract information from request
+        ajan_entity_id, async_request_uri = getInformation(request)
+        carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
+
+        if not carla_entity_id:
+            print(f"No CARLA entity found with AJAN ID '{ajan_entity_id}'")
+            return jsonify({"status": "error", "message": "CARLA Entity not found"}), 404
+
+        # Get the walker actor
+        world = carla_client.get_world()
+        walker = world.get_actor(carla_entity_id)
+
+        if not walker:
+            print(f"No walker found with CARLA ID '{carla_entity_id}'")
+            return jsonify({"status": "error", "message": "Walker not found"}), 404
+
+        # Parse the direction from request JSON
+        direction_input = get_direction_information(request)
+
+        if direction_input not in ["Up", "Down", "Left", "Right"]:
+            return jsonify({"status": "error", "message": "Invalid direction. Must be one of: Up, Down, Left, Right"}), 400
+
+        # Map the direction to a CARLA Vector3D
+        direction_map = {
+            "Up": carla.Vector3D(-1, 0, 0),  # x-
+            "Down": carla.Vector3D(1, 0, 0),  # x+
+            "Left": carla.Vector3D(0, 1, 0),  # y+
+            "Right": carla.Vector3D(0, -1, 0)  # y-
+        }
+        direction = direction_map[direction_input]
+
+        # Function to move the pedestrian in a thread
+        def move_walker(walker, direction, async_request_uri):
+            print(f"Walker {walker.id} moving in direction {direction_input}")
+            walker.apply_control(carla.WalkerControl(direction=direction, speed=1.5))
+
+            print(f"Walker {walker.id}  moving indefinetely in direction {direction_input}")
+
+        # Start movement in a new thread
+        movement_thread = threading.Thread(target=move_walker, args=(walker, direction, async_request_uri))
+        movement_thread.start()
+
+        # Return immediate response
+        return Response('<http://Agent> <http://follows> <http://direction> .', mimetype='text/turtle', status=200)
+
+    except Exception as e:
+        print(f"Error in follow_direction: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @app.route('/adjust_speed', methods=['POST'])
 def adjust_speed():
@@ -1189,6 +1266,21 @@ def adjust_speed():
 @app.route('/check_vehicle_proximity', methods=['POST'])
 
 @app.route('/turn_head', methods=['POST'])
+
+def get_grid_cell(location):
+    """
+    Determines the grid cell based on the given location.
+    """
+    global anchor_point
+    cell_width = 4.0
+    cell_height = 4.0
+    offset_x = -5.5
+    offset_y = -3.0
+
+    x = int((location.y - anchor_point.y) / cell_width - offset_x)
+    y = int((location.x - anchor_point.x) / cell_height - offset_y)
+
+    return x, y
 
 
 # ! Main Functions / Routes
@@ -1299,7 +1391,7 @@ def load_scenario():
         print("camera loaded")
 
         # Füge das Gitter hinzu, falls gewünscht
-        if show_grid == "true":
+        if (show_grid == "true"):
             load_grid()
             print("grid loaded")
 

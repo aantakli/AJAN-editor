@@ -54,8 +54,7 @@ def generate_actor(name):
         ajan:agentTemplate <http://localhost:8090/rdf4j/repositories/agents#AG_HelloWorld_BT_30275863-0113-4c7c-9ed9-b0502c643fa6> ;
         ajan:agentInitKnowledge [
             ajan:agentReportURI "http://localhost:4202/report"^^xsd:anyURI ;
-            <carla:atBusStop> "False" ;
-            ajan:agentId "{name}"
+            ajan:agentId "{name}" ;
         ] . '''
 
     headers = {'Content-Type': 'application/trig'}

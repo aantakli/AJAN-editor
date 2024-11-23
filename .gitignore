@@ -24,4 +24,7 @@ testem.log
 bower.json.ember-try
 package.json.ember-try
 
+# CARJAN files
 .env
+__pycache__/
+*.pyc

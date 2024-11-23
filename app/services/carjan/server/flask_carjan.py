@@ -1,4 +1,5 @@
 import sys
+from webbrowser import get
 
 sys.stdout = open(sys.stdout.fileno(), 'w', buffering=1)
 
@@ -269,7 +270,7 @@ def follow_bezier_curve(walker, bezier_points, async_request_uri):
             while walker.get_location().distance(point) > 1:  # Warte, bis der Walker den Punkt erreicht
                 if collision_detected:
                     print("Walker wurde teleportiert, Bewegung wird fortgesetzt.")
-                time.sleep(0.1)
+                time.sleep(0.05)
 
         print(f"Walker '{walker}' hat das Ende des Pfads erreicht.")
         send_async_request(async_request_uri)
@@ -943,6 +944,40 @@ def get_direction_information(request):
 
     return direction
 
+def get_waypoint_information(request):
+    """
+    Parses the waypoint information from the request.
+    """
+    waypoint_data = {
+        "x": None,
+        "y": None,
+        "positionInCell": None
+    }
+
+    request_data = request.data.decode('utf-8')
+
+    # Parsen der RDF-Daten mit rdflib
+    g = rdflib.Graph()
+    g.parse(data=request_data, format='turtle')
+
+    # Extrahiere die Waypoint-Informationen
+    query_waypoint = """
+    PREFIX actn: <http://www.ajan.de/actn#>
+    SELECT ?x ?y ?positionInCell WHERE {
+        ?waypoint actn:x ?x .
+        ?waypoint actn:y ?y .
+        ?waypoint actn:positionInCell ?positionInCell .
+    }
+    """
+
+    waypoint_result = g.query(query_waypoint)
+    for row in waypoint_result:
+        waypoint_data["x"] = int(row.x)
+        waypoint_data["y"] = int(row.y)
+        waypoint_data["positionInCell"] = str(row.positionInCell)
+
+    return waypoint_data
+
 # ! Routes
 # * Implements routes for Behavior Tree Node Endpoints
 
@@ -1203,10 +1238,15 @@ def follow_direction():
 
         # Parse the direction from request JSON
         direction_input = get_direction_information(request)
+        # trim input
+        direction_input = direction_input.strip()
 
+        print(f"\n\nDirection input: {direction_input}")
+        print(f"Direction input type: {type(direction_input)}")
+        print(f"Length of direction input: {len(direction_input)}")
         if direction_input not in ["Up", "Down", "Left", "Right"]:
             return jsonify({"status": "error", "message": "Invalid direction. Must be one of: Up, Down, Left, Right"}), 400
-
+        print("After if")
         # Map the direction to a CARLA Vector3D
         direction_map = {
             "Up": carla.Vector3D(-1, 0, 0),  # x-
@@ -1215,7 +1255,7 @@ def follow_direction():
             "Right": carla.Vector3D(0, -1, 0)  # y-
         }
         direction = direction_map[direction_input]
-
+        print(f"Direction: {direction}")
         # Function to move the pedestrian in a thread
         def move_walker(walker, direction, async_request_uri):
             print(f"Walker {walker.id} moving in direction {direction_input}")
@@ -1226,6 +1266,7 @@ def follow_direction():
         # Start movement in a new thread
         movement_thread = threading.Thread(target=move_walker, args=(walker, direction, async_request_uri))
         movement_thread.start()
+        print(f"Movement thread started for walker {walker.id}")
 
         # Return immediate response
         return Response('<http://Agent> <http://follows> <http://direction> .', mimetype='text/turtle', status=200)
@@ -1234,15 +1275,12 @@ def follow_direction():
         print(f"Error in follow_direction: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
-
 @app.route('/adjust_speed', methods=['POST'])
 def adjust_speed():
     global agent_speeds
     try:
         ajan_entity_id, ununsed = getInformation(request)
-
         carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
-        print(f"Response information: {request.data}")
 
         if not carla_entity_id:
             print(f"No CARLA entity found with AJAN ID '{ajan_entity_id}'")
@@ -1251,8 +1289,8 @@ def adjust_speed():
         new_speed = get_speed_information(request)
 
         if new_speed is None or new_speed < 0:
-            print("Invalid speed value")
-            return jsonify({"status": "error", "message": "Invalid speed value"}), 400
+            print("Invalid speed value, using default speed value of 1.5 m/s")
+            new_speed = 1.5
 
         agent_speeds[carla_entity_id] = new_speed
 
@@ -1260,6 +1298,60 @@ def adjust_speed():
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/check_waypoint_proximity', methods=['POST'])
+def check_waypoint_proximity():
+    global carla_client
+    try:
+        # Extract information from request
+        ajan_entity_id, async_request_uri = getInformation(request)
+        carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
+
+        if not carla_entity_id:
+            print(f"No CARLA entity found with AJAN ID '{ajan_entity_id}'")
+            return jsonify({"status": "error", "message": "CARLA Entity not found"}), 404
+
+        # Get the walker actor
+        world = carla_client.get_world()
+        walker = world.get_actor(carla_entity_id)
+
+        if not walker:
+            print(f"No walker found with CARLA ID '{carla_entity_id}'")
+            return jsonify({"status": "error", "message": "Walker not found"}), 404
+
+        # Parse the direction from request JSON
+        waypoint = get_waypoint_information(request)
+
+        if not waypoint:
+            return jsonify({"status": "error", "message": "Invalid direction. Must be one of: Up, Down, Left, Right"}), 400
+
+        waypoint_location = get_carla_location_from_waypoint(waypoint)
+
+        # Function to move the pedestrian in a thread
+        def move_walker(walker, waypoint_location, async_request_uri):
+
+
+            while True:
+              walker_location = walker.get_location()
+              distance = walker_location.distance(waypoint_location)
+              if distance < 1.0:
+                  print(f"Walker {walker.id} reached the waypoint within 1 meter radius.")
+                  send_async_request(async_request_uri)
+                  break
+
+              time.sleep(0.1)
+
+        # Start movement in a new thread
+        movement_thread = threading.Thread(target=move_walker, args=(walker, waypoint_location, async_request_uri))
+        movement_thread.start()
+
+        # Return immediate response
+        return Response('<http://Agent> <http://follows> <http://direction> .', mimetype='text/turtle', status=200)
+
+    except Exception as e:
+        print(f"Error in follow_direction: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @app.route('/check_decision_point', methods=['POST'])
 

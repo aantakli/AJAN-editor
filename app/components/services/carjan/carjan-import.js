@@ -48,11 +48,8 @@ export default Component.extend({
 
     rdfGraph.set(rdf.dataset());
     if (this.mode !== "fileSelection") {
-      console.log("mode nicht fileSelection");
       this.loadGrid();
       await this.stopFlask();
-    } else {
-      console.log("mode ist fileSelection");
     }
   },
 
@@ -96,7 +93,6 @@ export default Component.extend({
           }
 
           const result = await response.json();
-          console.log(result);
 
           this.set("step3Status", "completed");
           this.carjanState.setStep3Status("completed");
@@ -115,7 +111,6 @@ export default Component.extend({
       // print as string
       const parsedStatements =
         (await this.parseQuadsToScenarios(statements)) || [];
-      console.log("Parsed statements:", parsedStatements);
       const existingRepositoryContent = await this.downloadRepository();
       const existingDataset = await this.parseTrig(existingRepositoryContent);
 
@@ -547,7 +542,6 @@ export default Component.extend({
   },
 
   showModal(modalSelector) {
-    console.log("showModal");
     next(() => {
       Ember.$(modalSelector)
         .modal({
@@ -615,7 +609,6 @@ export default Component.extend({
     async openRenameModal() {
       this.set("isRenameModalOpen", true);
       this.set("oldScenarioName", this.scenarioName);
-      console.log("isRenameModalOpen", this.isRenameModalOpen);
       const { scenarios } = await this.fetchAgentDataFromRepo();
       this.set("existingScenarioNames", scenarios);
       this.showModal(".ui.basic.modal");
@@ -773,7 +766,6 @@ export default Component.extend({
         }
 
         const trigContent = await response.text();
-        console.log("Heruntergeladenes Repository:", trigContent);
 
         if (trigContent) {
           const parsedData = await this.parseTrig(trigContent);
@@ -1063,8 +1055,6 @@ export default Component.extend({
 
   async renameScenarioToRepository(oldScenarioName, newScenarioName) {
     try {
-      console.log("oldScenarioName", oldScenarioName);
-      console.log("newScenarioName", newScenarioName);
       // Repository-Inhalte herunterladen
       let existingRepositoryContent = await this.downloadRepository();
       existingRepositoryContent = existingRepositoryContent || [];
@@ -1095,8 +1085,6 @@ export default Component.extend({
             `http://example.com/carla-scenario#${oldScenarioName}`
         );
       } else {
-        console.log("scenarioToRename", scenarioToRename);
-        console.log("Scenario labels", scenarioLabels);
         console.error(`Scenario with name ${oldScenarioName} not found`);
         throw new Error(`Scenario with name ${oldScenarioName} not found`);
       }

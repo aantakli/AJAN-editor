@@ -1,13 +1,16 @@
 import Component from "@ember/component";
 import { inject as service } from "@ember/service";
 import { set, observer, computed } from "@ember/object";
+import { htmlSafe } from "@ember/string";
 import { run } from "@ember/runloop";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdf from "npm:rdf-ext";
 
 export default Component.extend({
   attributeBindings: ["style"],
-  style: "height: 100%;",
+  style: computed(function () {
+    return htmlSafe("height: 100%;");
+  }),
   rs: getComputedStyle(document.documentElement),
   carjanState: service(),
   gridRows: 12,
@@ -159,19 +162,17 @@ export default Component.extend({
       } else {
         targetCellStatus = {};
       }
-      if (targetCellStatus.occupied) {
-        if (!this.dragFlag) {
-          return;
-        }
-        this.recoverEntity();
-        this.dragFlag = false;
 
+      console.log("Target cell status: ", this.gridStatus[`${row},${col}`]);
+      if (targetCellStatus.occupied && !this.dragFlag) {
         return;
       }
 
       const entityType = this.draggingEntityType
         ? this.draggingEntityType
         : event.dataTransfer.getData("text");
+
+      console.log("Entity type: ", entityType);
 
       if (row && col) {
         if (entityType === "waypoint") {
@@ -185,6 +186,15 @@ export default Component.extend({
           console.log("dropped on cell 2");
         }
       }
+
+      // Ensure waypoints are not removed when adding a pedestrian
+      if (entityType !== "waypoint" && targetCellStatus.waypoints && false) {
+        console.log("adding waypoints: ", targetCellStatus.waypoints);
+        targetCellStatus.waypoints.forEach((waypoint) => {
+          this.addSingleWaypoint(row, col, waypoint.positionInCell);
+        });
+      }
+
       this.isDragging = false;
       this.draggingEntityType = null;
     },
@@ -336,12 +346,14 @@ export default Component.extend({
   }),
 
   selectedPathObserver: observer("carjanState.selectedPath", function () {
+    this.resetFlagIcons();
     this.drawMainPathLines();
   }),
 
   selectedPathColorObserver: observer(
     "carjanState.selectedPath.color",
     function () {
+      this.resetFlagIcons();
       this.drawMainPathLines();
     }
   ),
@@ -408,6 +420,19 @@ export default Component.extend({
     }, 200);
   }.observes("carjanState.color"),
 
+  resetFlagIcons() {
+    const flagIcons = document.querySelectorAll(
+      ".grid-cell .icon.flag.outline, .grid-cell .icon.map.marker.alternate"
+    );
+
+    flagIcons.forEach((icon) => {
+      icon.classList.remove("flag", "outline");
+      icon.classList.add("map", "marker", "alternate");
+      icon.style.color = "black";
+      icon.style.transform = "scale(1)";
+      icon.style.textShadow = "0 0 0 black";
+    });
+  },
   drawMainPathLines() {
     if (this.carjanState.selectedPath && !this.carjanState.pathMode) {
       this.pathIcons = [];
@@ -1064,14 +1089,16 @@ export default Component.extend({
       const gridElement = this.element.querySelector(
         `.grid-cell[data-row="${row}"][data-col="${col}"]`
       );
-
+      console.log("gridElement: ", gridElement);
       if (gridElement) {
         let cellStatus = this.gridStatus[`${row},${col}`] || { waypoints: [] };
-        if (cellStatus.occupied && cellStatus.entityType === "void") {
+        if (cellStatus.entityType === "void") {
           console.error(
             `Cannot place waypoint on void cell at (${row}, ${col})`
           );
           return;
+        } else {
+          console.log("placing waypoint at ", row, col);
         }
 
         if (!cellStatus.waypoints) {
@@ -1220,7 +1247,7 @@ export default Component.extend({
 
         const iconClass = iconMap[entityType] || iconMap.default;
 
-        gridElement.innerHTML = "";
+        // Create the new icon element
         const iconElement = document.createElement("i");
         iconElement.classList.add("icon", iconClass);
         iconElement.style.fontSize = "24px";
@@ -1230,7 +1257,9 @@ export default Component.extend({
         iconElement.style.height = "100%";
         iconElement.style.width = "100%";
         iconElement.style.pointerEvents = "none";
+        iconElement.style.zIndex = 1001;
 
+        // Append the new icon element without clearing existing content
         gridElement.appendChild(iconElement);
 
         gridElement.setAttribute("data-occupied", "true");
@@ -1447,9 +1476,12 @@ export default Component.extend({
       e.target.classList.contains("icon") &&
       e.target.classList.contains("map") &&
       e.target.classList.contains("marker") &&
-      e.target.classList.contains("alternate") &&
-      this.carjanState.pathMode
+      e.target.classList.contains("alternate")
     ) {
+      const targetCell = e.target.closest(".grid-cell");
+      const row = targetCell.dataset.row;
+      const col = targetCell.dataset.col;
+      const cellStatus = this.gridStatus[`${row},${col}`];
       const positionInCell = e.target.getAttribute("data-position-in-cell");
       const x = e.target.getAttribute("data-x").toString();
       const y = e.target.getAttribute("data-y").toString();
@@ -1460,29 +1492,33 @@ export default Component.extend({
           waypoint.x === x &&
           waypoint.y === y
       );
-      if (filteredWaypoints.length > 0) {
-        this.carjanState.addWaypointToPathInProgress(filteredWaypoints[0]);
+
+      if (this.carjanState.pathMode) {
+        if (filteredWaypoints.length > 0) {
+          this.carjanState.addWaypointToPathInProgress(filteredWaypoints[0]);
+        }
+        this.handlePathMode(e, filteredWaypoints);
+      } else {
+        console.log("Open waypoint properties");
+        this.carjanState.set("currentCellStatus", cellStatus);
+        this.carjanState.set("currentCellPosition", [row, col]);
+        console.log("Current cell status: ", cellStatus);
+        console.log("Current cell position: ", [row, col]);
+        this.carjanState.set("properties", "waypoint");
       }
-      const pathColor = this.carjanState.selectedPath.color || "#000";
-
-      e.target.style.transition =
-        "transform 0.5s ease, color 0.2s ease, textshadow 0.2 ease";
-      e.target.style.color = pathColor;
-      e.target.style.transform = "scale(1.8)";
-      e.target.style.textShadow = "0 0 3px black";
-
-      this.pathIcons = this.pathIcons || [];
-      this.pathIcons.push(e.target);
-
       this.drawPathLines();
+      if (this.previousIcon) {
+        this.previousIcon.style.color = "#000";
+        this.previousIcon.style.textShadow = "none";
+      }
       return;
     }
 
     const targetCell = e.target;
     const row = targetCell.dataset.row;
     const col = targetCell.dataset.col;
-
     const cellStatus = this.gridStatus[`${row},${col}`];
+
     if (cellStatus) {
       this.carjanState.set("currentCellStatus", cellStatus);
       this.carjanState.set("currentCellPosition", [row, col]);
@@ -1492,48 +1528,44 @@ export default Component.extend({
         this.previousIcon.style.textShadow = "none";
       }
 
-      if (cellStatus.waypoints && cellStatus.waypoints.length > 0) {
-        this.carjanState.set("properties", "waypoint");
-      } else {
-        const agents = this.carjanState.get("agentData");
-        const agent = agents.find(
-          (agent) => agent.x.toString() === row && agent.y.toString() === col
-        );
+      const agents = this.carjanState.get("agentData");
+      const agent = agents.find(
+        (agent) => agent.x.toString() === row && agent.y.toString() === col
+      );
 
-        const agentIcon = targetCell.querySelector(".icon");
+      const agentIcon = targetCell.querySelector(".icon");
 
-        if (agentIcon) {
-          if (agent && agent.followsPath && agent.followsPath !== "null") {
-            agentIcon.style.color = agent && agent.color ? agent.color : "#000";
-            agentIcon.style.textShadow = "1px 2px 3px black";
+      if (agentIcon) {
+        if (agent && agent.followsPath && agent.followsPath !== "null") {
+          agentIcon.style.color = agent && agent.color ? agent.color : "#000";
+          agentIcon.style.textShadow = "1px 2px 3px black";
+        }
+      }
+
+      this.previousIcon = agentIcon || null;
+
+      switch (cellStatus.entityType) {
+        case "Pedestrian":
+        case "pedestrian":
+          if (!agent) {
+            this.addEntityToState("Pedestrian", row, col);
+            break;
           }
-        }
-
-        this.previousIcon = agentIcon || null;
-
-        switch (cellStatus.entityType) {
-          case "Pedestrian":
-          case "pedestrian":
-            if (!agent) {
-              this.addEntityToState("Pedestrian", row, col);
-              break;
-            }
-            this.carjanState.set("properties", "pedestrian");
-            break;
-          case "Vehicle":
-          case "vehicle":
-            this.carjanState.set("properties", "vehicle");
-            break;
-          case "autonomous":
-            console.log("Autonomous clicked", row, col);
-            break;
-          case "obstacle":
-            console.log("Obstacle clicked", row, col);
-            break;
-          default:
-            this.carjanState.set("properties", "scenario");
-            break;
-        }
+          this.carjanState.set("properties", "pedestrian");
+          break;
+        case "Vehicle":
+        case "vehicle":
+          this.carjanState.set("properties", "vehicle");
+          break;
+        case "autonomous":
+          console.log("Autonomous clicked", row, col);
+          break;
+        case "obstacle":
+          console.log("Obstacle clicked", row, col);
+          break;
+        default:
+          this.carjanState.set("properties", "scenario");
+          break;
       }
     }
     const isEntityCell = cellStatus && cellStatus.occupied;

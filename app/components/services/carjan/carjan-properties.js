@@ -1,6 +1,7 @@
 import Component from "@ember/component";
 import { inject as service } from "@ember/service";
 import { computed } from "@ember/object";
+import { htmlSafe } from "@ember/string";
 import { run, next } from "@ember/runloop";
 
 export default Component.extend({
@@ -39,6 +40,12 @@ export default Component.extend({
   pedestrianList: Array.from({ length: 49 }, (_, i) => {
     const id = String(i + 1).padStart(4, "0");
     return `pedestrian_${id}`;
+  }),
+  safeColorStyle: computed("selectedPath.color", function () {
+    return htmlSafe(`color: ${this.get("selectedPath.color")};`);
+  }),
+  safePathColorStyle: computed("path.color", function () {
+    return htmlSafe(`color: ${this.get("path.color")};`);
   }),
 
   headings: [

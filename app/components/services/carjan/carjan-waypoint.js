@@ -2,11 +2,15 @@ import Component from "@ember/component";
 import { inject as service } from "@ember/service";
 import { next } from "@ember/runloop";
 import { computed, observer } from "@ember/object";
+import { htmlSafe } from "@ember/string";
 
 export default Component.extend({
   carjanState: service(),
   waypoints: null,
   paths: [],
+  safeColorStyle: computed("path.color", function () {
+    return htmlSafe(`color: ${this.get("path.color")};`);
+  }),
   placeholderOptions: [
     "Where no waypoint has gone before...",
     "A scenic route full of detours and surprises!",
@@ -129,16 +133,23 @@ export default Component.extend({
       const iconElement = document.querySelector(
         `[data-x="${waypoint.x}"][data-y="${waypoint.y}"][data-position-in-cell="${waypoint.positionInCell}"]`
       );
-      let color = "#FEFEFE";
-      if (path) {
-        color = path.color;
-      }
       if (iconElement) {
+        // Speichern der ursprünglichen Eigenschaften
+        waypoint.originalStyle = {
+          color: iconElement.style.color,
+          transform: iconElement.style.transform,
+          textShadow: iconElement.style.textShadow,
+        };
+
+        let color = "#FEFEFE";
+        if (path) {
+          color = path.color;
+        }
+
         iconElement.style.transition =
           "transform 0.5s ease, color 0.2s ease, textshadow 0.2 ease";
         iconElement.style.color = color;
         iconElement.style.transform = "scale(1.8)";
-        // add shadow
         iconElement.style.textShadow = "0 0 3px black";
       }
     },
@@ -146,12 +157,13 @@ export default Component.extend({
       const iconElement = document.querySelector(
         `[data-x="${waypoint.x}"][data-y="${waypoint.y}"][data-position-in-cell="${waypoint.positionInCell}"]`
       );
-      if (iconElement) {
+      if (iconElement && waypoint.originalStyle) {
+        // Wiederherstellen der ursprünglichen Eigenschaften
         iconElement.style.transition =
           "transform 0.5s ease, color 0.2s ease, textshadow 0.2 ease";
-        iconElement.style.color = "black";
-        iconElement.style.transform = "scale(1)";
-        iconElement.style.textShadow = "none";
+        iconElement.style.color = waypoint.originalStyle.color;
+        iconElement.style.transform = waypoint.originalStyle.transform;
+        iconElement.style.textShadow = waypoint.originalStyle.textShadow;
       }
     },
     openPathwayEditor(path) {

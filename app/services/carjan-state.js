@@ -31,6 +31,10 @@ export default Service.extend({
   uploadScenarioToCarla: false,
   step3Status: "idle",
 
+  entityObserver: observer("agentData", function () {
+    console.log("Agent data changed", this.agentData);
+  }),
+
   setStep3Status(status) {
     set(this, "step3Status", status);
   },

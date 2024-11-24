@@ -437,37 +437,6 @@ export default Component.extend({
     this.carjanState.setPaths(updatedPaths);
   },
 
-  findNearestCell(mouseX, mouseY) {
-    let closestCell = null;
-    let minDistance = Infinity;
-
-    this.gridCells.forEach((cell) => {
-      const row = cell.row;
-      const col = cell.col;
-
-      const gridElement = this.element.querySelector(
-        `.grid-cell[data-row="${row}"][data-col="${col}"]`
-      );
-
-      if (gridElement) {
-        const rect = gridElement.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-
-        const distance = Math.sqrt(
-          Math.pow(centerX - mouseX, 2) + Math.pow(centerY - mouseY, 2)
-        );
-
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestCell = { row, col };
-        }
-      }
-    });
-
-    return closestCell;
-  },
-
   updateMatchingEntity() {
     const [currentX, currentY] = this.carjanState.currentCellPosition || [];
     const matchingEntityIndex = this.carjanState.agentData.findIndex(
@@ -479,6 +448,39 @@ export default Component.extend({
         ...this.carjanState.agentData[matchingEntityIndex],
         ...this.entity,
       };
+    }
+  },
+
+  updateEntityName() {
+    const [currentX, currentY] = this.carjanState.currentCellPosition || [];
+    const entityName = this.entity.label;
+    console.log("entityName", entityName);
+    console.log("type of entityName", typeof entityName);
+
+    const matchingEntity = this.carjanState.agentData.find(
+      (entity) => entity.x == currentX && entity.y == currentY
+    );
+
+    if (matchingEntity) {
+      Ember.set(matchingEntity, "label", entityName);
+    } else {
+      if (currentX !== undefined && currentY !== undefined) {
+        const entityId =
+          String(currentX).padStart(2, "0") + String(currentY).padStart(2, "0");
+
+        const newPedestrian = {
+          entity: `http://example.com/carla-scenario#Entity${entityId}`,
+          type: "Pedestrian",
+          x: currentX,
+          y: currentY,
+          label: entityName,
+        };
+
+        this.carjanState.set("agentData", [
+          ...this.carjanState.agentData,
+          newPedestrian,
+        ]);
+      }
     }
   },
 
@@ -582,6 +584,50 @@ export default Component.extend({
       this.changeOriginalFlag = false;
     },
 
+    checkEntityLabel() {
+      if (this.entity) {
+        const entityLabel = this.entity.label;
+        const isLabelEmpty = entityLabel === "";
+        this.set("isLabelEmpty", isLabelEmpty);
+
+        if (isLabelEmpty) {
+          this.set("hasError", true);
+          this.set("errorMessage", "Empty entity label. Please enter a label.");
+          return false;
+        }
+
+        const isValidLabel = /^[a-zA-Z0-9_-]+$/.test(entityLabel);
+        if (!isValidLabel) {
+          this.set("hasError", true);
+          this.set(
+            "errorMessage",
+            "Invalid entity label. Only letters, numbers, underscores, and hyphens are allowed."
+          );
+          return false;
+        }
+
+        const entities = this.carjanState.agentData || [];
+        const isDuplicateLabel = entities.some((entity) => {
+          return entity.label === entityLabel && entity !== this.entity;
+        });
+
+        if (isDuplicateLabel) {
+          this.set("hasError", true);
+          this.set(
+            "errorMessage",
+            "Duplicate entity label found. Please use a unique label."
+          );
+          return false;
+        }
+
+        this.set("hasError", false);
+        this.set("errorMessage", "");
+        this.updateEntityName();
+        return true;
+      }
+      return false;
+    },
+
     checkPathDescription() {
       if (this.selectedPath) {
         const pathDescription = this.selectedPath.description.trim();
@@ -648,33 +694,9 @@ export default Component.extend({
     },
 
     inputFocusOutPedestrian() {
-      const [currentX, currentY] = this.carjanState.currentCellPosition || [];
-
-      const matchingEntity = this.carjanState.agentData.find(
-        (entity) => entity.x == currentX && entity.y == currentY
-      );
-
-      if (matchingEntity) {
-        matchingEntity.label = this.entity.label;
-      } else {
-        if (currentX !== undefined && currentY !== undefined) {
-          const entityId =
-            String(currentX).padStart(2, "0") +
-            String(currentY).padStart(2, "0");
-
-          const newPedestrian = {
-            entity: `http://example.com/carla-scenario#Entity${entityId}`,
-            type: "Pedestrian",
-            x: currentX,
-            y: currentY,
-            label: this.entity.label,
-          };
-
-          this.carjanState.set("agentData", [
-            ...this.carjanState.agentData,
-            newPedestrian,
-          ]);
-        }
+      if (this.actions.checkEntityLabel()) {
+        console.log("Entity label is valid.");
+        this.updateEntityName();
       }
     },
 

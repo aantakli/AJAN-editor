@@ -1272,8 +1272,6 @@ export default Component.extend({
         gridElement.setAttribute("data-entityType", entityType);
         gridElement.setAttribute("draggable", "true");
 
-        console.log("cellStatus: ", cellStatus);
-
         if (cellStatus.waypoints) {
           const middleCenterWaypoint = cellStatus.waypoints.find(
             (waypoint) => waypoint.positionInCell === "middle-center"
@@ -1287,7 +1285,6 @@ export default Component.extend({
             const waypointIcon = gridElement.querySelector(
               `.icon.map.marker.alternate[data-position-in-cell="middle-center"]`
             );
-            console.log("waypointIcon: ", waypointIcon);
             if (waypointIcon) {
               waypointIcon.style.textShadow = "0 0 5px white";
             }

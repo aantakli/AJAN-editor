@@ -190,8 +190,8 @@
             placeholder="Carla"
             value=this.entity.label
             oninput=(action (mut this.entity.label) value="target.value")
-            focus-out=(action "inputFocusOutPedestrian")
             focus-in=(action "inputFocusInPedestrian")
+            key-up=(action "checkEntityLabel")
           }}
         </div>
         {{#if hasError}}

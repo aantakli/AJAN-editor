@@ -589,7 +589,10 @@
           <div class="menu" style="overflow: hidden">
 
             <!-- Car Section -->
-            <div class="header">Cars</div>
+            <div class="header" local-class="dropdown-header">
+              <i class="icon car"></i>
+              <b>Cars</b>
+            </div>
             {{#each normalCarModels as |model|}}
               <div
                 class="item"
@@ -601,47 +604,12 @@
               </div>
             {{/each}}
 
-            <!-- Truck Section -->
-            <div class="header"><b>Trucks</b></div>
-            {{#each truckModels as |model|}}
-              <div
-                class="item"
-                data-value="{{model.id}}"
-                {{action "selectModel" model}}
-                style="overflow: hidden;"
-              >
-                {{model.name}}
-              </div>
-            {{/each}}
-
-            <!-- Van Section -->
-            <div class="header"><b>Vans</b></div>
-            {{#each vanModels as |model|}}
-              <div
-                class="item"
-                data-value="{{model.id}}"
-                {{action "selectModel" model}}
-                style="overflow: hidden;"
-              >
-                {{model.name}}
-              </div>
-            {{/each}}
-
-            <!-- Bus Section -->
-            <div class="header"><b>Buses</b></div>
-            {{#each busModels as |model|}}
-              <div
-                class="item"
-                data-value="{{model.id}}"
-                {{action "selectModel" model}}
-                style="overflow: hidden;"
-              >
-                {{model.name}}
-              </div>
-            {{/each}}
-
             <!-- Motorcycle Section -->
-            <div class="header"><b>Motorcycles</b></div>
+            <div class="ui divider" local-class="divider-black"></div>
+            <div class="header" local-class="dropdown-header">
+              <i class="icon motorcycle"></i>
+              <b>Motorcycles</b>
+            </div>
             {{#each motorcycleModels as |model|}}
               <div
                 class="item"
@@ -654,7 +622,11 @@
             {{/each}}
 
             <!-- Bicycle Section -->
-            <div class="header"><b>Bicycles</b></div>
+            <div class="ui divider" local-class="divider-black"></div>
+            <div class="header" local-class="dropdown-header">
+              <i class="icon bicycle"></i>
+              <b>Bicycles</b>
+            </div>
             {{#each bicycleModels as |model|}}
               <div
                 class="item"

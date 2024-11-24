@@ -248,3 +248,11 @@
   transform-origin: 45% 60%;
   scale: 1.5;
 }
+
+.dropdown-header {
+  font-size: 1em !important;
+}
+
+.divider-black {
+  border-top: 1px solid rgba(34, 36, 38, 0.5) !important;
+}

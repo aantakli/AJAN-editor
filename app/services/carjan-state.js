@@ -31,10 +31,6 @@ export default Service.extend({
   uploadScenarioToCarla: false,
   step3Status: "idle",
 
-  propertiesOvserver: observer("properties", function () {
-    console.trace("Properties changed to: ", this.properties);
-  }),
-
   setStep3Status(status) {
     set(this, "step3Status", status);
   },

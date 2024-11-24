@@ -74,7 +74,7 @@ export default Component.extend({
     this.setupGrid();
     await this.loadCarModels();
     this.setProperties({
-      carModels: this.carModels.Car,
+      normalCarModels: this.carModels.Car,
       truckModels: this.carModels.Truck,
       vanModels: this.carModels.Van,
       busModels: this.carModels.Bus,
@@ -154,10 +154,15 @@ export default Component.extend({
     if (entityAtPosition) {
       this.set("entity", entityAtPosition);
       if (entityAtPosition.type === "Vehicle") {
-        this.set(
-          "selectedModel",
-          this.carModels.find((model) => model.name === entityAtPosition.model)
-        );
+        let carmodel;
+        Object.values(this.carModels).forEach((models) => {
+          if (!carmodel) {
+            carmodel = models.find(
+              (model) => model.name === entityAtPosition.model
+            );
+          }
+        });
+        this.set("selectedModel", carmodel);
       } else if (entityAtPosition.type === "Pedestrian") {
         this.set("selectedModel", entityAtPosition.model);
       }
@@ -490,13 +495,11 @@ export default Component.extend({
 
     togglePathsInCarla(event) {
       const isChecked = event.target.checked;
-      console.log("isChecked", isChecked);
       this.carjanState.setPathsInCarla(isChecked.toString());
     },
 
     toggleLoadLayersCarla(event) {
       const isChecked = event.target.checked;
-      console.log("isChecked", isChecked);
       this.carjanState.setLoadLayersInCarla(isChecked.toString());
     },
 
@@ -693,7 +696,6 @@ export default Component.extend({
 
     inputFocusOutPedestrian() {
       if (this.actions.checkEntityLabel()) {
-        console.log("Entity label is valid.");
         this.updateEntityName();
       }
     },

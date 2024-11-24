@@ -83,7 +83,7 @@
     </p>
 
     <!-- Input-Feld für die Path-Beschreibung -->
-    <div class="ui form">
+    <div class="ui form" onmouseleave={{action "colorPickerMouseLeave"}}>
 
       <div local-class="pad">
         <div class="field">
@@ -131,12 +131,10 @@
                   {{spectrum-color-picker
                     color=this.selectedPath.color
                     showButtons=false
-                    clickoutFiresChange=true
+                    moveFiresChange=true
                     preferredFormat="hex"
                     flatMode=true
                     onChange=(action "colorChanged")
-                    onShow=(action "pickerOpened")
-                    onHide=(action "pickerClosed")
                     onMove=(action "userMovedColorPicker")
                   }}
                 </div>
@@ -905,8 +903,8 @@
           <i class="pencil alternate icon"></i>
           Draw Path Mode
         </div>
-        <div class="scrolling content">
-          {{services/carjan/carjan-item}}
+        <div class="content">
+          {{services/carjan/carjan-item mode="path"}}
         </div>
         <div class="actions">
           <button class="ui green cancel button" {{action "confirmDrawPath"}}>

@@ -32,7 +32,6 @@ export default Component.extend({
   motorcycleModels: null,
   bicycleModels: null,
   isTooltipHidden: true,
-  selectedPath: null,
   selectedHeading: null,
   pedestrianInput: null,
   entity: null,
@@ -207,14 +206,12 @@ export default Component.extend({
   updatePath() {
     const oldPathURI = this.selectedPath.path;
     const newPath = { ...this.selectedPath };
-
     const updatedPaths = this.carjanState.paths.map((path) => {
       if (path.path === oldPathURI) {
         return newPath;
       }
       return path;
     });
-
     this.carjanState.setPaths(updatedPaths);
   },
 
@@ -886,12 +883,8 @@ export default Component.extend({
       this.updatePath();
     },
 
-    pickerOpened() {
-      console.log("Farb-Picker geöffnet");
-    },
-
-    pickerClosed() {
-      console.log("Farb-Picker geschlossen");
+    colorPickerMouseLeave() {
+      this.updatePath();
     },
 
     getPathId(path) {

@@ -176,12 +176,14 @@ export default Component.extend({
       const entityType = this.draggingEntityType
         ? this.draggingEntityType
         : event.dataTransfer.getData("text");
-
       console.log("Entity type: ", entityType);
-
       if (row && col) {
         if (entityType === "waypoint") {
-          this.addSingleWaypoint(row, col, "top-left");
+          this.addSingleWaypoint(row, col, "top-left").then(() => {
+            this.isDragging = false;
+            this.draggingEntityType = null;
+            return;
+          });
         } else {
           if (this.isDragging) {
             this.moveEntityState(row, col);
@@ -191,7 +193,6 @@ export default Component.extend({
           console.log("dropped on cell 2");
         }
       }
-
       this.isDragging = false;
       this.draggingEntityType = null;
     },
@@ -323,7 +324,67 @@ export default Component.extend({
   }),
 
   waypointObserver: observer("carjanState.waypoints", function () {
-    this.setupGrid(this.carjanState.mapData, this.carjanState.agentData);
+    const newWaypoints = this.carjanState.get("waypoints");
+    const previousWaypoints = this.currentWaypoints || [];
+
+    // Find added waypoints
+    const addedWaypoints = newWaypoints.filter(
+      (newWaypoint) =>
+        !previousWaypoints.some(
+          (prevWaypoint) =>
+            prevWaypoint.waypoint === newWaypoint.waypoint &&
+            prevWaypoint.x === newWaypoint.x &&
+            prevWaypoint.y === newWaypoint.y &&
+            prevWaypoint.positionInCell === newWaypoint.positionInCell
+        )
+    );
+
+    // Find removed waypoints
+    const removedWaypoints = previousWaypoints.filter(
+      (prevWaypoint) =>
+        !newWaypoints.some(
+          (newWaypoint) =>
+            newWaypoint.waypoint === prevWaypoint.waypoint &&
+            newWaypoint.x === prevWaypoint.x &&
+            newWaypoint.y === prevWaypoint.y &&
+            newWaypoint.positionInCell === prevWaypoint.positionInCell
+        )
+    );
+
+    console.log("Added waypoints: ", addedWaypoints);
+    console.log("Removed waypoints: ", removedWaypoints);
+
+    // Update grid for added waypoints
+    addedWaypoints.forEach((waypoint) => {
+      this.addSingleWaypoint(waypoint.x, waypoint.y, waypoint.positionInCell);
+    });
+
+    // Update grid for removed waypoints
+    removedWaypoints.forEach((waypoint) => {
+      const gridElement = this.element.querySelector(
+        `.grid-cell[data-row="${waypoint.x}"][data-col="${waypoint.y}"]`
+      );
+      if (gridElement) {
+        const waypointIcon = gridElement.querySelector(
+          `.icon.map.marker.alternate[data-position-in-cell="${waypoint.positionInCell}"]`
+        );
+        if (waypointIcon) {
+          gridElement.removeChild(waypointIcon);
+        }
+        let cellStatus;
+        if (this.gridStatus) {
+          cellStatus = this.gridStatus[`${waypoint.x},${waypoint.y}`];
+        }
+        if (cellStatus) {
+          cellStatus.waypoints = cellStatus.waypoints.filter(
+            (wp) => wp.positionInCell !== waypoint.positionInCell
+          );
+        }
+      }
+    });
+
+    // Update current waypoints
+    this.currentWaypoints = newWaypoints;
   }),
 
   saveObserver: observer("carjanState.isSaveRequest", function () {
@@ -1098,92 +1159,84 @@ export default Component.extend({
       const gridElement = this.element.querySelector(
         `.grid-cell[data-row="${row}"][data-col="${col}"]`
       );
+      console.log("gridElement", gridElement);
       if (gridElement) {
         let cellStatus = this.gridStatus[`${row},${col}`] || { waypoints: [] };
+        console.log(cellStatus);
         if (cellStatus.entityType === "void") {
-          console.error(
-            `Cannot place waypoint on void cell at (${row}, ${col})`
-          );
-          return;
+          cellStatus.entityType = null;
         }
         if (!cellStatus.waypoints) {
           cellStatus.waypoints = [];
-        } else {
-          const existingWaypoint = cellStatus.waypoints.find(
-            (waypoint) => waypoint.positionInCell === positionInCell
+        }
+
+        // Check if waypoint already exists at this position
+        const existingWaypoint = cellStatus.waypoints.find(
+          (waypoint) => waypoint.positionInCell === positionInCell
+        );
+
+        if (!existingWaypoint) {
+          const waypointIcon = document.createElement("i");
+          waypointIcon.classList.add("icon", "map", "marker", "alternate");
+          waypointIcon.style.fontSize = "12px";
+          waypointIcon.style.position = "absolute";
+          waypointIcon.style.pointerEvents = "none";
+          waypointIcon.style.zIndex = 1000;
+
+          waypointIcon.setAttribute("data-x", row);
+          waypointIcon.setAttribute("data-y", col);
+          waypointIcon.setAttribute("data-position-in-cell", positionInCell);
+
+          const cellSize = gridElement.offsetWidth || 36;
+          const positionIndex = this.getPositionIndex(positionInCell);
+          const [offsetX, offsetY] = this.getOffsetForPositionIndex(
+            positionIndex,
+            cellSize
           );
 
-          if (existingWaypoint) {
-            if (cellStatus.waypoints.length < 9) {
-              let index = this.getPositionIndex(positionInCell);
-              index = (index + 1) % 9;
-              this.addSingleWaypoint(row, col, this.getPositionByIndex(index));
-              return;
-            }
-            return;
+          waypointIcon.style.left = `${offsetX}px`;
+          waypointIcon.style.top = `${offsetY}px`;
+
+          gridElement.appendChild(waypointIcon);
+
+          cellStatus.waypoints.push({
+            type: "waypoint",
+            positionInCell: positionInCell,
+          });
+
+          this.gridStatus[`${row},${col}`] = cellStatus;
+          let prefix = "http://example.com/carla-scenario#";
+          let waypointId = `Waypoint${String(row).padStart(2, "0")}${String(
+            col
+          ).padStart(2, "0")}_${positionIndex}`;
+
+          let waypointURI = `${prefix}${waypointId}`;
+
+          const newWaypoint = {
+            waypoint: waypointURI,
+            x: row,
+            y: col,
+            positionInCell: positionInCell,
+          };
+
+          const existingWaypoints = this.carjanState.get("waypoints");
+          const isDuplicate = existingWaypoints.some(
+            (waypoint) =>
+              waypoint.waypoint === newWaypoint.waypoint &&
+              waypoint.x === newWaypoint.x &&
+              waypoint.y === newWaypoint.y &&
+              waypoint.positionInCell === newWaypoint.positionInCell
+          );
+
+          if (!isDuplicate) {
+            this.carjanState.set("waypoints", [
+              ...existingWaypoints,
+              newWaypoint,
+            ]);
           }
+
+          this.currentWaypoints = this.carjanState.get("waypoints");
         }
-
-        const waypointIcon = document.createElement("i");
-        waypointIcon.classList.add("icon", "map", "marker", "alternate");
-        waypointIcon.style.fontSize = "12px";
-        waypointIcon.style.position = "absolute";
-        waypointIcon.style.pointerEvents = "none";
-        waypointIcon.style.zIndex = 1000;
-
-        waypointIcon.setAttribute("data-x", row);
-        waypointIcon.setAttribute("data-y", col);
-        waypointIcon.setAttribute("data-position-in-cell", positionInCell);
-
-        const cellSize = gridElement.offsetWidth || 36;
-        const positionIndex = this.getPositionIndex(positionInCell);
-        const [offsetX, offsetY] = this.getOffsetForPositionIndex(
-          positionIndex,
-          cellSize
-        );
-
-        waypointIcon.style.left = `${offsetX}px`;
-        waypointIcon.style.top = `${offsetY}px`;
-
-        gridElement.appendChild(waypointIcon);
-
-        cellStatus.waypoints.push({
-          type: "waypoint",
-          positionInCell: positionInCell,
-        });
-
-        this.gridStatus[`${row},${col}`] = cellStatus;
-        let prefix = "http://example.com/carla-scenario#";
-        let waypointId = `Waypoint${String(row).padStart(2, "0")}${String(
-          col
-        ).padStart(2, "0")}_${positionIndex}`;
-
-        let waypointURI = `${prefix}${waypointId}`;
-
-        const newWaypoint = {
-          waypoint: waypointURI,
-          x: row,
-          y: col,
-          positionInCell: positionInCell,
-        };
-
-        const existingWaypoints = this.carjanState.get("waypoints");
-        const isDuplicate = existingWaypoints.some(
-          (waypoint) =>
-            waypoint.waypoint === newWaypoint.waypoint &&
-            waypoint.x === newWaypoint.x &&
-            waypoint.y === newWaypoint.y &&
-            waypoint.positionInCell === newWaypoint.positionInCell
-        );
-
-        if (!isDuplicate) {
-          this.carjanState.set("waypoints", [
-            ...existingWaypoints,
-            newWaypoint,
-          ]);
-        }
-
-        this.currentWaypoints = this.carjanState.get("waypoints");
       }
     });
   },

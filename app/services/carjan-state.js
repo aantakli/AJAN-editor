@@ -31,8 +31,8 @@ export default Service.extend({
   uploadScenarioToCarla: false,
   step3Status: "idle",
 
-  entityObserver: observer("agentData", function () {
-    console.log("Agent data changed", this.agentData);
+  propertiesOvserver: observer("properties", function () {
+    console.trace("Properties changed to: ", this.properties);
   }),
 
   setStep3Status(status) {
@@ -156,6 +156,7 @@ export default Service.extend({
   },
 
   setWaypoints(waypoints) {
+    console.log("Setting waypoints to: ", waypoints);
     set(this, "waypoints", waypoints);
   },
 

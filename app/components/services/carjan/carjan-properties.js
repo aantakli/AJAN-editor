@@ -454,8 +454,6 @@ export default Component.extend({
   updateEntityName() {
     const [currentX, currentY] = this.carjanState.currentCellPosition || [];
     const entityName = this.entity.label;
-    console.log("entityName", entityName);
-    console.log("type of entityName", typeof entityName);
 
     const matchingEntity = this.carjanState.agentData.find(
       (entity) => entity.x == currentX && entity.y == currentY

@@ -83,10 +83,13 @@ export default Component.extend({
       }))
     );
     const selectedPath = this.carjanState.selectedPath;
-    this.carjanState.set("properties", "scenario");
     if (!selectedPath) return;
     setTimeout(() => {
       const newPath = paths.find((path) => path.path === selectedPath.path);
+      if (!newPath) {
+        this.carjanState.set("properties", "scenario");
+        return;
+      }
       this.carjanState.set("properties", "path");
       this.carjanState.setSelectedPath(newPath);
     }, 50);

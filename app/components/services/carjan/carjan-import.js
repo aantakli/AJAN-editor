@@ -56,7 +56,6 @@ export default Component.extend({
       const existingDataset = await this.parseTrig(existingRepositoryContent);
       const scenarios = existingDataset.scenarios || [];
       this.set("availableScenarios", scenarios);
-      console.log("Available scenarios:", scenarios);
     }
   },
 
@@ -677,7 +676,6 @@ export default Component.extend({
           throw new Error("Scenario name is required.");
         }
 
-        console.log("Uploading scenario to GitHub...", scenarioName);
         const trigContent = await this.downloadScenarioAsTrig(
           scenarioName,
           true,
@@ -697,7 +695,6 @@ export default Component.extend({
           }
         );
         const result = await response.json();
-        console.log("result:", result);
       } catch (error) {
         console.error("Error uploading scenario:", error);
       }

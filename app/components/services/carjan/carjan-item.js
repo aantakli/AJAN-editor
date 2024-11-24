@@ -154,17 +154,22 @@ export default Component.extend({
 
     dropOnCell(event) {
       event.preventDefault();
-      const row = event.target.dataset.row;
-      const col = event.target.dataset.col;
-      let targetCellStatus;
+
+      const targetCell = event.target.closest(".grid-cell");
+      if (!targetCell) {
+        return;
+      }
+      const row = targetCell.dataset.row;
+      const col = targetCell.dataset.col;
+
+      let targetCellStatus = {};
       if (this.gridStatus) {
         targetCellStatus = this.gridStatus[`${row},${col}`];
-      } else {
-        targetCellStatus = {};
       }
 
       console.log("Target cell status: ", this.gridStatus[`${row},${col}`]);
-      if (targetCellStatus.occupied && !this.dragFlag) {
+      if (!targetCellStatus || targetCellStatus.occupied) {
+        this.recoverEntity();
         return;
       }
 
@@ -187,43 +192,37 @@ export default Component.extend({
         }
       }
 
-      // Ensure waypoints are not removed when adding a pedestrian
-      if (entityType !== "waypoint" && targetCellStatus.waypoints && false) {
-        console.log("adding waypoints: ", targetCellStatus.waypoints);
-        targetCellStatus.waypoints.forEach((waypoint) => {
-          this.addSingleWaypoint(row, col, waypoint.positionInCell);
-        });
-      }
-
       this.isDragging = false;
       this.draggingEntityType = null;
     },
 
     dropOnBackground(event) {
       event.preventDefault();
-      const mouseX = event.clientX;
-      const mouseY = event.clientY;
       const row = event.target.dataset.row;
       const col = event.target.dataset.col;
+      // if outside of grid, delete entity
       if (row && col) {
         return;
       }
 
       this.send("removeBorder", event);
 
-      const closestCell = this.findNearestCell(mouseX, mouseY);
+      const closestCell = event.target.closest(".grid-cell");
 
-      if (
-        closestCell &&
-        !this.gridStatus[`${closestCell.row},${closestCell.col}`].occupied
-      ) {
-        const { row, col } = closestCell;
-        const entityType = this.draggingEntityType
-          ? this.draggingEntityType
-          : event.dataTransfer.getData("text");
-        this.draggingEntityType = null;
+      if (closestCell) {
+        const row = closestCell.dataset.row;
+        const col = closestCell.dataset.col;
 
-        this.addEntityToGrid(entityType, row, col);
+        if (!this.gridStatus[`${row},${col}`].occupied) {
+          const entityType = this.draggingEntityType
+            ? this.draggingEntityType
+            : event.dataTransfer.getData("text");
+          this.draggingEntityType = null;
+
+          this.addEntityToGrid(entityType, row, col);
+        } else {
+          this.recoverEntity();
+        }
       } else {
         this.recoverEntity();
       }
@@ -407,12 +406,22 @@ export default Component.extend({
         const agent = this.carjanState.agentData.find(
           (agent) => agent.x === row && agent.y === col
         );
-        if (agent && agent.color) {
-          if (agent.color === "#000000") {
-            icon.style.color = "#000";
-            icon.style.textShadow = "none";
+        if (agent && agent.color === "#000000") {
+          icon.style.color = "#000";
+          const targetCell = icon.closest(".grid-cell");
+          const row = targetCell.dataset.row;
+          const col = targetCell.dataset.col;
+          const cellStatus = this.gridStatus[`${row},${col}`];
+
+          // Check if there is an entity in the cell and the waypoint is in the middle-center position
+          if (
+            cellStatus &&
+            cellStatus.entityType &&
+            icon.getAttribute("data-position-in-cell") === "middle-center"
+          ) {
+            icon.style.textShadow = "0 0 5px white";
           } else {
-            icon.style.color = agent.color;
+            icon.style.textShadow = "none";
           }
         }
         this.previousIcon = icon;
@@ -947,7 +956,7 @@ export default Component.extend({
     });
   },
 
-  setupGrid(map = null, agents = null) {
+  async setupGrid(map = null, agents = null) {
     if (!map || !agents) {
       return;
     }
@@ -1010,12 +1019,12 @@ export default Component.extend({
         }
       });
     });
+    await this.addWaypointsToGrid();
     if (agents && agents.length > 0 && !this.carjanState.pathMode) {
       agents.forEach((agent) => {
         this.addEntityToGrid(agent.type, agent.x, agent.y);
       });
     }
-    this.addWaypointsToGrid();
     this.updateCameraPosition();
     set(this, "gridCells", cells);
     set(this, "gridStatus", status);
@@ -1089,7 +1098,6 @@ export default Component.extend({
       const gridElement = this.element.querySelector(
         `.grid-cell[data-row="${row}"][data-col="${col}"]`
       );
-      console.log("gridElement: ", gridElement);
       if (gridElement) {
         let cellStatus = this.gridStatus[`${row},${col}`] || { waypoints: [] };
         if (cellStatus.entityType === "void") {
@@ -1097,10 +1105,7 @@ export default Component.extend({
             `Cannot place waypoint on void cell at (${row}, ${col})`
           );
           return;
-        } else {
-          console.log("placing waypoint at ", row, col);
         }
-
         if (!cellStatus.waypoints) {
           cellStatus.waypoints = [];
         } else {
@@ -1124,6 +1129,7 @@ export default Component.extend({
         waypointIcon.style.fontSize = "12px";
         waypointIcon.style.position = "absolute";
         waypointIcon.style.pointerEvents = "none";
+        waypointIcon.style.zIndex = 1000;
 
         waypointIcon.setAttribute("data-x", row);
         waypointIcon.setAttribute("data-y", col);
@@ -1257,7 +1263,7 @@ export default Component.extend({
         iconElement.style.height = "100%";
         iconElement.style.width = "100%";
         iconElement.style.pointerEvents = "none";
-        iconElement.style.zIndex = 1001;
+        iconElement.style.zIndex = 999;
 
         // Append the new icon element without clearing existing content
         gridElement.appendChild(iconElement);
@@ -1265,6 +1271,28 @@ export default Component.extend({
         gridElement.setAttribute("data-occupied", "true");
         gridElement.setAttribute("data-entityType", entityType);
         gridElement.setAttribute("draggable", "true");
+
+        console.log("cellStatus: ", cellStatus);
+
+        if (cellStatus.waypoints) {
+          const middleCenterWaypoint = cellStatus.waypoints.find(
+            (waypoint) => waypoint.positionInCell === "middle-center"
+          );
+
+          if (middleCenterWaypoint) {
+            // Set entity opacity to 75%
+            iconElement.style.opacity = "0.5";
+
+            // Highlight the waypoint with a white shadow
+            const waypointIcon = gridElement.querySelector(
+              `.icon.map.marker.alternate[data-position-in-cell="middle-center"]`
+            );
+            console.log("waypointIcon: ", waypointIcon);
+            if (waypointIcon) {
+              waypointIcon.style.textShadow = "0 0 5px white";
+            }
+          }
+        }
 
         this.gridStatus[`${row},${col}`] = {
           occupied: true,
@@ -1313,14 +1341,24 @@ export default Component.extend({
       );
 
       if (gridElement) {
-        gridElement.innerHTML = "";
-        gridElement.removeAttribute("data-occupied");
-        gridElement.setAttribute("data-entityType", "false");
+        // Remove only the entity icon, keep the waypoints
+        const entityIcon = gridElement.querySelector(
+          ".icon:not(.map.marker.alternate)"
+        );
+        if (entityIcon) {
+          entityIcon.remove();
+        }
+
+        gridElement.setAttribute("data-occupied", "false");
+        gridElement.setAttribute("data-entityType", "null");
         gridElement.removeAttribute("draggable");
 
+        // Preserve waypoints in the cell status
+        const cellStatus = this.gridStatus[`${row},${col}`];
         this.gridStatus[`${row},${col}`] = {
           occupied: false,
           entityType: null,
+          waypoints: cellStatus.waypoints || [],
         };
       }
     });
@@ -1333,9 +1371,32 @@ export default Component.extend({
   },
 
   recoverEntity() {
-    const [originalRow, originalCol] = this.draggingEntityPosition;
-    this.addEntityToGrid(this.draggingEntityType, originalRow, originalCol);
-    this.draggingEntityType = null;
+    console.log("recoverEntity row und col", this.draggingEntityPosition);
+    if (this.draggingEntityPosition) {
+      const originalRow = this.draggingEntityPosition.row;
+      const originalCol = this.draggingEntityPosition.col;
+      this.addEntityToGrid(this.draggingEntityType, originalRow, originalCol);
+      this.draggingEntityType = null;
+    }
+  },
+
+  handlePathMode(e, filteredWaypoints) {
+    const pathColor = this.carjanState.selectedPath.color || "#000";
+
+    e.target.style.transition =
+      "transform 0.5s ease, color 0.2s ease, textshadow 0.2 ease";
+    e.target.style.color = htmlSafe(pathColor);
+    e.target.style.transform = "scale(1.8)";
+
+    // Apply white shadow if the waypoint is in the middle-center position
+    if (e.target.getAttribute("data-position-in-cell") === "middle-center") {
+      e.target.style.textShadow = "0 0 5px white";
+    } else {
+      e.target.style.textShadow = "0 0 3px black";
+    }
+
+    this.pathIcons = this.pathIcons || [];
+    this.pathIcons.push(e.target);
   },
 
   applyTransform() {
@@ -1395,6 +1456,9 @@ export default Component.extend({
     }
     if (icons.length < 2) return;
 
+    if (!this.carjanState.selectedPath) {
+      return;
+    }
     const pathColor = this.carjanState.selectedPath.color || "#000";
     const points = icons.map((icon) => {
       const rect = icon.getBoundingClientRect();
@@ -1436,37 +1500,6 @@ export default Component.extend({
     pathElement.setAttribute("id", `${this.gridId}-pathline`);
 
     pathOverlay.appendChild(pathElement);
-  },
-
-  findNearestCell(mouseX, mouseY) {
-    let closestCell = null;
-    let minDistance = Infinity;
-
-    this.gridCells.forEach((cell) => {
-      const row = cell.row;
-      const col = cell.col;
-
-      const gridElement = this.element.querySelector(
-        `.grid-cell[data-row="${row}"][data-col="${col}"]`
-      );
-
-      if (gridElement) {
-        const rect = gridElement.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-
-        const distance = Math.sqrt(
-          Math.pow(centerX - mouseX, 2) + Math.pow(centerY - mouseY, 2)
-        );
-
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestCell = { row, col };
-        }
-      }
-    });
-
-    return closestCell;
   },
 
   onMouseDown(e) {
@@ -1533,7 +1566,9 @@ export default Component.extend({
         (agent) => agent.x.toString() === row && agent.y.toString() === col
       );
 
-      const agentIcon = targetCell.querySelector(".icon");
+      const agentIcon = targetCell.querySelector(
+        ".icon:not(.map.marker.alternate)"
+      );
 
       if (agentIcon) {
         if (agent && agent.followsPath && agent.followsPath !== "null") {

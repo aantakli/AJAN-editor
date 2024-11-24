@@ -17,7 +17,7 @@
 
         <div id="overlay" local-class="overlay" hidden></div>
 
-        <div local-class="column-numbers">
+        <div local-class="column-numbers" id="coordinateSystem">
           {{#each (range 0 this.gridCols) as |col|}}
             <div local-class="col-number">{{col}}</div>
           {{/each}}

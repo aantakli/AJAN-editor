@@ -320,9 +320,9 @@ export default Component.extend({
             label: undefined,
             x: undefined,
             y: undefined,
-            heading: null,
+            heading: "North",
             followsPath: null,
-            model: null,
+            model: entityType === "Vehicle" ? "Audi - A2" : "pedestrian_0001",
             color: null,
           };
         }
@@ -408,6 +408,14 @@ export default Component.extend({
           predicate === "http://example.com/carla-scenario#color"
         ) {
           pathsMap[subject].color = object.replace(/^"|"$/g, "");
+        }
+      });
+
+      // für jede entität: wenn noch kein label dann einfach EntityXXYY
+      Object.keys(entitiesMap).forEach((entityURI) => {
+        const entity = entitiesMap[entityURI];
+        if (!entity.label) {
+          entity.label = entityURI.split("#")[1];
         }
       });
 

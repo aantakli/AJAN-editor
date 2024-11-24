@@ -133,6 +133,7 @@
   z-index: 10000;
   top: -30px;
   gap: 45px;
+  pointer-events: none;
 }
 
 .col-number {
@@ -150,6 +151,7 @@
   margin-right: 64px;
   gap: 20.5px;
   left: -50px;
+  pointer-events: none;
 }
 
 .row-number {

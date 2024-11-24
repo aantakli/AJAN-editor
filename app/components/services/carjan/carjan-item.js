@@ -176,7 +176,6 @@ export default Component.extend({
       const entityType = this.draggingEntityType
         ? this.draggingEntityType
         : event.dataTransfer.getData("text");
-      console.log("Entity type: ", entityType);
       if (row && col) {
         if (entityType === "waypoint") {
           this.addSingleWaypoint(row, col, "top-left").then(() => {
@@ -1685,6 +1684,7 @@ export default Component.extend({
     e.currentTarget.style.cursor = "default";
     this.isPanning = false;
     this.isDragging = false;
+    this.draggingEntityType = null;
     this.actions.removeBorder(e);
   },
 

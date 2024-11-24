@@ -39,6 +39,8 @@ export default Component.extend({
   isDisabled: computed("hasError", "isNameEmpty", function () {
     return this.hasError || this.isNameEmpty;
   }),
+  availableScenarios: null,
+  selectedScenario: null,
 
   async init() {
     this._super(...arguments);
@@ -50,6 +52,11 @@ export default Component.extend({
     if (this.mode !== "fileSelection") {
       this.loadGrid();
       await this.stopFlask();
+      const existingRepositoryContent = await this.downloadRepository();
+      const existingDataset = await this.parseTrig(existingRepositoryContent);
+      const scenarios = existingDataset.scenarios || [];
+      this.set("availableScenarios", scenarios);
+      console.log("Available scenarios:", scenarios);
     }
   },
 
@@ -663,8 +670,14 @@ export default Component.extend({
       });
     },
 
-    async uploadScenarioToGithub(scenarioName) {
+    async uploadScenarioToGithub() {
       try {
+        const scenarioName = this.carjanState.scenarioName;
+        if (!scenarioName) {
+          throw new Error("Scenario name is required.");
+        }
+
+        console.log("Uploading scenario to GitHub...", scenarioName);
         const trigContent = await this.downloadScenarioAsTrig(
           scenarioName,
           true,
@@ -684,6 +697,7 @@ export default Component.extend({
           }
         );
         const result = await response.json();
+        console.log("result:", result);
       } catch (error) {
         console.error("Error uploading scenario:", error);
       }

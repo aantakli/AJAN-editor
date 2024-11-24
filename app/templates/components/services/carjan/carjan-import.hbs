@@ -277,12 +277,40 @@
                         class="ui right labeled input"
                         style="margin-bottom: 1em;"
                       >
-                        <input
-                          type="text"
-                          placeholder="Enter file name"
-                          value={{fileName}}
-                        />
-                        <div class="ui label">.TriG</div>
+                        <div
+                          class="ui dropdown fluid search selection bt-selection"
+                          style="border-radius: 10px;"
+                          allowAdditions="false"
+                          sortSelected="true"
+                          id="scenarioDropdown"
+                        >
+                          <i
+                            class="folder open outline icon"
+                            local-class="icon-bright"
+                          ></i>
+                          <div class="text">
+                            {{#if this.carjanState.scenarioName}}
+                              {{this.carjanState.scenarioName}}
+                            {{else}}
+                              <div class="default text">Select a Scenario</div>
+                            {{/if}}
+                          </div>
+                          <div class="menu">
+                            {{#each
+                              carjanState.repository.scenarios
+                              as |scenario|
+                            }}
+                              <div
+                                {{action "scenarioSelected" scenario}}
+                                class="item"
+                                data-value="{{scenario.displayName}}"
+                              >
+                                {{scenario.displayName}}
+                              </div>
+                            {{/each}}
+                          </div>
+                        </div>
+
                       </div>
                       <h1></h1>
                       <div

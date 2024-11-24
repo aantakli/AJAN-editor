@@ -184,6 +184,13 @@ export default Component.extend({
             this.draggingEntityType = null;
             return;
           });
+        } else if (
+          (entityType === "vehicle" || entityType === "autonomous") &&
+          targetCellStatus.sidewalk
+        ) {
+          console.log("Cannot place vehicle on sidewalk");
+          this.recoverEntity();
+          return;
         } else {
           if (this.isDragging) {
             this.moveEntityState(row, col);
@@ -350,9 +357,6 @@ export default Component.extend({
             newWaypoint.positionInCell === prevWaypoint.positionInCell
         )
     );
-
-    console.log("Added waypoints: ", addedWaypoints);
-    console.log("Removed waypoints: ", removedWaypoints);
 
     // Update grid for added waypoints
     addedWaypoints.forEach((waypoint) => {
@@ -1028,12 +1032,14 @@ export default Component.extend({
     for (let row = 0; row < this.gridRows; row++) {
       for (let col = 0; col < this.gridCols; col++) {
         let color = this.colors.void;
+        let isSidewalk = false;
         if (map && map[row] && map[row][col]) {
           const cellType = map[row][col];
           if (cellType === "r") {
             color = this.colors.road;
           } else if (cellType === "p") {
             color = this.colors.path;
+            isSidewalk = true;
           }
         }
 
@@ -1041,11 +1047,13 @@ export default Component.extend({
           status[`${row},${col}`] = {
             occupied: true,
             entityType: "void",
+            sidewalk: isSidewalk,
           };
         } else {
           status[`${row},${col}`] = {
             occupied: false,
             entityType: null,
+            sidewalk: isSidewalk,
           };
         }
 
@@ -1067,14 +1075,13 @@ export default Component.extend({
               gridElement.style.backgroundColor = colors[`${row},${col}`];
               gridElement.style.height = `${this.cellHeight}px`;
               gridElement.style.width = `${this.cellWidth}px`;
-
               const currentStatus = this.gridStatus[`${row},${col}`];
-
               gridElement.setAttribute("data-occupied", currentStatus.occupied);
               gridElement.setAttribute(
                 "data-entityType",
                 currentStatus.entityType
               );
+              gridElement.setAttribute("data-sidewalk", currentStatus.sidewalk);
             }
           }
         }
@@ -1159,10 +1166,8 @@ export default Component.extend({
       const gridElement = this.element.querySelector(
         `.grid-cell[data-row="${row}"][data-col="${col}"]`
       );
-      console.log("gridElement", gridElement);
       if (gridElement) {
         let cellStatus = this.gridStatus[`${row},${col}`] || { waypoints: [] };
-        console.log(cellStatus);
         if (cellStatus.entityType === "void") {
           cellStatus.entityType = null;
         }

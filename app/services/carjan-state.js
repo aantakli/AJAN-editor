@@ -156,7 +156,6 @@ export default Service.extend({
   },
 
   setWaypoints(waypoints) {
-    console.log("Setting waypoints to: ", waypoints);
     set(this, "waypoints", waypoints);
   },
 

@@ -315,7 +315,7 @@ export default Component.extend({
   }),
 
   pathModeObserver: observer("carjanState.pathMode", function () {
-    if (this.carjanState.pathMode) {
+    if (this.carjanState.pathMode && this.mode === "path") {
       this.setupGrid(this.carjanState.mapData, this.carjanState.agentData);
       const cameraIcon = document.getElementById("cameraIcon");
       if (cameraIcon) {

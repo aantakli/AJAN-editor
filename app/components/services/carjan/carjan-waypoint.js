@@ -195,6 +195,8 @@ export default Component.extend({
       };
       this.carjanState.set("currentCellPosition", [x, y]);
       this.carjanState.set("currentCellStatus", cellStatus);
+
+      this.carjanState.set("properties", "scenario");
       this.carjanState.set("properties", "waypoint");
     },
 

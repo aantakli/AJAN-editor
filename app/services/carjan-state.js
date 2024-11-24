@@ -60,6 +60,7 @@ export default Service.extend({
   },
 
   setPathColor(color) {
+    console.log("state color changed", color);
     set(this.selectedPath, "color", color);
   },
 

@@ -94,7 +94,7 @@
 
         </div>
         <!-- Terminal Log -->
-        <div class="ui segment log-terminal">
+        <!--<div class="ui segment log-terminal">
           <label style="color: black">
             <i class="icon terminal"></i>
             Carla Connection Server</label>
@@ -111,12 +111,20 @@
               {{/each}}
             </div>
           </div>
-        </div>
+        </div> -->
+        <iframe
+          id="carla-iframe"
+          src={{iFrameSrc}}
+          width="100%"
+          height="600px"
+          frameborder="0"
+          allowfullscreen
+        ></iframe>
       </div>
       <div class="actions">
         <button
           class="ui green button"
-          {{action "startSimulation"}}
+          {{action "createAjanAgents"}}
           disabled={{not
             (and
               (eq step1Status "completed")

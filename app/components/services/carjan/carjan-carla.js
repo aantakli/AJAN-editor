@@ -15,6 +15,14 @@ export default Component.extend({
   step3Status: "idle",
   logs: [],
   autoScrollEnabled: true,
+  iFrameSrc: "",
+
+  // Beobachter für den Schritt 3-Status
+  step3StatusObserver: observer("carjanState.step3Status", function () {
+    setTimeout(() => {
+      this.createAjanAgents();
+    }, 300);
+  }),
 
   didRender() {
     this._super(...arguments);
@@ -175,6 +183,139 @@ export default Component.extend({
   loadScenario() {
     this.set("step3Status", "loading");
     this.carjanState.setUploadScenarioToCarla(true);
+  },
+
+  convertBehaviorURI(behaviorURI, agentName) {
+    return behaviorURI.replace(
+      "http://localhost:8090/rdf4j/repositories/agents#",
+      `http://localhost:8080/ajan/agents/${agentName}/behaviors/`
+    );
+  },
+
+  async createAjanAgents() {
+    this.set("step4Status", "loading");
+    this.set("errorMessage", "");
+    try {
+      const entities = this.carjanState.agentData;
+      console.log("Entities:", entities);
+
+      for (const entity of entities) {
+        const agentName = entity.label;
+        const repoUri = `http://localhost:8090/rdf4j/repositories/${agentName}`;
+        const agent = await this.downloadAgent(agentName);
+        const agentTemplate = this.extractAgentTemplate(agent);
+        const agentsRepo = await this.downloadAgentsRepo(agentTemplate);
+        const behavior = this.extractBehaviorUri(agentsRepo);
+        const behaviorUri = this.convertBehaviorURI(behavior, agentName);
+
+        const src = `http://localhost:4200/editor/behaviors?wssConnection=true&agent=${agentName}&repo=${repoUri}&bt=${behaviorUri}`;
+
+        console.log("Creating AJAN agents for", agentName);
+        console.log("Repo URI:", repoUri);
+        console.log("Behavior URI:", behaviorUri);
+        console.log("Agent Template:", agentTemplate);
+        console.log("=== src:", src);
+
+        this.set("iFrameSrc", src);
+        console.log("this.iFrameSrc:", this.iFrameSrc);
+      }
+      this.set("step4Status", "completed");
+      // Fügen Sie das Stylesheet hinzu, sobald das iFrame geladen ist
+      // Fügen Sie das Stylesheet hinzu, sobald das iFrame geladen ist
+      next(() => {
+        const iframe = document.getElementById("carla-iframe");
+        if (iframe) {
+          console.log("iFrame found", iframe);
+          iframe.onload = () => {
+            setTimeout(() => {
+              const iframeDocument =
+                iframe.contentDocument || iframe.contentWindow.document;
+              const style = iframeDocument.createElement("style");
+              style.type = "text/css";
+              style.innerHTML = `
+              .split-left, .split-right {
+                display: none !important;
+              }
+              .split-middle {
+                width: 100% !important;
+              }
+            `;
+              iframeDocument.head.appendChild(style);
+              console.log("Stylesheet added to iFrame");
+            }, 1000); // Verzögerung von 1 Sekunde
+          };
+        } else {
+          console.error("iFrame not found");
+        }
+      });
+    } catch (error) {
+      this.set("step4Status", "error");
+      console.error("Failed to create AJAN agents:", error);
+    }
+  },
+
+  async downloadAgent(agentName) {
+    const repoURL = `http://localhost:8090/rdf4j/repositories/${agentName}/statements`;
+    const headers = {
+      Accept: "application/ld+json; charset=utf-8",
+    };
+
+    try {
+      const response = await fetch(repoURL, { headers });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("data:", data);
+      return data;
+    } catch (error) {
+      console.error("Failed to download repository:", error);
+    }
+  },
+
+  async downloadAgentsRepo() {
+    const repoURL = `http://localhost:8090/rdf4j/repositories/agents/statements`;
+    const headers = {
+      Accept: "application/ld+json; charset=utf-8",
+    };
+
+    try {
+      const response = await fetch(repoURL, { headers });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("data:", data);
+      return data;
+    } catch (error) {
+      console.error("Failed to download repository:", error);
+    }
+  },
+
+  extractAgentTemplate(data) {
+    for (const item of data) {
+      if (item["http://www.ajan.de/ajan-ns#agentTemplate"]) {
+        const agentTemplate =
+          item["http://www.ajan.de/ajan-ns#agentTemplate"][0]["@id"];
+        return agentTemplate;
+      }
+    }
+    return null;
+  },
+
+  extractBehaviorUri(agentsRepo) {
+    for (const item of agentsRepo) {
+      if (item["http://www.ajan.de/ajan-ns#behavior"]) {
+        const behaviorUri =
+          item["http://www.ajan.de/ajan-ns#behavior"][0]["@id"];
+        return behaviorUri;
+      }
+    }
+    return null;
   },
 
   actions: {

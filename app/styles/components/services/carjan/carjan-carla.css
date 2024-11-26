@@ -76,3 +76,23 @@
 .log-terminal .log-info {
   color: white;
 }
+
+.iframe-container {
+  overflow: hidden;
+  width: 50%;
+  height: 50%;
+  position: relative;
+}
+
+.carla-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 150%;
+  height: 150%;
+  aspect-ratio: 21 / 9;
+}
+
+.carla-iframe {
+  aspect-ratio: 21 / 9;
+}

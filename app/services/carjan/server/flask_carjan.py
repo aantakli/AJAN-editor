@@ -26,6 +26,8 @@ import multiprocessing
 # import keyboard
 from helpers import hex_to_rgb, cubic_bezier_curve, get_direction, parse_agents
 from jumping import make_pedestrian_jump
+from bs4 import BeautifulSoup
+
 
 app = Flask(__name__)
 
@@ -1519,6 +1521,25 @@ def destroy_actors():
         print(f"Error in destroy_actors: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/proxy', methods=['GET'])
+def proxy():
+    target_url = request.args.get('url')
+    if not target_url:
+        return "Missing URL parameter", 400
+
+    # Request the target page
+    response = requests.get(target_url)
+    if response.status_code != 200:
+        return f"Failed to fetch {target_url}", response.status_code
+
+    # Parse the content and extract the desired div
+    soup = BeautifulSoup(response.text, 'html.parser')
+    split_middle = soup.find(id="split-middle")
+    if split_middle is None:
+        return "Div with ID 'split-middle' not found", 404
+
+    # Return the extracted content
+    return Response(str(split_middle), content_type='text/html')
 
 if __name__ == '__main__':
     app.run(host="127.0.0.1", port=5000)

@@ -4,7 +4,6 @@ import { next } from "@ember/runloop";
 import { observer } from "@ember/object";
 
 export default Component.extend({
-  websockets: service(),
   carjanState: service(),
   carlaPath: "",
   errorMessage: "",
@@ -42,19 +41,13 @@ export default Component.extend({
 
   didInsertElement() {
     this._super(...arguments);
-
-    // WebSocket initialisieren
-    const socket = this.websockets.socketFor("ws://localhost:4204");
-    socket.on("message", this.handleLogMessage, this);
-  },
-
-  willDestroyElement() {
-    const socket = this.websockets.socketFor("ws://localhost:4204");
-    socket.off("message", this.handleLogMessage, this);
-    window.removeEventListener(
-      "beforeunload",
-      this.handleBeforeUnload.bind(this)
-    );
+    this.setupTabs();
+    next(() => {
+      this.$(".menu .item").tab({
+        transition: "fade",
+        duration: 300,
+      });
+    });
   },
 
   handleLogMessage(event) {
@@ -199,55 +192,91 @@ export default Component.extend({
       const entities = this.carjanState.agentData;
       console.log("Entities:", entities);
 
-      for (const entity of entities) {
+      entities.forEach((entity, index) => {
         const agentName = entity.label;
         const repoUri = `http://localhost:8090/rdf4j/repositories/${agentName}`;
-        const agent = await this.downloadAgent(agentName);
-        const agentTemplate = this.extractAgentTemplate(agent);
-        const agentsRepo = await this.downloadAgentsRepo(agentTemplate);
-        const behavior = this.extractBehaviorUri(agentsRepo);
-        const behaviorUri = this.convertBehaviorURI(behavior, agentName);
 
-        const src = `http://localhost:4200/editor/behaviors?wssConnection=true&agent=${agentName}&repo=${repoUri}&bt=${behaviorUri}`;
+        // Lade die Agenten-Daten und berechne die SRC-URL
+        this.downloadAgent(agentName)
+          .then(async (agent) => {
+            const agentTemplate = this.extractAgentTemplate(agent);
+            const agentsRepo = await this.downloadAgentsRepo(agentTemplate);
+            const behavior = this.extractBehaviorUri(agentsRepo);
+            const behaviorUri = this.convertBehaviorURI(behavior, agentName);
 
-        console.log("Creating AJAN agents for", agentName);
-        console.log("Repo URI:", repoUri);
-        console.log("Behavior URI:", behaviorUri);
-        console.log("Agent Template:", agentTemplate);
-        console.log("=== src:", src);
+            const src = `http://localhost:4200/editor/behaviors?wssConnection=true&agent=${agentName}&repo=${repoUri}&bt=${behaviorUri}#split-middle`;
 
-        this.set("iFrameSrc", src);
-        console.log("this.iFrameSrc:", this.iFrameSrc);
-      }
-      this.set("step4Status", "completed");
-      // Fügen Sie das Stylesheet hinzu, sobald das iFrame geladen ist
-      // Fügen Sie das Stylesheet hinzu, sobald das iFrame geladen ist
-      next(() => {
-        const iframe = document.getElementById("carla-iframe");
-        if (iframe) {
-          console.log("iFrame found", iframe);
-          iframe.onload = () => {
-            setTimeout(() => {
-              const iframeDocument =
-                iframe.contentDocument || iframe.contentWindow.document;
-              const style = iframeDocument.createElement("style");
-              style.type = "text/css";
-              style.innerHTML = `
-              .split-left, .split-right {
-                display: none !important;
-              }
-              .split-middle {
-                width: 100% !important;
-              }
-            `;
-              iframeDocument.head.appendChild(style);
-              console.log("Stylesheet added to iFrame");
-            }, 1000); // Verzögerung von 1 Sekunde
-          };
-        } else {
-          console.error("iFrame not found");
-        }
+            console.log(`Agent: ${agentName}, SRC: ${src}`);
+
+            // Setze den src-Wert im Agent-Daten-Objekt
+            this.carjanState.agentData[index].iFrameSrc = src;
+
+            // Finde das entsprechende iFrame und wende die SRC an
+            const iframeId = `carla-iframe-${index}`;
+            const iframe = document.getElementById(iframeId);
+            if (iframe) {
+              iframe.src = src; // Setze die SRC-URL
+              console.log(`iFrame ${iframeId} src set to ${src}`);
+              iframe.onload = () => {
+                console.log(`iFrame ${iframeId} loaded`);
+
+                setTimeout(() => {
+                  try {
+                    const iframeDocument =
+                      iframe.contentDocument || iframe.contentWindow.document;
+                    if (!iframeDocument) {
+                      console.error(
+                        `iframeDocument for ${iframeId} not accessible`
+                      );
+                      return;
+                    }
+
+                    // Finde #split-middle und setze es als einzigen Inhalt des Body
+                    const splitMiddle =
+                      iframeDocument.getElementById("split-middle");
+                    if (splitMiddle) {
+                      // Entferne alle Inhalte im Body des iFrame
+                      iframeDocument.body.innerHTML = "";
+                      // Füge nur #split-middle in den Body ein
+                      iframeDocument.body.appendChild(splitMiddle);
+
+                      // Passe die Größe von #split-middle an
+                      splitMiddle.style.width = "100%";
+                      splitMiddle.style.height = "100%";
+
+                      console.log(`split-middle rendered for ${iframeId}`);
+                    } else {
+                      console.error(
+                        `Element 'split-middle' not found in ${iframeId}`
+                      );
+                    }
+
+                    // Manuelles Triggern eines resize-Events für die iFrame-Anwendung
+                    const iframeWindow = iframe.contentWindow;
+                    if (iframeWindow) {
+                      iframeWindow.dispatchEvent(new Event("resize"));
+                      console.log("Manually triggered resize event for iFrame");
+                    } else {
+                      console.error(
+                        "iframeWindow not accessible for resize event."
+                      );
+                    }
+                    this.setupTabs();
+                  } catch (e) {
+                    console.error(`Error accessing content of ${iframeId}:`, e);
+                  }
+                }, 1000);
+              };
+            } else {
+              console.error(`iFrame ${iframeId} not found`);
+            }
+          })
+          .catch((error) => {
+            console.error(`Error processing agent ${agentName}:`, error);
+          });
       });
+
+      this.set("step4Status", "completed");
     } catch (error) {
       this.set("step4Status", "error");
       console.error("Failed to create AJAN agents:", error);
@@ -318,6 +347,12 @@ export default Component.extend({
     return null;
   },
 
+  setupTabs() {
+    $(document).ready(function () {
+      $(".menu .item").tab();
+    });
+  },
+
   actions: {
     async handleStartCarla() {
       await this.stopFlask();
@@ -348,6 +383,7 @@ export default Component.extend({
         logs: [], // Leeren der Logs bei neuer Sitzung
       });
       this.startFlask();
+      // this.createAjanAgents();
       next(() => {
         this.$(".ui.basic.modal")
           .modal({

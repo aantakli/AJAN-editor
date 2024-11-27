@@ -1,3 +1,4 @@
+from http import client
 import sys
 from webbrowser import get
 
@@ -350,9 +351,9 @@ def get_carla_location_from_waypoint(waypoint):
     return waypoint_location
 
 def load_paths(paths, entities, show_paths):
-    global carla_client, world, anchor_point
+    global carla_client, anchor_point
     cell_width = 4.0  # Einheitsgröße für die Breite der Zellen
-
+    world = carla_client.get_world()
     follows_paths = set()
     for entity in entities:
         if isinstance(entity.get('followsPath', None), str):
@@ -441,7 +442,8 @@ def load_paths(paths, entities, show_paths):
 # ! Loaders
 
 def load_grid(grid_width=12, grid_height=12, cw=5, ch=5):
-    global carla_client, world, anchor_point
+    global carla_client, anchor_point
+    world = carla_client.get_world()
     try:
         carla_client.set_timeout(10.0)
         cell_width = cw*0.8
@@ -518,7 +520,8 @@ def load_world(weather, camera_position):
         return False
 
 def load_entities(entities, paths):
-    global world, anchor_point, actor_list, pathsPerEntity
+    global carla_client, anchor_point, actor_list, pathsPerEntity
+    world = carla_client.get_world()
     blueprint_library = world.get_blueprint_library()
     cell_width = 4.0  # Einheitsgröße für die Breite der Zellen
     cell_height = 4.0  # Einheitsgröße für die Höhe der Zellen
@@ -671,7 +674,7 @@ def load_entities(entities, paths):
     print(f"Pfade pro Entity: {pathsPerEntity}")
 
 def load_camera(camera_position):
-    global world, anchor_point
+    global carla_client, anchor_point
     """
     Setzt die Kameraposition relativ zum gegebenen anchor_point.
 
@@ -679,6 +682,7 @@ def load_camera(camera_position):
     :param anchor_point: Der global definierte Ankerpunkt als carla.Location
     :param camera_position: Die gewünschte Kameraposition ('up', 'down', 'left', 'right', 'birdseye')
     """
+    world = carla_client.get_world()
     spectator = world.get_spectator()
 
     base_location = anchor_point
@@ -711,7 +715,8 @@ def load_camera(camera_position):
     print(f"Camera set to {camera_position} position: {new_location} with rotation: {rotation}")
 
 def unload_stuff():
-    global world
+    global carla_client
+    world = carla_client.get_world()
     unloadList = [
             carla.MapLayer.NONE,
             carla.MapLayer.Buildings,
@@ -730,7 +735,8 @@ def unload_stuff():
         world.unload_map_layer(layer)
 
     def disable_specific_objects():
-        global world
+        global carla_client
+        world = carla_client.get_world()
         # Deaktivieren der entsprechenden Objektkategorien
         object_labels = [
             carla.CityObjectLabel.Other,  # Dies könnte Bushaltestellen, Mülleimer, usw. umfassen

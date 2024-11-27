@@ -80,7 +80,7 @@
 .iframe-container {
   overflow: hidden;
   width: 50%;
-  height: 50%;
+  height: 75%;
   position: relative;
 }
 
@@ -90,9 +90,18 @@
   left: 0;
   width: 150%;
   height: 150%;
-  aspect-ratio: 21 / 9;
+  aspect-ratio: 16 / 9;
 }
 
-.carla-iframe {
-  aspect-ratio: 21 / 9;
+.terminal-sidebar {
+  z-index: 1100 !important; /* Über dem Dimmer */
+  right: 20%; /* Schneidet 20% rechts ab */
+  height: 25% !important;
+  width: 50% !important;
+  left: 25% !important;
+  overflow: hidden;
+}
+
+.push {
+  margin-top: 25%;
 }

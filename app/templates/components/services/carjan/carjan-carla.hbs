@@ -27,19 +27,40 @@
 {{#if isDialogOpen}}
   <div class="ui dimmer modals page">
     <div
-      class="ui fullscreen basic modal transition"
+      class="ui fullscreen long basic modal transition"
       local-class="center-modal"
     >
-      <div class="header">
-        <i class="icon cogs"></i>
-        Starting Services
-      </div>
+
       <div class="content">
         <div class="ui three column grid">
           <div class="column">
-            <!-- Content for the first column -->
+            <!-- Terminal Log -->
+            <div class="ui segment log-terminal">
+              <label style="color: black">
+                <i class="icon terminal"></i>
+                Carla Connection Server</label>
+              <div
+                class="ui inverted segment"
+                id="carla-terminal"
+                style="height: 200px; overflow-y: auto;"
+              >
+                <div class="ui relaxed divided list">
+                  {{#each logs as |log|}}
+                    <div class="item">
+                      {{{log}}}
+                    </div>
+                  {{/each}}
+                </div>
+              </div>
+            </div>
           </div>
           <div class="column">
+            <div class="header" local-class="center-modal">
+              <h1>
+                <i class="icon cogs"></i>
+                <b>Starting Services</b>
+              </h1>
+            </div>
             <!-- Content for the second column -->
             <div local-class="stepper">
               <!-- Step 1: Starting Flask -->
@@ -102,7 +123,7 @@
                 <span>Loading Scenario</span>
               </div>
             </div>
-            <div class="actions">
+            <div class="actions" local-class="center-modal">
               <button
                 class="ui green button"
                 {{action "startSimulation"}}
@@ -130,46 +151,61 @@
           <div class="column">
             <!-- Content for the third column -->
             <!-- Semantic UI Tabs -->
+
             {{#if (eq carjanState.step3Status "completed")}}
-              <div
-                class="ui top attached tabular menu"
-                style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px 5px 0 0;"
-              >
+              <div class="ui placeholder segment">
+                <h2 class="header" style="color: black">
+                  <i class="icon share alternate"></i>
+                  Live Behavior
+                </h2>
+                <div
+                  class="ui top attached tabular menu"
+                  style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px 5px 0 0;"
+                >
+                  {{#each carjanState.agentData as |agent index|}}
+                    <a
+                      class="item {{if (eq index 0) 'active'}}"
+                      data-tab="tab-{{index}}"
+                      style="font-weight: bold;"
+                    >
+                      {{agent.label}}
+                    </a>
+                  {{/each}}
+                </div>
                 {{#each carjanState.agentData as |agent index|}}
-                  <a
-                    class="item {{if (eq index 0) 'active'}}"
+                  <div
+                    class="ui bottom attached tab segment
+                      {{if (eq index 0) 'active'}}
+                      iframe-container"
                     data-tab="tab-{{index}}"
-                    style="font-weight: bold;"
                   >
-                    {{agent.label}}
-                  </a>
+                    {{#if this.reloadFlag}}
+                      <p></p>
+                      <div
+                        class="ui active inverted dimmer"
+                        id="loading"
+                        style="background-color: rgba(255, 255, 255, 1);"
+                      >
+                        <div class="ui medium text loader">Loading Live Behavior</div>
+                      </div>
+                    {{/if}}
+                    <iframe
+                      id="carla-iframe-{{index}}"
+                      src=""
+                      width="100%"
+                      height="auto"
+                      frameborder="0"
+                      allowfullscreen
+                      sandbox="allow-scripts allow-same-origin"
+                      class="carla-iframe"
+                    />
+                  </div>
                 {{/each}}
               </div>
-              {{#each carjanState.agentData as |agent index|}}
-                <div
-                  class="ui bottom attached tab segment
-                    {{if (eq index 0) 'active'}}
-                    iframe-container"
-                  data-tab="tab-{{index}}"
-                >
-                  <iframe
-                    id="carla-iframe-{{index}}"
-                    src=""
-                    width="100%"
-                    height="600px"
-                    frameborder="0"
-                    allowfullscreen
-                    class="carla-iframe"
-                  ></iframe>
-                </div>
-              {{/each}}
-
             {{/if}}
           </div>
         </div>
-
       </div>
-
     </div>
   </div>
 {{/if}}

@@ -20,7 +20,7 @@
   <img
     src="/assets/carjan/carjan-maps/images/carla.png"
     alt="Carla"
-    local-class="carla-image"
+    local-class="carla-image-normal"
   />
 </div>
 
@@ -29,41 +29,25 @@
     <div
       class="ui fullscreen long basic modal transition"
       local-class="center-modal"
+      style="padding-top: 5%;"
     >
 
       <div class="content">
         <div class="ui three column grid">
           <div class="column">
-            <!-- Terminal Log -->
-            <div class="ui segment log-terminal">
-              <label style="color: black">
-                <i class="icon terminal"></i>
-                Carla Connection Server</label>
-              <div
-                class="ui inverted segment"
-                id="carla-terminal"
-                style="height: 200px; overflow-y: auto;"
-              >
-                <div class="ui relaxed divided list">
-                  {{#each logs as |log|}}
-                    <div class="item">
-                      {{{log}}}
-                    </div>
-                  {{/each}}
-                </div>
-              </div>
-            </div>
+
           </div>
           <div class="column">
             <div class="header" local-class="center-modal">
               <h1>
                 <i class="icon cogs"></i>
-                <b>Starting Services</b>
+                <b>CARLA Simulation Pipeline</b>
               </h1>
             </div>
             <!-- Content for the second column -->
-            <div local-class="stepper">
+            <div local-class="stepper" style="margin-top: 5%;">
               <!-- Step 1: Starting Flask -->
+
               <div local-class="step">
                 {{#if (eq step1Status "loading")}}
                   <div class="ui active inline loader"></div>
@@ -74,7 +58,10 @@
                 {{else if (eq step1Status "idle")}}
                   <i class="ellipsis horizontal icon"></i>
                 {{/if}}
-                <span>Starting Flask</span>
+                <div style="margin-top: 5%;">
+                  <i class="flask icon"></i>
+                  Starting Flask
+                </div>
               </div>
 
               <!-- Step 2: Starting CARLA -->
@@ -106,7 +93,15 @@
                     Retry
                   </button>
                 {{/if}}
-                <span>Starting Carla</span>
+                <div local-class="carla-row">
+                  <img
+                    src="/assets/carjan/carjan-maps/images/carla.png"
+                    alt="Carla"
+                    local-class="carla-image"
+                  />
+                  Starting Carla
+                </div>
+
               </div>
 
               <!-- Step 3: Loading Scenario -->
@@ -120,12 +115,19 @@
                 {{else if (eq carjanState.step3Status "error")}}
                   <i class="exclamation triangle orange icon"></i>
                 {{/if}}
-                <span>Loading Scenario</span>
+                <div style="margin-top: 5%;">
+                  <i class="icon outline map"></i>
+                  Loading Scenario
+                </div>
               </div>
             </div>
-            <div class="actions" local-class="center-modal">
+            <div
+              class="actions"
+              local-class="center-modal"
+              style="display: flex; justify-content: center; margin-top: 5%;"
+            >
               <button
-                class="ui green button"
+                class="ui big green button"
                 {{action "startSimulation"}}
                 disabled={{not
                   (and
@@ -136,10 +138,10 @@
                 }}
               >
                 <i class="play icon"></i>
-                Start Simulation
+                Start CARLA Simulation
               </button>
               <button
-                class="ui red cancel button"
+                class="ui big red cancel button"
                 {{action "closeCarlaDialog"}}
               >
                 <i class="icon x"></i>
@@ -150,61 +152,135 @@
 
           <div class="column">
             <!-- Content for the third column -->
-            <!-- Semantic UI Tabs -->
 
-            {{#if (eq carjanState.step3Status "completed")}}
-              <div class="ui placeholder segment">
-                <h2 class="header" style="color: black">
-                  <i class="icon share alternate"></i>
-                  Live Behavior
-                </h2>
-                <div
-                  class="ui top attached tabular menu"
-                  style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px 5px 0 0;"
-                >
-                  {{#each carjanState.agentData as |agent index|}}
-                    <a
-                      class="item {{if (eq index 0) 'active'}}"
-                      data-tab="tab-{{index}}"
-                      style="font-weight: bold;"
-                    >
-                      {{agent.label}}
-                    </a>
-                  {{/each}}
-                </div>
-                {{#each carjanState.agentData as |agent index|}}
-                  <div
-                    class="ui bottom attached tab segment
-                      {{if (eq index 0) 'active'}}
-                      iframe-container"
-                    data-tab="tab-{{index}}"
-                  >
-                    {{#if this.reloadFlag}}
-                      <p></p>
-                      <div
-                        class="ui active inverted dimmer"
-                        id="loading"
-                        style="background-color: rgba(255, 255, 255, 1);"
-                      >
-                        <div class="ui medium text loader">Loading Live Behavior</div>
-                      </div>
-                    {{/if}}
-                    <iframe
-                      id="carla-iframe-{{index}}"
-                      src=""
-                      width="100%"
-                      height="auto"
-                      frameborder="0"
-                      allowfullscreen
-                      sandbox="allow-scripts allow-same-origin"
-                      class="carla-iframe"
-                    />
+          </div>
+        </div>
+        {{#if
+          (or
+            (eq carjanState.step3Status "idle")
+            (eq carjanState.step3Status "loading")
+          )
+        }}
+          <!-- Terminal Log -->
+          <div
+            class="ui segment inverted"
+            style="margin-top: 10%"
+            local-class="log-terminal"
+          >
+            <label style="color: white">
+              <i class="icon terminal"></i>
+              Carla Connection Server</label>
+            <div
+              class="ui inverted segment"
+              id="carla-terminal"
+              style="height: 500px; overflow-y: auto;"
+            >
+              <div class="ui relaxed divided list">
+                {{#each logs as |log|}}
+                  <div class="item">
+                    {{{log}}}
                   </div>
                 {{/each}}
               </div>
-            {{/if}}
+            </div>
           </div>
-        </div>
+        {{/if}}
+
+        <!-- Semantic UI Tabs -->
+        {{#if (eq carjanState.step3Status "completed")}}
+          <div
+            class="ui placeholder segment"
+            style="margin-top: 5%; padding: 2%; margin-left: 10%;"
+          >
+            <h3 class="header" style="color: black">
+              <i class="icon green code branch"></i>
+              <b>Live</b>
+              Behavior
+            </h3>
+            <div
+              class="ui top attached tabular menu"
+              style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px 5px 0 0;"
+            >
+              {{#each carjanState.agentData as |agent index|}}
+                <a
+                  class="item {{if (eq index 0) 'active'}}"
+                  data-tab="tab-{{index}}"
+                  style="font-weight: bold;"
+                >
+                  <i class="icon green wifi"></i>
+                  {{agent.label}}
+                </a>
+              {{/each}}
+
+              <!-- Terminal Tab -->
+              <a
+                class="item inverted"
+                data-tab="tab-terminal"
+                style="font-weight: bold;"
+              >
+                <i class="icon terminal"></i>
+                Terminal
+              </a>
+            </div>
+
+            <!-- Live Behavior Tabs -->
+            {{#each carjanState.agentData as |agent index|}}
+              <div
+                class="ui bottom attached tab segment
+                  {{if (eq index 0) 'active'}}
+                  iframe-container"
+                data-tab="tab-{{index}}"
+                style="min-height: 30rem"
+              >
+                {{#if this.reloadFlag}}
+                  <p></p>
+                  <div
+                    class="ui active inverted dimmer"
+                    id="loading"
+                    style="background-color: rgba(255, 255, 255, 1);"
+                  >
+                    <div class="ui medium text loader">Loading Live Behavior</div>
+                  </div>
+                {{/if}}
+                <iframe
+                  id="carla-iframe-{{index}}"
+                  src=""
+                  width="100%"
+                  height="100%"
+                  frameborder="0"
+                  allowfullscreen
+                  sandbox="allow-scripts allow-same-origin"
+                  class="carla-iframe"
+                />
+              </div>
+            {{/each}}
+
+            <!-- Terminal Tab Content -->
+            <div
+              class="ui bottom attached tab inverted segment"
+              data-tab="tab-terminal"
+              style="min-height: 30rem"
+            >
+              <label style="color: whitesmoke">
+                <i class="icon terminal"></i>
+                Carla Connection Server</label>
+              <div
+                class="ui inverted segment"
+                id="carla-terminal"
+                style="height: 500px; overflow-y: auto;"
+              >
+                <div class="ui relaxed divided list">
+                  {{#each logs as |log|}}
+                    <div class="item">
+                      {{{log}}}
+                    </div>
+                  {{/each}}
+                </div>
+              </div>
+            </div>
+          </div>
+        {{/if}}
+
       </div>
     </div>
   </div>

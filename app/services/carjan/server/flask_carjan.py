@@ -161,14 +161,41 @@ def get_anchor_point(mapName):
         return carla.Location(x=240, y=57.5, z=0.1)
 
 def generate_agent_for_entity(entity):
-    agent_name = entity.get("label", "unknown")
-    result = generate_actor(agent_name)
+    """
+    Generates an agent for a given entity based on its behaviors.
 
+    :param entity: A dictionary representing the entity with at least "label" and optionally "behavior".
+    :return: The name of the agent if successful, None otherwise.
+    """
+    # Agent-Name aus Entity extrahieren
+    agent_name = entity.get("label", "unknown")
+    if not agent_name:
+        print("Entity does not have a valid label.")
+        return None
+
+    # Verhalten (Behaviors) dynamisch erkennen
+    behavior = entity.get("behavior")
+    if isinstance(behavior, str):
+        # Einzelnes Behavior in Liste umwandeln
+        behaviors = [behavior]
+    elif isinstance(behavior, list):
+        # Liste von Behaviors direkt übernehmen
+        behaviors = behavior
+    else:
+        # Kein gültiges Behavior angegeben
+        print(f"No valid behavior found for entity {entity['entity']}.")
+        return None
+
+    result = generate_actor(agent_name, behaviors)
+
+    # Erfolgsprüfung
     if result["status"] == "success":
+        print(f"Successfully generated agent '{agent_name}' with behaviors: {behaviors}")
         return agent_name
     else:
         print(f"Failed to generate AJAN agent for entity {entity['entity']}: {result['message']}")
         return None
+
 
 def get_carla_entity_by_ajan_id(ajan_entity_id):
     global actor_list

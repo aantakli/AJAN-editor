@@ -64,12 +64,14 @@ export default Component.extend({
     // Click-Event binden
     tabs.forEach((tab) => {
       tab.addEventListener("click", (event) => {
-        const tabName = event.target.getAttribute("data-tab"); // Tab-Namen abrufen
-        console.log("Tab geklickt:", tabName);
+        const tabLabel = tab.textContent.trim();
+        console.log("Tab geklickt:", tabLabel);
         this.set("reloadFlag", true);
-        // Tab-Index extrahieren (z.B. "tab-1" -> 1)
+
+        const tabName = event.target.getAttribute("data-tab");
         const index = tabName.replace("tab-", "");
-        this.updateIframeSrc(index).then(() => {
+        // Update mit tabLabel und Index
+        this.updateIframeSrc(tabLabel, index).then(() => {
           setTimeout(() => {
             this.set("reloadFlag", false);
           }, 1000);
@@ -80,29 +82,39 @@ export default Component.extend({
     console.log("Click-Listener erfolgreich an Tabs gebunden.");
   },
 
-  async updateIframeSrc(index) {
-    const agent = this.carjanState.agentData[index];
-    if (!agent) return;
+  async updateIframeSrc(tabLabel, tabIndex) {
+    // Finde den Agenten basierend auf dem Tab-Label
+    const agent = this.carjanState.agentData.find(
+      (entity) => entity.label === tabLabel
+    );
 
-    const agentName = agent.label;
+    if (!agent) {
+      console.error(`No agent found for tab label: ${tabLabel}`);
+      return;
+    }
+    const agentName = agent.label; // Agent-Name aus dem Label
     const repoUri = `http://localhost:8090/rdf4j/repositories/${agentName}`;
+    console.log("Agentname:", agentName);
     // Lade die Agenten-Daten und berechne die SRC-URL
     this.downloadAgent(agentName).then(async (agent) => {
       const agentTemplate = this.extractAgentTemplate(agent);
       const agentsRepo = await this.downloadAgentsRepo(agentTemplate);
-      const behavior = this.extractBehaviorUri(agentsRepo);
+      // const behavior = this.extractBehaviorUri(agentsRepo, tabLabel);
+      const behaviortree = await this.extractBehaviorUri(agentsRepo, tabLabel);
+      const behavior = await this.fetchBehaviorForBT(behaviortree);
+      console.log("Behavior:", behavior);
       const behaviorUri = this.convertBehaviorURI(behavior, agentName);
 
-      // Dynamische URL mit Zeitstempel, um Cache-Probleme zu vermeiden
-      const src = `http://localhost:4200/editor/behaviors?wssConnection=true&agent=${agentName}&repo=${repoUri}&bt=${behaviorUri}&t=${Date.now()}#split-middle`;
+      // SRC-URL generieren und iframe aktualisieren
+      const src = `http://localhost:4200/editor/behaviors?wssConnection=true&agent=${agentName}&repo=${repoUri}&bt=${behaviorUri}`;
+      const iframeId = `carla-iframe-${tabIndex}`;
+      const iframe = document.getElementById(iframeId);
 
-      // Update SRC des iFrames
-      const iframe = document.getElementById(`carla-iframe-${index}`);
       if (iframe) {
         iframe.src = src;
-        console.log(`Updated iFrame ${index} SRC to ${src}`);
+        console.log(`Updated iframe src for tab ${tabLabel}: ${src}`);
       } else {
-        console.error(`iFrame ${index} not found`);
+        console.error(`Iframe not found for tab label: ${tabLabel}`);
       }
     });
   },
@@ -247,6 +259,7 @@ export default Component.extend({
   },
 
   convertBehaviorURI(behaviorURI, agentName) {
+    console.log("Behavior URI to be replaced:", behaviorURI);
     return behaviorURI.replace(
       "http://localhost:8090/rdf4j/repositories/agents#",
       `http://localhost:8080/ajan/agents/${agentName}/behaviors/`
@@ -258,117 +271,110 @@ export default Component.extend({
     this.set("errorMessage", "");
 
     try {
-      setTimeout(() => {
-        const entities = this.carjanState.agentData;
-        console.log("Entities:", entities);
-        this.forEachEntity(entities).then(() => {
-          this.setupTabs();
-          this.setupTabClickListeners();
-          this.set("reloadFlag", false);
-          this.set("step4Status", "completed");
-          this.set("startupFlag", false);
-        }, 500);
-      });
+      const entities = this.carjanState.agentData;
+      console.log("Entities:", entities);
+
+      // Map über alle Entities, um die entsprechenden IFrames zu erstellen
+      const promises = entities.map((entity, index) =>
+        this.processEntity(entity, index)
+      );
+
+      // Warte, bis alle Entities verarbeitet wurden
+      await Promise.all(promises);
+
+      this.setupTabs();
+      this.setupTabClickListeners();
+
+      this.set("reloadFlag", true);
+      await this.updateIframeSrc(entities[0].label, 0);
+
+      this.set("reloadFlag", false);
+      this.set("step4Status", "completed");
+      this.set("startupFlag", false);
     } catch (error) {
       this.set("step4Status", "error");
       console.error("Failed to create AJAN agents:", error);
     }
   },
 
-  async forEachEntity(entities) {
-    entities.forEach((entity, index) => {
-      const agentName = entity.label;
-      const repoUri = `http://localhost:8090/rdf4j/repositories/${agentName}`;
+  async processEntity(entity, index) {
+    const agentName = entity.label;
+    const repoUri = `http://localhost:8090/rdf4j/repositories/${agentName}`;
+    const behaviorUri = entity.behavior;
 
-      // Lade die Agenten-Daten und berechne die SRC-URL
-      this.downloadAgent(agentName)
-        .then(async (agent) => {
-          const agentTemplate = this.extractAgentTemplate(agent);
-          const agentsRepo = await this.downloadAgentsRepo(agentTemplate);
-          const behavior = this.extractBehaviorUri(agentsRepo);
-          const behaviorUri = this.convertBehaviorURI(behavior, agentName);
+    if (!behaviorUri) {
+      console.warn(`Agent ${agentName} has no behavior assigned.`);
+      return;
+    }
 
-          const src = `http://localhost:4200/editor/behaviors?wssConnection=true&agent=${agentName}&repo=${repoUri}&bt=${behaviorUri}&t=${Date.now()}#split-middle`;
-          console.log(`Agent: ${agentName}, SRC: ${src}`);
+    // Konvertiere die Behavior-URI
+    const convertedBehaviorUri = this.convertBehaviorURI(
+      behaviorUri,
+      agentName
+    );
 
-          // Setze den src-Wert im Agent-Daten-Objekt
-          this.carjanState.agentData[index].iFrameSrc = src;
+    // Generiere die SRC-URL für den Behavior-Editor
+    const src = `http://localhost:4200/editor/behaviors?wssConnection=true&agent=${agentName}&repo=${repoUri}&bt=${convertedBehaviorUri}&t=${Date.now()}#split-middle`;
 
-          // Finde das entsprechende iFrame und wende die SRC an
-          const iframeId = `carla-iframe-${index}`;
-          const iframe = document.getElementById(iframeId);
-          if (iframe) {
-            iframe.src = src; // Setze die SRC-URL
-            console.log(`iFrame ${iframeId} src set to ${src}`);
-            iframe.onload = () => {
-              console.log(`iFrame ${iframeId} loaded`);
-              console.log("iFrame: ", iframe);
+    console.log(`Agent: ${agentName}, SRC: ${src}`);
+    console.log("extractBehaviorUri", behaviorUri);
 
-              setTimeout(() => {
-                try {
-                  const iframeDocument =
-                    iframe.contentDocument || iframe.contentWindow.document;
-                  if (!iframeDocument) {
-                    console.error(
-                      `iframeDocument for ${iframeId} not accessible`
-                    );
-                    return;
-                  }
+    // Speichere die SRC im agentData-Objekt
+    this.carjanState.agentData[index].iFrameSrc = src;
 
-                  // Finde #split-middle und setze es als einzigen Inhalt des Body
-                  const splitMiddle =
-                    iframeDocument.getElementById("split-middle");
-                  if (splitMiddle) {
-                    // Entferne alle Inhalte im Body des iFrame
-                    iframeDocument.body.innerHTML = "";
-                    // Füge nur #split-middle in den Body ein
-                    iframeDocument.body.appendChild(splitMiddle);
-
-                    // Passe die Größe von #split-middle an
-                    splitMiddle.style.width = "100%";
-                    splitMiddle.style.height = "100%";
-
-                    console.log(`split-middle rendered for ${iframeId}`);
-                  } else {
-                    console.error(
-                      `Element 'split-middle' not found in ${iframeId}`
-                    );
-                  }
-
-                  // Manuelles Triggern eines resize-Events für die iFrame-Anwendung
-                  const iframeWindow = iframe.contentWindow;
-                  if (iframeWindow) {
-                    console.log(
-                      "Triggering resize event for iFrame ",
-                      iframeId
-                    );
-                    iframeWindow.dispatchEvent(new Event("resize"));
-                    console.log("Manually triggered resize event for iFrame");
-                  } else {
-                    console.error(
-                      "iframeWindow not accessible for resize event."
-                    );
-                  }
-                } catch (e) {
-                  console.error(`Error accessing content of ${iframeId}:`, e);
-                }
-              }, 200);
-            };
-          } else {
-            console.error(`iFrame ${iframeId} not found`);
-          }
-        })
-        .catch((error) => {
-          console.error(`Error processing agent ${agentName}:`, error);
-        });
-    });
+    // Lade das entsprechende iFrame
+    const iframeId = `carla-iframe-${index}`;
+    const iframe = document.getElementById(iframeId);
+    if (iframe) {
+      iframe.src = src;
+      console.log(`iFrame ${iframeId} src set to ${src}`);
+      iframe.onload = () => this.handleIframeLoad(iframe, iframeId);
+    } else {
+      console.error(`iFrame ${iframeId} not found`);
+    }
   },
 
-  reloadAllIframes() {
-    const iframes = document.querySelectorAll("iframe");
-    iframes.forEach((iframe) => {
-      iframe.contentWindow.location.reload();
-    });
+  handleIframeLoad(iframe, iframeId) {
+    console.log(`iFrame ${iframeId} loaded`);
+    try {
+      setTimeout(() => {
+        try {
+          const iframeDocument =
+            iframe.contentDocument || iframe.contentWindow.document;
+          if (!iframeDocument) {
+            console.error(`iframeDocument for ${iframeId} not accessible`);
+            return;
+          }
+          // Finde #split-middle und setze es als einzigen Inhalt des Body
+          const splitMiddle = iframeDocument.getElementById("split-middle");
+          if (splitMiddle) {
+            // Entferne alle Inhalte im Body des iFrame
+            iframeDocument.body.innerHTML = "";
+            // Füge nur #split-middle in den Body ein
+            iframeDocument.body.appendChild(splitMiddle);
+            // Passe die Größe von #split-middle an
+            splitMiddle.style.width = "100%";
+            splitMiddle.style.height = "100%";
+            console.log(`split-middle rendered for ${iframeId}`);
+          } else {
+            console.error(`Element 'split-middle' not found in ${iframeId}`);
+          }
+          // Manuelles Triggern eines resize-Events für die iFrame-Anwendung
+          const iframeWindow = iframe.contentWindow;
+          if (iframeWindow) {
+            console.log("Triggering resize event for iFrame ", iframeId);
+            iframeWindow.dispatchEvent(new Event("resize"));
+            console.log("Manually triggered resize event for iFrame");
+          } else {
+            console.error("iframeWindow not accessible for resize event.");
+          }
+        } catch (e) {
+          console.error(`Error accessing content of ${iframeId}:`, e);
+        }
+      }, 100);
+    } catch (e) {
+      console.error(`Error accessing content of ${iframeId}:`, e);
+    }
   },
 
   async downloadAgent(agentName) {
@@ -424,15 +430,75 @@ export default Component.extend({
     return null;
   },
 
-  extractBehaviorUri(agentsRepo) {
-    for (const item of agentsRepo) {
-      if (item["http://www.ajan.de/ajan-ns#behavior"]) {
-        const behaviorUri =
-          item["http://www.ajan.de/ajan-ns#behavior"][0]["@id"];
-        return behaviorUri;
+  async fetchBehaviorForBT(btUri) {
+    const sparqlQuery = `
+      PREFIX ajan: <http://www.ajan.de/ajan-ns#>
+      SELECT ?be
+      WHERE {
+        ?be ajan:bt <${btUri}> .
       }
+    `;
+    const repoURL = `http://localhost:8090/rdf4j/repositories/agents`;
+    const headers = {
+      Accept: "application/sparql-results+json",
+      "Content-Type": "application/x-www-form-urlencoded",
+    };
+
+    try {
+      const response = await fetch(
+        `${repoURL}?query=${encodeURIComponent(sparqlQuery)}`,
+        { headers }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Extrahiere die BE-URI aus den Ergebnissen
+      const beUri =
+        data.results.bindings.length > 0
+          ? data.results.bindings[0].be.value
+          : null;
+
+      if (beUri) {
+        console.log(`Matching BE URI for BT ${btUri}: ${beUri}`);
+        return beUri;
+      } else {
+        console.error(`No BE URI found for BT ${btUri}`);
+        return null;
+      }
+    } catch (error) {
+      console.error("Failed to fetch BE for BT:", error);
+      return null;
     }
-    return null;
+  },
+
+  extractBehaviorUri(agentsRepo, currentTabLabel) {
+    // 1. Hole das Entity aus carjanState.agentData basierend auf dem aktuellen Tab-Label
+    const currentEntity = this.carjanState.agentData.find(
+      (entity) => entity.label === currentTabLabel
+    );
+
+    if (!currentEntity) {
+      console.error(`Entity with label ${currentTabLabel} not found.`);
+      return null;
+    }
+
+    // 2. Extrahiere die BT-URI aus dem aktuellen Entity
+    const btUri = currentEntity.behavior;
+
+    if (!btUri) {
+      console.error(
+        `No behavior (BT) found for entity with label ${currentTabLabel}.`
+      );
+      return null;
+    }
+
+    console.log(`Current BT URI for "${currentTabLabel}": ${btUri}`);
+
+    return btUri;
   },
 
   setupTabs() {

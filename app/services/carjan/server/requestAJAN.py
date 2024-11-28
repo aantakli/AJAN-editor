@@ -40,8 +40,24 @@ def json_to_turtle(data, bool = False):
 
     return f"@prefix ajan: <http://www.ajan.de/ajan-ns#> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix carla: <http://carla.org/> .\n\n{triples}"
 
-def generate_actor(name):
+import requests
+
+def generate_actor(name, behaviors):
+    """
+    Generates an AJAN actor with multiple behaviors.
+
+    :param name: Name of the actor.
+    :param agent_template: URI of the agent template.
+    :param behaviors: List of behavior URIs.
+    :return: Dictionary with the status and message of the operation.
+    """
+    agent_template = "http://localhost:8090/rdf4j/repositories/agents#AG_HelloWorld_BT_30275863-0113-4c7c-9ed9-b0502c643fa6"
     url = 'http://localhost:8080/ajan/agents/'
+
+    # Dynamisch die Behaviors als RDF-Liste hinzufügen
+    behaviors_rdf = " ,\n        ".join(f"<{behavior}>" for behavior in behaviors)
+
+    # RDF-Daten generieren
     data = f'''@prefix ajan: <http://www.ajan.de/ajan-ns#> .
     @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
     @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -50,19 +66,23 @@ def generate_actor(name):
 
     _:initAgent rdf:type ajan:AgentInitialisation ;
         ajan:agentId "{name}" ;
-        rdfs:label "{name}" ;  # Label hinzufügen
-        ajan:agentTemplate <http://localhost:8090/rdf4j/repositories/agents#AG_HelloWorld_BT_30275863-0113-4c7c-9ed9-b0502c643fa6> ;
+        rdfs:label "{name}"^^xsd:string ;
+        ajan:agentTemplate <{agent_template}> ;
         ajan:agentInitKnowledge [
             ajan:agentReportURI "http://localhost:4202/report"^^xsd:anyURI ;
             ajan:agentId "{name}" ;
-        ] . '''
+        ] ;
+        ajan:behavior {behaviors_rdf} .'''
 
+    # Header für die Anfrage
     headers = {'Content-Type': 'application/trig'}
 
     try:
+        # POST-Anfrage senden
         response = requests.post(url, data=data, headers=headers)
-        response.raise_for_status()  # Hebt HTTP-Fehler auf, falls Statuscode nicht 2xx
+        response.raise_for_status()  # Fehler werfen, falls der Statuscode kein 2xx ist
 
+        # Erfolgsprüfung
         if response.status_code == 200:
             print(f'Generate AJAN Actor for {name} successful')
             return {"status": "success", "message": f"Actor {name} generated successfully"}
@@ -72,6 +92,7 @@ def generate_actor(name):
             return {"status": "failed", "message": response.text}
     except requests.exceptions.RequestException as e:
         print(f'Error generating actor {name}: {e}')
+        print("Response text:", response.text)
         return {"status": "error", "message": str(e)}
 
 # Deletes the agent
@@ -171,4 +192,17 @@ def send_initialKnowledge(pedestrian, vehicle):
         print('POST > send_initialKnowledge failed')
         print(response.text)
         print(response.status_code)
+
+if __name__ == "__main__":
+    name = "ExampleAgent"
+    agent_template = "http://localhost:8090/rdf4j/repositories/agents#AG_HelloWorld_BT_30275863-0113-4c7c-9ed9-b0502c643fa6"
+    behaviors = [
+        "http://localhost:8090/rdf4j/repositories/behaviors#BT_db30496f-474d-411c-a202-287b6e92610a",
+        "http://localhost:8090/rdf4j/repositories/behaviors#BT_a719c6d6-57a5-4abd-86d3-03366ff4c8db"
+    ]
+
+    result = generate_actor(name, agent_template, behaviors)
+    print(result)
+
+
 

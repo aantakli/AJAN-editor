@@ -190,13 +190,14 @@
         {{#if (eq carjanState.step3Status "completed")}}
           <div
             class="ui placeholder segment"
-            style="margin-top: 5%; padding: 2%; margin-left: 10%;"
+            style="margin-top: 5%; padding: 2%; margin-left: 10%; position: relative;"
           >
-            <h3 class="header" style="color: black">
-              <i class="icon green code branch"></i>
-              <b>Live</b>
-              Behavior
+            <h3 class="header" style="color: black" local-class="carla-row">
+              <i class="icon green share alternate"></i>
+              <b>Live</b>Behavior
             </h3>
+
+            <!-- Tab Menu -->
             <div
               class="ui top attached tabular menu"
               style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px 5px 0 0;"
@@ -230,7 +231,7 @@
                   {{if (eq index 0) 'active'}}
                   iframe-container"
                 data-tab="tab-{{index}}"
-                style="min-height: 30rem"
+                style="min-height: 30rem; position: relative;"
               >
                 {{#if this.reloadFlag}}
                   <p></p>
@@ -242,6 +243,55 @@
                     <div class="ui medium text loader">Loading Live Behavior</div>
                   </div>
                 {{/if}}
+                <!-- Floating Card -->
+                <div
+                  class="ui card floating-card"
+                  style="position: absolute; top: -25%; right: 1.5%; z-index: 1000; width: 250px;"
+                >
+                  <div class="content">
+                    {{#if (eq agent.type "Pedestrian")}}
+                      <img
+                        src="/assets/carjan/images/pedestrians/{{agent.model}}.webp"
+                        alt="{{agent.label}}"
+                        class="ui medium rounded image"
+                      />
+                    {{else}}
+                      <img
+                        class="right floated mini ui image"
+                        src="/assets/carjan/carjan-maps/images/carla.png"
+                        alt="Carla"
+                      />
+                    {{/if}}
+
+                    <div class="header">{{agent.label}}</div>
+                    <div class="meta">
+                      <span class="category">{{agent.type}}</span>
+                    </div>
+                    <div class="description">
+                      {{#each carjanState.paths as |path|}}
+                        {{#if (eq path.path agent.followsPath)}}
+                          <i
+                            class="code branch icon"
+                            style="color: {{path.color}}"
+                          ></i>
+                          {{path.description}}
+                        {{/if}}
+                      {{/each}}
+                    </div>
+                  </div>
+                  <div class="extra content">
+                    <div class="right floated author">
+                      {{#each behaviors as |behavior|}}
+                        {{#if (eq behavior.uri agent.behavior)}}
+                          <p>
+                            <i class="green share alternate icon"></i>
+                            {{behavior.label}}
+                          </p>
+                        {{/if}}
+                      {{/each}}
+                    </div>
+                  </div>
+                </div>
                 <iframe
                   id="carla-iframe-{{index}}"
                   src=""
@@ -279,6 +329,7 @@
               </div>
             </div>
           </div>
+
         {{/if}}
 
       </div>

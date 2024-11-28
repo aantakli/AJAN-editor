@@ -324,6 +324,7 @@ export default Component.extend({
             followsPath: null,
             model: entityType === "Vehicle" ? "Audi - A2" : "pedestrian_0001",
             color: null,
+            behavior: null,
           };
         }
 
@@ -349,6 +350,9 @@ export default Component.extend({
           }
           if (predicate === "http://example.com/carla-scenario#color") {
             entitiesMap[subject].color = object.replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#behavior") {
+            entitiesMap[subject].behavior = object.replace(/^"|"$/g, "");
           }
         }
 
@@ -1424,6 +1428,10 @@ export default Component.extend({
           if (item["http://example.com/carla-scenario#color"]) {
             currentItemContent += `      carjan:color "${item["http://example.com/carla-scenario#color"][0]["@value"]}" ;\n`;
           }
+
+          if (item["http://example.com/carla-scenario#behavior"]) {
+            currentItemContent += `      carjan:behavior "${item["http://example.com/carla-scenario#behavior"][0]["@value"]}" ;\n`;
+          }
         }
 
         // Füge die Pfade hinzu
@@ -1804,6 +1812,17 @@ export default Component.extend({
             entityURI,
             this.namedNode("carjan:model"),
             rdf.literal(entity.model),
+            graph
+          )
+        );
+      }
+
+      if (entity.behavior !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            entityURI,
+            this.namedNode("carjan:behavior"),
+            rdf.literal(entity.behavior),
             graph
           )
         );
@@ -2215,6 +2234,14 @@ export default Component.extend({
                 ]
               : null;
 
+          const behavior =
+            graphItem["http://example.com/carla-scenario#behavior"] &&
+            graphItem["http://example.com/carla-scenario#behavior"][0]
+              ? graphItem["http://example.com/carla-scenario#behavior"][0][
+                  "@value"
+                ]
+              : null;
+
           const entityType = graphItem["@type"].reduce((type, currentType) => {
             if (
               currentType === "http://example.com/carla-scenario#Pedestrian"
@@ -2244,6 +2271,7 @@ export default Component.extend({
               heading: "null" ? null : heading,
               followsPath: "null" ? null : followsPath,
               model: "null" ? null : model,
+              behavior: "null" ? null : behavior,
             });
           }
         }

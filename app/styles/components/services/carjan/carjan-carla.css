@@ -12,7 +12,7 @@
   margin-top: 16px;
 }
 
-.carla-image {
+.carla-image-normal {
   width: 25%;
   height: auto;
   display: block;
@@ -94,8 +94,8 @@
 }
 
 .terminal-sidebar {
-  z-index: 1100 !important; /* Über dem Dimmer */
-  right: 20%; /* Schneidet 20% rechts ab */
+  z-index: 1100 !important;
+  right: 20%;
   height: 25% !important;
   width: 50% !important;
   left: 25% !important;
@@ -104,4 +104,17 @@
 
 .push {
   margin-top: 25%;
+}
+
+.carla-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carla-image {
+  filter: invert(1);
+  width: 35px;
+  height: auto;
+  margin: 5px;
 }

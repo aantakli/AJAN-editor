@@ -816,6 +816,16 @@ export default Component.extend({
               )
             );
           }
+
+          if (agent && agent.behavior) {
+            rdfGraph.add(
+              rdf.quad(
+                entityURI,
+                rdf.namedNode("http://example.com/carla-scenario#behavior"),
+                rdf.literal(agent.behavior)
+              )
+            );
+          }
         }
       }
     });

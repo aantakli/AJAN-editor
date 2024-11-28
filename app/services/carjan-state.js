@@ -118,6 +118,7 @@ export default Service.extend({
   },
 
   setAgentData(agents) {
+    console.log("agent data", agents);
     set(this, "agentData", agents);
   },
 

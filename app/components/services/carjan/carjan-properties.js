@@ -35,6 +35,8 @@ export default Component.extend({
   selectedHeading: null,
   pedestrianInput: null,
   entity: null,
+  behaviors: null,
+  selectedBehavior: null,
   backupPath: null,
   pedestrianList: Array.from({ length: 49 }, (_, i) => {
     const id = String(i + 1).padStart(4, "0");
@@ -71,6 +73,7 @@ export default Component.extend({
   async init() {
     this._super(...arguments);
     this.setupGrid();
+    this.fetchBehaviors();
     await this.loadCarModels();
     this.setProperties({
       normalCarModels: this.carModels.Car,
@@ -96,6 +99,10 @@ export default Component.extend({
     }
     return this.colors.void;
   }),
+
+  selectedPathDescriptionObserver: function () {
+    console.trace("Selected Path Description Observer");
+  }.observes("selectedPath.description"),
 
   showProperties: computed("carjanState.properties", function () {
     switch (this.carjanState.properties) {
@@ -169,18 +176,64 @@ export default Component.extend({
       const entityPath = this.carjanState.paths.find(
         (path) => path.path === entityAtPosition.followsPath
       );
+
       if (entityPath) {
         this.set("selectedPath", entityPath);
       } else {
         this.set("selectedPath", null);
       }
+
       if (entityAtPosition.heading) {
         this.set("entity.heading", entityAtPosition.heading);
+      }
+
+      if (entityAtPosition.behavior) {
+        this.set(
+          "selectedBehavior",
+          this.behaviors.find(
+            (behavior) => behavior.uri === entityAtPosition.behavior
+          )
+        );
       }
     }
 
     this.displayWaypointsInCell();
   }.observes("carjanState.currentCellPosition"),
+
+  async fetchBehaviors() {
+    const sparqlQuery = `
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX bt: <http://www.ajan.de/behavior/bt-ns#>
+      SELECT ?bt ?label
+      WHERE {
+        ?bt a bt:BehaviorTree .
+        ?bt rdfs:label ?label .
+      }
+    `;
+    const repoURL = `http://localhost:8090/rdf4j/repositories/behaviors`;
+    const headers = {
+      Accept: "application/sparql-results+json",
+      "Content-Type": "application/x-www-form-urlencoded",
+    };
+
+    try {
+      const response = await fetch(
+        `${repoURL}?query=${encodeURIComponent(sparqlQuery)}`,
+        { headers }
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data: ${response.statusText}`);
+      }
+      const data = await response.json();
+      const behaviors = data.results.bindings.map((binding) => ({
+        uri: binding.bt.value,
+        label: binding.label.value,
+      }));
+      this.set("behaviors", behaviors);
+    } catch (error) {
+      console.error("Failed to fetch behavior trees:", error);
+    }
+  },
 
   getNumericPositionIndex(positionInCell) {
     const positionMap = {
@@ -543,6 +596,24 @@ export default Component.extend({
       this.updateMatchingEntity();
 
       const dropdownElement = this.$("#pathDropdown");
+      if (dropdownElement && dropdownElement.length) {
+        dropdownElement.dropdown("clear");
+      }
+    },
+
+    selectBehavior(behavior) {
+      this.set("selectedBehavior", behavior);
+      this.set("entity.behavior", behavior.uri);
+      console.log("Selected Behavior Tree:", behavior);
+      this.updateMatchingEntity();
+    },
+
+    clearSelectedBehavior() {
+      this.set("selectedBehavior", null);
+      this.set("entity.behavior", null);
+      console.log("Cleared selected behavior tree.");
+      this.updateMatchingEntity();
+      const dropdownElement = this.$("#behaviorDropdown");
       if (dropdownElement && dropdownElement.length) {
         dropdownElement.dropdown("clear");
       }

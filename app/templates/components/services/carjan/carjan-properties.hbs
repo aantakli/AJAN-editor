@@ -78,12 +78,15 @@
   {{#if (eq this.showProperties "path")}}
     <!-- Path Editor -->
     <p class="node-adder-class title-behaviors">
-      <i class="share alternate icon"></i>
+      <i class="code branch icon"></i>
       <b>Path Editor</b>
     </p>
 
     <!-- Input-Feld für die Path-Beschreibung -->
-    <div class="ui form" onmouseleave={{action "colorPickerMouseLeave"}}>
+    <div
+      class="ui form scrollable"
+      onmouseleave={{action "colorPickerMouseLeave"}}
+    >
 
       <div local-class="pad">
         <div class="field">
@@ -180,7 +183,7 @@
       <div local-class="pad">
         <div class="field">
           <label>
-            <i class="edit icon" />
+            <i class="tag icon" />
             Pedestrian Name
           </label>
           {{input
@@ -203,14 +206,71 @@
         {{/if}}
       </div>
 
-      <!-- Dropdown für followsPath Auswahl -->
-
+      <!-- Dropdown für Behavior Auswahl -->
       <div class="ui form">
         <div local-class="pad">
           <div class="field">
             <label style="display: flex; align-items: flex-end;">
               <i
-                class="icon share alternate"
+                class="share alternate icon"
+                style="margin-bottom: 8px; margin-right: 14px;"
+              ></i>
+              Choose a Behavior Tree
+              {{#if selectedBehavior}}
+                <button
+                  class="ui red icon mini button"
+                  {{action "clearSelectedBehavior"}}
+                  style="margin-top: 10px; border-radius: 10px; margin-left: auto;"
+                >
+                  <i class="eraser icon"></i>
+                </button>
+              {{/if}}
+            </label>
+            <div
+              class="ui fluid search selection dropdown"
+              id="behaviorDropdown"
+            >
+              <input
+                type="hidden"
+                name="selectedBehavior"
+                value={{if selectedBehavior.uri selectedBehavior.uri}}
+              />
+              <i class="dropdown icon"></i>
+
+              {{#if selectedBehavior}}
+                <div class="text">
+                  <i class="icon share alternate"></i>
+                  {{selectedBehavior.label}}
+                </div>
+              {{else}}
+                <div class="default text">Select Behavior Tree</div>
+              {{/if}}
+
+              <div class="menu" style="overflow: hidden">
+                {{#each behaviors as |behavior|}}
+                  <div
+                    class="item"
+                    data-value="{{behavior.uri}}"
+                    {{action "selectBehavior" behavior}}
+                    style="overflow: hidden;"
+                  >
+                    <i class="icon share alternate"></i>
+                    {{behavior.label}}
+                  </div>
+                {{/each}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dropdown für followsPath Auswahl -->
+      <div class="ui form">
+        <div local-class="pad">
+          <div class="field">
+            <label style="display: flex; align-items: flex-end;">
+              <i
+                class="icon code branch"
                 style="margin-bottom: 8px; margin-right: 14px;"
               ></i>
               Assign a unique Path
@@ -456,7 +516,7 @@
           <div class="field">
             <label style="display: flex; align-items: flex-end;">
               <i
-                class="icon share alternate"
+                class="icon code branch"
                 style="margin-bottom: 8px; margin-right: 14px;"
               ></i>
               Assign a unique Path
@@ -799,8 +859,8 @@
               <i
                 class="{{if
                     (eq carjanState.showPathsInCarla 'true')
-                    'icon purple share alternate'
-                    'icon grey share alternate'
+                    'icon purple code branch'
+                    'icon grey code branch'
                   }}"
                 style="position: relative; top: -2px;"
               ></i>

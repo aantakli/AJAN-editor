@@ -18,6 +18,7 @@ export default Component.extend({
   iFrameSrc: "",
   reloadFlag: false,
   startupFlag: false,
+  behaviors: null,
 
   // Beobachter für den Schritt 3-Status
   step3StatusObserver: observer("carjanState.step3Status", function () {
@@ -102,6 +103,7 @@ export default Component.extend({
       // const behavior = this.extractBehaviorUri(agentsRepo, tabLabel);
       const behaviortree = await this.extractBehaviorUri(agentsRepo, tabLabel);
       const behavior = await this.fetchBehaviorForBT(behaviortree);
+      await this.fetchBehaviors();
       console.log("Behavior:", behavior);
       const behaviorUri = this.convertBehaviorURI(behavior, agentName);
 
@@ -472,6 +474,41 @@ export default Component.extend({
     } catch (error) {
       console.error("Failed to fetch BE for BT:", error);
       return null;
+    }
+  },
+
+  async fetchBehaviors() {
+    const sparqlQuery = `
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX bt: <http://www.ajan.de/behavior/bt-ns#>
+      SELECT ?bt ?label
+      WHERE {
+        ?bt a bt:BehaviorTree .
+        ?bt rdfs:label ?label .
+      }
+    `;
+    const repoURL = `http://localhost:8090/rdf4j/repositories/behaviors`;
+    const headers = {
+      Accept: "application/sparql-results+json",
+      "Content-Type": "application/x-www-form-urlencoded",
+    };
+
+    try {
+      const response = await fetch(
+        `${repoURL}?query=${encodeURIComponent(sparqlQuery)}`,
+        { headers }
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data: ${response.statusText}`);
+      }
+      const data = await response.json();
+      const behaviors = data.results.bindings.map((binding) => ({
+        uri: binding.bt.value,
+        label: binding.label.value,
+      }));
+      this.set("behaviors", behaviors);
+    } catch (error) {
+      console.error("Failed to fetch behavior trees:", error);
     }
   },
 

@@ -100,6 +100,15 @@ def set_anchor_point(map_name):
         # Fallback für unbekannte Karten
         anchor_point = carla.Location(x=240, y=57.5, z=0.1)
 
+    # draw debug für den Ankerpunkt
+    world.debug.draw_string(
+        anchor_point,
+        "O",
+        draw_shadow=False,
+        color=carla.Color(0, 0, 255),
+        life_time=10000  # Dauerhaft sichtbar
+    )
+
     print(f"Anchor point set to: x={anchor_point.x}, y={anchor_point.y}, z={anchor_point.z}")
     return anchor_point
 
@@ -377,6 +386,8 @@ def get_carla_location_from_waypoint(waypoint):
 
     return waypoint_location
 
+# ! Loaders
+
 def load_paths(paths, entities, show_paths):
     global carla_client, anchor_point
     cell_width = 4.0  # Einheitsgröße für die Breite der Zellen
@@ -466,8 +477,6 @@ def load_paths(paths, entities, show_paths):
 
           print(f"Path '{path['description']}' processed with color {path_color_hex}.\n")
 
-# ! Loaders
-
 def load_grid(grid_width=12, grid_height=12, cw=5, ch=5):
     global carla_client, anchor_point
     world = carla_client.get_world()
@@ -548,6 +557,7 @@ def load_world(weather, camera_position):
 
 def load_entities(entities, paths):
     global carla_client, anchor_point, actor_list, pathsPerEntity
+
     world = carla_client.get_world()
     blueprint_library = world.get_blueprint_library()
     cell_width = 4.0  # Einheitsgröße für die Breite der Zellen
@@ -562,7 +572,6 @@ def load_entities(entities, paths):
 
     spawned_entities = set()  # Verhindert doppelte Spawns
 
-    print(f"Processing entities: {entities}")
 
     for entity in entities:
         entity_id = entity["entity"]
@@ -581,9 +590,10 @@ def load_entities(entities, paths):
             z=anchor_point.z + 1  # Leicht über dem Boden
         )
 
+        print("spawn location: ", spawn_location)
+
         # Bestimme die Rotation (Heading)
         heading = entity.get("heading", None)
-        print("heading: ", heading)
         rotation = carla.Rotation(pitch=0, yaw=0)
 
         if heading:
@@ -632,7 +642,6 @@ def load_entities(entities, paths):
                         direction_y = waypoint_location.y - spawn_location.y
                         yaw = math.degrees(math.atan2(direction_y, direction_x))  # Berechne den Winkel (Yaw)
                         rotation = carla.Rotation(pitch=0, yaw=yaw)
-                        print(f"Calculated rotation: {rotation}")
 
         pedestrian_actor = None
         vehicle_actor = None
@@ -695,10 +704,8 @@ def load_entities(entities, paths):
 
             if matching_path:
                 pathsPerEntity[entity["label"]] = list(matching_path["waypoints"])
-                print(f"Pfad '{follows_path}' für Entity '{entity['label']}' zugeordnet.")
         print("Pedestrian actor id: ", pedestrian_actor.id)
 
-    print(f"Pfade pro Entity: {pathsPerEntity}")
 
 def load_camera(camera_position):
     global carla_client, anchor_point
@@ -740,6 +747,82 @@ def load_camera(camera_position):
 
     spectator.set_transform(carla.Transform(new_location, rotation))
     print(f"Camera set to {camera_position} position: {new_location} with rotation: {rotation}")
+
+def load_decisionboxes():
+    global carla_client, anchor_point
+
+    # Define the Decision Box coordinates relative to the grid offsets
+    start_x = 2  # Initial X offset
+    start_y = 2  # Initial Y offset
+    end_x = 5    # End X offset
+    end_y = 5    # End Y offset
+
+    # Z-coordinate range for the Decision Box
+    min_z = 0.5
+    max_z = 10.5
+
+    # CARLA world reference
+    world = carla_client.get_world()
+
+    # Grid scaling and offsets
+    cell_width = 4.0
+    cell_height = 4.0
+    offset_x = -5.5
+    offset_y = -3.0
+    half_cell_offset_x = 0
+    half_cell_offset_y = -cell_width / 2
+
+    # Compute the corners of the Decision Box using the offset and scaling system
+    box_corners = [
+        carla.Location(
+            x=anchor_point.x + ((start_x + offset_x) * cell_width + half_cell_offset_x),
+            y=anchor_point.y - ((start_y + offset_y) * cell_height + half_cell_offset_y),
+            z=min_z
+        ),
+        carla.Location(
+            x=anchor_point.x + ((start_x + offset_x) * cell_width + half_cell_offset_x),
+            y=anchor_point.y - ((end_y + offset_y) * cell_height + half_cell_offset_y),
+            z=min_z
+        ),
+        carla.Location(
+            x=anchor_point.x + ((end_x + offset_x) * cell_width + half_cell_offset_x),
+            y=anchor_point.y - ((end_y + offset_y) * cell_height + half_cell_offset_y),
+            z=min_z
+        ),
+        carla.Location(
+            x=anchor_point.x + ((end_x + offset_x) * cell_width + half_cell_offset_x),
+            y=anchor_point.y - ((start_y + offset_y) * cell_height + half_cell_offset_y),
+            z=min_z
+        ),
+    ]
+
+    # Debug: Print corner positions for validation
+    for i, corner in enumerate(box_corners):
+        print(f"Corner {i+1}: x={corner.x}, y={corner.y}, z={corner.z}")
+
+    # Draw the Decision Box in CARLA
+    for i in range(len(box_corners)):
+        start_bottom = box_corners[i]
+        end_bottom = box_corners[(i + 1) % len(box_corners)]
+
+        # Draw bottom face
+        world.debug.draw_line(
+            start_bottom, end_bottom, thickness=0.05, color=carla.Color(200, 0, 100, 80), life_time=0
+        )
+
+        # Draw top face
+        start_top = carla.Location(x=start_bottom.x, y=start_bottom.y, z=max_z)
+        end_top = carla.Location(x=end_bottom.x, y=end_bottom.y, z=max_z)
+        world.debug.draw_line(
+            start_top, end_top, thickness=0.05, color=carla.Color(200, 0, 100, 80), life_time=0
+        )
+
+        # Draw vertical lines connecting bottom and top
+        world.debug.draw_line(
+            start_bottom, start_top, thickness=0.05, color=carla.Color(200, 0, 100, 80), life_time=0
+        )
+
+    print("Decision Box loaded and displayed.")
 
 def unload_stuff():
     global carla_client
@@ -1012,6 +1095,31 @@ def get_waypoint_information(request):
         waypoint_data["positionInCell"] = str(row.positionInCell)
 
     return waypoint_data
+
+def get_path_information(request):
+    """
+    Parses the new path to follow.
+    """
+    path = None
+
+    request_data = request.data.decode('utf-8')
+
+    # Parsen der RDF-Daten mit rdflib
+    g = rdflib.Graph()
+    g.parse(data=request_data, format='turtle')
+
+    # Extrahiere die Path-Information
+    query_newpath = """
+    PREFIX actn: <http://www.ajan.de/actn#>
+    SELECT ?newPath WHERE {
+        ?action actn:newPath ?newPath .
+    }
+    """
+    path_result = g.query(query_newpath)
+    for row in path_result:
+        path = str(row.newPath)
+
+    return path
 
 # ! Routes
 # * Implements routes for Behavior Tree Node Endpoints
@@ -1387,6 +1495,39 @@ def check_waypoint_proximity():
         print(f"Error in follow_direction: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/change_path', methods=['POST'])
+def change_path():
+    global pathsPerEntity, paths, entityList
+    try:
+        print("Current paths per entity: ", pathsPerEntity)
+        print("Current paths: ", paths)
+        print("Current entity list: ", entityList)
+        # Extract information from request
+        ajan_entity_id, async_request_uri = getInformation(request)
+
+        # Get CARLA entity ID from mapping
+        carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
+        if not carla_entity_id:
+            print(f"No CARLA entity found with AJAN ID '{ajan_entity_id}'")
+            return jsonify({"status": "error", "message": "Entity not found"}), 404
+
+        # Get entity
+        entity = world.get_actor(carla_entity_id)
+        if not entity:
+            print(f"No entity found with CARLA ID '{carla_entity_id}'")
+            return jsonify({"status": "error", "message": "Entity not found"}), 404
+
+        new_path = get_path_information(request)
+        # Update the pathsPerEntity dictionary
+        pathsPerEntity[ajan_entity_id] = list(new_path["waypoints"])
+        print(f"New path for entity {ajan_entity_id}: {pathsPerEntity[ajan_entity_id]}")
+        print("Updated paths per entity: ", pathsPerEntity)
+        # Return an RDF triple immediately
+        return Response('<http://Agent> <http://follows> <http://newPath> .', mimetype='text/turtle', status=200)
+
+    except Exception as e:
+        print(f"Error in change_path: {str(e)}")
+        return Response('<http://Agent> <http://followsNot> <http://newPath> .', mimetype='text/turtle', status=500)
 
 @app.route('/check_decision_point', methods=['POST'])
 
@@ -1516,6 +1657,9 @@ def load_scenario():
         # Lade die Kamera
         load_camera(camera_position)
         print("camera loaded")
+
+        load_decisionboxes()
+        print("decision boxes loaded")
 
         # Füge das Gitter hinzu, falls gewünscht
         if (show_grid == "true"):

@@ -30,6 +30,22 @@ export default Service.extend({
   loadLayersInCarla: "true",
   uploadScenarioToCarla: false,
   step3Status: "idle",
+  canvasMode: "default",
+  dboxes: [],
+
+  addDBox(dbox) {
+    const dboxes = this.dboxes || [];
+    dboxes.push(dbox);
+    this.setDBoxes(dboxes);
+  },
+
+  setDBoxes(dboxes) {
+    set(this, "dboxes", dboxes);
+  },
+
+  setCanvasMode(mode) {
+    set(this, "canvasMode", mode);
+  },
 
   setStep3Status(status) {
     set(this, "step3Status", status);

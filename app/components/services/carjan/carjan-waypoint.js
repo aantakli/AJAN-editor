@@ -41,6 +41,11 @@ export default Component.extend({
   pathDescription: "",
   waypointColor: "red",
 
+  dboxes: computed("carjanState.dboxes.@each", function () {
+    console.log("dboxes", this.carjanState.dboxes);
+    return this.carjanState.dboxes || [];
+  }),
+
   pathsWithWaypoints: computed("paths.@each.waypoints", function () {
     return this.paths.map((path) => {
       return {
@@ -132,6 +137,20 @@ export default Component.extend({
     path.waypoints.some((wp) => wp.waypoint === waypoint.waypoint),
 
   actions: {
+    startNewDecisionBox() {
+      this.carjanState.set("canvasMode", "dbox");
+    },
+
+    deleteDecisionBox(index) {
+      const updatedDBoxes = [...this.carjanState.dboxes];
+      updatedDBoxes.splice(index, 1); // Entferne die Decision Box an `index`
+      this.carjanState.set("dboxes", updatedDBoxes);
+    },
+
+    resetCanvasMode() {
+      this.carjanState.set("canvasMode", "default");
+    },
+
     setWaypointHighlightColor(waypoint, path) {
       const iconElement = document.querySelector(
         `[data-x="${waypoint.x}"][data-y="${waypoint.y}"][data-position-in-cell="${waypoint.positionInCell}"]`
@@ -156,6 +175,7 @@ export default Component.extend({
         iconElement.style.textShadow = "0 0 3px black";
       }
     },
+
     clearWaypointHighlightColor(waypoint) {
       const iconElement = document.querySelector(
         `[data-x="${waypoint.x}"][data-y="${waypoint.y}"][data-position-in-cell="${waypoint.positionInCell}"]`
@@ -169,6 +189,7 @@ export default Component.extend({
         iconElement.style.textShadow = waypoint.originalStyle.textShadow;
       }
     },
+
     openPathwayEditor(path) {
       this.carjanState.setSelectedPath(path);
       this.carjanState.set("properties", "path");

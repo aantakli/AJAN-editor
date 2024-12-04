@@ -52,6 +52,10 @@
   outline: 3px solid rgba(0, 0, 0, 0.1);
 }
 
+:global(.cell-hover-db) {
+  outline: 3px solid rgba(219, 88, 68, 0.5);
+}
+
 :global(.cell-hover-allowed) {
   background-color: rgba(255, 255, 255, 0.3);
   outline: 2px dashed green;
@@ -176,4 +180,9 @@
   top: 20px; /* Beispielposition für X-Achse */
   left: 50%;
   transform: translateX(-50%);
+}
+
+:global(#decisionBoxPopup) {
+  pointer-events: none;
+  z-index: 9999999;
 }

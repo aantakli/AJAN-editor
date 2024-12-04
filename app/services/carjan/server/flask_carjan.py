@@ -27,6 +27,7 @@ import multiprocessing
 # import keyboard
 from helpers import hex_to_rgb, cubic_bezier_curve, get_direction, parse_agents
 from jumping import make_pedestrian_jump
+from decision_box_manager import DecisionBoxManager
 from bs4 import BeautifulSoup
 
 
@@ -752,14 +753,14 @@ def load_decisionboxes():
     global carla_client, anchor_point
 
     # Define the Decision Box coordinates relative to the grid offsets
-    start_x = 2  # Initial X offset
+    start_x = 6  # Initial X offset
     start_y = 2  # Initial Y offset
-    end_x = 5    # End X offset
+    end_x = 4    # End X offset
     end_y = 5    # End Y offset
 
     # Z-coordinate range for the Decision Box
     min_z = 0.5
-    max_z = 10.5
+    max_z = 8
 
     # CARLA world reference
     world = carla_client.get_world()
@@ -823,6 +824,19 @@ def load_decisionboxes():
         )
 
     print("Decision Box loaded and displayed.")
+
+    # Instantiate and initialize the DecisionBoxManager
+    manager = DecisionBoxManager(world, box_corners)
+    manager.create_trigger_box()
+
+    def monitor_decision_box(manager):
+      while True:
+          manager.check_trigger_box()
+          time.sleep(0.1)  # Überprüfungsfrequenz
+
+    monitor_thread = threading.Thread(target=monitor_decision_box, args=(manager,))
+    monitor_thread.daemon = True
+    monitor_thread.start()
 
 def unload_stuff():
     global carla_client

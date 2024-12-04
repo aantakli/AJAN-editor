@@ -5,12 +5,11 @@ import { htmlSafe } from "@ember/string";
 import { run } from "@ember/runloop";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdf from "npm:rdf-ext";
+import $ from "jquery";
+import { min } from "@ember/object/computed";
 
 export default Component.extend({
   attributeBindings: ["style"],
-  style: computed(function () {
-    return htmlSafe("height: 100%;");
-  }),
   rs: getComputedStyle(document.documentElement),
   carjanState: service(),
   gridRows: 12,
@@ -22,14 +21,31 @@ export default Component.extend({
   translateX: 0,
   translateY: 0,
   gridStatus: null,
+  dragFlag: false,
+  mapData: null,
+  agentData: null,
+  currentWaypoints: [],
+  reloadFlag: true,
+  draggingEnttiy: null,
+  draggingEntityPosition: null,
+  previousIcon: null,
+  previousChevron: null,
+  isDrawing: false,
+  startCoords: null,
+  headingChevron: 0,
+  offsetX: 0,
+  offsetY: 0,
+
+  style: computed(function () {
+    return htmlSafe("height: 100%;");
+  }),
+
   drag: {
     state: false,
     x: 0,
     y: 0,
   },
-  dragFlag: false,
-  mapData: null,
-  agentData: null,
+
   colors: {
     road: getComputedStyle(document.documentElement)
       .getPropertyValue("--color-primary")
@@ -39,12 +55,7 @@ export default Component.extend({
       .trim(),
     void: "#333333",
   },
-  currentWaypoints: [],
-  reloadFlag: true,
-  draggingEnttiy: null,
-  draggingEntityPosition: null,
-  previousIcon: null,
-  previousChevron: null,
+
   headings: [
     "North",
     "North-East",
@@ -78,15 +89,15 @@ export default Component.extend({
     "North-West": { x: -2, y: -2 },
   },
 
-  headingChevron: 0,
-  offsetX: 0,
-  offsetY: 0,
-
   didInsertElement() {
     this._super(...arguments);
     rdfGraph.set(rdf.dataset());
     this.draggingEntityType = null;
     this.setupPanningAndZoom();
+    this._onCanvasMouseDown = this.onCanvasMouseDown.bind(this);
+    this._onCanvasMouseMove = this.onCanvasMouseMove.bind(this);
+    this._onCanvasMouseUp = this.onCanvasMouseUp.bind(this);
+    this.setupDBDrawing();
     this.applyTransform();
     const fullPath = this.carjanState.selectedPath
       ? this.carjanState.selectedPath.path
@@ -99,6 +110,12 @@ export default Component.extend({
         this.setupGrid(this.carjanState.mapData, this.carjanState.agentData);
       }
     }, 1000);
+  },
+
+  setupDBDrawing() {
+    this.onCanvasMouseDown = this.onCanvasMouseDown.bind(this);
+    this.onCanvasMouseMove = this.onCanvasMouseMove.bind(this);
+    this.onCanvasMouseUp = this.onCanvasMouseUp.bind(this);
   },
 
   addPath() {
@@ -144,6 +161,18 @@ export default Component.extend({
           event.target.style.cursor = "grab";
         }
       }
+    },
+
+    confirmDecisionBox() {
+      console.log("Decision Box confirmed!");
+      this.hideDecisionBoxPopup();
+      // Hier: Logik zum Speichern der Decision Box
+    },
+
+    cancelDecisionBox() {
+      console.log("Decision Box cancelled!");
+      this.hideDecisionBoxPopup();
+      // Hier: Logik zum Entfernen der Decision Box
     },
 
     removeBorder(event) {
@@ -281,6 +310,7 @@ export default Component.extend({
         event.preventDefault();
       }
     },
+
     saveScenario() {
       this.saveEditorToRepo();
     },
@@ -307,7 +337,6 @@ export default Component.extend({
 
   loadingObserver: observer("carjanState.loading", function () {
     if (this.carjanState.loading) {
-      console.log("loading");
       this.set("reloadFlag", true);
     } else {
       this.set("reloadFlag", false);
@@ -493,6 +522,312 @@ export default Component.extend({
     }, 200);
   }.observes("carjanState.color"),
 
+  canvasModeObserver: observer("carjanState.canvasMode", function () {
+    const mode = this.carjanState.canvasMode;
+
+    if (mode === "dbox") {
+      this.unbindPanningAndZoom(); // Deaktiviere Panning und Zoom
+      const canvas = document.getElementById("drawingCanvas");
+      canvas.style.cursor = "crosshair";
+      canvas.addEventListener("mousedown", this._onCanvasMouseDown);
+      canvas.addEventListener("mousemove", this._onCanvasMouseMove);
+      canvas.addEventListener("mouseup", this._onCanvasMouseUp);
+    } else {
+      this.setupPanningAndZoom(); // Reaktiviere Panning und Zoom
+      const canvas = document.getElementById("drawingCanvas");
+      canvas.removeEventListener("mousedown", this._onCanvasMouseDown);
+      canvas.removeEventListener("mousemove", this._onCanvasMouseMove);
+      canvas.removeEventListener("mouseup", this._onCanvasMouseUp);
+    }
+  }),
+
+  initializeEventHandlers() {
+    this._onMouseDown = this.onCanvasMouseDown.bind(this);
+    this._onMouseMove = this.onCanvasMouseMove.bind(this);
+    this._onMouseUp = this.onCanvasMouseUp.bind(this);
+  },
+
+  onCanvasMouseDown(event) {
+    this.isDrawing = true;
+    this.origin = { x: event.offsetX, y: event.offsetY };
+  },
+
+  onCanvasMouseMove(event) {
+    if (!this.isDrawing) return;
+
+    const gridCells = document.querySelectorAll("#gridContainer .grid-cell");
+    const containerRect = document
+      .getElementById("gridContainer")
+      .getBoundingClientRect();
+
+    // Berechne die aktuellen Bounding Box-Koordinaten
+    const currentX = Math.min(event.offsetX, this.origin.x);
+    const currentY = Math.min(event.offsetY, this.origin.y);
+    const endX = Math.max(event.offsetX, this.origin.x);
+    const endY = Math.max(event.offsetY, this.origin.y);
+
+    const adjustedStartX = currentX + containerRect.left;
+    const adjustedStartY = currentY + containerRect.top;
+    const adjustedEndX = endX + containerRect.left;
+    const adjustedEndY = endY + containerRect.top;
+
+    // Entferne vorherige Hover-Klassen
+    gridCells.forEach((cell) => cell.classList.remove("cell-hover-db"));
+
+    gridCells.forEach((cell) => {
+      const rect = cell.getBoundingClientRect();
+
+      // Prüfe, ob die Bounding Box des gezeichneten Rechtecks die Zelle berührt
+      const cellTouched = !(
+        adjustedEndX < rect.left || // Rechte Kante der Box links von der Zelle
+        adjustedStartX > rect.right || // Linke Kante der Box rechts von der Zelle
+        adjustedEndY < rect.top || // Untere Kante der Box über der Zelle
+        adjustedStartY > rect.bottom
+      ); // Obere Kante der Box unter der Zelle
+
+      if (cellTouched) {
+        cell.classList.add("cell-hover-db");
+      }
+    });
+
+    // Zeichne die aktuelle Selection Box
+    const canvas = document.getElementById("drawingCanvas");
+    const context = canvas.getContext("2d");
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    context.strokeStyle = "#8B5E57"; // Border-Farbe
+    context.lineWidth = 2;
+
+    context.beginPath();
+    context.rect(currentX, currentY, endX - currentX, endY - currentY);
+    context.stroke();
+  },
+
+  onCanvasMouseUp(event) {
+    this.isDrawing = false;
+
+    const gridCells = document.querySelectorAll("#gridContainer .grid-cell");
+    gridCells.forEach((cell) => {
+      cell.classList.remove("cell-hover-db");
+    });
+
+    const canvas = document.getElementById("drawingCanvas");
+    const context = canvas.getContext("2d");
+
+    canvas.style.cursor = "default";
+    this.carjanState.setCanvasMode("default");
+
+    // Berechnung der Bounding Box
+    const startX = Math.min(this.origin.x, event.offsetX);
+    const startY = Math.min(this.origin.y, event.offsetY);
+    const endX = Math.max(this.origin.x, event.offsetX);
+    const endY = Math.max(this.origin.y, event.offsetY);
+
+    // Canvas leeren
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Markiere die betroffenen Grid-Zellen
+    const markedCells = this.markGridCells(startX, startY, endX, endY);
+
+    if (markedCells.length > 0) {
+      // Berechne min/max Row/Col für die Ecken
+      const rows = markedCells.map((cell) => parseInt(cell.row, 10));
+      const cols = markedCells.map((cell) => parseInt(cell.col, 10));
+
+      const minRow = Math.min(...rows);
+      const maxRow = Math.max(...rows);
+      const minCol = Math.min(...cols);
+      const maxCol = Math.max(...cols);
+
+      // Decision Box definieren
+      const newDBox = {
+        id: "dbox-" + minRow + "-" + minCol + "-" + maxRow + "-" + maxCol,
+        row1: minRow,
+        col1: minCol,
+        row2: maxRow,
+        col2: maxCol,
+      };
+
+      // Decision Box zu carjanState hinzufügen
+      this.carjanState.addDBox(newDBox);
+
+      // Bounding Box anzeigen (optional)
+      this.markBoundingBoxCorners(minRow, maxRow, minCol, maxCol);
+    }
+  },
+
+  markGridCells(startX, startY, endX, endY) {
+    const gridCells = document.querySelectorAll("#gridContainer .grid-cell");
+    const markedCells = []; // Liste für markierte Zellen
+
+    const containerRect = document
+      .getElementById("gridContainer")
+      .getBoundingClientRect();
+
+    // Passe die Bounding Box an die Position von gridContainer an
+    const adjustedStartX = startX + containerRect.left;
+    const adjustedStartY = startY + containerRect.top;
+    const adjustedEndX = endX + containerRect.left;
+    const adjustedEndY = endY + containerRect.top;
+
+    let nearestToStart = null;
+    let nearestToEnd = null;
+    let minDistanceToStart = Infinity;
+    let minDistanceToEnd = Infinity;
+
+    gridCells.forEach((cell) => {
+      const rect = cell.getBoundingClientRect();
+
+      const cellCenterX = rect.left + rect.width / 2;
+      const cellCenterY = rect.top + rect.height / 2;
+
+      // Berechne die Distanz zum Startpunkt
+      const distanceToStart = Math.sqrt(
+        Math.pow(cellCenterX - adjustedStartX, 2) +
+          Math.pow(cellCenterY - adjustedStartY, 2)
+      );
+
+      if (distanceToStart < minDistanceToStart) {
+        minDistanceToStart = distanceToStart;
+        nearestToStart = {
+          row: cell.getAttribute("data-row"),
+          col: cell.getAttribute("data-col"),
+        };
+      }
+
+      // Berechne die Distanz zum Endpunkt
+      const distanceToEnd = Math.sqrt(
+        Math.pow(cellCenterX - adjustedEndX, 2) +
+          Math.pow(cellCenterY - adjustedEndY, 2)
+      );
+
+      if (distanceToEnd < minDistanceToEnd) {
+        minDistanceToEnd = distanceToEnd;
+        nearestToEnd = {
+          row: cell.getAttribute("data-row"),
+          col: cell.getAttribute("data-col"),
+        };
+      }
+
+      // Überprüfen, ob die Zelle innerhalb der Bounding Box liegt
+      if (
+        cellCenterX >= adjustedStartX &&
+        cellCenterX <= adjustedEndX &&
+        cellCenterY >= adjustedStartY &&
+        cellCenterY <= adjustedEndY
+      ) {
+        markedCells.push({
+          row: cell.getAttribute("data-row"),
+          col: cell.getAttribute("data-col"),
+        });
+      }
+    });
+
+    // Füge die nächstgelegenen Zellen hinzu (falls nicht bereits markiert)
+    if (
+      nearestToStart &&
+      !markedCells.some(
+        (cell) =>
+          cell.row === nearestToStart.row && cell.col === nearestToStart.col
+      )
+    ) {
+      markedCells.push(nearestToStart);
+    }
+    if (
+      nearestToEnd &&
+      !markedCells.some(
+        (cell) => cell.row === nearestToEnd.row && cell.col === nearestToEnd.col
+      )
+    ) {
+      markedCells.push(nearestToEnd);
+    }
+
+    return markedCells;
+  },
+
+  markBoundingBoxCorners(minRow, maxRow, minCol, maxCol) {
+    const gridCells = document.querySelectorAll("#gridContainer .grid-cell");
+
+    if (gridCells.length === 0) {
+      console.error(
+        "No grid cells found. Check if the grid is rendered and the selector is correct."
+      );
+      return;
+    }
+
+    const canvas = document.getElementById("drawingCanvas");
+    const context = canvas.getContext("2d");
+
+    // Canvas clear (optional)
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    let topLeft = null;
+    let topRight = null;
+    let bottomLeft = null;
+    let bottomRight = null;
+
+    // Finde die äußersten Zellen in der Bounding Box
+    gridCells.forEach((cell) => {
+      const row = parseInt(cell.getAttribute("data-row"), 10);
+      const col = parseInt(cell.getAttribute("data-col"), 10);
+
+      const rect = cell.getBoundingClientRect();
+
+      // Top-left corner
+      if (row === minRow && col === minCol) {
+        topLeft = {
+          x: rect.left - canvas.getBoundingClientRect().left,
+          y: rect.top - canvas.getBoundingClientRect().top,
+        };
+      }
+
+      // Top-right corner
+      if (row === minRow && col === maxCol) {
+        topRight = {
+          x: rect.right - canvas.getBoundingClientRect().left,
+          y: rect.top - canvas.getBoundingClientRect().top,
+        };
+      }
+
+      // Bottom-left corner
+      if (row === maxRow && col === minCol) {
+        bottomLeft = {
+          x: rect.left - canvas.getBoundingClientRect().left,
+          y: rect.bottom - canvas.getBoundingClientRect().top,
+        };
+      }
+
+      // Bottom-right corner
+      if (row === maxRow && col === maxCol) {
+        bottomRight = {
+          x: rect.right - canvas.getBoundingClientRect().left,
+          y: rect.bottom - canvas.getBoundingClientRect().top,
+        };
+      }
+    });
+
+    const corners = [topLeft, topRight, bottomLeft, bottomRight].filter(
+      Boolean
+    );
+
+    // Zeichne das Rechteck basierend auf den berechneten Ecken
+    if (corners.length === 4) {
+      const rectX = topLeft.x;
+      const rectY = topLeft.y;
+      const rectWidth = topRight.x - topLeft.x;
+      const rectHeight = bottomLeft.y - topLeft.y;
+
+      context.fillStyle = "rgba(225, 189, 183, 0.5)"; // Transparente Füllung
+      context.strokeStyle = "rgba(139, 94, 87, 1)"; // Border-Farbe
+      context.lineWidth = 2;
+
+      context.fillRect(rectX, rectY, rectWidth, rectHeight);
+      context.strokeRect(rectX, rectY, rectWidth, rectHeight);
+    } else {
+      console.error("Could not determine all corners of the bounding box.");
+    }
+  },
+
   resetFlagIcons() {
     const flagIcons = document.querySelectorAll(
       ".grid-cell .icon.flag.outline, .grid-cell .icon.map.marker.alternate"
@@ -506,6 +841,7 @@ export default Component.extend({
       icon.style.textShadow = "0 0 0 black";
     });
   },
+
   drawMainPathLines() {
     if (this.carjanState.selectedPath && !this.carjanState.pathMode) {
       this.pathIcons = [];
@@ -1500,6 +1836,17 @@ export default Component.extend({
     viewport.addEventListener("wheel", this._onWheel);
 
     viewport.style.cursor = "move";
+  },
+
+  unbindPanningAndZoom() {
+    const viewport = this.viewport;
+
+    viewport.removeEventListener("mousedown", this._onMouseDown);
+    viewport.removeEventListener("mouseup", this._onMouseUp);
+    viewport.removeEventListener("mousemove", this._onMouseMove);
+    viewport.removeEventListener("wheel", this._onWheel);
+
+    viewport.style.cursor = "default"; // Optional: Setze den Cursor zurück
   },
 
   drawPathLines() {

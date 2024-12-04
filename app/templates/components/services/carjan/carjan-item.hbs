@@ -14,8 +14,12 @@
         ondragover={{action "allowDrop"}}
         style="position: relative;"
       >
-
-        <div id="overlay" local-class="overlay" hidden></div>
+        <canvas
+          id="drawingCanvas"
+          width="800"
+          height="600"
+          style="position: absolute; top: 0; left: 0; pointer-events: auto; z-index: 999999;"
+        />
 
         <div local-class="column-numbers" id="coordinateSystem">
           {{#each (range 0 this.gridCols) as |col|}}

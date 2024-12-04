@@ -944,9 +944,9 @@ export default Component.extend({
             carjan:label "${scenarioName}" ;
             carjan:map "map01" ;
             carjan:cameraPosition "down" ;
-            carjan:weather "Clear" .
-            carjan:showGrid "true" .
-            carjan:showPaths "true" .
+            carjan:weather "Clear" ;
+            carjan:showGrid "true" ;
+            carjan:showPaths "true" ;
             carjan:loadLayers "false" .
         }
         `;

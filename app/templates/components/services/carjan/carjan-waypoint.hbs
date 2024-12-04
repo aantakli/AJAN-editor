@@ -3,6 +3,8 @@
     <i class="map signs icon"></i>Paths</a>
   <a class="item" data-tab="waypoints">
     <i class="map pin icon"></i>Waypoints</a>
+  <a class="item" data-tab="decision-box">
+    <i class="inbox icon"></i>Decision Box</a>
 </div>
 
 <!-- Paths Tab -->
@@ -222,6 +224,65 @@
       {{/each}}
 
     </div>
+  </div>
+</div>
+
+<!-- Decision Box Tab -->
+<div class="ui bottom attached tab segment" data-tab="decision-box">
+  <div class="ui segment">
+    <div class="ui grid">
+      <div class="ui nine wide column">
+        <p class="node-adder-class title-behaviors">
+          <i class="inbox icon"></i>
+          <b>Decision Boxes</b>
+        </p>
+      </div>
+      <div class="ui seven wide column">
+        <button
+          class="ui secondary button"
+          id="add-decision-box"
+          {{action "startNewDecisionBox"}}
+        >
+          <i class="plus icon"></i>
+          New Decision Box
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="ui items"
+    id="decision-box-list"
+    style="background-color: rgb(232, 237, 241); border-radius: 10px; padding: 10px;"
+  >
+    {{#each carjanState.dboxes as |dbox index|}}
+      <div class="item" style="margin-bottom: 12px;">
+        <div class="content">
+          <div>
+            <i class="inbox icon"></i>
+            <b>Decision Box:</b>
+            From Row
+            {{dbox.start.row}}, Col
+            {{dbox.start.col}}
+            to Row
+            {{dbox.end.row}}, Col
+            {{dbox.end.col}}
+          </div>
+          <div>
+            <button
+              class="ui red button"
+              {{action "deleteDecisionBox" index}}
+              style="margin-top: 5px;"
+            >
+              <i class="trash alternate outline icon"></i>
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    {{else}}
+      <p>No Decision Boxes created yet. Click "New Decision Box" to add one.</p>
+    {{/each}}
   </div>
 </div>
 

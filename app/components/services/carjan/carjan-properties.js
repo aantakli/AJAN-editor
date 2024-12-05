@@ -38,6 +38,9 @@ export default Component.extend({
   behaviors: null,
   selectedBehavior: null,
   backupPath: null,
+  selectedDBox: null,
+  isDeleteDBoxDialogOpen: false,
+
   pedestrianList: Array.from({ length: 49 }, (_, i) => {
     const id = String(i + 1).padStart(4, "0");
     return `pedestrian_${id}`;
@@ -121,6 +124,10 @@ export default Component.extend({
     }
     return this.carjanState.properties;
   }),
+
+  selectedDBoxObserver: function () {
+    this.set("selectedDBox", this.carjanState.selectedDBox);
+  }.observes("carjanState.selectedDBox"),
 
   selectedPathColorObserver: function () {
     this.set("selectedPath", this.carjanState.selectedPath);
@@ -537,7 +544,240 @@ export default Component.extend({
     }
   },
 
+  markBoundingBoxCorners(startX, endX, startY, endY, color = "#ff0000") {
+    const minRow = parseInt(startX, 10);
+    const maxRow = parseInt(endX, 10);
+    const minCol = parseInt(startY, 10);
+    const maxCol = parseInt(endY, 10);
+
+    const gridCells = document.querySelectorAll("#gridContainer .grid-cell");
+
+    if (gridCells.length === 0) {
+      console.error(
+        "No grid cells found. Check if the grid is rendered and the selector is correct."
+      );
+      return;
+    }
+
+    const canvas = document.getElementById("drawingCanvas");
+    const context = canvas.getContext("2d");
+
+    // Canvas clear (optional)
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    let topLeft = null;
+    let topRight = null;
+    let bottomLeft = null;
+    let bottomRight = null;
+    // Finde die äußersten Zellen in der Bounding Box
+    gridCells.forEach((cell) => {
+      const row = parseInt(cell.getAttribute("data-row"), 10);
+      const col = parseInt(cell.getAttribute("data-col"), 10);
+      const rect = cell.getBoundingClientRect();
+
+      // Top-left corner
+      if (row === minRow && col === minCol) {
+        topLeft = {
+          x: rect.left - canvas.getBoundingClientRect().left,
+          y: rect.top - canvas.getBoundingClientRect().top,
+        };
+      }
+
+      // Top-right corner
+      if (row === minRow && col === maxCol) {
+        topRight = {
+          x: rect.right - canvas.getBoundingClientRect().left,
+          y: rect.top - canvas.getBoundingClientRect().top,
+        };
+      }
+
+      // Bottom-left corner
+      if (row === maxRow && col === minCol) {
+        bottomLeft = {
+          x: rect.left - canvas.getBoundingClientRect().left,
+          y: rect.bottom - canvas.getBoundingClientRect().top,
+        };
+      }
+
+      // Bottom-right corner
+      if (row === maxRow && col === maxCol) {
+        bottomRight = {
+          x: rect.right - canvas.getBoundingClientRect().left,
+          y: rect.bottom - canvas.getBoundingClientRect().top,
+        };
+      }
+    });
+
+    const corners = [topLeft, topRight, bottomLeft, bottomRight].filter(
+      Boolean
+    );
+
+    // Zeichne das Rechteck basierend auf den berechneten Ecken
+    if (corners.length === 4) {
+      const rectX = topLeft.x;
+      const rectY = topLeft.y;
+      const rectWidth = topRight.x - topLeft.x;
+      const rectHeight = bottomLeft.y - topLeft.y;
+
+      const rgb = this.hexToRgb(color);
+
+      const fillColor = this.lightenColor(rgb, 0.5);
+      const borderColor = this.darkenColor(rgb, 0.5);
+
+      context.fillStyle = this.rgbToRgba(fillColor, 0.5); // Transparente Füllung
+      context.strokeStyle = this.rgbToRgba(borderColor, 1); // Border-Farbe
+      context.lineWidth = 2;
+
+      // Vorschau-Element finden
+      const previewElement = document.querySelector(".decision-box-preview");
+
+      if (previewElement) {
+        // Setze dynamische Farben
+        previewElement.style.backgroundColor = this.rgbToRgba(fillColor, 0.8);
+        previewElement.style.border = `2px solid ${this.rgbToRgba(
+          borderColor,
+          1
+        )}`;
+      }
+
+      context.fillRect(rectX, rectY, rectWidth, rectHeight);
+      context.strokeRect(rectX, rectY, rectWidth, rectHeight);
+    } else {
+      console.error("Could not determine all corners of the bounding box.");
+    }
+  },
+
+  hexToRgb(hex) {
+    return [
+      parseInt(hex.substring(1, 3), 16),
+      parseInt(hex.substring(3, 5), 16),
+      parseInt(hex.substring(5, 7), 16),
+    ];
+  },
+
+  updateDBoxColor(colorHex) {
+    const updatedDBoxes = this.carjanState.dboxes.map((dbox) =>
+      dbox.id === this.selectedDBox.id ? { ...dbox, color: colorHex } : dbox
+    );
+    this.carjanState.setDBoxes(updatedDBoxes);
+    console.log("Updated Decision Box Color:", this.carjanState.dboxes);
+  },
+
+  lightenColor(rgb, factor) {
+    return rgb.map((c) => Math.min(255, c + Math.round((255 - c) * factor)));
+  },
+
+  darkenColor(rgb, factor) {
+    return rgb.map((c) => Math.max(0, c - Math.round(c * factor)));
+  },
+
+  rgbToRgba(rgb, alpha) {
+    return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+  },
+
+  rgbToHex(rgb) {
+    return `#${rgb.map((c) => c.toString(16).padStart(2, "0")).join("")}`;
+  },
+
+  // Hilfsfunktion zur Validierung und Bereinigung von Labels
+  sanitizeLabel(label) {
+    // Entfernt Sonderzeichen, Umlaute und Leerzeichen
+    return label
+      .trim()
+      .replace(/[^a-zA-Z0-9_-]/g, "_") // Ersetzt ungültige Zeichen mit "_"
+      .replace(/_{2,}/g, "_"); // Mehrere Unterstriche auf einen reduzieren
+  },
+
   actions: {
+    redrawDBox() {
+      this.carjanState.set("canvasMode", "dbox");
+      this.carjanState.setSelectedDBox(this.selectedDBox);
+    },
+
+    async openDeleteDBoxDialog() {
+      this.set("isDeleteDBoxDialogOpen", true);
+      console.log("this.isDeleteDBoxDialogOpen", this.isDeleteDBoxDialogOpen);
+      next(() => {
+        this.$(".ui.basic.modal")
+          .modal({
+            closable: false,
+            transition: "scale",
+            duration: 500,
+            dimmerSettings: { duration: { show: 500, hide: 500 } },
+          })
+          .modal("show");
+      });
+    },
+
+    cancelDeleteDBox() {
+      this.set("isDeleteDBoxDialogOpen", false);
+    },
+
+    confirmDeleteDBox() {
+      // Entferne die ausgewählte Decision Box aus der Liste
+      const updatedDBoxes = this.carjanState.dboxes.filter(
+        (dbox) => dbox.label !== this.selectedDBox.label
+      );
+
+      console.log("updated dboxes after delete", updatedDBoxes);
+
+      // Aktualisiere den State
+      this.carjanState.setDBoxes(updatedDBoxes);
+      this.carjanState.saveRequest();
+
+      // Schließe den Dialog und reset die Auswahl
+      this.set("isDeleteDBoxDialogOpen", false);
+      this.set("selectedDBox", null);
+      this.carjanState.set("properties", "scenario");
+    },
+
+    updateDBoxLabel() {
+      // Validierung und Bereinigung des Labels
+      const sanitizedLabel = this.selectedDBox.label; // this.sanitizeLabel(this.selectedDBox.label);
+
+      // Aktuelles Label aktualisieren
+      this.set("selectedDBox.label", sanitizedLabel);
+
+      // Aktualisierung der DBox-Liste im carjanState
+      const dboxes = this.carjanState.dboxes || [];
+      const updatedDBoxes = dboxes.map((dbox) =>
+        dbox.id === this.selectedDBox.id
+          ? { ...dbox, label: sanitizedLabel }
+          : dbox
+      );
+
+      this.carjanState.setDBoxes(updatedDBoxes);
+    },
+
+    userMovedDBoxColorPicker(colorHex) {
+      // Vorschau auf Canvas aktualisieren
+      this.set("selectedDBox.color", colorHex);
+      this.updateDBoxColor(colorHex);
+      this.markBoundingBoxCorners(
+        this.selectedDBox.startX,
+        this.selectedDBox.endX,
+        this.selectedDBox.startY,
+        this.selectedDBox.endY,
+        colorHex
+      );
+    },
+
+    // Endgültige Farbe übernehmen
+    updateDBoxColorAction(colorHex) {
+      this.updateDBoxColor(colorHex);
+    },
+
+    // Delete Decision Box
+    deleteDBox() {
+      const dboxes = this.carjanState.dboxes || [];
+      const updatedDBoxes = dboxes.filter(
+        (dbox) => dbox.id !== this.selectedDBox.id
+      );
+      this.carjanState.set("dboxes", updatedDBoxes);
+      this.carjanState.set("selectedDBox", null);
+      this.carjanState.set("properties", "scenario"); // Return to scenario view
+    },
+
     toggleGridInCarla(event) {
       const isChecked = event.target.checked;
       this.carjanState.setGridInCarla(isChecked.toString());

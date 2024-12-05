@@ -40,11 +40,26 @@ export default Component.extend({
   placeholderText: "",
   pathDescription: "",
   waypointColor: "red",
+  dboxes: [],
+  dboxesWithColors: computed("dboxes.@each.color", function () {}),
 
   dboxesObserver: observer("carjanState.dboxes.@each", function () {
-    const dboxes = this.carjanState.dboxes || [];
-    console.log("Updated Decision Boxes via Observer:", dboxes);
-    this.set("dboxes", dboxes);
+    this.set("dboxes", this.carjanState.dboxes);
+    this.set(
+      "dboxes",
+      this.dboxes.map((dbox) => {
+        const rgb = this.hexToRgb(dbox.color);
+        const fill = this.rgbToRgba(this.lightenColor(rgb, 0.5), 0.8);
+        const border = this.rgbToRgba(this.darkenColor(rgb, 0.5), 1);
+        console.log("fill and border", fill, border);
+        return {
+          ...dbox,
+          fillColor: fill,
+          borderColor: border,
+        };
+      })
+    );
+    console.log("observed dboxes", this.dboxes);
   }),
 
   pathsWithWaypoints: computed("paths.@each.waypoints", function () {
@@ -104,8 +119,7 @@ export default Component.extend({
   async init() {
     this._super(...arguments);
     this.setRandomPlaceholder();
-    const dboxes = this.carjanState.dboxes || [];
-    this.set("dboxes", dboxes);
+
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const waypoints = this.carjanState.waypoints || [];
@@ -138,14 +152,149 @@ export default Component.extend({
   isWaypointInPath: (waypoint, path) =>
     path.waypoints.some((wp) => wp.waypoint === waypoint.waypoint),
 
+  lightenColor(rgb, factor) {
+    return rgb.map((c) => Math.min(255, c + Math.round((255 - c) * factor)));
+  },
+
+  darkenColor(rgb, factor) {
+    return rgb.map((c) => Math.max(0, c - Math.round(c * factor)));
+  },
+
+  rgbToRgba(rgb, alpha) {
+    return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+  },
+
+  rgbToHex(rgb) {
+    return `#${rgb.map((c) => c.toString(16).padStart(2, "0")).join("")}`;
+  },
+
+  markBoundingBoxCorners(dbox) {
+    const minRow = parseInt(dbox.startX, 10);
+    const maxRow = parseInt(dbox.endX, 10);
+    const minCol = parseInt(dbox.startY, 10);
+    const maxCol = parseInt(dbox.endY, 10);
+    const color = dbox.color ? dbox.color : "#FF0000";
+
+    const gridCells = document.querySelectorAll("#gridContainer .grid-cell");
+
+    if (gridCells.length === 0) {
+      console.error(
+        "No grid cells found. Check if the grid is rendered and the selector is correct."
+      );
+      return;
+    }
+
+    const canvas = document.getElementById("drawingCanvas");
+    const context = canvas.getContext("2d");
+
+    // Canvas clear (optional)
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    let topLeft = null;
+    let topRight = null;
+    let bottomLeft = null;
+    let bottomRight = null;
+    // Finde die äußersten Zellen in der Bounding Box
+    gridCells.forEach((cell) => {
+      const row = parseInt(cell.getAttribute("data-row"), 10);
+      const col = parseInt(cell.getAttribute("data-col"), 10);
+      const rect = cell.getBoundingClientRect();
+
+      // Top-left corner
+      if (row === minRow && col === minCol) {
+        topLeft = {
+          x: rect.left - canvas.getBoundingClientRect().left,
+          y: rect.top - canvas.getBoundingClientRect().top,
+        };
+      }
+
+      // Top-right corner
+      if (row === minRow && col === maxCol) {
+        topRight = {
+          x: rect.right - canvas.getBoundingClientRect().left,
+          y: rect.top - canvas.getBoundingClientRect().top,
+        };
+      }
+
+      // Bottom-left corner
+      if (row === maxRow && col === minCol) {
+        bottomLeft = {
+          x: rect.left - canvas.getBoundingClientRect().left,
+          y: rect.bottom - canvas.getBoundingClientRect().top,
+        };
+      }
+
+      // Bottom-right corner
+      if (row === maxRow && col === maxCol) {
+        bottomRight = {
+          x: rect.right - canvas.getBoundingClientRect().left,
+          y: rect.bottom - canvas.getBoundingClientRect().top,
+        };
+      }
+    });
+
+    const corners = [topLeft, topRight, bottomLeft, bottomRight].filter(
+      Boolean
+    );
+
+    // Zeichne das Rechteck basierend auf den berechneten Ecken
+    if (corners.length === 4) {
+      const rectX = topLeft.x;
+      const rectY = topLeft.y;
+      const rectWidth = topRight.x - topLeft.x;
+      const rectHeight = bottomLeft.y - topLeft.y;
+
+      const rgb = this.hexToRgb(color);
+
+      const fillColor = this.lightenColor(rgb, 0.5);
+      const borderColor = this.darkenColor(rgb, 0.5);
+
+      context.fillStyle = this.rgbToRgba(fillColor, 0.5); // Transparente Füllung
+      context.strokeStyle = this.rgbToRgba(borderColor, 1); // Border-Farbe
+      context.lineWidth = 2;
+
+      // Vorschau-Element finden
+      const previewElement = document.querySelector(".decision-box-preview");
+
+      if (previewElement) {
+        // Setze dynamische Farben
+        previewElement.style.backgroundColor = this.rgbToRgba(fillColor, 0.8);
+        previewElement.style.border = `2px solid ${this.rgbToRgba(
+          borderColor,
+          1
+        )}`;
+      }
+
+      context.fillRect(rectX, rectY, rectWidth, rectHeight);
+      context.strokeRect(rectX, rectY, rectWidth, rectHeight);
+    } else {
+      console.error("Could not determine all corners of the bounding box.");
+    }
+  },
+
+  hexToRgb(hex) {
+    return [
+      parseInt(hex.substring(1, 3), 16),
+      parseInt(hex.substring(3, 5), 16),
+      parseInt(hex.substring(5, 7), 16),
+    ];
+  },
+
   actions: {
+    openDecisionBoxEditor(dbox) {
+      this.carjanState.setSelectedDBox(dbox);
+      this.markBoundingBoxCorners(dbox);
+      this.carjanState.set("properties", "dbox");
+    },
+
     startNewDecisionBox() {
+      this.carjanState.setSelectedDBox(null);
       this.carjanState.set("canvasMode", "dbox");
     },
 
     deleteDecisionBox(index) {
       const updatedDBoxes = [...this.carjanState.dboxes];
-      updatedDBoxes.splice(index, 1); // Entferne die Decision Box an `index`
+      updatedDBoxes.splice(index, 1);
       this.carjanState.set("dboxes", updatedDBoxes);
     },
 
@@ -207,7 +356,6 @@ export default Component.extend({
     },
 
     openWaypointEditor(x, y, positionInCell) {
-      console.log("openWaypointEditor", x, y);
       let filteredWaypoints = this.waypoints.filter(
         (wp) => wp.x === x && wp.y === y
       );

@@ -433,16 +433,21 @@ export default Component.extend({
           object === "http://example.com/carla-scenario#DecisionBox"
         ) {
           dboxesMap[subject] = {
-            label: subject,
+            id: subject,
+            label: "",
             startX: null,
             startY: null,
             endX: null,
             endY: null,
+            color: "#ff0000",
           };
         }
 
         // DecisionBox-Eigenschaften hinzufügen
         if (dboxesMap[subject]) {
+          if (predicate === "http://example.com/carla-scenario#id") {
+            dboxesMap[subject].id = object.replace(/^"|"$/g, "");
+          }
           if (predicate === "http://example.com/carla-scenario#label") {
             dboxesMap[subject].label = object.replace(/^"|"$/g, "");
           }
@@ -457,6 +462,9 @@ export default Component.extend({
           }
           if (predicate === "http://example.com/carla-scenario#endY") {
             dboxesMap[subject].endY = String(object).replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#color") {
+            dboxesMap[subject].color = object.replace(/^"|"$/g, "");
           }
         }
       });
@@ -1028,7 +1036,9 @@ export default Component.extend({
     },
 
     triggerSaveScenario() {
-      this.carjanState.saveRequest();
+      setTimeout(() => {
+        this.carjanState.saveRequest();
+      }, 500);
       setTimeout(() => {
         // window.location.reload(true);
       }, 1000);
@@ -1517,6 +1527,10 @@ export default Component.extend({
         ) {
           currentItemContent += `    :${id} rdf:type carjan:DecisionBox ;\n`;
 
+          if (item["http://example.com/carla-scenario#id"]) {
+            currentItemContent += `      carjan:id "${item["http://example.com/carla-scenario#id"][0]["@value"]}"^^xsd:integer ;\n`;
+          }
+
           if (item["http://example.com/carla-scenario#startX"]) {
             currentItemContent += `      carjan:startX "${item["http://example.com/carla-scenario#startX"][0]["@value"]}"^^xsd:integer ;\n`;
           }
@@ -1535,6 +1549,10 @@ export default Component.extend({
 
           if (item["http://example.com/carla-scenario#label"]) {
             currentItemContent += `      carjan:label "${item["http://example.com/carla-scenario#label"][0]["@value"]}" ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#color"]) {
+            currentItemContent += `      carjan:color "${item["http://example.com/carla-scenario#color"][0]["@value"]}" ;\n`;
           }
         }
 
@@ -1634,6 +1652,7 @@ export default Component.extend({
 
   async parseTrig(trigContent) {
     try {
+      console.log("trigContent:", trigContent);
       const trigStream = stringToStream(trigContent);
       const parser = new N3Parser({ format: "application/trig" });
       const quads = await rdf.dataset().import(parser.import(trigStream));
@@ -2064,8 +2083,6 @@ export default Component.extend({
       const dboxURI = rdf.namedNode(
         `http://example.com/carla-scenario#${dbox.label}`
       );
-      console.log("dboxURI", dboxURI);
-      console.log("dbox", dbox);
       rdfGraph.add(
         rdf.quad(
           dboxURI,
@@ -2074,6 +2091,17 @@ export default Component.extend({
           graph
         )
       );
+
+      if (dbox.id !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            dboxURI,
+            this.namedNode("carjan:id"),
+            rdf.literal(dbox.id),
+            graph
+          )
+        );
+      }
 
       if (dbox.startX !== undefined) {
         console.log("adding startX");
@@ -2126,6 +2154,17 @@ export default Component.extend({
             dboxURI,
             this.namedNode("carjan:label"),
             rdf.literal(dbox.label),
+            graph
+          )
+        );
+      }
+
+      if (dbox.color !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            dboxURI,
+            this.namedNode("carjan:color"),
+            rdf.literal(dbox.color),
             graph
           )
         );

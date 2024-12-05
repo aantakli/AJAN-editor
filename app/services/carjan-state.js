@@ -32,9 +32,13 @@ export default Service.extend({
   step3Status: "idle",
   canvasMode: "default",
   dboxes: [],
+  selectedDBox: null,
+
+  setSelectedDBox(dbox) {
+    set(this, "selectedDBox", dbox);
+  },
 
   addDBox(dbox) {
-    const dboxes = this.dboxes || [];
     this.dboxes.pushObject(dbox);
     console.log("dboxes after addDBox:", this.dboxes);
   },

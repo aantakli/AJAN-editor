@@ -35,12 +35,13 @@ export default Service.extend({
 
   addDBox(dbox) {
     const dboxes = this.dboxes || [];
-    dboxes.push(dbox);
-    this.setDBoxes(dboxes);
+    this.dboxes.pushObject(dbox);
+    console.log("dboxes after addDBox:", this.dboxes);
   },
 
   setDBoxes(dboxes) {
     set(this, "dboxes", dboxes);
+    console.log("dboxes", dboxes);
   },
 
   setCanvasMode(mode) {
@@ -76,7 +77,6 @@ export default Service.extend({
   },
 
   setPathColor(color) {
-    console.log("state color changed", color);
     set(this.selectedPath, "color", color);
   },
 
@@ -134,7 +134,6 @@ export default Service.extend({
   },
 
   setAgentData(agents) {
-    console.log("agent data", agents);
     set(this, "agentData", agents);
   },
 
@@ -183,6 +182,7 @@ export default Service.extend({
 
   setScenario(dataset) {
     const scenario = dataset.scenarios[0];
+    console.log("scenario", scenario);
     if (scenario.scenarioName) {
       this.setScenarioName(scenario.scenarioName.split("#")[1]);
     }
@@ -211,6 +211,10 @@ export default Service.extend({
 
     if (scenario.waypoints) {
       this.setWaypoints(scenario.waypoints);
+    }
+
+    if (scenario.dboxes) {
+      this.setDBoxes(scenario.dboxes);
     }
   },
 });

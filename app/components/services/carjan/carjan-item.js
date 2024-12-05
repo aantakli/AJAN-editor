@@ -529,12 +529,15 @@ export default Component.extend({
       this.unbindPanningAndZoom(); // Deaktiviere Panning und Zoom
       const canvas = document.getElementById("drawingCanvas");
       canvas.style.cursor = "crosshair";
+      canvas.style.pointerEvents = "auto";
       canvas.addEventListener("mousedown", this._onCanvasMouseDown);
       canvas.addEventListener("mousemove", this._onCanvasMouseMove);
       canvas.addEventListener("mouseup", this._onCanvasMouseUp);
     } else {
       this.setupPanningAndZoom(); // Reaktiviere Panning und Zoom
       const canvas = document.getElementById("drawingCanvas");
+      canvas.style.cursor = "default";
+      canvas.style.pointerEvents = "none";
       canvas.removeEventListener("mousedown", this._onCanvasMouseDown);
       canvas.removeEventListener("mousemove", this._onCanvasMouseMove);
       canvas.removeEventListener("mouseup", this._onCanvasMouseUp);
@@ -605,6 +608,7 @@ export default Component.extend({
 
   onCanvasMouseUp(event) {
     this.isDrawing = false;
+    this.carjanState.setCanvasMode("default");
 
     const gridCells = document.querySelectorAll("#gridContainer .grid-cell");
     gridCells.forEach((cell) => {
@@ -613,9 +617,6 @@ export default Component.extend({
 
     const canvas = document.getElementById("drawingCanvas");
     const context = canvas.getContext("2d");
-
-    canvas.style.cursor = "default";
-    this.carjanState.setCanvasMode("default");
 
     // Berechnung der Bounding Box
     const startX = Math.min(this.origin.x, event.offsetX);
@@ -641,11 +642,11 @@ export default Component.extend({
 
       // Decision Box definieren
       const newDBox = {
-        id: "dbox-" + minRow + "-" + minCol + "-" + maxRow + "-" + maxCol,
-        row1: minRow,
-        col1: minCol,
-        row2: maxRow,
-        col2: maxCol,
+        label: "dbox_" + minRow + "_" + minCol + "_" + maxRow + "_" + maxCol,
+        startX: minRow,
+        startY: minCol,
+        endX: maxRow,
+        endY: maxCol,
       };
 
       // Decision Box zu carjanState hinzufügen
@@ -983,6 +984,7 @@ export default Component.extend({
     const weather = this.carjanState.get("weather") || "Clear";
     const category = this.carjanState.get("category") || "Urban";
     const cameraPosition = this.carjanState.get("cameraPosition") || "up";
+    const dboxes = this.carjanState.get("dboxes");
 
     rdfGraph.add(
       rdf.quad(
@@ -1211,6 +1213,8 @@ export default Component.extend({
   addPathsAndWaypointsFromState(rdfGraph, scenarioURI) {
     const paths = this.carjanState.get("paths") || [];
     const waypoints = this.carjanState.get("waypoints") || [];
+    const dboxes = this.carjanState.get("dboxes") || [];
+    console.log("Saving dbxes", dboxes);
 
     waypoints.forEach((waypoint) => {
       const positionIndex = this.getPositionIndex(waypoint.positionInCell);
@@ -1363,6 +1367,82 @@ export default Component.extend({
           }
         });
       }
+    });
+
+    dboxes.forEach((dbox, dboxIndex) => {
+      const dboxLabel = dbox.label;
+      console.log("dbox", dbox);
+      const dboxURI = rdf.namedNode(
+        `http://example.com/carla-scenario#${dboxLabel}`
+      );
+
+      rdfGraph.add(
+        rdf.quad(
+          scenarioURI,
+          rdf.namedNode("http://example.com/carla-scenario#hasDecisionBoxes"),
+          dboxURI
+        )
+      );
+
+      rdfGraph.add(
+        rdf.quad(
+          dboxURI,
+          rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+          rdf.namedNode("http://example.com/carla-scenario#DecisionBox")
+        )
+      );
+
+      rdfGraph.add(
+        rdf.quad(
+          dboxURI,
+          rdf.namedNode("http://example.com/carla-scenario#startX"),
+          rdf.literal(
+            dbox.startX,
+            rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
+          )
+        )
+      );
+
+      rdfGraph.add(
+        rdf.quad(
+          dboxURI,
+          rdf.namedNode("http://example.com/carla-scenario#startY"),
+          rdf.literal(
+            dbox.startY,
+            rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
+          )
+        )
+      );
+
+      rdfGraph.add(
+        rdf.quad(
+          dboxURI,
+          rdf.namedNode("http://example.com/carla-scenario#endX"),
+          rdf.literal(
+            dbox.endX,
+            rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
+          )
+        )
+      );
+
+      rdfGraph.add(
+        rdf.quad(
+          dboxURI,
+          rdf.namedNode("http://example.com/carla-scenario#endY"),
+          rdf.literal(
+            dbox.endY,
+            rdf.namedNode("http://www.w3.org/2001/XMLSchema#integer")
+          )
+        )
+      );
+
+      rdfGraph.add(
+        rdf.quad(
+          dboxURI,
+          rdf.namedNode("http://example.com/carla-scenario#label"),
+          rdf.literal(dbox.label)
+        )
+      );
     });
   },
 

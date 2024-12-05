@@ -46,7 +46,6 @@ export default Component.extend({
 
   didInsertElement() {
     this._super(...arguments);
-    console.log("didInsertElement");
 
     // WebSocket initialisieren
     const socket = this.websockets.socketFor("ws://localhost:4204");

@@ -117,6 +117,7 @@ export default Component.extend({
       // print as string
       const parsedStatements =
         (await this.parseQuadsToScenarios(statements)) || [];
+      console.log("parsedStatements", parsedStatements);
       const existingRepositoryContent = await this.downloadRepository();
       const existingDataset = await this.parseTrig(existingRepositoryContent);
 
@@ -215,6 +216,7 @@ export default Component.extend({
       const entitiesMap = {};
       const waypointsMap = {};
       const pathsMap = {};
+      const dboxesMap = {};
 
       quads.forEach((quad) => {
         const subject = quad.subject.value;
@@ -236,6 +238,7 @@ export default Component.extend({
             entities: [],
             waypoints: [],
             paths: [],
+            dboxes: [],
             cameraPosition: null,
             label: "",
             category: "",
@@ -303,6 +306,16 @@ export default Component.extend({
             const waypointURI = object;
             if (!currentScenario.waypoints.includes(waypointURI)) {
               currentScenario.waypoints.push(waypointURI);
+            }
+          }
+
+          // DecisionBoxes dem Szenario hinzufügen
+          if (
+            predicate === "http://example.com/carla-scenario#hasDecisionBoxes"
+          ) {
+            const dboxURI = object;
+            if (!currentScenario.dboxes.includes(dboxURI)) {
+              currentScenario.dboxes.push(dboxURI);
             }
           }
         }
@@ -413,6 +426,39 @@ export default Component.extend({
         ) {
           pathsMap[subject].color = object.replace(/^"|"$/g, "");
         }
+
+        // DecisionBoxes erfassen
+        if (
+          predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+          object === "http://example.com/carla-scenario#DecisionBox"
+        ) {
+          dboxesMap[subject] = {
+            label: subject,
+            startX: null,
+            startY: null,
+            endX: null,
+            endY: null,
+          };
+        }
+
+        // DecisionBox-Eigenschaften hinzufügen
+        if (dboxesMap[subject]) {
+          if (predicate === "http://example.com/carla-scenario#label") {
+            dboxesMap[subject].label = object.replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#startX") {
+            dboxesMap[subject].startX = String(object).replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#startY") {
+            dboxesMap[subject].startY = String(object).replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#endX") {
+            dboxesMap[subject].endX = String(object).replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#endY") {
+            dboxesMap[subject].endY = String(object).replace(/^"|"$/g, "");
+          }
+        }
       });
 
       // für jede entität: wenn noch kein label dann einfach EntityXXYY
@@ -496,6 +542,10 @@ export default Component.extend({
             return waypointsMap[waypointURI];
           })
           .filter(Boolean);
+
+        scenario.dboxes = scenario.dboxes.map((dboxURI) => {
+          return dboxesMap[dboxURI];
+        });
       });
 
       return scenarios;
@@ -1190,6 +1240,7 @@ export default Component.extend({
         document.body.removeChild(link);
         return trigContent;
       }
+
       return trigContent;
     } catch (error) {
       console.error("Fehler beim Herunterladen des Repositorys:", error);
@@ -1206,46 +1257,6 @@ export default Component.extend({
         reject(error);
       };
       reader.readAsText(file);
-    });
-  },
-
-  parseTrigContent(content) {
-    // Verwenden Sie rdf-ext und rdf-parser-n3 zum Parsen des TriG-Inhalts
-    const parser = new N3Parser({ format: "application/trig" });
-    const stream = stringToStream(content);
-    return parser.import(stream);
-  },
-
-  uploadDatasetToRepo(dataset) {
-    // Serialisieren des Datasets in TriG
-    const serializer = new N3.Writer({ format: "application/trig" });
-    dataset.toStream().pipe(serializer);
-    return new Promise((resolve, reject) => {
-      serializer.end(async (error, result) => {
-        if (error) {
-          reject(error);
-        } else {
-          // Upload zum Triplestore
-          const repoUrl =
-            "http://localhost:8090/rdf4j/repositories/carjan/statements";
-          try {
-            const response = await fetch(repoUrl, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/trig",
-              },
-              body: result,
-            });
-            if (!response.ok) {
-              reject(`Error uploading data: ${response.statusText}`);
-            } else {
-              resolve();
-            }
-          } catch (err) {
-            reject(err);
-          }
-        }
-      });
     });
   },
 
@@ -1386,6 +1397,16 @@ export default Component.extend({
               " , "
             )} ;\n`;
           }
+
+          // DBoxes hinzufügen
+          if (item["http://example.com/carla-scenario#hasDecisionBoxes"]) {
+            const dboxes = item[
+              "http://example.com/carla-scenario#hasDecisionBoxes"
+            ].map((dbox) => `:${dbox["@id"].split("#")[1]}`);
+            currentItemContent += `      carjan:hasDecisionBoxes ${dboxes.join(
+              " , "
+            )} ;\n`;
+          }
         }
 
         // Füge die Entitäten hinzu
@@ -1487,6 +1508,36 @@ export default Component.extend({
           }
         }
 
+        // Füge die Decision Boxes hinzu
+        if (
+          item["@type"] &&
+          item["@type"].includes(
+            "http://example.com/carla-scenario#DecisionBox"
+          )
+        ) {
+          currentItemContent += `    :${id} rdf:type carjan:DecisionBox ;\n`;
+
+          if (item["http://example.com/carla-scenario#startX"]) {
+            currentItemContent += `      carjan:startX "${item["http://example.com/carla-scenario#startX"][0]["@value"]}"^^xsd:integer ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#startY"]) {
+            currentItemContent += `      carjan:startY "${item["http://example.com/carla-scenario#startY"][0]["@value"]}"^^xsd:integer ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#endX"]) {
+            currentItemContent += `      carjan:endX "${item["http://example.com/carla-scenario#endX"][0]["@value"]}"^^xsd:integer ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#endY"]) {
+            currentItemContent += `      carjan:endY "${item["http://example.com/carla-scenario#endY"][0]["@value"]}"^^xsd:integer ;\n`;
+          }
+
+          if (item["http://example.com/carla-scenario#label"]) {
+            currentItemContent += `      carjan:label "${item["http://example.com/carla-scenario#label"][0]["@value"]}" ;\n`;
+          }
+        }
+
         trigContent +=
           currentItemContent.trim().slice(-1) === ";"
             ? currentItemContent.trim().slice(0, -1) + " .\n"
@@ -1579,36 +1630,6 @@ export default Component.extend({
         );
       }
     }
-  },
-
-  // Funktion zum Herunterladen aller Quads
-  downloadQuadsAsFile(quads, fileName = "exportedData.ttl") {
-    // Erstelle einen leeren String zum Sammeln der Quads
-    let quadString = "";
-
-    // Konvertiere jedes Quad in eine lesbare Turtle-Syntax
-    quads.forEach((quad) => {
-      const subject = quad.subject.value;
-      const predicate = quad.predicate.value;
-      const object =
-        quad.object.termType === "Literal"
-          ? `"${quad.object.value}"`
-          : quad.object.value;
-
-      // Füge das aktuelle Quad zum String hinzu
-      quadString += `<${subject}> <${predicate}> ${object} .\n`;
-    });
-
-    // Erstelle eine Blob-Datei mit dem Quads-String
-    const blob = new Blob([quadString], { type: "text/turtle" });
-
-    // Erstelle einen Download-Link und starte den Download
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   },
 
   async parseTrig(trigContent) {
@@ -2036,6 +2057,89 @@ export default Component.extend({
           }
         }
       }
+    }
+
+    // Füge die Decision Boxes hinzu und verknüpfe sie mit dem Szenario
+    for (const dbox of scenario.dboxes) {
+      const dboxURI = rdf.namedNode(
+        `http://example.com/carla-scenario#${dbox.label}`
+      );
+      console.log("dboxURI", dboxURI);
+      console.log("dbox", dbox);
+      rdfGraph.add(
+        rdf.quad(
+          dboxURI,
+          this.namedNode("rdf:type"),
+          this.namedNode("carjan:DecisionBox"),
+          graph
+        )
+      );
+
+      if (dbox.startX !== undefined) {
+        console.log("adding startX");
+        rdfGraph.add(
+          rdf.quad(
+            dboxURI,
+            this.namedNode("carjan:startX"),
+            rdf.literal(dbox.startX, this.namedNode("xsd:integer")),
+            graph
+          )
+        );
+      }
+
+      if (dbox.startY !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            dboxURI,
+            this.namedNode("carjan:startY"),
+            rdf.literal(dbox.startY, this.namedNode("xsd:integer")),
+            graph
+          )
+        );
+      }
+
+      if (dbox.endX !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            dboxURI,
+            this.namedNode("carjan:endX"),
+            rdf.literal(dbox.endX, this.namedNode("xsd:integer")),
+            graph
+          )
+        );
+      }
+
+      if (dbox.endY !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            dboxURI,
+            this.namedNode("carjan:endY"),
+            rdf.literal(dbox.endY, this.namedNode("xsd:integer")),
+            graph
+          )
+        );
+      }
+
+      if (dbox.label !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            dboxURI,
+            this.namedNode("carjan:label"),
+            rdf.literal(dbox.label),
+            graph
+          )
+        );
+      }
+
+      // Verknüpfe die Decision Box mit dem Szenario
+      rdfGraph.add(
+        rdf.quad(
+          scenarioURI,
+          this.namedNode("carjan:hasDecisionBoxes"),
+          dboxURI,
+          graph
+        )
+      );
     }
   },
 

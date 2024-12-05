@@ -113,8 +113,6 @@ async function stopFlaskService() {
       console.error(`Error stopping Flask process with PID ${flaskPid}:`, err);
       return false;
     }
-  } else {
-    console.log("No Flask process to stop.");
   }
 }
 

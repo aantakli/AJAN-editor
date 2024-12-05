@@ -250,40 +250,53 @@
     </div>
   </div>
 
+  <p class="active title composite-selection">
+    <i class="info circle icon" style="margin-left: 4px"></i>
+    Drag a new Decision Box on the canvas.
+  </p>
+
   <div
     class="ui items"
-    id="decision-box-list"
-    style="background-color: rgb(232, 237, 241); border-radius: 10px; padding: 10px;"
+    id="dbox-list"
+    local-class="waypoint-selection-container"
+    style="background-color: rgb(232, 237, 241); border-radius: 10px;"
   >
-    {{#each carjanState.dboxes as |dbox index|}}
-      <div class="item" style="margin-bottom: 12px;">
-        <div class="content">
-          <div>
-            <i class="inbox icon"></i>
-            <b>Decision Box:</b>
-            From Row
-            {{dbox.start.row}}, Col
-            {{dbox.start.col}}
-            to Row
-            {{dbox.end.row}}, Col
-            {{dbox.end.col}}
-          </div>
-          <div>
-            <button
-              class="ui red button"
-              {{action "deleteDecisionBox" index}}
-              style="margin-top: 5px;"
-            >
-              <i class="trash alternate outline icon"></i>
-              Delete
-            </button>
+    {{#each dboxes as |dbox|}}
+      <div
+        local-class="waypoint-panel-main"
+        style="margin-bottom: 12px; padding-left: 20px;"
+        {{action "openDecisionBoxEditor" dbox}}
+      >
+        <div
+          class="item"
+          style="display: flex; align-items: center; gap: 16px;"
+        >
+          <!-- Farbiges Quadrat -->
+          <div
+            style="width: 24px; height: 24px; border: 2px solid rgba(139, 94, 87, 1); background-color: rgba(225, 189, 183, 0.8);"
+          ></div>
+
+          <!-- Textinhalt -->
+          <div class="content" local-class="content-small">
+            <div local-class="description">
+              <i class="icon inbox"></i>
+              {{dbox.id}}
+            </div>
+            <div class="extra">
+              <div class="ui breadcrumb">
+                <i class="icon arrow right"></i>
+                <i class="icon expand"></i>
+                Bounding Box: ({{dbox.start.row}},
+                {{dbox.start.col}}) → ({{dbox.end.row}},
+                {{dbox.end.col}})
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    {{else}}
-      <p>No Decision Boxes created yet. Click "New Decision Box" to add one.</p>
     {{/each}}
   </div>
+
 </div>
 
 {{#if isDialogOpen}}

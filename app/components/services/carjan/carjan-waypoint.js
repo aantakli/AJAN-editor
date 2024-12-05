@@ -41,9 +41,10 @@ export default Component.extend({
   pathDescription: "",
   waypointColor: "red",
 
-  dboxes: computed("carjanState.dboxes.@each", function () {
-    console.log("dboxes", this.carjanState.dboxes);
-    return this.carjanState.dboxes || [];
+  dboxesObserver: observer("carjanState.dboxes.@each", function () {
+    const dboxes = this.carjanState.dboxes || [];
+    console.log("Updated Decision Boxes via Observer:", dboxes);
+    this.set("dboxes", dboxes);
   }),
 
   pathsWithWaypoints: computed("paths.@each.waypoints", function () {
@@ -103,7 +104,8 @@ export default Component.extend({
   async init() {
     this._super(...arguments);
     this.setRandomPlaceholder();
-
+    const dboxes = this.carjanState.dboxes || [];
+    this.set("dboxes", dboxes);
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const waypoints = this.carjanState.waypoints || [];

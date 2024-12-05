@@ -106,10 +106,12 @@
 
 <!-- Waypoints Tab -->
 <div class="ui bottom attached tab segment" data-tab="waypoints">
-  <p class="node-adder-class title-behaviors">
-    <i class="map pin icon"></i>
-    <b>Waypoint Selection</b>
-  </p>
+  <div class="ui segment">
+    <p class="node-adder-class title-behaviors">
+      <i class="map pin icon"></i>
+      <b>Waypoint Selection</b>
+    </p>
+  </div>
   <p class="active title composite-selection">
     <i class="info circle icon" style="margin-left: 4px"></i>
     Drag & Drop a Waypoint onto the canvas.
@@ -252,7 +254,7 @@
 
   <p class="active title composite-selection">
     <i class="info circle icon" style="margin-left: 4px"></i>
-    Drag a new Decision Box on the canvas.
+    Draw a new Decision Box directly on the canvas.
   </p>
 
   <div
@@ -272,23 +274,27 @@
           style="display: flex; align-items: center; gap: 16px;"
         >
           <!-- Farbiges Quadrat -->
-          <div
-            style="width: 24px; height: 24px; border: 2px solid rgba(139, 94, 87, 1); background-color: rgba(225, 189, 183, 0.8);"
-          ></div>
+          <div class="image">
+            <div
+              style="width: 100px; height: 100px; background-color: {{dbox.fillColor}}; border: 2px solid {{dbox.borderColor}};"
+              class="decision-box-preview"
+            ></div>
+          </div>
 
           <!-- Textinhalt -->
           <div class="content" local-class="content-small">
             <div local-class="description">
               <i class="icon inbox"></i>
-              {{dbox.id}}
+              {{dbox.label}}
             </div>
             <div class="extra">
               <div class="ui breadcrumb">
-                <i class="icon arrow right"></i>
                 <i class="icon expand"></i>
-                Bounding Box: ({{dbox.start.row}},
-                {{dbox.start.col}}) → ({{dbox.end.row}},
-                {{dbox.end.col}})
+                Bounding Box: ({{dbox.startX}},
+                {{dbox.startY}})
+                <i class="icon arrow right"></i>
+                ({{dbox.endX}},
+                {{dbox.endY}})
               </div>
             </div>
           </div>

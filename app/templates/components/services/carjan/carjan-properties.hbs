@@ -171,6 +171,89 @@
 
   {{/if}}
 
+  {{#if (eq this.showProperties "dbox")}}
+    <!-- Decision Box Editor -->
+    <p class="node-adder-class title-behaviors">
+      <i class="inbox icon"></i>
+      <b>Decision Box Editor</b>
+    </p>
+
+    <!-- Input-Feld für die Decision Box-Beschreibung -->
+    <div class="ui form scrollable">
+      <div local-class="pad">
+        <div class="field">
+          <label>
+            <i class="edit icon" />
+            Decision Box Label
+          </label>
+          {{input
+            type="text"
+            placeholder=this.selectedDBox.label
+            value=this.selectedDBox.label
+            oninput=(action (mut this.selectedDBox.label) value="target.value")
+            focus-out=(action "updateDBoxLabel")
+          }}
+        </div>
+      </div>
+
+      <!-- Color Picker for the Decision Box -->
+      <div class="ui form">
+        <div local-class="pad">
+          <div class="field">
+            <label>
+              <i class="eye dropper icon" />
+              Decision Box Color
+            </label>
+            <div
+              class="ui items"
+              local-class="property-selection-container"
+              style="margin: 0; height: auto;"
+            >
+              <div local-class="property-panel">
+                <div local-class="property-image">
+                  <div id="colorPickerOverlay" local-class="overlay"></div>
+                  {{spectrum-color-picker
+                    color=this.selectedDBox.color
+                    showButtons=false
+                    moveFiresChange=true
+                    preferredFormat="hex"
+                    flatMode=true
+                    onChange=(action "updateDBoxColorAction")
+                    onMove=(action "userMovedDBoxColorPicker")
+                  }}
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div local-class="property-panel with-background">
+          <div local-class="button-container" style="overflow: scroll;">
+            <button
+              class="ui button secondary"
+              style="border-radius: 8px;"
+              {{action "redrawDBox"}}
+            >
+              <i class="pencil alternate icon"></i>
+
+              Redraw DBox
+            </button>
+            <button
+              class="ui red button"
+              style="border-radius: 8px;"
+              {{action "openDeleteDBoxDialog"}}
+            >
+              <i class="trash icon" />
+              Delete DBox
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {{/if}}
+
   {{#if (eq this.showProperties "pedestrian")}}
     <!-- Pedestrian Editor -->
     <p class="node-adder-class title-behaviors">
@@ -952,6 +1035,27 @@
             Cancel
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+{{/if}}
+
+{{#if isDeleteDBoxDialogOpen}}
+  <div class="ui dimmer modals page">
+    <div class="ui small basic modal transition" local-class="center-modal">
+      <div class="header">
+        Confirm Delete
+      </div>
+      <div class="content">
+        Are you sure you want to delete the Decision Box "{{selectedDBox.label}}"?
+      </div>
+      <div class="actions">
+        <button class="ui red cancel button" {{action "confirmDeleteDBox"}}>
+          Delete
+        </button>
+        <button class="ui inverted cancel button" {{action "cancelDeleteDBox"}}>
+          Cancel
+        </button>
       </div>
     </div>
   </div>

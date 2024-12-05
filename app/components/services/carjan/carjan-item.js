@@ -618,20 +618,24 @@ export default Component.extend({
     const canvas = document.getElementById("drawingCanvas");
     const context = canvas.getContext("2d");
 
-    // Berechnung der Bounding Box
+    // Calculate bounding box
     const startX = Math.min(this.origin.x, event.offsetX);
     const startY = Math.min(this.origin.y, event.offsetY);
     const endX = Math.max(this.origin.x, event.offsetX);
     const endY = Math.max(this.origin.y, event.offsetY);
 
-    // Canvas leeren
+    // Clear canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Markiere die betroffenen Grid-Zellen
-    const markedCells = this.markGridCells(startX, startY, endX, endY);
+    const color = this.carjanState.selectedDBox
+      ? this.carjanState.selectedDBox.color
+      : "#ff0000";
+
+    // Mark affected grid cells
+    const markedCells = this.markGridCells(startX, startY, endX, endY, color);
 
     if (markedCells.length > 0) {
-      // Berechne min/max Row/Col für die Ecken
+      // Calculate min/max Row/Col for the corners
       const rows = markedCells.map((cell) => parseInt(cell.row, 10));
       const cols = markedCells.map((cell) => parseInt(cell.col, 10));
 
@@ -640,24 +644,45 @@ export default Component.extend({
       const minCol = Math.min(...cols);
       const maxCol = Math.max(...cols);
 
-      // Decision Box definieren
-      const newDBox = {
-        label: "dbox_" + minRow + "_" + minCol + "_" + maxRow + "_" + maxCol,
-        startX: minRow,
-        startY: minCol,
-        endX: maxRow,
-        endY: maxCol,
+      // Initial color (red as an example)
+      const baseColor = [255, 0, 0]; // RGB for red
+      const fillColor = this.lightenColor(baseColor, 0.5); // Slightly lighter
+      const borderColor = this.darkenColor(baseColor, 0.5); // Slightly darker
+
+      // Define Decision Box
+      let newDBox = {
+        id: `dbox_${minRow}_${minCol}_${maxRow}_${maxCol}`,
+        startX: minRow.toString(),
+        startY: minCol.toString(),
+        endX: maxRow.toString(),
+        endY: maxCol.toString(),
+        color: this.rgbToHex(baseColor), // Store as hex
+        label: `Decision_Box_${minRow}_${minCol}_${maxRow}_${maxCol}`,
       };
 
-      // Decision Box zu carjanState hinzufügen
-      this.carjanState.addDBox(newDBox);
+      // Add Decision Box to carjanState
+      if (this.carjanState.selectedDBox) {
+        newDBox = {
+          ...newDBox,
+          color: this.carjanState.selectedDBox.color,
+          label: this.carjanState.selectedDBox.label,
+          id: this.carjanState.selectedDBox.id,
+        };
+        console.log("newDBox", newDBox);
+        console.log("selectedDBox", this.carjanState.selectedDBox);
+        const updatedDBoxes = this.carjanState.dboxes.filter(
+          (dbox) => dbox.id !== this.carjanState.selectedDBox.id
+        );
+        this.carjanState.setDBoxes(updatedDBoxes);
+      }
 
-      // Bounding Box anzeigen (optional)
-      this.markBoundingBoxCorners(minRow, maxRow, minCol, maxCol);
+      this.carjanState.addDBox(newDBox);
+      this.carjanState.setSelectedDBox(newDBox);
+      this.carjanState.set("properties", "dbox");
     }
   },
 
-  markGridCells(startX, startY, endX, endY) {
+  markGridCells(startX, startY, endX, endY, color = "#ff0000") {
     const gridCells = document.querySelectorAll("#gridContainer .grid-cell");
     const markedCells = []; // Liste für markierte Zellen
 
@@ -718,8 +743,8 @@ export default Component.extend({
         cellCenterY <= adjustedEndY
       ) {
         markedCells.push({
-          row: cell.getAttribute("data-row"),
-          col: cell.getAttribute("data-col"),
+          row: parseInt(cell.getAttribute("data-row"), 10),
+          col: parseInt(cell.getAttribute("data-col"), 10),
         });
       }
     });
@@ -732,7 +757,10 @@ export default Component.extend({
           cell.row === nearestToStart.row && cell.col === nearestToStart.col
       )
     ) {
-      markedCells.push(nearestToStart);
+      markedCells.push({
+        row: parseInt(nearestToStart.row, 10),
+        col: parseInt(nearestToStart.col, 10),
+      });
     }
     if (
       nearestToEnd &&
@@ -740,13 +768,35 @@ export default Component.extend({
         (cell) => cell.row === nearestToEnd.row && cell.col === nearestToEnd.col
       )
     ) {
-      markedCells.push(nearestToEnd);
+      markedCells.push({
+        row: parseInt(nearestToEnd.row, 10),
+        col: parseInt(nearestToEnd.col, 10),
+      });
+    }
+
+    // Berechne die Bounding Box-Koordinaten
+    if (markedCells.length > 0) {
+      const rows = markedCells.map((cell) => cell.row);
+      const cols = markedCells.map((cell) => cell.col);
+
+      const minRow = Math.min(...rows);
+      const maxRow = Math.max(...rows);
+      const minCol = Math.min(...cols);
+      const maxCol = Math.max(...cols);
+
+      // Zeichne die Bounding Box nur mit markBoundingBoxCorners
+      this.markBoundingBoxCorners(minRow, maxRow, minCol, maxCol, color);
     }
 
     return markedCells;
   },
 
-  markBoundingBoxCorners(minRow, maxRow, minCol, maxCol) {
+  markBoundingBoxCorners(startX, endX, startY, endY, color = "#ff0000") {
+    const minRow = parseInt(startX, 10);
+    const maxRow = parseInt(endX, 10);
+    const minCol = parseInt(startY, 10);
+    const maxCol = parseInt(endY, 10);
+
     const gridCells = document.querySelectorAll("#gridContainer .grid-cell");
 
     if (gridCells.length === 0) {
@@ -766,12 +816,10 @@ export default Component.extend({
     let topRight = null;
     let bottomLeft = null;
     let bottomRight = null;
-
     // Finde die äußersten Zellen in der Bounding Box
     gridCells.forEach((cell) => {
       const row = parseInt(cell.getAttribute("data-row"), 10);
       const col = parseInt(cell.getAttribute("data-col"), 10);
-
       const rect = cell.getBoundingClientRect();
 
       // Top-left corner
@@ -818,15 +866,56 @@ export default Component.extend({
       const rectWidth = topRight.x - topLeft.x;
       const rectHeight = bottomLeft.y - topLeft.y;
 
-      context.fillStyle = "rgba(225, 189, 183, 0.5)"; // Transparente Füllung
-      context.strokeStyle = "rgba(139, 94, 87, 1)"; // Border-Farbe
+      const rgb = this.hexToRgb(color);
+
+      const fillColor = this.lightenColor(rgb, 0.5);
+      const borderColor = this.darkenColor(rgb, 0.5);
+
+      context.fillStyle = this.rgbToRgba(fillColor, 0.5); // Transparente Füllung
+      context.strokeStyle = this.rgbToRgba(borderColor, 1); // Border-Farbe
       context.lineWidth = 2;
+
+      // Vorschau-Element finden
+      const previewElement = document.querySelector(".decision-box-preview");
+
+      if (previewElement) {
+        // Setze dynamische Farben
+        previewElement.style.backgroundColor = this.rgbToRgba(fillColor, 0.8);
+        previewElement.style.border = `2px solid ${this.rgbToRgba(
+          borderColor,
+          1
+        )}`;
+      }
 
       context.fillRect(rectX, rectY, rectWidth, rectHeight);
       context.strokeRect(rectX, rectY, rectWidth, rectHeight);
     } else {
       console.error("Could not determine all corners of the bounding box.");
     }
+  },
+
+  lightenColor(rgb, factor) {
+    return rgb.map((c) => Math.min(255, c + Math.round((255 - c) * factor)));
+  },
+
+  darkenColor(rgb, factor) {
+    return rgb.map((c) => Math.max(0, c - Math.round(c * factor)));
+  },
+
+  rgbToRgba(rgb, alpha) {
+    return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+  },
+
+  rgbToHex(rgb) {
+    return `#${rgb.map((c) => c.toString(16).padStart(2, "0")).join("")}`;
+  },
+
+  hexToRgb(hex) {
+    return [
+      parseInt(hex.substring(1, 3), 16),
+      parseInt(hex.substring(3, 5), 16),
+      parseInt(hex.substring(5, 7), 16),
+    ];
   },
 
   resetFlagIcons() {
@@ -984,7 +1073,6 @@ export default Component.extend({
     const weather = this.carjanState.get("weather") || "Clear";
     const category = this.carjanState.get("category") || "Urban";
     const cameraPosition = this.carjanState.get("cameraPosition") || "up";
-    const dboxes = this.carjanState.get("dboxes");
 
     rdfGraph.add(
       rdf.quad(
@@ -1214,7 +1302,6 @@ export default Component.extend({
     const paths = this.carjanState.get("paths") || [];
     const waypoints = this.carjanState.get("waypoints") || [];
     const dboxes = this.carjanState.get("dboxes") || [];
-    console.log("Saving dbxes", dboxes);
 
     waypoints.forEach((waypoint) => {
       const positionIndex = this.getPositionIndex(waypoint.positionInCell);
@@ -1370,10 +1457,9 @@ export default Component.extend({
     });
 
     dboxes.forEach((dbox, dboxIndex) => {
-      const dboxLabel = dbox.label;
       console.log("dbox", dbox);
       const dboxURI = rdf.namedNode(
-        `http://example.com/carla-scenario#${dboxLabel}`
+        `http://example.com/carla-scenario#${dbox.id}`
       );
 
       rdfGraph.add(
@@ -1389,6 +1475,14 @@ export default Component.extend({
           dboxURI,
           rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
           rdf.namedNode("http://example.com/carla-scenario#DecisionBox")
+        )
+      );
+
+      rdfGraph.add(
+        rdf.quad(
+          dboxURI,
+          rdf.namedNode("http://example.com/carla-scenario#id"),
+          rdf.literal(dbox.id)
         )
       );
 
@@ -1441,6 +1535,14 @@ export default Component.extend({
           dboxURI,
           rdf.namedNode("http://example.com/carla-scenario#label"),
           rdf.literal(dbox.label)
+        )
+      );
+
+      rdfGraph.add(
+        rdf.quad(
+          dboxURI,
+          rdf.namedNode("http://example.com/carla-scenario#color"),
+          rdf.literal(dbox.color)
         )
       );
     });

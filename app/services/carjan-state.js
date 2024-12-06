@@ -33,9 +33,14 @@ export default Service.extend({
   canvasMode: "default",
   dboxes: [],
   selectedDBox: null,
+  selectedFallback: null,
 
   setSelectedDBox(dbox) {
     set(this, "selectedDBox", dbox);
+  },
+
+  setSelectedFallback(path) {
+    set(this, "selectedFallback", path);
   },
 
   addDBox(dbox) {

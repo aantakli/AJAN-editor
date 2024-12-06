@@ -360,6 +360,26 @@ app.post("/api/start_flask", async (req, res) => {
   }
 });
 
+app.post("/api/start_simulation", async (req, res) => {
+  try {
+    const flaskResponse = await forwardToFlask("/start_simulation");
+
+    console.log("Flask response:", flaskResponse);
+
+    if (flaskResponse.error) {
+      return res.status(400).json({ error: flaskResponse.error });
+    }
+
+    res.json({
+      status: "Simulation started",
+      data: flaskResponse.data,
+    });
+  } catch (error) {
+    console.error("Error forwarding to Flask:", error);
+    res.status(500).json({ error: "Failed to start simulation" });
+  }
+});
+
 app.post("/api/init-carjan-repo", async (req, res) => {
   try {
     const result = await initializeCarjanRepository();

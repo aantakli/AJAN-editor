@@ -38,17 +38,24 @@ export default Component.extend({
   behaviors: null,
   selectedBehavior: null,
   backupPath: null,
+  backupFallback: null,
   selectedDBox: null,
   isDeleteDBoxDialogOpen: false,
-  dboxes: null,
+  fallbackPath: null,
 
   pedestrianList: Array.from({ length: 49 }, (_, i) => {
     const id = String(i + 1).padStart(4, "0");
     return `pedestrian_${id}`;
   }),
+
   safeColorStyle: computed("selectedPath.color", function () {
     return htmlSafe(`color: ${this.get("selectedPath.color")};`);
   }),
+
+  safeColorStyleFallback: computed("fallbackPath.color", function () {
+    return htmlSafe(`color: ${this.get("fallbackPath.color")};`);
+  }),
+
   safePathColorStyle: computed("path.color", function () {
     return htmlSafe(`color: ${this.get("path.color")};`);
   }),
@@ -202,10 +209,20 @@ export default Component.extend({
         (path) => path.path === entityAtPosition.followsPath
       );
 
+      const entityFallback = this.carjanState.paths.find(
+        (path) => path.path === entityAtPosition.fallbackPath
+      );
+
       if (entityPath) {
         this.set("selectedPath", entityPath);
       } else {
         this.set("selectedPath", null);
+      }
+
+      if (entityFallback) {
+        this.set("fallbackPath", entityFallback);
+      } else {
+        this.set("fallbackPath", null);
       }
 
       if (entityAtPosition.heading) {
@@ -888,13 +905,22 @@ export default Component.extend({
     displayPath() {
       this.carjanState.setSelectedPath(this.selectedPath);
       this.set("backupPath", this.selectedPath);
+      this.set("backupFallback", this.fallbackPath);
+    },
+
+    displayFallbackPath() {
+      this.carjanState.setSelectedFallback(this.fallbackPath);
+      this.set("backupPath", this.selectedPath);
+      this.set("backupFallback", this.fallbackPath);
     },
 
     clearPathDrawing() {
       const mainElement = document.getElementById("main");
       mainElement.innerHTML = "";
       this.carjanState.setSelectedPath(null);
+      this.carjanState.setSelectedFallback(null);
       this.set("selectedPath", this.backupPath);
+      this.set("fallbackPath", this.backupFallback);
       const allWaypoints = document.querySelectorAll(
         ".map.marker.alternate, .flag.outline"
       );

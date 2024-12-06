@@ -101,6 +101,7 @@ export default Component.extend({
       const agentsRepo = await this.downloadAgentsRepo(agentTemplate);
       // const behavior = this.extractBehaviorUri(agentsRepo, tabLabel);
       const behaviortree = await this.extractBehaviorUri(agentsRepo, tabLabel);
+      console.log("behaviortree:", behaviortree);
       const behavior = await this.fetchBehaviorForBT(behaviortree);
       await this.fetchBehaviors();
       console.log("Behavior:", behavior);
@@ -110,6 +111,7 @@ export default Component.extend({
       const src = `http://localhost:4200/editor/behaviors?wssConnection=true&agent=${agentName}&repo=${repoUri}&bt=${behaviorUri}`;
       const iframeId = `carla-iframe-${tabIndex}`;
       const iframe = document.getElementById(iframeId);
+      fetchBehaviors;
 
       if (iframe) {
         iframe.src = src;
@@ -559,15 +561,27 @@ export default Component.extend({
     },
 
     async startSimulation() {
-      try {
-        console.log("Starting simulation...");
-        await fetch("http://localhost:4204/api/startSimulation", {
-          method: "GET",
-        });
-        console.log("Simulation started.");
-      } catch (error) {
-        console.error("Failed to start Simulation:", error);
-      }
+      console.log("Starting simulation...");
+      const behaviors = this.get("behaviors");
+      console.log("Behaviors:", behaviors);
+      const entities = this.carjanState.agentData;
+      console.log("Entities:", entities);
+      // filtere die behaviors, die in den Entities enthalten sind
+      const filteredBehaviors = behaviors.filter((behavior) =>
+        entities.some((entity) => entity.behavior === behavior.uri)
+      );
+
+      console.log("Filtered Behaviors:", filteredBehaviors);
+      // try {
+      //   console.log("Starting simulation...");
+      //   await fetch("http://localhost:4204/api/startSimulation", {
+      //     method: "POST",
+      //     body: JSON.stringify({ behaviors: filteredBehaviors }),
+      //   });
+      //   console.log("Simulation started.");
+      // } catch (error) {
+      //   console.error("Failed to start Simulation:", error);
+      // }
     },
 
     async openCarlaModal() {

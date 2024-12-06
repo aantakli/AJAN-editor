@@ -55,7 +55,7 @@ def send_information(agent_name, subject, predicate, obj):
 
 if __name__ == "__main__":
     # Example usage
-    agent_name = "asdasd"
+    agent_name = "Entity0505"
     subject = "http://carla.org/vehicle/vehicle_123"
     predicate = "http://carla.org/vehicle/inDecisionBox"
     obj = "true"  # This can also be a URI like "http://example.org/true"

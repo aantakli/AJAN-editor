@@ -5,6 +5,7 @@ from webbrowser import get
 sys.stdout = open(sys.stdout.fileno(), 'w', buffering=1)
 
 from requestAJAN import destroy_actor, generate_actor, send_data, send_initialKnowledge
+from sendInfo import send_information
 from flask import Flask, Response, jsonify, request
 from rdflib import Graph, URIRef, Literal, Namespace, RDF
 import subprocess
@@ -27,7 +28,6 @@ import multiprocessing
 # import keyboard
 from helpers import hex_to_rgb, cubic_bezier_curve, get_direction, parse_agents
 from jumping import make_pedestrian_jump
-from decision_box_manager import DecisionBoxManager
 from bs4 import BeautifulSoup
 
 
@@ -52,6 +52,10 @@ current_map = None
 entityList = []
 paths = []
 pathsPerEntity = {}
+
+decision_box_managers = []  # Liste der Decision Box Manager
+monitoring_thread = None
+monitoring_active = True
 
 seen_actors = set()
 
@@ -159,6 +163,82 @@ def getInformation(request):
         ajan_entity_id = str(row.id)
 
     return ajan_entity_id, async_request_uri
+
+def monitor_decision_boxes():
+    """
+    Überwacht alle Decision Boxes in einem separaten Thread.
+    """
+    while monitoring_active:
+        for manager in decision_box_managers:
+            manager.check_trigger_box()
+        time.sleep(0.5)
+
+class DecisionBoxManager:
+    def __init__(self, world, box_corners, dbox_id):
+        self.world = world
+        self.box_corners = box_corners
+        self.dbox_id = dbox_id
+        self.trigger_area = None
+        self.vehicles_in_box = set()
+
+    def is_in_trigger_box(self, location):
+        """
+        Prüft, ob eine Position innerhalb der Triggerbox liegt.
+        """
+        center = self.trigger_area["center"]
+        extent = self.trigger_area["extent"]
+
+        in_x = abs(location.x - center.x) <= extent.x
+        in_y = abs(location.y - center.y) <= extent.y
+        return in_x and in_y
+
+    def create_trigger_box(self):
+        """
+        Erstellt die Triggerbox basierend auf den Box-Eckpunkten.
+        """
+        x_min = min(corner.x for corner in self.box_corners)
+        x_max = max(corner.x for corner in self.box_corners)
+        y_min = min(corner.y for corner in self.box_corners)
+        y_max = max(corner.y for corner in self.box_corners)
+        z_min = self.box_corners[0].z
+        z_max = z_min + 10
+
+        center_x = (x_min + x_max) / 2
+        center_y = (y_min + y_max) / 2
+        center_z = (z_min + z_max) / 2
+        extent_x = (x_max - x_min) / 2
+        extent_y = (y_max - y_min) / 2
+        extent_z = (z_max - z_min) / 2
+
+        self.trigger_area = {
+            "center": carla.Location(x=center_x, y=center_y, z=center_z),
+            "extent": carla.Vector3D(x=extent_x, y=extent_y, z=extent_z),
+        }
+
+    def check_trigger_box(self):
+        """
+        Prüft, welche Fahrzeuge die Triggerbox betreten oder verlassen.
+        """
+        actors = self.world.get_actors().filter("vehicle.*")
+        current_vehicles_in_box = set()
+
+        for actor in actors:
+            actor_location = actor.get_location()
+            if self.is_in_trigger_box(actor_location):
+                current_vehicles_in_box.add(actor.id)
+
+                # Fahrzeug hat die Box betreten
+                if actor.id not in self.vehicles_in_box:
+                    on_decision_box_trigger(self.dbox_id, [actor], in_box=True)
+
+        # Fahrzeuge, die die Box verlassen haben
+        vehicles_left_box = self.vehicles_in_box - current_vehicles_in_box
+        for vehicle_id in vehicles_left_box:
+            vehicle = self.world.get_actor(vehicle_id)
+            if vehicle:
+                on_decision_box_trigger(self.dbox_id, [vehicle], in_box=False)
+
+        self.vehicles_in_box = current_vehicles_in_box
 
 def set_spectator_view(world, location, rotation):
     spectator = world.get_spectator()
@@ -476,7 +556,6 @@ def load_paths(paths, entities, show_paths):
                           life_time=1000  # Dauerhaft sichtbar
                       )
 
-          print(f"Path '{path['description']}' processed with color {path_color_hex}.\n")
 
 def load_grid(grid_width=12, grid_height=12, cw=5, ch=5):
     global carla_client, anchor_point
@@ -666,13 +745,9 @@ def load_entities(entities, paths):
                     "carla_entity_id": pedestrian_actor.id,
                     "ajan_agent_id": ajan_agent_id
                 })
-                print(f"Mapped CARLA entity {pedestrian_actor.id} to AJAN agent {ajan_agent_id}")
-                print(f"\nActor list: {actor_list}")
                 agent_speeds[pedestrian_actor.id] = 1.5
 
             if pedestrian_actor:
-                if(entity["label"]):
-                  print(f"Pedestrian '{entity['label']}' spawned at: {spawn_location} with rotation: {rotation}")
                 spawned_entities.add(entity_id)  # Markiere die Entity als gespawned
             else:
                 print(f"Failed to spawn Pedestrian '{entity['label']}' at: {spawn_location}")
@@ -688,12 +763,9 @@ def load_entities(entities, paths):
                     "carla_entity_id": vehicle_actor.id,
                     "ajan_agent_id": ajan_agent_id
                 })
-                print(f"Mapped CARLA entity {vehicle_actor.id} to AJAN agent {ajan_agent_id}")
-                print(f"\nActor list: {actor_list}")
 
             agent_speeds[vehicle_actor.id] = 5
             if vehicle_actor:
-                print(f"Vehicle '{entity['label']}' spawned at: {spawn_location} with rotation: {rotation}")
                 spawned_entities.add(entity_id)
             else:
                 print(f"Failed to spawn Vehicle '{entity['label']}' at: {spawn_location}")
@@ -705,7 +777,6 @@ def load_entities(entities, paths):
 
             if matching_path:
                 pathsPerEntity[entity["label"]] = list(matching_path["waypoints"])
-        print("Pedestrian actor id: ", pedestrian_actor.id)
 
 
 def load_camera(camera_position):
@@ -747,10 +818,9 @@ def load_camera(camera_position):
         rotation = carla.Rotation(pitch=0, yaw=0)
 
     spectator.set_transform(carla.Transform(new_location, rotation))
-    print(f"Camera set to {camera_position} position: {new_location} with rotation: {rotation}")
 
 def load_decisionboxes(dboxes):
-    global carla_client, anchor_point
+    global carla_client, anchor_point, decision_box_managers
 
     # CARLA world reference
     world = carla_client.get_world()
@@ -767,8 +837,8 @@ def load_decisionboxes(dboxes):
     min_z = 0.5
     max_z = 8
 
-    # Iterate over the provided Decision Boxes
     for dbox in dboxes:
+        print(f"Verarbeite Decision Box: {dbox['id']} mit Label {dbox['label']}")
         start_x = int(dbox['startX'])
         start_y = int(dbox['startY'])
         end_x = int(dbox['endX']) + 1
@@ -802,9 +872,6 @@ def load_decisionboxes(dboxes):
             ),
         ]
 
-        # Debug: Print corner positions for validation
-        for i, corner in enumerate(box_corners):
-            print(f"Decision Box {dbox['label']} - Corner {i+1}: x={corner.x}, y={corner.y}, z={corner.z}")
 
         # Draw the Decision Box in CARLA
         for i in range(len(box_corners)):
@@ -831,26 +898,10 @@ def load_decisionboxes(dboxes):
                 color=carla.Color(color_rgb[0], color_rgb[1], color_rgb[2]), life_time=0
             )
 
-        # Create and manage the Decision Box in CARLA
-        manager = DecisionBoxManager(world, box_corners)
+        manager = DecisionBoxManager(world, box_corners, dbox['id'])
         manager.create_trigger_box()
+        decision_box_managers.append(manager)
 
-        # Bind entities to the Decision Box if applicable
-        for entity in world.get_actors().filter("walker.pedestrian" or "vehicle.*"):
-            if hasattr(entity, "decisionbox") and entity.decisionbox == dbox['id']:
-                print(f"Entity {entity.id} bound to Decision Box {dbox['label']}")
-
-    print("All Decision Boxes loaded and displayed.")
-
-    def monitor_decision_boxes():
-        while True:
-            for dbox in dboxes:
-                manager.check_trigger_box()  # Adjust for multiple managers if necessary
-            time.sleep(0.1)  # Überprüfungsfrequenz
-
-    monitor_thread = threading.Thread(target=monitor_decision_boxes)
-    monitor_thread.daemon = True
-    monitor_thread.start()
 
 def unload_stuff():
     global carla_client
@@ -902,9 +953,50 @@ def unload_stuff():
         print(f"Setting road texture to gray for {blueprint.id}")
         world.get_blueprint_library().find(blueprint.id).set_attribute('texture', 'none')
 
+def on_decision_box_trigger(dbox_id, vehicles, in_box):
+    """
+    Callback-Funktion, die bei einem Trigger aufgerufen wird.
+    """
+    global entityList
+    vehicle_ids = [vehicle.id for vehicle in vehicles]
+
+    # Agenten-namen aus der entityList dort, wo entity.decisionBox = dbox_id
+    agent_name = next((entity["label"] for entity in entityList if entity.get("decisionBox") == dbox_id), None)
+
+    if agent_name is None:
+        return
+
+    # RDF Triple-Information für jedes Fahrzeug
+    for vehicle_id in vehicle_ids:
+        subject = f"http://carla.org/vehicle/vehicle_{vehicle_id}"
+        predicate = "http://carla.org/vehicle/inDecisionBox"
+        obj = "true" if in_box else "false"
+
+        # Sende Information an den Agent
+        send_information(agent_name, subject, predicate, obj)
+
+    # Daten an Flask-Server senden
+    flask_url = "http://localhost:5000/decision-box-trigger"
+    payload = {
+        "dbox_id": dbox_id,
+        "vehicles": vehicle_ids
+    }
+
+    try:
+        response = requests.post(flask_url, json=payload)
+        response.raise_for_status()
+        print(f"Erfolgreich an Flask gesendet: {response.json()}")
+    except requests.exceptions.RequestException as e:
+        print(f"Fehler beim Senden an Flask: {e}")
+
 # ! Actions
 # * Implements actions for Behavior Tree Node Endpoints
 # TODO Implement actions
+
+def handle_decision_box_trigger(dbox_id):
+    print(f"Trigger received from Decision Box ID: {dbox_id}")
+    # Hier kannst du weitere Logik implementieren, z. B. Aktionen für die gebundene Entity
+
 
 # * async uri
 def send_async_request(async_request_uri):
@@ -1578,6 +1670,31 @@ def get_grid_cell(location):
 
     return x, y
 
+@app.route('/decision-box-trigger', methods=['POST'])
+def decision_box_trigger():
+    data = request.json  # JSON-Daten aus der Anfrage
+    if not data:
+        return jsonify({"error": "No data received"}), 400
+
+    # Log die empfangenen Daten
+    print(f"Decision Box Trigger erhalten: {data}")
+
+    # Daten prüfen
+    dbox_id = data.get('dbox_id')
+    vehicles = data.get('vehicles')
+
+    if not dbox_id or vehicles is None:
+        return jsonify({"error": "Missing 'dbox_id' or 'vehicles' in request."}), 400
+
+    print(f"Decision Box ID: {dbox_id}, Anzahl Fahrzeuge: {len(vehicles)}")
+    print(f"Fahrzeug-IDs: {vehicles}")
+
+    # Beispiel-Antwort
+    return jsonify({
+        "message": f"Decision Box {dbox_id} verarbeitet.",
+        "vehicles": vehicles,
+    }), 200
+
 
 # ! Main Functions / Routes
 # * Implements the main functions of the pipeline.
@@ -1695,7 +1812,10 @@ def load_scenario():
             load_grid()
             print("grid loaded")
 
-        # listen_for_enter_key()
+        # monitor decision boxes
+        monitoring_thread = threading.Thread(target=monitor_decision_boxes)
+        monitoring_thread.daemon = True
+        monitoring_thread.start()
 
         return jsonify({"status": "Loaded scenario successfully."}), 200
 

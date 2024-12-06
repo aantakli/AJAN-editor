@@ -84,7 +84,6 @@ def generate_actor(name, behaviors):
 
         # Erfolgsprüfung
         if response.status_code == 200:
-            print(f'Generate AJAN Actor for {name} successful')
             return {"status": "success", "message": f"Actor {name} generated successfully"}
         else:
             print(f'Generate AJAN Actor for {name} failed')

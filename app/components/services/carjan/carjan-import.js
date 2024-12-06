@@ -338,6 +338,7 @@ export default Component.extend({
             model: entityType === "Vehicle" ? "Audi - A2" : "pedestrian_0001",
             color: null,
             behavior: null,
+            decisionBox: null,
           };
         }
 
@@ -366,6 +367,9 @@ export default Component.extend({
           }
           if (predicate === "http://example.com/carla-scenario#behavior") {
             entitiesMap[subject].behavior = object.replace(/^"|"$/g, "");
+          }
+          if (predicate === "http://example.com/carla-scenario#decisionBox") {
+            entitiesMap[subject].decisionBox = object.replace(/^"|"$/g, "");
           }
         }
 
@@ -1463,6 +1467,10 @@ export default Component.extend({
           if (item["http://example.com/carla-scenario#behavior"]) {
             currentItemContent += `      carjan:behavior "${item["http://example.com/carla-scenario#behavior"][0]["@value"]}" ;\n`;
           }
+
+          if (item["http://example.com/carla-scenario#decisionBox"]) {
+            currentItemContent += `      carjan:decisionBox "${item["http://example.com/carla-scenario#decisionBox"][0]["@value"]}" ;\n`;
+          }
         }
 
         // Füge die Pfade hinzu
@@ -1652,7 +1660,6 @@ export default Component.extend({
 
   async parseTrig(trigContent) {
     try {
-      console.log("trigContent:", trigContent);
       const trigStream = stringToStream(trigContent);
       const parser = new N3Parser({ format: "application/trig" });
       const quads = await rdf.dataset().import(parser.import(trigStream));
@@ -1863,6 +1870,17 @@ export default Component.extend({
             entityURI,
             this.namedNode("carjan:behavior"),
             rdf.literal(entity.behavior),
+            graph
+          )
+        );
+      }
+
+      if (entity.decisionBox !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            entityURI,
+            this.namedNode("carjan:decisionBox"),
+            rdf.literal(entity.decisionBox),
             graph
           )
         );
@@ -2385,6 +2403,14 @@ export default Component.extend({
                 ]
               : null;
 
+          const decisionBox =
+            graphItem["http://example.com/carla-scenario#decisionBox"] &&
+            graphItem["http://example.com/carla-scenario#decisionBox"][0]
+              ? graphItem["http://example.com/carla-scenario#decisionBox"][0][
+                  "@value"
+                ]
+              : null;
+
           const entityType = graphItem["@type"].reduce((type, currentType) => {
             if (
               currentType === "http://example.com/carla-scenario#Pedestrian"
@@ -2415,6 +2441,7 @@ export default Component.extend({
               followsPath: "null" ? null : followsPath,
               model: "null" ? null : model,
               behavior: "null" ? null : behavior,
+              decisionBox: "null" ? null : decisionBox,
             });
           }
         }

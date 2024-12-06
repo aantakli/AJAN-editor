@@ -289,271 +289,351 @@
         {{/if}}
       </div>
 
-      <!-- Dropdown für Behavior Auswahl -->
-      <div class="ui form">
-        <div local-class="pad">
-          <div class="field">
-            <label style="display: flex; align-items: flex-end;">
-              <i
-                class="share alternate icon"
-                style="margin-bottom: 8px; margin-right: 14px;"
-              ></i>
-              Choose a Behavior Tree
-              {{#if selectedBehavior}}
-                <button
-                  class="ui red icon mini button"
-                  {{action "clearSelectedBehavior"}}
-                  style="margin-top: 10px; border-radius: 10px; margin-left: auto;"
-                >
-                  <i class="eraser icon"></i>
-                </button>
-              {{/if}}
-            </label>
-            <div
-              class="ui fluid search selection dropdown"
-              id="behaviorDropdown"
-            >
-              <input
-                type="hidden"
-                name="selectedBehavior"
-                value={{if selectedBehavior.uri selectedBehavior.uri}}
-              />
-              <i class="dropdown icon"></i>
+      <div
+        class="ui top attached tabular menu"
+        id="properties-tabs"
+        style="overflow: scroll;"
+      >
 
-              {{#if selectedBehavior}}
-                <div class="text">
-                  <i class="icon share alternate"></i>
-                  {{selectedBehavior.label}}
-                </div>
-              {{else}}
-                <div class="default text">Select Behavior Tree</div>
-              {{/if}}
-
-              <div class="menu" style="overflow: hidden">
-                {{#each behaviors as |behavior|}}
-                  <div
-                    class="item"
-                    data-value="{{behavior.uri}}"
-                    {{action "selectBehavior" behavior}}
-                    style="overflow: hidden;"
-                  >
-                    <i class="icon share alternate"></i>
-                    {{behavior.label}}
-                  </div>
-                {{/each}}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Dropdown für followsPath Auswahl -->
-      <div class="ui form">
-        <div local-class="pad">
-          <div class="field">
-            <label style="display: flex; align-items: flex-end;">
-              <i
-                class="icon code branch"
-                style="margin-bottom: 8px; margin-right: 14px;"
-              ></i>
-              Assign a unique Path
-              {{#if selectedPath}}
-                <button
-                  class="ui red icon mini button"
-                  {{action "clearSelectedPath"}}
-                  style="margin-top: 10px; border-radius: 10px; margin-left: auto;"
-                >
-                  <i class="eraser icon"></i>
-                </button>
-              {{/if}}
-            </label>
-            <div
-              class="ui fluid search selection dropdown"
-              id="pathDropdown"
-              onmouseenter={{action "displayPath"}}
-              onmouseleave={{action "clearPathDrawing"}}
-            >
-              <input type="hidden" name="followsPath" />
-              <i class="dropdown icon"></i>
-
-              {{#if selectedPath}}
-                <div class="text">
-                  <i
-                    class="icon circle circular small"
-                    style={{this.safeColorStyle}}
-                  ></i>
-                  {{selectedPath.description}}
-                </div>
-              {{else}}
-                <div class="default text">Select Path</div>
-              {{/if}}
-
-              <div class="menu" style="overflow: hidden">
-                {{#each carjanState.paths as |path|}}
-                  <div
-                    class="item"
-                    data-value="{{path.path}}"
-                    {{action "selectPath" path}}
-                    style="overflow: hidden;"
-                  >
-                    <i
-                      class="icon circle circular small"
-                      style={{safePathColorStyle}}
-                    ></i>
-                    {{path.description}}
-                  </div>
-                {{/each}}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Dropdown für Direction Auswahl -->
-      <div class="ui form">
-        <div local-class="pad">
-          <div class="field">
-            <label>
-              <i class="icon arrows alternate"></i>
-              Select Heading Direction
-            </label>
-            <div
-              class="ui fluid selection dropdown
-                {{if (not-eq this.selectedPath null) 'disabled'}}"
-              onmouseenter={{action "showTooltip"}}
-              onmouseleave={{action "hideTooltip"}}
-            >
-              <input type="hidden" name="heading" />
-              <i class="dropdown icon"></i>
-              {{#if entity.heading}}
-                <div class="text" style="color: black;">
-                  {{entity.heading}}
-                </div>
-              {{else}}
-                <div class="default text">
-                  {{if (not-eq this.selectedPath null) "Path" "Select Heading"}}
-                </div>
-              {{/if}}
-              <div class="menu" style="overflow: hidden;">
-                {{#each this.headings as |heading|}}
-                  <div
-                    class="item"
-                    data-value="{{heading}}"
-                    {{action
-                      "selectHeading"
-                      heading
-                      disabled=(not-eq this.selectedPath null)
-                    }}
-                  >
-                    {{heading}}
-                  </div>
-                {{/each}}
-              </div>
-            </div>
-            {{#if (not-eq this.selectedPath null)}}
-              <div
-                class="ui pointing blue basic label"
-                local-class="tooltip"
-                hidden={{this.isTooltipHidden}}
-              >
-                When a path is assigned, entities automatically face the first
-                waypoint.
-              </div>
-            {{/if}}
-          </div>
-        </div>
+        <a class="item" data-tab="model">
+          <i class="user icon"></i>
+          Model
+        </a>
+        <a class="item active" data-tab="behavior">
+          <i class="share alternate icon"></i>
+          Behavior
+        </a>
+        <a class="item" data-tab="path">
+          <i class="code branch icon"></i>
+          Path
+        </a>
+        <a class="item" data-tab="decisionBox">
+          <i class="inbox icon"></i>
+          Decision Box
+        </a>
       </div>
 
       <!-- Dropdown für Pedestrian Model -->
-      <div class="ui segment">
-        <label>Choose a <b>CARLA </b> Pedestrian 3D-Model</label>
-        <div class="ui fluid search selection dropdown">
-          <input type="hidden" name="pedestrianModel" />
-          <i class="dropdown icon"></i>
-          <div class="default text">
-            {{#if entity.model}}
+      <div class="ui bottom attached tab segment" data-tab="model">
+        <div class="ui segment">
+          <label>Choose a <b>CARLA </b> Pedestrian 3D-Model</label>
+          <div class="ui fluid search selection dropdown">
+            <input type="hidden" name="pedestrianModel" />
+            <i class="dropdown icon"></i>
+            <div class="default text">
+              {{#if entity.model}}
 
-              <div class="text" style="color: black;">
-                <div class="ui avatar image" local-class="img-zoom-container">
-                  <img
-                    src="/assets/carjan/images/pedestrians/{{entity.model}}.webp"
-                    local-class="img-zoom-result {{if
-                      (or
-                        (eq model 'pedestrian_0009')
-                        (eq model 'pedestrian_0010')
-                        (eq model 'pedestrian_0011')
-                        (eq model 'pedestrian_0012')
-                        (eq model 'pedestrian_0013')
-                        (eq model 'pedestrian_0014')
-                        (eq model 'pedestrian_0048')
-                        (eq model 'pedestrian_0049')
-                      )
-                      'children-zoom'
-                    }}"
-                    alt="Avatar"
-                  />
+                <div class="text" style="color: black;">
+                  <div class="ui avatar image" local-class="img-zoom-container">
+                    <img
+                      src="/assets/carjan/images/pedestrians/{{entity.model}}.webp"
+                      local-class="img-zoom-result {{if
+                        (or
+                          (eq model 'pedestrian_0009')
+                          (eq model 'pedestrian_0010')
+                          (eq model 'pedestrian_0011')
+                          (eq model 'pedestrian_0012')
+                          (eq model 'pedestrian_0013')
+                          (eq model 'pedestrian_0014')
+                          (eq model 'pedestrian_0048')
+                          (eq model 'pedestrian_0049')
+                        )
+                        'children-zoom'
+                      }}"
+                      alt="Avatar"
+                    />
+                  </div>
+                  {{entity.model}}
                 </div>
-                {{entity.model}}
-              </div>
-            {{else}}
-              Select Pedestrian Model
-            {{/if}}
-          </div>
-          <div class="menu" style="overflow: hidden">
-            {{#each pedestrianList as |model|}}
-              <div
-                class="item"
-                data-value="{{model}}"
-                {{action "selectModel" model}}
-                style="overflow: hidden;"
-              >
-                <div class="ui avatar image" local-class="img-zoom-container">
-                  <img
-                    src="/assets/carjan/images/pedestrians/{{model}}.webp"
-                    local-class="img-zoom-result {{if
-                      (or
-                        (eq model 'pedestrian_0009')
-                        (eq model 'pedestrian_0010')
-                        (eq model 'pedestrian_0011')
-                        (eq model 'pedestrian_0012')
-                        (eq model 'pedestrian_0013')
-                        (eq model 'pedestrian_0014')
-                        (eq model 'pedestrian_0048')
-                        (eq model 'pedestrian_0049')
-                      )
-                      'children-zoom'
-                    }}"
-                    alt="Avatar"
-                  />
-                </div>
+              {{else}}
+                Select Pedestrian Model
+              {{/if}}
+            </div>
+            <div class="menu" style="overflow: hidden">
+              {{#each pedestrianList as |model|}}
+                <div
+                  class="item"
+                  data-value="{{model}}"
+                  {{action "selectModel" model}}
+                  style="overflow: hidden;"
+                >
+                  <div class="ui avatar image" local-class="img-zoom-container">
+                    <img
+                      src="/assets/carjan/images/pedestrians/{{model}}.webp"
+                      local-class="img-zoom-result {{if
+                        (or
+                          (eq model 'pedestrian_0009')
+                          (eq model 'pedestrian_0010')
+                          (eq model 'pedestrian_0011')
+                          (eq model 'pedestrian_0012')
+                          (eq model 'pedestrian_0013')
+                          (eq model 'pedestrian_0014')
+                          (eq model 'pedestrian_0048')
+                          (eq model 'pedestrian_0049')
+                        )
+                        'children-zoom'
+                      }}"
+                      alt="Avatar"
+                    />
+                  </div>
 
-                {{model}}
-              </div>
-            {{/each}}
+                  {{model}}
+                </div>
+              {{/each}}
+            </div>
           </div>
+
+          {{#if selectedModel}}
+            <div class="ui segment">
+              <img
+                src="/assets/carjan/images/pedestrians/{{selectedModel}}.webp"
+                alt="{{selectedModel}}"
+                class="ui medium rounded image"
+              />
+              <p>{{selectedModel}}</p>
+            </div>
+          {{/if}}
+
+          <p style="color: grey;">
+            You can visit CARLA's documentation on the pedestrian catalogue.
+            <a
+              href="https://carla.readthedocs.io/en/0.9.15/catalogue_pedestrians/"
+              target="_blank"
+              style="color: #0097ee; text-decoration: underline;"
+            >See more models</a>
+          </p>
         </div>
-
-        {{#if selectedModel}}
-          <div class="ui segment">
-            <img
-              src="/assets/carjan/images/pedestrians/{{selectedModel}}.webp"
-              alt="{{selectedModel}}"
-              class="ui medium rounded image"
-            />
-            <p>{{selectedModel}}</p>
-          </div>
-        {{/if}}
-
-        <p style="color: grey;">
-          You can visit CARLA's documentation on the pedestrian catalogue.
-          <a
-            href="https://carla.readthedocs.io/en/0.9.15/catalogue_pedestrians/"
-            target="_blank"
-            style="color: #0097ee; text-decoration: underline;"
-          >See more models</a>
-        </p>
       </div>
 
+      <!-- Dropdown für Behavior Auswahl -->
+      <div class="ui bottom attached tab segment active" data-tab="behavior">
+        <div class="ui form">
+          <div local-class="pad">
+            <div class="field">
+              <label style="display: flex; align-items: flex-end;">
+                <i
+                  class="share alternate icon"
+                  style="margin-bottom: 8px; margin-right: 14px;"
+                ></i>
+                Choose a Behavior Tree
+                {{#if selectedBehavior}}
+                  <button
+                    class="ui red icon mini button"
+                    {{action "clearSelectedBehavior"}}
+                    style="margin-top: 10px; border-radius: 10px; margin-left: auto;"
+                  >
+                    <i class="eraser icon"></i>
+                  </button>
+                {{/if}}
+              </label>
+              <div
+                class="ui fluid search selection dropdown"
+                id="behaviorDropdown"
+              >
+                <input
+                  type="hidden"
+                  name="selectedBehavior"
+                  value={{if selectedBehavior.uri selectedBehavior.uri}}
+                />
+                <i class="dropdown icon"></i>
+
+                {{#if selectedBehavior}}
+                  <div class="text">
+                    <i class="icon share alternate"></i>
+                    {{selectedBehavior.label}}
+                  </div>
+                {{else}}
+                  <div class="default text">Select Behavior Tree</div>
+                {{/if}}
+
+                <div class="menu" style="overflow: hidden">
+                  {{#each behaviors as |behavior|}}
+                    <div
+                      class="item"
+                      data-value="{{behavior.uri}}"
+                      {{action "selectBehavior" behavior}}
+                      style="overflow: hidden;"
+                    >
+                      <i class="icon share alternate"></i>
+                      {{behavior.label}}
+                    </div>
+                  {{/each}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dropdown für Pfad Auswahl -->
+      <div class="ui bottom attached tab segment" data-tab="path">
+        <div class="ui form">
+          <div local-class="pad">
+            <div class="field">
+              <label style="display: flex; align-items: flex-end;">
+                <i
+                  class="icon code branch"
+                  style="margin-bottom: 8px; margin-right: 14px;"
+                ></i>
+                Assign a unique Path
+                {{#if selectedPath}}
+                  <button
+                    class="ui red icon mini button"
+                    {{action "clearSelectedPath"}}
+                    style="margin-top: 10px; border-radius: 10px; margin-left: auto;"
+                  >
+                    <i class="eraser icon"></i>
+                  </button>
+                {{/if}}
+              </label>
+              <div
+                class="ui fluid search selection dropdown"
+                id="pathDropdown"
+                onmouseenter={{action "displayPath"}}
+                onmouseleave={{action "clearPathDrawing"}}
+              >
+                <input type="hidden" name="followsPath" />
+                <i class="dropdown icon"></i>
+
+                {{#if selectedPath}}
+                  <div class="text">
+                    <i
+                      class="icon circle circular small"
+                      style={{this.safeColorStyle}}
+                    ></i>
+                    {{selectedPath.description}}
+                  </div>
+                {{else}}
+                  <div class="default text">Select Path</div>
+                {{/if}}
+
+                <div class="menu" style="overflow: hidden">
+                  {{#each carjanState.paths as |path|}}
+                    <div
+                      class="item"
+                      data-value="{{path.path}}"
+                      {{action "selectPath" path}}
+                      style="overflow: hidden;"
+                    >
+                      <i
+                        class="icon circle circular small"
+                        style={{safePathColorStyle}}
+                      ></i>
+                      {{path.description}}
+                    </div>
+                  {{/each}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Dropdown für Direction Auswahl -->
+        <div class="ui form">
+          <div local-class="pad">
+            <div class="field">
+              <label>
+                <i class="icon arrows alternate"></i>
+                Select Heading Direction
+              </label>
+              <div
+                class="ui fluid selection dropdown
+                  {{if (not-eq this.selectedPath null) 'disabled'}}"
+                onmouseenter={{action "showTooltip"}}
+                onmouseleave={{action "hideTooltip"}}
+              >
+                <input type="hidden" name="heading" />
+                <i class="dropdown icon"></i>
+                {{#if entity.heading}}
+                  <div class="text" style="color: black;">
+                    {{entity.heading}}
+                  </div>
+                {{else}}
+                  <div class="default text">
+                    {{if
+                      (not-eq this.selectedPath null)
+                      "Path"
+                      "Select Heading"
+                    }}
+                  </div>
+                {{/if}}
+                <div class="menu" style="overflow: hidden;">
+                  {{#each this.headings as |heading|}}
+                    <div
+                      class="item"
+                      data-value="{{heading}}"
+                      {{action
+                        "selectHeading"
+                        heading
+                        disabled=(not-eq this.selectedPath null)
+                      }}
+                    >
+                      {{heading}}
+                    </div>
+                  {{/each}}
+                </div>
+              </div>
+              {{#if (not-eq this.selectedPath null)}}
+                <div
+                  class="ui pointing blue basic label"
+                  local-class="tooltip"
+                  hidden={{this.isTooltipHidden}}
+                >
+                  When a path is assigned, entities automatically face the first
+                  waypoint.
+                </div>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dropdown für Decision Box -->
+      <div class="ui bottom attached tab segment" data-tab="decisionBox">
+        <div class="ui form">
+          <div local-class="pad">
+            <div class="field">
+              <label style="display: flex; align-items: flex-end;">
+                <i
+                  class="icon inbox"
+                  style="margin-bottom: 8px; margin-right: 14px;"
+                ></i>
+                Assign unique Decision Box
+              </label>
+              <div class="ui fluid search selection dropdown">
+                <input type="hidden" name="decisionBox" />
+                <i class="dropdown icon"></i>
+                {{#if selectedDBox}}
+                  <div class="text">
+                    <i class="icon expand"></i>
+                    {{selectedDBox.label}}
+                  </div>
+                {{else}}
+                  <div class="default text">Select Decision Box</div>
+                {{/if}}
+                <div class="menu">
+                  {{#each dboxes as |dbox|}}
+                    <div
+                      class="item"
+                      data-value="{{dbox.id}}"
+                      {{action "bindDecisionBox" dbox}}
+                    >
+                      <i class="icon expand"></i>
+                      {{dbox.label}}
+                    </div>
+                  {{/each}}
+                </div>
+              </div>
+              <!-- Farbiges Quadrat -->
+              <div class="image">
+                <div
+                  style="width: 90%; height: 100px; margin-top: 12px; margin-left: 5%; background-color: {{selectedDBox.fillColor}}; border: 2px solid {{selectedDBox.borderColor}};"
+                  class="decision-box-preview"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   {{/if}}
 

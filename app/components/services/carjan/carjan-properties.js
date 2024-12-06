@@ -1,6 +1,6 @@
 import Component from "@ember/component";
 import { inject as service } from "@ember/service";
-import { computed } from "@ember/object";
+import { computed, observer } from "@ember/object";
 import { htmlSafe } from "@ember/string";
 import { run, next } from "@ember/runloop";
 
@@ -40,6 +40,7 @@ export default Component.extend({
   backupPath: null,
   selectedDBox: null,
   isDeleteDBoxDialogOpen: false,
+  dboxes: null,
 
   pedestrianList: Array.from({ length: 49 }, (_, i) => {
     const id = String(i + 1).padStart(4, "0");
@@ -77,6 +78,7 @@ export default Component.extend({
     this._super(...arguments);
     this.setupGrid();
     this.fetchBehaviors();
+    this.setupTabs();
     await this.loadCarModels();
     this.setProperties({
       normalCarModels: this.carModels.Car,
@@ -103,10 +105,6 @@ export default Component.extend({
     return this.colors.void;
   }),
 
-  selectedPathDescriptionObserver: function () {
-    console.trace("Selected Path Description Observer");
-  }.observes("selectedPath.description"),
-
   showProperties: computed("carjanState.properties", function () {
     switch (this.carjanState.properties) {
       case "path":
@@ -126,7 +124,19 @@ export default Component.extend({
   }),
 
   selectedDBoxObserver: function () {
-    this.set("selectedDBox", this.carjanState.selectedDBox);
+    let dbox = this.carjanState.selectedDBox;
+    if (dbox) {
+      console.log("dbox", dbox);
+      const rgb = this.hexToRgb(dbox.color);
+      const fill = this.rgbToRgba(this.lightenColor(rgb, 0.5), 0.8);
+      const border = this.rgbToRgba(this.darkenColor(rgb, 0.5), 1);
+      console.log("fill box and border box: ", fill, border);
+      this.set("selectedDBox", {
+        ...dbox,
+        fillColor: fill,
+        borderColor: border,
+      });
+    }
   }.observes("carjanState.selectedDBox"),
 
   selectedPathColorObserver: function () {
@@ -194,6 +204,30 @@ export default Component.extend({
         this.set("entity.heading", entityAtPosition.heading);
       }
 
+      if (entityAtPosition.decisionBox) {
+        console.log(
+          "entityatposition decisionbox",
+          entityAtPosition.decisionBox
+        );
+        console.log("dboxes", this.carjanState.dboxes);
+        const box = this.carjanState.dboxes.find(
+          (dbox) => dbox.id === entityAtPosition.decisionBox
+        );
+
+        console.log("box", box);
+
+        const rgb = this.hexToRgb(box.color);
+        const fill = this.rgbToRgba(this.lightenColor(rgb, 0.5), 0.8);
+        const border = this.rgbToRgba(this.darkenColor(rgb, 0.5), 1);
+
+        this.set("selectedDBox", {
+          ...box,
+          fillColor: fill,
+          borderColor: border,
+        });
+        console.log("this.selectedDBox", this.selectedDBox);
+      }
+
       if (entityAtPosition.behavior) {
         this.set(
           "selectedBehavior",
@@ -206,6 +240,25 @@ export default Component.extend({
 
     this.displayWaypointsInCell();
   }.observes("carjanState.currentCellPosition"),
+
+  dboxesObserver: observer("carjanState.dboxes.@each", function () {
+    this.set("dboxes", this.carjanState.dboxes);
+    this.set(
+      "dboxes",
+      this.dboxes.map((dbox) => {
+        const rgb = this.hexToRgb(dbox.color);
+        const fill = this.rgbToRgba(this.lightenColor(rgb, 0.5), 0.8);
+        const border = this.rgbToRgba(this.darkenColor(rgb, 0.5), 1);
+        console.log("fill and border", fill, border);
+        return {
+          ...dbox,
+          fillColor: fill,
+          borderColor: border,
+        };
+      })
+    );
+    console.log("observed dboxes", this.dboxes);
+  }),
 
   async fetchBehaviors() {
     const sparqlQuery = `
@@ -694,6 +747,12 @@ export default Component.extend({
       this.carjanState.setSelectedDBox(this.selectedDBox);
     },
 
+    bindDecisionBox(dbox) {
+      console.log("Selected Decision Box:", dbox);
+      this.set("entity.decisionBox", dbox.id);
+      this.updateMatchingEntity();
+    },
+
     async openDeleteDBoxDialog() {
       this.set("isDeleteDBoxDialogOpen", true);
       console.log("this.isDeleteDBoxDialogOpen", this.isDeleteDBoxDialogOpen);
@@ -733,7 +792,7 @@ export default Component.extend({
 
     updateDBoxLabel() {
       // Validierung und Bereinigung des Labels
-      const sanitizedLabel = this.selectedDBox.label; // this.sanitizeLabel(this.selectedDBox.label);
+      const sanitizedLabel = this.sanitizeLabel(this.selectedDBox.label);
 
       // Aktuelles Label aktualisieren
       this.set("selectedDBox.label", sanitizedLabel);
@@ -1219,6 +1278,7 @@ export default Component.extend({
     run.scheduleOnce("afterRender", this, function () {
       this.$(".ui.dropdown").dropdown({});
       this.$(".ui.toggle.checkbox").checkbox();
+      this.$(".menu .item").tab();
     });
   },
 
@@ -1243,5 +1303,11 @@ export default Component.extend({
       event.currentTarget.style.cursor = "grabbing";
       this.isDragging = true;
     }
+  },
+
+  setupTabs() {
+    $(document).ready(function () {
+      $(".menu .item").tab();
+    });
   },
 });

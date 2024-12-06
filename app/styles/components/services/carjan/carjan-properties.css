@@ -256,3 +256,12 @@
 .divider-black {
   border-top: 1px solid rgba(34, 36, 38, 0.5) !important;
 }
+
+:global(#properties-tabs) {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+
+:global(#properties-tabs::-webkit-scrollbar) {
+  display: none; /* Safari and Chrome */
+}

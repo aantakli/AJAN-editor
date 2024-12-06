@@ -1252,6 +1252,16 @@ export default Component.extend({
               )
             );
           }
+
+          if (agent && agent.decisionBox) {
+            rdfGraph.add(
+              rdf.quad(
+                entityURI,
+                rdf.namedNode("http://example.com/carla-scenario#decisionBox"),
+                rdf.namedNode(`${agent.decisionBox}`)
+              )
+            );
+          }
         }
       }
     });

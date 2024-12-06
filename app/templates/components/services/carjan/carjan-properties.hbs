@@ -550,6 +550,8 @@
               <div
                 class="ui fluid search selection dropdown"
                 id="fallbackPathDropdown"
+                onmouseenter={{action "displayFallbackPath"}}
+                onmouseleave={{action "clearPathDrawing"}}
               >
                 <input type="hidden" name="fallbackPath" />
                 <i class="dropdown icon"></i>
@@ -558,7 +560,7 @@
                   <div class="text">
                     <i
                       class="icon circle circular small"
-                      style={{this.safeColorStyle}}
+                      style={{this.safeColorStyleFallback}}
                     ></i>
                     {{fallbackPath.description}}
                   </div>

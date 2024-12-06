@@ -1754,6 +1754,21 @@ def start_carla():
         print(f"An error occurred in start_carla: {e}")
         return jsonify({"error": "Internal server error occurred while starting CARLA.", "details": str(e)}), 500
 
+@app.route('/start_simulation', methods=['POST'])
+def start_simulation():
+  try:
+    # Extract necessary parameters from the data
+    data = request.get_json()
+    if not data:
+      return jsonify({"error": "Missing data"}), 400
+
+
+    return jsonify({"status": "Simulation started successfully"}), 200
+
+  except Exception as e:
+    print(f"Error in start_simulation: {str(e)}")
+    return jsonify({"error": str(e)}), 500
+
 # * Loads all scenario information into the CARLA world.
 @app.route('/load_scenario', methods=['POST'])
 def load_scenario():

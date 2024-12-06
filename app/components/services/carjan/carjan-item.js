@@ -442,6 +442,12 @@ export default Component.extend({
     this.drawMainPathLines();
   }),
 
+  fallbackPathObserver: observer("carjanState.selectedFallback", function () {
+    this.resetFlagIcons();
+    console.log("fallbackPathObserver", this.carjanState.selectedFallback);
+    this.drawMainPathLines(this.carjanState.selectedFallback);
+  }),
+
   selectedPathColorObserver: observer(
     "carjanState.selectedPath.color",
     function () {
@@ -932,11 +938,13 @@ export default Component.extend({
     });
   },
 
-  drawMainPathLines() {
-    if (this.carjanState.selectedPath && !this.carjanState.pathMode) {
+  drawMainPathLines(fallback = null) {
+    let path = fallback || this.carjanState.selectedPath;
+
+    if (path && !this.carjanState.pathMode) {
       this.pathIcons = [];
 
-      this.carjanState.selectedPath.waypoints.forEach((waypoint) => {
+      path.waypoints.forEach((waypoint) => {
         const waypointElement = document.querySelector(
           `.grid-cell[data-row="${waypoint.x}"][data-col="${waypoint.y}"] .icon[data-position-in-cell="${waypoint.positionInCell}"]`
         );
@@ -946,14 +954,14 @@ export default Component.extend({
         }
       });
       if (this.pathIcons.length > 1) {
-        this.pathIcons[0].style.color = this.carjanState.selectedPath.color;
+        this.pathIcons[0].style.color = path.color;
         this.pathIcons[0].style.textShadow = "1px 2px 3px black";
         this.pathIcons[0].style.transform = "scale(1.5)";
         this.pathIcons[0].style.zIndex = 1000;
 
         // hightlight the lastwaypoint and replace it with a flag
         const lastWaypoint = this.pathIcons[this.pathIcons.length - 1];
-        lastWaypoint.style.color = this.carjanState.selectedPath.color;
+        lastWaypoint.style.color = path.color;
         // scale it
         lastWaypoint.style.transform = "scale(1.5)";
         // highlight with a harsh black shadow
@@ -964,7 +972,7 @@ export default Component.extend({
         lastWaypoint.classList.add("flag", "outline");
       }
 
-      this.drawPathLines();
+      this.drawPathLines(fallback);
     }
   },
 
@@ -2051,7 +2059,9 @@ export default Component.extend({
     viewport.style.cursor = "default"; // Optional: Setze den Cursor zurück
   },
 
-  drawPathLines() {
+  drawPathLines(fallback = null) {
+    let path = fallback || this.carjanState.selectedPath;
+
     const pathOverlay = document.getElementById(this.gridId);
     if (!pathOverlay) return;
     pathOverlay.innerHTML = "";
@@ -2068,11 +2078,10 @@ export default Component.extend({
       return;
     }
     if (icons.length < 2) return;
-
-    if (!this.carjanState.selectedPath) {
+    if (!path) {
       return;
     }
-    const pathColor = this.carjanState.selectedPath.color || "#000";
+    const pathColor = path.color || "#000";
     const points = icons.map((icon) => {
       const rect = icon.getBoundingClientRect();
 

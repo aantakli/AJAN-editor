@@ -749,18 +749,8 @@ def load_camera(camera_position):
     spectator.set_transform(carla.Transform(new_location, rotation))
     print(f"Camera set to {camera_position} position: {new_location} with rotation: {rotation}")
 
-def load_decisionboxes():
+def load_decisionboxes(dboxes):
     global carla_client, anchor_point
-
-    # Define the Decision Box coordinates relative to the grid offsets
-    start_x = 6  # Initial X offset
-    start_y = 2  # Initial Y offset
-    end_x = 4    # End X offset
-    end_y = 5    # End Y offset
-
-    # Z-coordinate range for the Decision Box
-    min_z = 0.5
-    max_z = 8
 
     # CARLA world reference
     world = carla_client.get_world()
@@ -770,71 +760,95 @@ def load_decisionboxes():
     cell_height = 4.0
     offset_x = -5.5
     offset_y = -3.0
-    half_cell_offset_x = 0
-    half_cell_offset_y = -cell_width / 2
+    half_cell_offset_x = -cell_width / 2
+    half_cell_offset_y = -cell_width
 
-    # Compute the corners of the Decision Box using the offset and scaling system
-    box_corners = [
-        carla.Location(
-            x=anchor_point.x + ((start_x + offset_x) * cell_width + half_cell_offset_x),
-            y=anchor_point.y - ((start_y + offset_y) * cell_height + half_cell_offset_y),
-            z=min_z
-        ),
-        carla.Location(
-            x=anchor_point.x + ((start_x + offset_x) * cell_width + half_cell_offset_x),
-            y=anchor_point.y - ((end_y + offset_y) * cell_height + half_cell_offset_y),
-            z=min_z
-        ),
-        carla.Location(
-            x=anchor_point.x + ((end_x + offset_x) * cell_width + half_cell_offset_x),
-            y=anchor_point.y - ((end_y + offset_y) * cell_height + half_cell_offset_y),
-            z=min_z
-        ),
-        carla.Location(
-            x=anchor_point.x + ((end_x + offset_x) * cell_width + half_cell_offset_x),
-            y=anchor_point.y - ((start_y + offset_y) * cell_height + half_cell_offset_y),
-            z=min_z
-        ),
-    ]
+    # Z-coordinate range for the Decision Box
+    min_z = 0.5
+    max_z = 8
 
-    # Debug: Print corner positions for validation
-    for i, corner in enumerate(box_corners):
-        print(f"Corner {i+1}: x={corner.x}, y={corner.y}, z={corner.z}")
+    # Iterate over the provided Decision Boxes
+    for dbox in dboxes:
+        start_x = int(dbox['startX'])
+        start_y = int(dbox['startY'])
+        end_x = int(dbox['endX']) + 1
+        end_y = int(dbox['endY']) + 1
 
-    # Draw the Decision Box in CARLA
-    for i in range(len(box_corners)):
-        start_bottom = box_corners[i]
-        end_bottom = box_corners[(i + 1) % len(box_corners)]
+        # Extract color from the Decision Box
+        color_hex = dbox['color']
+        color_rgb = tuple(int(color_hex[i:i+2], 16) for i in (1, 3, 5))
 
-        # Draw bottom face
-        world.debug.draw_line(
-            start_bottom, end_bottom, thickness=0.05, color=carla.Color(200, 0, 100, 80), life_time=0
-        )
+        # Compute the corners of the Decision Box using the offset and scaling system
+        box_corners = [
+            carla.Location(
+                x=anchor_point.x + ((start_x + offset_x) * cell_width + half_cell_offset_x),
+                y=anchor_point.y - ((start_y + offset_y) * cell_height + half_cell_offset_y),
+                z=min_z
+            ),
+            carla.Location(
+                x=anchor_point.x + ((start_x + offset_x) * cell_width + half_cell_offset_x),
+                y=anchor_point.y - ((end_y + offset_y) * cell_height + half_cell_offset_y),
+                z=min_z
+            ),
+            carla.Location(
+                x=anchor_point.x + ((end_x + offset_x) * cell_width + half_cell_offset_x),
+                y=anchor_point.y - ((end_y + offset_y) * cell_height + half_cell_offset_y),
+                z=min_z
+            ),
+            carla.Location(
+                x=anchor_point.x + ((end_x + offset_x) * cell_width + half_cell_offset_x),
+                y=anchor_point.y - ((start_y + offset_y) * cell_height + half_cell_offset_y),
+                z=min_z
+            ),
+        ]
 
-        # Draw top face
-        start_top = carla.Location(x=start_bottom.x, y=start_bottom.y, z=max_z)
-        end_top = carla.Location(x=end_bottom.x, y=end_bottom.y, z=max_z)
-        world.debug.draw_line(
-            start_top, end_top, thickness=0.05, color=carla.Color(200, 0, 100, 80), life_time=0
-        )
+        # Debug: Print corner positions for validation
+        for i, corner in enumerate(box_corners):
+            print(f"Decision Box {dbox['label']} - Corner {i+1}: x={corner.x}, y={corner.y}, z={corner.z}")
 
-        # Draw vertical lines connecting bottom and top
-        world.debug.draw_line(
-            start_bottom, start_top, thickness=0.05, color=carla.Color(200, 0, 100, 80), life_time=0
-        )
+        # Draw the Decision Box in CARLA
+        for i in range(len(box_corners)):
+            start_bottom = box_corners[i]
+            end_bottom = box_corners[(i + 1) % len(box_corners)]
 
-    print("Decision Box loaded and displayed.")
+            # Draw bottom face
+            world.debug.draw_line(
+                start_bottom, end_bottom, thickness=0.05,
+                color=carla.Color(color_rgb[0], color_rgb[1], color_rgb[2]), life_time=0
+            )
 
-    # Instantiate and initialize the DecisionBoxManager
-    manager = DecisionBoxManager(world, box_corners)
-    manager.create_trigger_box()
+            # Draw top face
+            start_top = carla.Location(x=start_bottom.x, y=start_bottom.y, z=max_z)
+            end_top = carla.Location(x=end_bottom.x, y=end_bottom.y, z=max_z)
+            world.debug.draw_line(
+                start_top, end_top, thickness=0.05,
+                color=carla.Color(color_rgb[0], color_rgb[1], color_rgb[2]), life_time=0
+            )
 
-    def monitor_decision_box(manager):
-      while True:
-          manager.check_trigger_box()
-          time.sleep(0.1)  # Überprüfungsfrequenz
+            # Draw vertical lines connecting bottom and top
+            world.debug.draw_line(
+                start_bottom, start_top, thickness=0.05,
+                color=carla.Color(color_rgb[0], color_rgb[1], color_rgb[2]), life_time=0
+            )
 
-    monitor_thread = threading.Thread(target=monitor_decision_box, args=(manager,))
+        # Create and manage the Decision Box in CARLA
+        manager = DecisionBoxManager(world, box_corners)
+        manager.create_trigger_box()
+
+        # Bind entities to the Decision Box if applicable
+        for entity in world.get_actors().filter("walker.pedestrian" or "vehicle.*"):
+            if hasattr(entity, "decisionbox") and entity.decisionbox == dbox['id']:
+                print(f"Entity {entity.id} bound to Decision Box {dbox['label']}")
+
+    print("All Decision Boxes loaded and displayed.")
+
+    def monitor_decision_boxes():
+        while True:
+            for dbox in dboxes:
+                manager.check_trigger_box()  # Adjust for multiple managers if necessary
+            time.sleep(0.1)  # Überprüfungsfrequenz
+
+    monitor_thread = threading.Thread(target=monitor_decision_boxes)
     monitor_thread.daemon = True
     monitor_thread.start()
 
@@ -1644,6 +1658,7 @@ def load_scenario():
         entityList = entities
         waypoints = scenario.get("waypoints", [])
         paths = scenario.get("paths", [])
+        decision_boxes = scenario.get("dboxes", [])
         camera_position = scenario.get("cameraPosition")
         weather = scenario.get("weather")
         show_paths = scenario.get("showPaths", "false")
@@ -1672,7 +1687,7 @@ def load_scenario():
         load_camera(camera_position)
         print("camera loaded")
 
-        load_decisionboxes()
+        load_decisionboxes(decision_boxes)
         print("decision boxes loaded")
 
         # Füge das Gitter hinzu, falls gewünscht

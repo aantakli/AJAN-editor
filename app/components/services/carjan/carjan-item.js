@@ -1223,6 +1223,16 @@ export default Component.extend({
             );
           }
 
+          if (agent && agent.fallbackPath) {
+            rdfGraph.add(
+              rdf.quad(
+                entityURI,
+                rdf.namedNode("http://example.com/carla-scenario#fallbackPath"),
+                rdf.namedNode(`${agent.fallbackPath}`)
+              )
+            );
+          }
+
           if (agent && agent.heading) {
             rdfGraph.add(
               rdf.quad(

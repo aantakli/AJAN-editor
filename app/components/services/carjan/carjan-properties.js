@@ -165,6 +165,14 @@ export default Component.extend({
     }
   }.observes("selectedPath"),
 
+  fallbackPathObserver: function () {
+    if (this.fallbackPath) {
+      console.log(`Fallback Path selected: ${this.fallbackPath.description}`);
+    } else {
+      console.log("No Fallback Path selected.");
+    }
+  }.observes("fallbackPath"),
+
   positionObserver: function () {
     let position = this.carjanState.get("currentCellPosition");
 
@@ -215,17 +223,18 @@ export default Component.extend({
         );
 
         console.log("box", box);
+        if (box) {
+          const rgb = this.hexToRgb(box.color);
+          const fill = this.rgbToRgba(this.lightenColor(rgb, 0.5), 0.8);
+          const border = this.rgbToRgba(this.darkenColor(rgb, 0.5), 1);
 
-        const rgb = this.hexToRgb(box.color);
-        const fill = this.rgbToRgba(this.lightenColor(rgb, 0.5), 0.8);
-        const border = this.rgbToRgba(this.darkenColor(rgb, 0.5), 1);
-
-        this.set("selectedDBox", {
-          ...box,
-          fillColor: fill,
-          borderColor: border,
-        });
-        console.log("this.selectedDBox", this.selectedDBox);
+          this.set("selectedDBox", {
+            ...box,
+            fillColor: fill,
+            borderColor: border,
+          });
+          console.log("this.selectedDBox", this.selectedDBox);
+        }
       }
 
       if (entityAtPosition.behavior) {
@@ -742,6 +751,23 @@ export default Component.extend({
   },
 
   actions: {
+    selectFallbackPath(path) {
+      this.set("fallbackPath", path);
+      this.set("entity.fallbackPath", path.path);
+      this.updateMatchingEntity();
+    },
+
+    clearFallbackPath() {
+      this.set("fallbackPath", null);
+      this.set("entity.fallbackPath", null);
+      this.updateMatchingEntity();
+
+      const dropdownElement = this.$("#fallbackPathDropdown");
+      if (dropdownElement && dropdownElement.length) {
+        dropdownElement.dropdown("clear");
+      }
+    },
+
     redrawDBox() {
       this.carjanState.set("canvasMode", "dbox");
       this.carjanState.setSelectedDBox(this.selectedDBox);

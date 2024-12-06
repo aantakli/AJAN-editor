@@ -44,7 +44,7 @@ def json_to_turtle(data, bool = False):
 
 
 def send_data(data):
-  url = 'http://localhost:8080/ajan/agents/asdasd?capability=fetchData'
+  url = 'http://localhost:8080/ajan/agents/Entity0505?capability=fetchData'
   observation = json_to_turtle(data)
   if observation == "":
     print("Data not valid")

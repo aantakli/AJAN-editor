@@ -2,50 +2,28 @@ import time
 import carla
 
 class DecisionBoxManager:
-    def __init__(self, world, box_corners):
+    def __init__(self, world, box_corners, dbox_id, callback):
         self.world = world
         self.box_corners = box_corners
-        self.active_checking = False  # Indicates if periodic checking is active
-        self.trigger_area = None  # Holds trigger box properties
+        self.dbox_id = dbox_id
+        self.callback = callback
+        self.trigger_area = None  # Triggerbox wird hier definiert
+        self.vehicles_in_box = set()  # Set zur Nachverfolgung der Fahrzeuge in der Box
 
     def is_in_trigger_box(self, location):
-      """
-      Check if a location is inside the trigger box.
-      """
-      center = self.trigger_area["center"]
-      extent = self.trigger_area["extent"]
-
-      in_x = abs(location.x - center.x) <= extent.x
-      in_y = abs(location.y - center.y) <= extent.y
-
-      return in_x and in_y
-
-
-    def start_periodic_checking(self):
         """
-        Start periodically checking if vehicles are in the trigger box.
+        Prüft, ob eine Position innerhalb der Triggerbox liegt.
         """
-        print("Starting periodic check for vehicles in Decision Box.")
-        self.active_checking = True
+        center = self.trigger_area["center"]
+        extent = self.trigger_area["extent"]
 
-        while self.active_checking:
-            actors = self.world.get_actors().filter("vehicle.*")
-            vehicles_in_box = [
-                actor for actor in actors
-                if self.is_in_trigger_box(actor.get_location())
-            ]
-
-            if vehicles_in_box:
-                print(f"Vehicles in Decision Box: {[actor.id for actor in vehicles_in_box]}")
-            else:
-                print("No vehicles in Decision Box. Stopping periodic check.")
-                self.active_checking = False
-
-            time.sleep(0.1)  # Adjust the frequency of checks
+        in_x = abs(location.x - center.x) <= extent.x
+        in_y = abs(location.y - center.y) <= extent.y
+        return in_x and in_y
 
     def create_trigger_box(self):
         """
-        Create a trigger box for the Decision Box.
+        Erstellt die Triggerbox basierend auf den Box-Eckpunkten.
         """
         x_min = min(corner.x for corner in self.box_corners)
         x_max = max(corner.x for corner in self.box_corners)
@@ -54,7 +32,7 @@ class DecisionBoxManager:
         z_min = self.box_corners[0].z
         z_max = z_min + 10
 
-        # Calculate center and extents for the trigger box
+        # Berechne Mittelpunkt und Extents
         center_x = (x_min + x_max) / 2
         center_y = (y_min + y_max) / 2
         center_z = (z_min + z_max) / 2
@@ -66,47 +44,54 @@ class DecisionBoxManager:
             "center": carla.Location(x=center_x, y=center_y, z=center_z),
             "extent": carla.Vector3D(x=extent_x, y=extent_y, z=extent_z),
         }
-        print(f"Trigger box created at center {self.trigger_area['center']} with extent {self.trigger_area['extent']}.")
+        print(f"Triggerbox erstellt: {self.trigger_area}")
 
     def check_trigger_box(self):
         """
-        Periodically check if any actors are in the trigger box.
+        Überwacht Fahrzeuge in und außerhalb der Triggerbox.
         """
         actors = self.world.get_actors().filter("vehicle.*")
+        current_vehicles_in_box = set()
+
         for actor in actors:
             actor_location = actor.get_location()
             if self.is_in_trigger_box(actor_location):
-                return True
-        return False
+                current_vehicles_in_box.add(actor.id)
 
-    def on_collision(self, event):
+                # Fahrzeug ist in der Box, aber noch nicht markiert
+                if actor.id not in self.vehicles_in_box:
+                    print(f"Fahrzeug {actor.id} hat Decision Box {self.dbox_id} betreten.")
+                    self.callback(self.dbox_id, [actor], in_box=True)
+
+        # Fahrzeuge, die die Box verlassen haben
+        vehicles_left_box = self.vehicles_in_box - current_vehicles_in_box
+        for vehicle_id in vehicles_left_box:
+            vehicle = self.world.get_actor(vehicle_id)
+            if vehicle:
+                print(f"Fahrzeug {vehicle_id} hat Decision Box {self.dbox_id} verlassen.")
+                self.callback(self.dbox_id, [vehicle], in_box=False)
+
+        # Aktualisiere den Status der Fahrzeuge in der Box
+        self.vehicles_in_box = current_vehicles_in_box
+
+class DecisionBoxMonitor:
+    def __init__(self, world):
+        self.world = world
+        self.managers = []  # Liste aller DecisionBoxManager
+
+    def add_manager(self, manager):
         """
-        Simulate a trigger to start periodic checking.
+        Fügt einen DecisionBoxManager zur Überwachung hinzu.
         """
-        print("Collision detected.")
-        actor = event.other_actor
-        print(f"Collision detected with vehicle {actor.id}.")
-        if not self.active_checking:
-            self.start_periodic_checking()
+        self.managers.append(manager)
 
-# Example usage
-if __name__ == "__main__":
-    client = carla.Client('localhost', 2000)
-    client.set_timeout(10.0)
-    world = client.get_world()
+    def start_monitoring(self):
+        """
+        Startet die zentrale Überwachung aller Decision Boxes.
+        """
+        print("Starte zentrale Überwachung aller Decision Boxes.")
+        while True:
+            for manager in self.managers:
+                manager.check_trigger_box()  # Überprüft die Trigger-Bedingung
+            time.sleep(0.5)  # Prüf-Frequenz
 
-    # Define the corners of the Decision Box (example values)
-    box_corners = [
-        carla.Location(x=230, y=60, z=0.5),
-        carla.Location(x=230, y=50, z=0.5),
-        carla.Location(x=240, y=50, z=0.5),
-        carla.Location(x=240, y=60, z=0.5)
-    ]
-
-    manager = DecisionBoxManager(world, box_corners)
-    manager.create_trigger_box()
-
-    # Start a periodic check manually for testing
-    while True:
-        manager.check_trigger_box()
-        time.sleep(0.5)

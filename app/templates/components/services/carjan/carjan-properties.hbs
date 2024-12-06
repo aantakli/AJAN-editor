@@ -295,11 +295,11 @@
         style="overflow: scroll;"
       >
 
-        <a class="item" data-tab="model">
+        <a class="item active" data-tab="model">
           <i class="user icon"></i>
           Model
         </a>
-        <a class="item active" data-tab="behavior">
+        <a class="item" data-tab="behavior">
           <i class="share alternate icon"></i>
           Behavior
         </a>
@@ -314,7 +314,7 @@
       </div>
 
       <!-- Dropdown für Pedestrian Model -->
-      <div class="ui bottom attached tab segment" data-tab="model">
+      <div class="ui bottom attached tab segment active" data-tab="model">
         <div class="ui segment">
           <label>Choose a <b>CARLA </b> Pedestrian 3D-Model</label>
           <div class="ui fluid search selection dropdown">
@@ -406,7 +406,7 @@
       </div>
 
       <!-- Dropdown für Behavior Auswahl -->
-      <div class="ui bottom attached tab segment active" data-tab="behavior">
+      <div class="ui bottom attached tab segment" data-tab="behavior">
         <div class="ui form">
           <div local-class="pad">
             <div class="field">
@@ -513,6 +513,65 @@
                       class="item"
                       data-value="{{path.path}}"
                       {{action "selectPath" path}}
+                      style="overflow: hidden;"
+                    >
+                      <i
+                        class="icon circle circular small"
+                        style={{safePathColorStyle}}
+                      ></i>
+                      {{path.description}}
+                    </div>
+                  {{/each}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Dropdown für Fallback-Pfad Auswahl -->
+        <div class="ui form">
+          <div local-class="pad">
+            <div class="field">
+              <label style="display: flex; align-items: flex-end;">
+                <i
+                  class="icon code branch flipped"
+                  style="margin-bottom: 8px; margin-right: 14px;"
+                ></i>
+                Assign a Fallback Path
+                {{#if fallbackPath}}
+                  <button
+                    class="ui red icon mini button"
+                    {{action "clearFallbackPath"}}
+                    style="margin-top: 10px; border-radius: 10px; margin-left: auto;"
+                  >
+                    <i class="eraser icon"></i>
+                  </button>
+                {{/if}}
+              </label>
+              <div
+                class="ui fluid search selection dropdown"
+                id="fallbackPathDropdown"
+              >
+                <input type="hidden" name="fallbackPath" />
+                <i class="dropdown icon"></i>
+
+                {{#if fallbackPath}}
+                  <div class="text">
+                    <i
+                      class="icon circle circular small"
+                      style={{this.safeColorStyle}}
+                    ></i>
+                    {{fallbackPath.description}}
+                  </div>
+                {{else}}
+                  <div class="default text">Select Fallback Path</div>
+                {{/if}}
+
+                <div class="menu" style="overflow: hidden">
+                  {{#each carjanState.paths as |path|}}
+                    <div
+                      class="item"
+                      data-value="{{path.path}}"
+                      {{action "selectFallbackPath" path}}
                       style="overflow: hidden;"
                     >
                       <i
@@ -745,7 +804,7 @@
           <div class="field">
             <label>
               <i class="icon arrows alternate"></i>
-              Select Heading Direction
+              Select initial Heading Direction
             </label>
             <div
               class="ui fluid selection dropdown

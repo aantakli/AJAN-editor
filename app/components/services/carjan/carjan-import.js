@@ -335,6 +335,7 @@ export default Component.extend({
             y: undefined,
             heading: "North",
             followsPath: null,
+            fallbackPath: null,
             model: entityType === "Vehicle" ? "Audi - A2" : "pedestrian_0001",
             color: null,
             behavior: null,
@@ -358,6 +359,9 @@ export default Component.extend({
           }
           if (predicate === "http://example.com/carla-scenario#followsPath") {
             entitiesMap[subject].followsPath = object;
+          }
+          if (predicate === "http://example.com/carla-scenario#fallbackPath") {
+            entitiesMap[subject].fallbackPath = object;
           }
           if (predicate === "http://example.com/carla-scenario#model") {
             entitiesMap[subject].model = object;
@@ -530,10 +534,14 @@ export default Component.extend({
         }
       });
 
+      // If path is non existent, remove it from the scenario
       Object.keys(entitiesMap).forEach((entityURI) => {
         const entity = entitiesMap[entityURI];
         if (entity.followsPath && !pathsMap[entity.followsPath]) {
           entity.followsPath = null;
+        }
+        if (entity.fallbackPath && !pathsMap[entity.fallbackPath]) {
+          entity.fallbackPath = null;
         }
       });
 
@@ -1452,6 +1460,10 @@ export default Component.extend({
             currentItemContent += `      carjan:followsPath "${item["http://example.com/carla-scenario#followsPath"][0]["@value"]}" ;\n`;
           }
 
+          if (item["http://example.com/carla-scenario#fallbackPath"]) {
+            currentItemContent += `      carjan:fallbackPath "${item["http://example.com/carla-scenario#fallbackPath"][0]["@value"]}" ;\n`;
+          }
+
           if (item["http://example.com/carla-scenario#model"]) {
             currentItemContent += `      carjan:model "${item["http://example.com/carla-scenario#model"][0]["@value"]}" ;\n`;
           }
@@ -1848,6 +1860,17 @@ export default Component.extend({
             entityURI,
             this.namedNode("carjan:followsPath"),
             rdf.literal(entity.followsPath),
+            graph
+          )
+        );
+      }
+
+      if (entity.fallbackPath !== undefined) {
+        rdfGraph.add(
+          rdf.quad(
+            entityURI,
+            this.namedNode("carjan:fallbackPath"),
+            rdf.literal(entity.fallbackPath),
             graph
           )
         );
@@ -2387,6 +2410,14 @@ export default Component.extend({
                 ]
               : null;
 
+          const fallbackPath =
+            graphItem["http://example.com/carla-scenario#fallbackPath"] &&
+            graphItem["http://example.com/carla-scenario#fallbackPath"][0]
+              ? graphItem["http://example.com/carla-scenario#fallbackPath"][0][
+                  "@value"
+                ]
+              : null;
+
           const model =
             graphItem["http://example.com/carla-scenario#model"] &&
             graphItem["http://example.com/carla-scenario#model"][0]
@@ -2439,6 +2470,7 @@ export default Component.extend({
               color: "null" ? null : color,
               heading: "null" ? null : heading,
               followsPath: "null" ? null : followsPath,
+              fallbackPath: "null" ? null : fallbackPath,
               model: "null" ? null : model,
               behavior: "null" ? null : behavior,
               decisionBox: "null" ? null : decisionBox,

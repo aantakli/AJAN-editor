@@ -477,6 +477,7 @@ def load_paths(paths, entities, show_paths):
     for entity in entities:
         if isinstance(entity.get('followsPath', None), str):
             follows_paths.add(entity['followsPath'])  # Füge die Pfad-ID zum Set hinzu
+            follows_paths.add(entity['fallbackPath'])  # Füge die Fallback-Pfad-ID zum Set hinzu
 
     # Nur die Pfade berücksichtigen, die von den Entitäten verfolgt werden
     filtered_paths = [path for path in paths if path["path"] in follows_paths]
@@ -960,20 +961,25 @@ def on_decision_box_trigger(dbox_id, vehicles, in_box):
     global entityList
     vehicle_ids = [vehicle.id for vehicle in vehicles]
 
-    # Agenten-namen aus der entityList dort, wo entity.decisionBox = dbox_id
-    agent_name = next((entity["label"] for entity in entityList if entity.get("decisionBox") == dbox_id), None)
+    # Finde alle Agenten, deren decisionBox = dbox_id
+    agents = [
+        entity["label"] for entity in entityList
+        if entity.get("decisionBox") == dbox_id
+    ]
 
-    if agent_name is None:
+    if not agents:
+        print(f"Keine Agenten für Decision Box {dbox_id} gefunden.")
         return
 
-    # RDF Triple-Information für jedes Fahrzeug
-    for vehicle_id in vehicle_ids:
-        subject = f"http://carla.org/vehicle/vehicle_{vehicle_id}"
-        predicate = "http://carla.org/vehicle/inDecisionBox"
-        obj = "true" if in_box else "false"
+    # RDF Triple-Information für jedes Fahrzeug an jeden Agenten senden
+    for agent_name in agents:
+        for vehicle_id in vehicle_ids:
+            subject = f"http://carla.org/vehicle/vehicle_{vehicle_id}"
+            predicate = "http://carla.org/vehicle/inDecisionBox"
+            obj = "true" if in_box else "false"
 
-        # Sende Information an den Agent
-        send_information(agent_name, subject, predicate, obj)
+            # Sende Information an den Agent
+            send_information(agent_name, subject, predicate, obj)
 
     # Daten an Flask-Server senden
     flask_url = "http://localhost:5000/decision-box-trigger"
@@ -1617,37 +1623,40 @@ def check_waypoint_proximity():
 
 @app.route('/change_path', methods=['POST'])
 def change_path():
-    global pathsPerEntity, paths, entityList
+    global entityList, pathsPerEntity, paths
     try:
-        print("Current paths per entity: ", pathsPerEntity)
-        print("Current paths: ", paths)
-        print("Current entity list: ", entityList)
-        # Extract information from request
+        # Extrahiere die Entitäts-ID aus der Anfrage
         ajan_entity_id, async_request_uri = getInformation(request)
 
-        # Get CARLA entity ID from mapping
-        carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
-        if not carla_entity_id:
-            print(f"No CARLA entity found with AJAN ID '{ajan_entity_id}'")
-            return jsonify({"status": "error", "message": "Entity not found"}), 404
-
-        # Get entity
-        entity = world.get_actor(carla_entity_id)
+        # Suche die Entity in der entityList anhand der AJAN-ID
+        entity = next((e for e in entityList if e['label'] == ajan_entity_id), None)
         if not entity:
-            print(f"No entity found with CARLA ID '{carla_entity_id}'")
+            print(f"No entity found with AJAN ID '{ajan_entity_id}'")
             return jsonify({"status": "error", "message": "Entity not found"}), 404
 
-        new_path = get_path_information(request)
-        # Update the pathsPerEntity dictionary
+        # Tausche followsPath und fallbackPath
+        current_follows_path = entity.get('followsPath')
+        current_fallback_path = entity.get('fallbackPath')
+
+        new_path = next((p for p in paths if p["path"] == current_fallback_path), None)
+
         pathsPerEntity[ajan_entity_id] = list(new_path["waypoints"])
-        print(f"New path for entity {ajan_entity_id}: {pathsPerEntity[ajan_entity_id]}")
-        print("Updated paths per entity: ", pathsPerEntity)
-        # Return an RDF triple immediately
-        return Response('<http://Agent> <http://follows> <http://newPath> .', mimetype='text/turtle', status=200)
+
+        # Update die Pfade
+        entity['followsPath'] = current_fallback_path
+        entity['fallbackPath'] = current_follows_path
+
+        print(f"Updated entity paths for {ajan_entity_id}:")
+        print(f"  followsPath: {entity['followsPath']}")
+        print(f"  fallbackPath: {entity['fallbackPath']}")
+        print(f" Paths per entity: {pathsPerEntity}")
+
+        # Erfolgsmeldung zurückgeben
+        return Response('<http://Agent> <http://changed> <http://Path> .', mimetype='text/turtle', status=200)
 
     except Exception as e:
         print(f"Error in change_path: {str(e)}")
-        return Response('<http://Agent> <http://followsNot> <http://newPath> .', mimetype='text/turtle', status=500)
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/check_decision_point', methods=['POST'])
 

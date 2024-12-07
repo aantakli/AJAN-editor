@@ -1,7 +1,7 @@
 import Component from "@ember/component";
 import { inject as service } from "@ember/service";
 import { next } from "@ember/runloop";
-import { observer } from "@ember/object";
+import { observer, computed } from "@ember/object";
 
 export default Component.extend({
   websockets: service(),
@@ -26,6 +26,11 @@ export default Component.extend({
       $(".ui.bottom.sidebar").sidebar("show");
       this.createAjanAgents();
     }, 300);
+  }),
+
+  // make a computed filtered array of agents with behavior
+  agentsWithBehavior: computed("carjanState.agentData", function () {
+    return this.carjanState.agentData.filter((agent) => agent.behavior);
   }),
 
   didRender() {

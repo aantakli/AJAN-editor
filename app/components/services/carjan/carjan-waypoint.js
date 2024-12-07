@@ -51,7 +51,6 @@ export default Component.extend({
         const rgb = this.hexToRgb(dbox.color);
         const fill = this.rgbToRgba(this.lightenColor(rgb, 0.5), 0.8);
         const border = this.rgbToRgba(this.darkenColor(rgb, 0.5), 1);
-        console.log("fill and border", fill, border);
         return {
           ...dbox,
           fillColor: fill,

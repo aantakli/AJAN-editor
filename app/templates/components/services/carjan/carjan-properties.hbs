@@ -389,9 +389,8 @@
               <img
                 src="/assets/carjan/images/pedestrians/{{selectedModel}}.webp"
                 alt="{{selectedModel}}"
-                class="ui medium rounded image"
+                class="ui rounded image"
               />
-              <p>{{selectedModel}}</p>
             </div>
           {{/if}}
 
@@ -595,8 +594,8 @@
           <div local-class="pad">
             <div class="field">
               <label>
-                <i class="icon arrows alternate"></i>
-                Select Heading Direction
+                <i class="icon compass"></i>
+                Orientation
               </label>
               <div
                 class="ui fluid selection dropdown
@@ -707,108 +706,332 @@
       <b>Vehicle Editor</b>
     </p>
 
-    <!-- Input-Feld für Vehicle Name -->
     <div class="ui form">
       <div local-class="pad">
+        <!-- Input-Feld für Vehicle Name -->
         <div class="field">
           <label>
-            <i class="edit icon" />
+            <i class="tag icon"></i>
             Vehicle Name
           </label>
           {{input
             type="text"
-            placeholder=this.entity.label
+            placeholder="Enter Vehicle Name"
             value=this.entity.label
             oninput=(action (mut this.entity.label) value="target.value")
-            focus-out=(action "inputFocusOut")
-            focus-in=(action "inputFocusIn")
-            key-up=(action "checkPathDescription")
           }}
         </div>
-        {{#if hasError}}
-          <div class="ui pointing red basic label">
-            <i class="exclamation triangle icon" />
-            <h4></h4>
-            {{errorMessage}}
-            <h1></h1>
-            Your vehicle name will not be saved.
+      </div>
+      <!-- Tab-Menü -->
+      <div
+        class="ui top attached tabular menu"
+        id="properties-tabs"
+        style="overflow: scroll;"
+      >
+        <a class="item active" data-tab="model">
+          <i class="car icon"></i>
+          Model
+        </a>
+        <a class="item" data-tab="behavior">
+          <i class="share alternate icon"></i>
+          Behavior
+        </a>
+        <a class="item" data-tab="path">
+          <i class="code branch icon"></i>
+          Path
+        </a>
+        <a class="item" data-tab="decisionBox">
+          <i class="inbox icon"></i>
+          Decision Box
+        </a>
+      </div>
+
+      <!-- Tab: Model -->
+      <div class="ui bottom attached tab segment active" data-tab="model">
+        <div class="ui segment">
+          <i class="icon cube"></i>
+          <label>Choose a <b>CARLA</b> Vehicle 3D-Model</label>
+          <div class="ui fluid search selection dropdown">
+            <input type="hidden" name="vehicleModel" />
+            <i class="dropdown icon"></i>
+            <div class="default text">
+              {{#if entity.model}}
+                <div class="text" style="color: black;">
+                  {{entity.model}}
+                </div>
+              {{else}}
+                Select Vehicle Model
+              {{/if}}
+            </div>
+            <div class="menu" style="overflow: hidden">
+
+              <!-- Car Section -->
+              <div class="header" local-class="dropdown-header">
+                <i class="icon car"></i>
+                <b>Cars</b>
+              </div>
+              {{#each normalCarModels as |model|}}
+                <div
+                  class="item"
+                  data-value="{{model.id}}"
+                  {{action "selectModel" model}}
+                  style="overflow: hidden;"
+                >
+                  {{model.name}}
+                </div>
+              {{/each}}
+
+              <!-- Motorcycle Section -->
+              <div class="ui divider" local-class="divider-black"></div>
+              <div class="header" local-class="dropdown-header">
+                <i class="icon motorcycle"></i>
+                <b>Motorcycles</b>
+              </div>
+              {{#each motorcycleModels as |model|}}
+                <div
+                  class="item"
+                  data-value="{{model.id}}"
+                  {{action "selectModel" model}}
+                  style="overflow: hidden;"
+                >
+                  {{model.name}}
+                </div>
+              {{/each}}
+
+              <!-- Bicycle Section -->
+              <div class="ui divider" local-class="divider-black"></div>
+              <div class="header" local-class="dropdown-header">
+                <i class="icon bicycle"></i>
+                <b>Bicycles</b>
+              </div>
+              {{#each bicycleModels as |model|}}
+                <div
+                  class="item"
+                  data-value="{{model.id}}"
+                  {{action "selectModel" model}}
+                  style="overflow: hidden;"
+                >
+                  {{model.name}}
+                </div>
+              {{/each}}
+            </div>
+          </div>
+        </div>
+        {{#if selectedModel}}
+          <div class="ui segment">
+            <img
+              src="/assets/carjan/images/car_models/{{selectedModel.imageUrl}}"
+              alt="{{selectedModel.name}}"
+              class="ui rounded image"
+            />
           </div>
         {{/if}}
       </div>
 
-      <!-- Dropdown für followsPath Auswahl -->
-      <div class="ui form">
+      <!-- Tab: Behavior -->
+      <div class="ui bottom attached tab segment" data-tab="behavior">
         <div local-class="pad">
           <div class="field">
-            <label style="display: flex; align-items: flex-end;">
-              <i
-                class="icon code branch"
-                style="margin-bottom: 8px; margin-right: 14px;"
-              ></i>
-              Assign a unique Path
-              {{#if selectedPath}}
-                <button
-                  class="ui red icon mini button"
-                  {{action "clearSelectedPath"}}
-                  style="margin-top: 10px; border-radius: 10px; margin-left: auto;"
-                >
-                  <i class="eraser icon"></i>
-                </button>
-              {{/if}}
+            <label>
+              <i class="share alternate icon"></i>
+              Assign Behavior
             </label>
-
-            <div
-              class="ui fluid search selection dropdown"
-              id="pathDropdown"
-              onmouseenter={{action "displayPath"}}
-              onmouseleave={{action "clearPathDrawing"}}
-            >
-              <input type="hidden" name="followsPath" />
+            <div class="ui fluid search selection dropdown">
+              <input type="hidden" name="behavior" />
               <i class="dropdown icon"></i>
+              <div class="default text">
+                {{#if selectedBehavior}}
+                  {{selectedBehavior.label}}
+                {{else}}
+                  Select Behavior
+                {{/if}}
+              </div>
+              <div class="menu">
+                {{#each behaviors as |behavior|}}
+                  <div
+                    class="item"
+                    data-value="{{behavior.id}}"
+                    {{action "selectBehavior" behavior}}
+                  >
+                    {{behavior.label}}
+                  </div>
+                {{/each}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-              {{#if selectedPath}}
-                <div class="text">
-                  <i
-                    class="icon circle circular small"
-                    style={{this.safeColorStyle}}
-                  ></i>
+      <!-- Tab: Path & Orientation -->
+      <div class="ui bottom attached tab segment" data-tab="path">
+        <div local-class="pad">
+          <div class="field">
+            <label>
+              <i class="code branch icon"></i>
+              Assign Path
+            </label>
+            <div class="ui fluid search selection dropdown">
+              <input type="hidden" name="path" />
+              <i class="dropdown icon"></i>
+              <div class="default text">
+                {{#if selectedPath}}
                   {{selectedPath.description}}
-                </div>
-              {{else}}
-                <div class="default text">Select Path</div>
-              {{/if}}
-
-              <div class="menu" style="overflow: hidden">
+                {{else}}
+                  Select Path
+                {{/if}}
+              </div>
+              <div class="menu">
                 {{#each carjanState.paths as |path|}}
                   <div
                     class="item"
                     data-value="{{path.path}}"
                     {{action "selectPath" path}}
-                    style="overflow: hidden;"
                   >
-                    <i
-                      class="icon circle circular small"
-                      style="color: {{path.color}}"
-                    ></i>
                     {{path.description}}
                   </div>
                 {{/each}}
               </div>
             </div>
-
           </div>
-          <!-- Reset Button -->
-
+          <div class="field">
+            <label>
+              <i class="compass icon"></i>
+              Orientation
+            </label>
+            <div class="ui fluid selection dropdown">
+              <input type="hidden" name="heading" />
+              <i class="dropdown icon"></i>
+              <div class="default text">
+                {{#if entity.heading}}
+                  {{entity.heading}}
+                {{else}}
+                  Select Orientation
+                {{/if}}
+              </div>
+              <div class="menu">
+                {{#each headings as |heading|}}
+                  <div
+                    class="item"
+                    data-value="{{heading}}"
+                    {{action "selectHeading" heading}}
+                  >
+                    {{heading}}
+                  </div>
+                {{/each}}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Dropdown für Direction Auswahl -->
+      <!-- Tab: Decision Box -->
+      <div class="ui bottom attached tab segment" data-tab="decisionBox">
+        <div class="ui form">
+          <div local-class="pad">
+            <div class="field">
+              <label style="display: flex; align-items: flex-end;">
+                <i
+                  class="icon inbox"
+                  style="margin-bottom: 8px; margin-right: 14px;"
+                ></i>
+                Assign unique Decision Box
+              </label>
+              <div class="ui fluid search selection dropdown">
+                <input type="hidden" name="decisionBox" />
+                <i class="dropdown icon"></i>
+                {{#if selectedDBox}}
+                  <div class="text">
+                    <i class="icon expand"></i>
+                    {{selectedDBox.label}}
+                  </div>
+                {{else}}
+                  <div class="default text">Select Decision Box</div>
+                {{/if}}
+                <div class="menu">
+                  {{#each dboxes as |dbox|}}
+                    <div
+                      class="item"
+                      data-value="{{dbox.id}}"
+                      {{action "bindDecisionBox" dbox}}
+                    >
+                      <i class="icon expand"></i>
+                      {{dbox.label}}
+                    </div>
+                  {{/each}}
+                </div>
+              </div>
+              <div class="image">
+                <div
+                  style="width: 90%; height: 100px; margin-top: 12px; margin-left: 5%; background-color: {{selectedDBox.fillColor}}; border: 2px solid {{selectedDBox.borderColor}};"
+                  class="decision-box-preview"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {{/if}}
+
+  {{#if (eq this.showProperties "autonomous")}}
+    <!-- Obstacle Editor -->
+    <p class="node-adder-class title-behaviors">
+      <i class="taxi icon"></i>
+      <b>Autonomous Vehicle Editor</b>
+    </p>
+    <!-- Dropdown für Model Auswahl -->
+    <div class="ui segment">
+      <i class="icon cube"></i>
+      <label>Choose a <b>CARLA</b> Vehicle 3D-Model</label>
+      <div class="ui fluid search selection dropdown">
+        <input type="hidden" name="autonomousModel" />
+        <i class="dropdown icon"></i>
+        <div class="default text">
+          {{#if entity.model}}
+            <div class="text" style="color: black;">
+              {{entity.model}}
+            </div>
+          {{else}}
+            Select Autonomous Vehicle Model
+          {{/if}}
+        </div>
+        <div class="menu" style="overflow: hidden">
+          <!-- Autonomous Vehicles -->
+          <div class="header" local-class="dropdown-header">
+            <i class="taxi icon"></i>
+            <b>Autonomous Vehicles</b>
+          </div>
+          {{#each autonomous as |model|}}
+            <div
+              class="item"
+              data-value="{{model.id}}"
+              {{action "selectModel" model}}
+              style="overflow: hidden;"
+            >
+              {{model.name}}
+            </div>
+          {{/each}}
+        </div>
+      </div>
+
+      {{! Zeigt das ausgewählte Bild an }}
+      {{#if selectedModel}}
+        <div class="ui segment">
+          <img
+            src="/assets/carjan/images/car_models/{{selectedModel.imageUrl}}"
+            alt="{{selectedModel.name}}"
+            class="ui rounded image"
+          />
+        </div>
+      {{/if}}
+
+      <!-- Orientation Selection -->
       <div class="ui form">
         <div local-class="pad">
           <div class="field">
             <label>
-              <i class="icon arrows alternate"></i>
-              Select initial Heading Direction
+              <i class="icon compass"></i>
+              Orientation
             </label>
             <div
               class="ui fluid selection dropdown
@@ -857,100 +1080,15 @@
         </div>
       </div>
 
-      <!-- Dropdown für Model Auswahl -->
-      <div class="ui segment">
-
-        <i class="icon cube"></i>
-        <label>Choose a <b>CARLA</b> Vehicle 3D-Model</label>
-        <div class="ui fluid search selection dropdown">
-          <input type="hidden" name="vehicleModel" />
-          <i class="dropdown icon"></i>
-          <div class="default text">
-            {{#if entity.model}}
-              <div class="text" style="color: black;">
-                {{entity.model}}
-              </div>
-            {{else}}
-              Select Vehicle Model
-            {{/if}}
-          </div>
-          <div class="menu" style="overflow: hidden">
-
-            <!-- Car Section -->
-            <div class="header" local-class="dropdown-header">
-              <i class="icon car"></i>
-              <b>Cars</b>
-            </div>
-            {{#each normalCarModels as |model|}}
-              <div
-                class="item"
-                data-value="{{model.id}}"
-                {{action "selectModel" model}}
-                style="overflow: hidden;"
-              >
-                {{model.name}}
-              </div>
-            {{/each}}
-
-            <!-- Motorcycle Section -->
-            <div class="ui divider" local-class="divider-black"></div>
-            <div class="header" local-class="dropdown-header">
-              <i class="icon motorcycle"></i>
-              <b>Motorcycles</b>
-            </div>
-            {{#each motorcycleModels as |model|}}
-              <div
-                class="item"
-                data-value="{{model.id}}"
-                {{action "selectModel" model}}
-                style="overflow: hidden;"
-              >
-                {{model.name}}
-              </div>
-            {{/each}}
-
-            <!-- Bicycle Section -->
-            <div class="ui divider" local-class="divider-black"></div>
-            <div class="header" local-class="dropdown-header">
-              <i class="icon bicycle"></i>
-              <b>Bicycles</b>
-            </div>
-            {{#each bicycleModels as |model|}}
-              <div
-                class="item"
-                data-value="{{model.id}}"
-                {{action "selectModel" model}}
-                style="overflow: hidden;"
-              >
-                {{model.name}}
-              </div>
-            {{/each}}
-          </div>
-        </div>
-
-        {{! Zeigt das ausgewählte Bild an }}
-        {{#if selectedModel}}
-          <div class="ui segment">
-            <img
-              src="/assets/carjan/images/car_models/{{selectedModel.imageUrl}}"
-              alt="{{selectedModel.name}}"
-              class="ui medium rounded image"
-            />
-            <p>{{selectedModel.name}}</p>
-          </div>
-        {{/if}}
-
-        <p style="color: grey;">
-          <i class="icon book"></i>
-          You can visit CARLA's documentation on the vehicle catalogue.
-          <a
-            href="https://carla.readthedocs.io/en/latest/catalogue_vehicles/"
-            target="_blank"
-            style="color: #0097ee; text-decoration: underline;"
-          >See more models</a>
-        </p>
-      </div>
-
+      <p style="color: grey; margin-top: 12px;">
+        <i class="icon book"></i>
+        You can visit CARLA's documentation on the vehicle catalogue.
+        <a
+          href="https://carla.readthedocs.io/en/latest/catalogue_vehicles/"
+          target="_blank"
+          style="color: #0097ee; text-decoration: underline;"
+        >See more models</a>
+      </p>
     </div>
   {{/if}}
 
@@ -1063,7 +1201,7 @@
         </div>
       </div>
 
-      <p style="color: grey;">
+      <p style="color: grey; margin-top: 12px;">
         <i class="icon book"></i>
         You can visit CARLA's documentation on the props catalogue.
         <a

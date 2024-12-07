@@ -27,6 +27,7 @@ export default Component.extend({
   vehicleModels: null,
   carModels: null,
   propModels: null,
+  autonomousModels: null,
   truckModels: null,
   vanModels: null,
   busModels: null,
@@ -96,6 +97,7 @@ export default Component.extend({
       busModels: this.carModels.Bus,
       motorcycleModels: this.carModels.Motorcycle,
       bicycleModels: this.carModels.Bicycle,
+      autonomous: this.carModels.Autonomous,
       props: this.propModels.Props,
     });
   },
@@ -193,7 +195,10 @@ export default Component.extend({
     );
     if (entityAtPosition) {
       this.set("entity", entityAtPosition);
-      if (entityAtPosition.type === "Vehicle") {
+      if (
+        entityAtPosition.type === "Vehicle" ||
+        entityAtPosition.type === "Autonomous"
+      ) {
         let carmodel;
         Object.values(this.carModels).forEach((models) => {
           if (!carmodel) {
@@ -281,7 +286,6 @@ export default Component.extend({
         const rgb = this.hexToRgb(dbox.color);
         const fill = this.rgbToRgba(this.lightenColor(rgb, 0.5), 0.8);
         const border = this.rgbToRgba(this.darkenColor(rgb, 0.5), 1);
-        console.log("fill and border", fill, border);
         return {
           ...dbox,
           fillColor: fill,
@@ -996,6 +1000,8 @@ export default Component.extend({
 
     selectModel(model) {
       this.set("selectedModel", model);
+      console.log("Selected Model:", model);
+      console.log("Entity:", this.entity);
       if (this.entity) {
         if (typeof model === "string") {
           this.set("entity.model", model);

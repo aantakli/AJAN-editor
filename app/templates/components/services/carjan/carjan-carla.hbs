@@ -202,13 +202,17 @@
               class="ui top attached tabular menu"
               style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px 5px 0 0;"
             >
-              {{#each carjanState.agentData as |agent index|}}
+              {{#each agentsWithBehavior as |agent index|}}
                 <a
                   class="item {{if (eq index 0) 'active'}}"
                   data-tab="tab-{{index}}"
                   style="font-weight: bold;"
                 >
-                  <i class="icon green wifi"></i>
+                  {{#if (eq agent.type "Pedestrian")}}
+                    <i class="icon user"></i>
+                  {{else}}
+                    <i class="icon car"></i>
+                  {{/if}}
                   {{agent.label}}
                 </a>
               {{/each}}

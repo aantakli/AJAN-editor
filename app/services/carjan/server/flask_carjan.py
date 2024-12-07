@@ -309,6 +309,9 @@ def generate_agent_for_entity(entity):
         print(f"No valid behavior found for entity {entity['entity']}.")
         return None
 
+    if not behavior:
+        return None
+
     result = generate_actor(agent_name, behaviors)
 
     # Erfolgsprüfung
@@ -1331,16 +1334,6 @@ def hi():
 @app.route('/health_check', methods=['GET'])
 def health_check():
     return jsonify({"status": "OK"}), 200
-
-@app.route('/send_data', methods=['GET'])
-def send_data():
-    result = generate_actor("PeTESTrian")
-
-    if result["status"] == "success":
-        return jsonify({"status": "success", "message": result["message"]}), 200
-
-    else:
-        return jsonify({"status": "error", "message": result["message"]}), 400
 
 @app.route('/reset_carla', methods=['GET'])
 def reset_carla():

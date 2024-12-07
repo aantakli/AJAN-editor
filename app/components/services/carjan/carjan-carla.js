@@ -116,7 +116,6 @@ export default Component.extend({
       const src = `http://localhost:4200/editor/behaviors?wssConnection=true&agent=${agentName}&repo=${repoUri}&bt=${behaviorUri}`;
       const iframeId = `carla-iframe-${tabIndex}`;
       const iframe = document.getElementById(iframeId);
-      fetchBehaviors;
 
       if (iframe) {
         iframe.src = src;
@@ -512,10 +511,104 @@ export default Component.extend({
         uri: binding.bt.value,
         label: binding.label.value,
       }));
+      console.log("Behaviors:", behaviors);
       this.set("behaviors", behaviors);
     } catch (error) {
       console.error("Failed to fetch behavior trees:", error);
     }
+  },
+
+  async fetchCapabilities() {
+    const btUris = this.behaviors.map((behavior) => behavior.uri);
+    const repoURL = "http://localhost:8090/rdf4j/repositories/agents";
+    const headers = {
+      Accept: "application/sparql-results+json",
+      "Content-Type": "application/x-www-form-urlencoded",
+    };
+
+    // Ergebnis-Mapping: BT → Capability
+    const btCapabilities = [];
+
+    for (const btUri of btUris) {
+      try {
+        // Schritt 1: BT → BE
+        const beQuery = `
+                PREFIX ajan: <http://www.ajan.de/ajan-ns#>
+                SELECT ?be WHERE {
+                    ?be ajan:bt <${btUri}> .
+                }
+            `;
+        const beResponse = await fetch(
+          `${repoURL}?query=${encodeURIComponent(beQuery)}`,
+          { headers }
+        );
+        const beData = await beResponse.json();
+        const behaviors = beData.results.bindings.map(
+          (binding) => binding.be.value
+        );
+
+        // Für jedes BE
+        for (const beUri of behaviors) {
+          // Schritt 2: BE → EV
+          const evQuery = `
+                    PREFIX ajan: <http://www.ajan.de/ajan-ns#>
+                    SELECT ?ev WHERE {
+                        <${beUri}> ajan:trigger ?ev .
+                    }
+                `;
+          const evResponse = await fetch(
+            `${repoURL}?query=${encodeURIComponent(evQuery)}`,
+            { headers }
+          );
+          const evData = await evResponse.json();
+          const events = evData.results.bindings.map(
+            (binding) => binding.ev.value
+          );
+
+          // Für jedes EV
+          for (const evUri of events) {
+            // Schritt 3: EV → Capability
+            const capabilityQuery = `
+                        PREFIX ajan: <http://www.ajan.de/ajan-ns#>
+                        SELECT ?capability WHERE {
+                            ?ep ajan:event <${evUri}> ;
+                                ajan:capability ?capability .
+                        }
+                    `;
+            const capabilityResponse = await fetch(
+              `${repoURL}?query=${encodeURIComponent(capabilityQuery)}`,
+              { headers }
+            );
+            const capabilityData = await capabilityResponse.json();
+            const capabilities = capabilityData.results.bindings.map(
+              (binding) => binding.capability.value
+            );
+
+            // Mappe Capability zur BT-URI
+            for (const capability of capabilities) {
+              btCapabilities.push({
+                bt: btUri,
+                capability,
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Error fetching capabilities for BT ${btUri}:`, error);
+      }
+    }
+
+    // Duplikate entfernen
+    const uniqueBtCapabilities = btCapabilities.filter(
+      (item, index, self) =>
+        index ===
+        self.findIndex(
+          (t) => t.bt === item.bt && t.capability === item.capability
+        )
+    );
+
+    console.log("Behavior-Capability Mapping:", uniqueBtCapabilities);
+    return uniqueBtCapabilities;
   },
 
   extractBehaviorUri(agentsRepo, currentTabLabel) {
@@ -567,26 +660,35 @@ export default Component.extend({
 
     async startSimulation() {
       console.log("Starting simulation...");
-      const behaviors = this.get("behaviors");
-      console.log("Behaviors:", behaviors);
-      const entities = this.carjanState.agentData;
-      console.log("Entities:", entities);
-      // filtere die behaviors, die in den Entities enthalten sind
-      const filteredBehaviors = behaviors.filter((behavior) =>
-        entities.some((entity) => entity.behavior === behavior.uri)
-      );
 
-      console.log("Filtered Behaviors:", filteredBehaviors);
-      // try {
-      //   console.log("Starting simulation...");
-      //   await fetch("http://localhost:4204/api/startSimulation", {
-      //     method: "POST",
-      //     body: JSON.stringify({ behaviors: filteredBehaviors }),
-      //   });
-      //   console.log("Simulation started.");
-      // } catch (error) {
-      //   console.error("Failed to start Simulation:", error);
-      // }
+      // Fetching behaviors and capabilities
+      await this.fetchBehaviors();
+      const capabilities = await this.fetchCapabilities();
+      console.log("Capabilities:", capabilities);
+
+      try {
+        console.log("Sending capabilities to Node.js server...");
+        const response = await fetch(
+          "http://localhost:4204/api/start_simulation",
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "POST",
+            body: JSON.stringify({ capabilities }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Failed to start simulation:", errorData.error);
+          return;
+        }
+
+        console.log("Simulation started successfully.");
+      } catch (error) {
+        console.error("Failed to start simulation:", error);
+      }
     },
 
     async openCarlaModal() {

@@ -117,10 +117,10 @@ def get_spectator_coordinates():
     location = spectator.get_location()  # Hole die Position der Kamera
     print(f"Spectator coordinates: x={location.x}, y={location.y}, z={location.z}")
 
-def listen_for_enter_key():
-    while True:
-        if keyboard.is_pressed('enter'):
-            get_spectator_coordinates()
+# def listen_for_enter_key():
+#     while True:
+#         if keyboard.is_pressed('enter'):
+#             get_spectator_coordinates()
 
 def set_anchor_point(map_name):
     """
@@ -1034,7 +1034,7 @@ def on_decision_box_trigger(dbox_id, vehicles, in_box):
             obj = "true" if in_box else "false"
 
             # Sende Information an den Agent
-            send_information(agent_name, subject, predicate, obj)
+            send_information(agent_name, "fetchData", subject, predicate, obj)
 
     # Daten an Flask-Server senden
     flask_url = "http://localhost:5000/decision-box-trigger"
@@ -1065,35 +1065,6 @@ def send_async_request(async_request_uri):
     data = '<http://carla.org/pedestrian> <http://at> <http://waypoint> .'
     headers = {'Content-Type': 'text/turtle'}
     return requests.post(async_request_uri, data=data, headers=headers)
-
-def isUnsafe(pedestrian, vehicle, async_request_uri):
-    def obstacle_callback(event):
-      if event.other_actor.id not in seen_actors:
-          print(f"Found new actor: ID={event.other_actor.id}, Type={event.other_actor.type_id}")
-          seen_actors.add(event.other_actor.id)
-          if event.other_actor.type_id == 'walker.pedestrian.0007':
-              action_thread = threading.Thread(target=walkToWaypoint, args=(pedestrian, waypoint3, async_request_uri))
-              action_thread.start()
-              print("Event callback for pedestrian")
-              time.sleep(0.5)
-              send_async_request(async_request_uri)
-    print("Checking if crossing is unsafe")
-    obstacle_sensor_bp = blueprint_library.find('sensor.other.obstacle')
-    obstacle_sensor_bp.set_attribute('distance', '100')
-    obstacle_sensor_bp.set_attribute('hit_radius', '7')
-    obstacle_sensor_bp.set_attribute('only_dynamics', 'True')
-    sensor_transform = carla.Transform(carla.Location(x=0.7, z=2.5), carla.Rotation(yaw=90))
-    obstacle_sensor = world.spawn_actor(obstacle_sensor_bp, sensor_transform, attach_to=vehicle)
-    actor_list.append(obstacle_sensor)
-    obstacle_sensor.listen(obstacle_callback)
-
-
-# * distance check
-def distance_check(actor, target_location, threshold):
-    actor_location = actor.get_location()
-    distance = actor_location.distance(target_location)
-    return distance < threshold
-
 
 # * pedestrian on road
 def is_pedestrian_on_road(pedestrian):
@@ -1142,19 +1113,6 @@ def send_newCrossingRequest():
         print('POST > send_newCrossingRequest successful')
     else:
         print('POST > send_newCrossingRequest failed', response.status_code)
-
-def walkToWaypoint(pedestrian, waypoint, async_request_uri):
-    global carla_client, agent_speeds
-    direction = getDirection(pedestrian, waypoint)
-    # set pedestrian speed
-    speed = agent_speeds.get(pedestrian.id, 1.5)
-    pedestrian.apply_control(carla.WalkerControl(direction=direction, speed=speed))
-    while True:
-        if distance_check(pedestrian, waypoint, 1.0):
-            print("Pedestrian reached waypoint")
-            send_async_request(async_request_uri)
-            break
-        time.sleep(0.1)
 
 def get_actor_blueprints(filter, generation):
     global carla_client
@@ -1801,18 +1759,48 @@ def start_carla():
 
 @app.route('/start_simulation', methods=['POST'])
 def start_simulation():
-  try:
-    # Extract necessary parameters from the data
-    data = request.get_json()
-    if not data:
-      return jsonify({"error": "Missing data"}), 400
+    global entityList
+    try:
+        # Extrahiere Daten aus der Anfrage
+        data = request.get_json()
+        print("Data received successfully", flush=True)
+        print(data, flush=True)
 
+        if not data or 'capabilities' not in data:
+            return jsonify({"error": "Missing data"}), 400
 
-    return jsonify({"status": "Simulation started successfully"}), 200
+        # Capabilities-Mapping (BT -> Capability)
+        capabilities = {item["bt"]: item["capability"] for item in data["capabilities"]}
 
-  except Exception as e:
-    print(f"Error in start_simulation: {str(e)}")
-    return jsonify({"error": str(e)}), 500
+        print("entityList: ", entityList)
+
+        # Iteriere über alle Entities und sende die entsprechenden Informationen
+        for entity in entityList:
+            behavior = entity.get("behavior")
+            name = entity.get("label")
+
+            if behavior not in capabilities:
+                print(f"No capability found for behavior: {behavior}", flush=True)
+                continue
+
+            capability = capabilities[behavior]
+
+            print("Sending information to agent:", name, "with capability: ", capability)
+
+            # Beispiel-Aufruf der Funktion send_information
+            send_information(
+                agent_name=name,
+                capability=capability,
+                subject="",
+                predicate="",
+                obj=""
+            )
+
+        return jsonify({"status": "Simulation started successfully"}), 200
+
+    except Exception as e:
+        print(f"Error in start_simulation: {str(e)}", flush=True)
+        return jsonify({"error": str(e)}), 500
 
 # * Loads all scenario information into the CARLA world.
 @app.route('/load_scenario', methods=['POST'])

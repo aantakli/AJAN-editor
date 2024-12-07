@@ -7,7 +7,7 @@ AJAN = Namespace("http://www.ajan.de/ajan-ns#")
 RDF = Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#")
 
 
-def send_information(agent_name, subject, predicate, obj):
+def send_information(agent_name, capability, subject, predicate, obj):
     """
     Sends an RDF triple as information to a specific agent.
 
@@ -18,7 +18,7 @@ def send_information(agent_name, subject, predicate, obj):
     :return: None
     """
     # Endpoint for the specific agent
-    url = f'http://localhost:8080/ajan/agents/{agent_name}?capability=fetchData'
+    url = f'http://localhost:8080/ajan/agents/{agent_name}?capability={capability}'
 
     # Construct the RDF data as TriG format
     if obj.startswith("http://"):

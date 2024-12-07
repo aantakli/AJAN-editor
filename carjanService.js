@@ -362,7 +362,20 @@ app.post("/api/start_flask", async (req, res) => {
 
 app.post("/api/start_simulation", async (req, res) => {
   try {
-    const flaskResponse = await forwardToFlask("/start_simulation");
+    const { capabilities } = req.body;
+
+    if (
+      !capabilities ||
+      !Array.isArray(capabilities) ||
+      capabilities.length === 0
+    ) {
+      return res.status(400).json({ error: "No capabilities provided" });
+    }
+
+    // Forward the entire array to Flask
+    const flaskResponse = await forwardToFlask("/start_simulation", {
+      capabilities,
+    });
 
     console.log("Flask response:", flaskResponse);
 

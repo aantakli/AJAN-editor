@@ -324,9 +324,29 @@ export default Component.extend({
         if (
           predicate === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
           (object === "http://example.com/carla-scenario#Vehicle" ||
-            object === "http://example.com/carla-scenario#Pedestrian")
+            object === "http://example.com/carla-scenario#Pedestrian" ||
+            object === "http://example.com/carla-scenario#Autonomous" ||
+            object === "http://example.com/carla-scenario#Obstacle")
         ) {
           let entityType = object.split("#")[1];
+          let modelType = null;
+          switch (entityType) {
+            case "Vehicle":
+              modelType = "Audi - A2";
+              break;
+            case "Pedestrian":
+              modelType = "pedestrian_0001";
+              break;
+            case "Autonomous":
+              modelType = "Tesla - Model 3";
+              break;
+            case "Obstacle":
+              modelType = "Street Barrier";
+              break;
+            default:
+              modelType = "Audi - A2";
+              break;
+          }
           entitiesMap[subject] = {
             entity: subject,
             type: entityType,
@@ -336,7 +356,7 @@ export default Component.extend({
             heading: "North",
             followsPath: null,
             fallbackPath: null,
-            model: entityType === "Vehicle" ? "Audi - A2" : "pedestrian_0001",
+            model: modelType,
             color: null,
             behavior: null,
             decisionBox: null,
@@ -1003,6 +1023,11 @@ export default Component.extend({
         return;
       }
 
+      await this.saveEnvironmentVariable(
+        "SELECTED_SCENARIO",
+        this.scenarioName
+      );
+
       const trigContent = `
         @prefix : <http://example.com/carla-scenario#> .
         @prefix carjan: <http://example.com/carla-scenario#> .
@@ -1433,13 +1458,17 @@ export default Component.extend({
 
         // Füge die Entitäten hinzu
         if (
-          item["@type"] &&
-          (item["@type"].includes(
-            "http://example.com/carla-scenario#Vehicle"
+          (item["@type"] &&
+            (item["@type"].includes(
+              "http://example.com/carla-scenario#Vehicle"
+            ) ||
+              item["@type"].includes(
+                "http://example.com/carla-scenario#Pedestrian"
+              ))) ||
+          item["@type"].includes(
+            "http://example.com/carla-scenario#Autonomous"
           ) ||
-            item["@type"].includes(
-              "http://example.com/carla-scenario#Pedestrian"
-            ))
+          item["@type"].includes("http://example.com/carla-scenario#Obstacle")
         ) {
           let entityType = item["@type"][0].split("#")[1];
           currentItemContent += `    :${id} rdf:type carjan:${entityType} ;\n`;
@@ -2363,7 +2392,8 @@ export default Component.extend({
               type === "http://example.com/carla-scenario#Entity" ||
               type === "http://example.com/carla-scenario#Pedestrian" ||
               type === "http://example.com/carla-scenario#Vehicle" ||
-              type === "http://example.com/carla-scenario#AutonomousVehicle"
+              type === "http://example.com/carla-scenario#Autonomous" ||
+              type === "http://example.com/carla-scenario#Obstacle"
           )
         ) {
           const x =
@@ -2452,10 +2482,13 @@ export default Component.extend({
             ) {
               return "vehicle";
             } else if (
-              currentType ===
-              "http://example.com/carla-scenario#AutonomousVehicle"
+              currentType === "http://example.com/carla-scenario#Autonomous"
             ) {
               return "autonomous";
+            } else if (
+              currentType === "http://example.com/carla-scenario#Obstacle"
+            ) {
+              return "obstacle";
             }
             return type;
           }, "unknown");

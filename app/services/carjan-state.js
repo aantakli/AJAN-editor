@@ -45,12 +45,10 @@ export default Service.extend({
 
   addDBox(dbox) {
     this.dboxes.pushObject(dbox);
-    console.log("dboxes after addDBox:", this.dboxes);
   },
 
   setDBoxes(dboxes) {
     set(this, "dboxes", dboxes);
-    console.log("dboxes", dboxes);
   },
 
   setCanvasMode(mode) {

@@ -316,6 +316,7 @@
       <!-- Dropdown für Pedestrian Model -->
       <div class="ui bottom attached tab segment active" data-tab="model">
         <div class="ui segment">
+          <i class="icon cube"></i>
           <label>Choose a <b>CARLA </b> Pedestrian 3D-Model</label>
           <div class="ui fluid search selection dropdown">
             <input type="hidden" name="pedestrianModel" />
@@ -395,9 +396,10 @@
           {{/if}}
 
           <p style="color: grey;">
+            <i class="icon book"></i>
             You can visit CARLA's documentation on the pedestrian catalogue.
             <a
-              href="https://carla.readthedocs.io/en/0.9.15/catalogue_pedestrians/"
+              href="https://carla.readthedocs.io/en/latest/catalogue_pedestrians/"
               target="_blank"
               style="color: #0097ee; text-decoration: underline;"
             >See more models</a>
@@ -857,6 +859,8 @@
 
       <!-- Dropdown für Model Auswahl -->
       <div class="ui segment">
+
+        <i class="icon cube"></i>
         <label>Choose a <b>CARLA</b> Vehicle 3D-Model</label>
         <div class="ui fluid search selection dropdown">
           <input type="hidden" name="vehicleModel" />
@@ -937,15 +941,137 @@
         {{/if}}
 
         <p style="color: grey;">
+          <i class="icon book"></i>
           You can visit CARLA's documentation on the vehicle catalogue.
           <a
-            href="https://carla.readthedocs.io/en/0.9.15/catalogue_vehicles/"
+            href="https://carla.readthedocs.io/en/latest/catalogue_vehicles/"
             target="_blank"
             style="color: #0097ee; text-decoration: underline;"
           >See more models</a>
         </p>
       </div>
 
+    </div>
+  {{/if}}
+
+  {{#if (eq this.showProperties "obstacle")}}
+    <!-- Obstacle Editor -->
+    <p class="node-adder-class title-behaviors">
+      <i class="tree icon"></i>
+      <b>Obstacle Editor</b>
+    </p>
+    <!-- Dropdown für Model Auswahl -->
+    <div class="ui segment">
+      <i class="icon cube"></i>
+      <label>Choose a <b>CARLA</b> Prop 3D-Model</label>
+      <div class="ui fluid search selection dropdown">
+        <input type="hidden" name="propModel" />
+        <i class="dropdown icon"></i>
+        <div class="default text">
+          {{#if entity.model}}
+            <div class="text" style="color: black;">
+              {{entity.model}}
+            </div>
+          {{else}}
+            Select Prop Model
+          {{/if}}
+        </div>
+        <div class="menu" style="overflow: hidden">
+
+          <!-- Props Section -->
+          <div class="header" local-class="dropdown-header">
+            <i class="tree icon"></i>
+            <b>Props</b>
+          </div>
+          {{#each props as |model|}}
+            <div
+              class="item"
+              data-value="{{model.id}}"
+              {{action "selectModel" model}}
+              style="overflow: hidden;"
+            >
+              {{model.name}}
+            </div>
+          {{/each}}
+        </div>
+      </div>
+
+      {{! Zeigt das ausgewählte Bild an }}
+      {{#if selectedModel}}
+        <div class="ui segment">
+          <img
+            src="/assets/carjan/images/prop_models/{{selectedModel.imageUrl}}"
+            alt="{{selectedModel.name}}"
+            class="ui rounded image"
+          />
+        </div>
+      {{/if}}
+
+      <!-- Orientation Selection -->
+
+      <div class="ui form">
+        <div local-class="pad">
+          <div class="field">
+            <label>
+              <i class="icon compass"></i>
+              Orientation
+            </label>
+            <div
+              class="ui fluid selection dropdown
+                {{if (not-eq this.selectedPath null) 'disabled'}}"
+              onmouseenter={{action "showTooltip"}}
+              onmouseleave={{action "hideTooltip"}}
+            >
+              <input type="hidden" name="heading" />
+              <i class="dropdown icon"></i>
+              {{#if entity.heading}}
+                <div class="text" style="color: black;">
+                  {{entity.heading}}
+                </div>
+              {{else}}
+                <div class="default text">
+                  {{if (not-eq this.selectedPath null) "Path" "Select Heading"}}
+                </div>
+              {{/if}}
+              <div class="menu" style="overflow: hidden;">
+                {{#each this.headings as |heading|}}
+                  <div
+                    class="item"
+                    data-value="{{heading}}"
+                    {{action
+                      "selectHeading"
+                      heading
+                      disabled=(not-eq this.selectedPath null)
+                    }}
+                  >
+                    {{heading}}
+                  </div>
+                {{/each}}
+              </div>
+            </div>
+            {{#if (not-eq this.selectedPath null)}}
+              <div
+                class="ui pointing blue basic label"
+                local-class="tooltip"
+                hidden={{this.isTooltipHidden}}
+              >
+                When a path is assigned, entities automatically face the first
+                waypoint.
+              </div>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+
+      <p style="color: grey;">
+        <i class="icon book"></i>
+        You can visit CARLA's documentation on the props catalogue.
+        <a
+          href="https://carla.readthedocs.io/en/latest/catalogue_props/"
+          target="_blank"
+          style="color: #0097ee; text-decoration: underline;"
+        >See more models</a>
+      </p>
     </div>
   {{/if}}
 

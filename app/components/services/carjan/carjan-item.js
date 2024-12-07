@@ -1187,10 +1187,19 @@ export default Component.extend({
           )
         );
 
+        console.log("cellStatus", cellStatus.entityType);
+
         if (
-          ["Pedestrian", "pedestrian", "Vehicle", "vehicle"].includes(
-            cellStatus.entityType
-          )
+          [
+            "Pedestrian",
+            "pedestrian",
+            "Vehicle",
+            "vehicle",
+            "Autonomous",
+            "autonomous",
+            "Obstacle",
+            "obstacle",
+          ].includes(cellStatus.entityType)
         ) {
           const agents = this.carjanState.get("agentData");
           const agent = agents.find(
@@ -1485,7 +1494,6 @@ export default Component.extend({
     });
 
     dboxes.forEach((dbox, dboxIndex) => {
-      console.log("dbox", dbox);
       const dboxURI = rdf.namedNode(
         `http://example.com/carla-scenario#${dbox.id}`
       );
@@ -1859,7 +1867,9 @@ export default Component.extend({
           pedestrian: "user",
           Vehicle: "car",
           vehicle: "car",
+          Autonomous: "taxi",
           autonomous: "taxi",
+          Obstacle: "tree",
           obstacle: "tree",
           default: "question",
         };
@@ -2214,11 +2224,15 @@ export default Component.extend({
         case "vehicle":
           this.carjanState.set("properties", "vehicle");
           break;
+        case "Autonomous":
         case "autonomous":
           console.log("Autonomous clicked", row, col);
+          this.carjanState.set("properties", "autonomous");
           break;
+        case "Obstacle":
         case "obstacle":
           console.log("Obstacle clicked", row, col);
+          this.carjanState.set("properties", "obstacle");
           break;
         default:
           this.carjanState.set("properties", "scenario");

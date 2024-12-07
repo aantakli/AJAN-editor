@@ -34,9 +34,13 @@ from bs4 import BeautifulSoup
 app = Flask(__name__)
 
 car_models_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'public', 'assets', 'carjan', 'car_models.json')
+prop_models_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'public', 'assets', 'carjan', 'prop_models.json')
 
 with open(car_models_path, 'r') as f:
     vehicle_models = json.load(f)
+
+with open(prop_models_path, 'r') as f:
+    prop_models = json.load(f)
 
 app_data = {}
 turtle_data_store = Graph()
@@ -71,12 +75,41 @@ BASE = Namespace("http://carla.org/")
 # * Implements helper functions and utilities
 # * for the CARJAN Scenario loaders
 
-def get_blueprint_id(vehicle_name):
-    for category in vehicle_models.values():
-        for vehicle in category:
-            if vehicle['name'] == vehicle_name:
-                return vehicle['blueprintId']
+def get_blueprint_id(models, name):
+    for category in models.values():
+        for object in category:
+            if object['name'] == name:
+                return object['blueprintId']
     return None
+
+def get_ground_height(location):
+    """
+    Holt die Bodenhöhe an einer bestimmten Position.
+    Wenn kein Waypoint existiert, wird die Höhe direkt aus der Umgebung geschätzt.
+    """
+    global carla_client
+    world = carla_client.get_world()
+    try:
+        map = world.get_map()
+        waypoint = map.get_waypoint(location, project_to_road=False)  # Nicht an die Straße binden
+        if waypoint:
+            return waypoint.transform.location.z
+        else:
+            # Fallback: Trace das Gelände
+            start = location + carla.Location(z=50)  # Strahl von oben
+            end = location - carla.Location(z=50)  # Strahl nach unten
+            raycast_results = world.cast_ray(start, end)
+
+            if raycast_results and len(raycast_results) > 0:
+                # Nimm den ersten Treffer aus der Liste
+                hit = raycast_results[0]
+                return hit.location.z
+            else:
+                print("Warning: Failed to determine ground height. Using default value.")
+                return location.z  # Fallback auf die ursprüngliche Höhe
+    except Exception as e:
+        print(f"Error in get_ground_height: {e}")
+        return location.z  # Fallback auf ursprüngliche Höhe
 
 def get_spectator_coordinates():
     # Angenommen, du hast bereits ein `world`-Objekt in CARLA
@@ -637,7 +670,7 @@ def load_world(weather, camera_position):
         return False
 
 def load_entities(entities, paths):
-    global carla_client, anchor_point, actor_list, pathsPerEntity
+    global carla_client, anchor_point, actor_list, pathsPerEntity, vehicle_models, prop_models
 
     world = carla_client.get_world()
     blueprint_library = world.get_blueprint_library()
@@ -724,6 +757,7 @@ def load_entities(entities, paths):
                         yaw = math.degrees(math.atan2(direction_y, direction_x))  # Berechne den Winkel (Yaw)
                         rotation = carla.Rotation(pitch=0, yaw=yaw)
 
+
         pedestrian_actor = None
         vehicle_actor = None
 
@@ -754,7 +788,7 @@ def load_entities(entities, paths):
                 print(f"Failed to spawn Pedestrian '{entity['label']}' at: {spawn_location}")
 
         elif entity["type"] == "Vehicle":
-            vehicle_blueprint = blueprint_library.find(get_blueprint_id(entity["model"]))
+            vehicle_blueprint = blueprint_library.find(get_blueprint_id(vehicle_models, entity["model"]))
             vehicle_transform = carla.Transform(spawn_location, rotation)
             vehicle_actor = world.try_spawn_actor(vehicle_blueprint, vehicle_transform)
 
@@ -771,6 +805,30 @@ def load_entities(entities, paths):
             else:
                 print(f"Failed to spawn Vehicle '{entity['label']}' at: {spawn_location}")
 
+        elif entity["type"] == "Obstacle":
+            # Prop-Blueprint finden
+            print("Obstacle model: ", entity["model"])
+            prop_blueprint = blueprint_library.find(get_blueprint_id(prop_models, entity["model"]))
+            if not prop_blueprint:
+                print(f"Failed to find blueprint for Prop model: {entity['model']}")
+                return
+
+            # Höhe des Bodens an der Spawn-Position ermitteln
+            spawn_location.z = get_ground_height(spawn_location)
+
+            rotation.yaw -= 90
+
+            # Transform erstellen
+            prop_transform = carla.Transform(spawn_location, rotation)
+
+            # Prop spawnen
+            prop_actor = world.try_spawn_actor(prop_blueprint, prop_transform)
+
+            if prop_actor:
+                print(f"Successfully spawned Prop '{entity['label']}' at: {spawn_location}")
+                spawned_entities.add(entity_id)
+            else:
+                print(f"Failed to spawn Prop '{entity['label']}' at: {spawn_location}")
 
         if ("followsPath" in entity):
             follows_path = entity["followsPath"]
@@ -904,6 +962,30 @@ def load_decisionboxes(dboxes):
         decision_box_managers.append(manager)
 
 
+def disable_specific_objects():
+    global carla_client
+    world = carla_client.get_world()
+    # Deaktivieren der entsprechenden Objektkategorien
+    object_labels = [
+        carla.CityObjectLabel.Other,  # Dies könnte Bushaltestellen, Mülleimer, usw. umfassen
+        carla.CityObjectLabel.Static,  # Statische Objekte, die nicht spezifiziert sind
+        carla.CityObjectLabel.Vegetation,  # Bäume, Sträucher, etc.
+        carla.CityObjectLabel.Fences, # Zäune
+        carla.CityObjectLabel.RoadLines,  # Straßenmarkierungen
+        carla.CityObjectLabel.Poles,  # Laternenpfähle, Verkehrsschilder, etc.
+        carla.CityObjectLabel.TrafficSigns,  # Verkehrsschilder,
+        carla.CityObjectLabel.Dynamic,  # Dynamische Objekte wie Fahrzeuge and Fußgänger,
+    ]
+
+    for label in object_labels:
+        env_objs = world.get_environment_objects(label)
+        env_obj_ids = [obj.id for obj in env_objs]
+        try:
+            world.enable_environment_objects(env_obj_ids, False)
+        except RuntimeError as e:
+            print(f"Error disabling objects of type {label}: {e}")
+
+
 def unload_stuff():
     global carla_client
     world = carla_client.get_world()
@@ -923,36 +1005,6 @@ def unload_stuff():
 
     for layer in unloadList:
         world.unload_map_layer(layer)
-
-    def disable_specific_objects():
-        global carla_client
-        world = carla_client.get_world()
-        # Deaktivieren der entsprechenden Objektkategorien
-        object_labels = [
-            carla.CityObjectLabel.Other,  # Dies könnte Bushaltestellen, Mülleimer, usw. umfassen
-            carla.CityObjectLabel.Static,  # Statische Objekte, die nicht spezifiziert sind
-            carla.CityObjectLabel.Vegetation,  # Bäume, Sträucher, etc.
-            carla.CityObjectLabel.Fences, # Zäune
-            carla.CityObjectLabel.RoadLines,  # Straßenmarkierungen
-            carla.CityObjectLabel.Poles,  # Laternenpfähle, Verkehrsschilder, etc.
-            carla.CityObjectLabel.TrafficSigns,  # Verkehrsschilder,
-            carla.CityObjectLabel.Dynamic,  # Dynamische Objekte wie Fahrzeuge and Fußgänger,
-        ]
-
-        for label in object_labels:
-            env_objs = world.get_environment_objects(label)
-            env_obj_ids = [obj.id for obj in env_objs]
-            try:
-                world.enable_environment_objects(env_obj_ids, False)
-            except RuntimeError as e:
-                print(f"Error disabling objects of type {label}: {e}")
-
-    disable_specific_objects()
-
-    # Set roads to gray color
-    for blueprint in world.get_blueprint_library().filter('static.prop.street.*'):
-        print(f"Setting road texture to gray for {blueprint.id}")
-        world.get_blueprint_library().find(blueprint.id).set_attribute('texture', 'none')
 
 def on_decision_box_trigger(dbox_id, vehicles, in_box):
     """
@@ -1811,6 +1863,7 @@ def load_scenario():
         load_world(weather, scenario_map)
         if (load_layers == "false"):
             unload_stuff()
+        disable_specific_objects()
         print("world loaded")
 
         # Setze den Ankerpunkt für die Karte

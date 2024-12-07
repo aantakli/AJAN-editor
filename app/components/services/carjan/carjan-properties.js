@@ -26,6 +26,7 @@ export default Component.extend({
   selectedModel: null,
   vehicleModels: null,
   carModels: null,
+  propModels: null,
   truckModels: null,
   vanModels: null,
   busModels: null,
@@ -87,6 +88,7 @@ export default Component.extend({
     this.fetchBehaviors();
     this.setupTabs();
     await this.loadCarModels();
+    await this.loadPropModels();
     this.setProperties({
       normalCarModels: this.carModels.Car,
       truckModels: this.carModels.Truck,
@@ -94,6 +96,7 @@ export default Component.extend({
       busModels: this.carModels.Bus,
       motorcycleModels: this.carModels.Motorcycle,
       bicycleModels: this.carModels.Bicycle,
+      props: this.propModels.Props,
     });
   },
 
@@ -133,7 +136,6 @@ export default Component.extend({
   selectedDBoxObserver: function () {
     let dbox = this.carjanState.selectedDBox;
     if (dbox) {
-      console.log("dbox", dbox);
       const rgb = this.hexToRgb(dbox.color);
       const fill = this.rgbToRgba(this.lightenColor(rgb, 0.5), 0.8);
       const border = this.rgbToRgba(this.darkenColor(rgb, 0.5), 1);
@@ -203,6 +205,16 @@ export default Component.extend({
         this.set("selectedModel", carmodel);
       } else if (entityAtPosition.type === "Pedestrian") {
         this.set("selectedModel", entityAtPosition.model);
+      } else if (entityAtPosition.type === "Obstacle") {
+        let propmodel;
+        Object.values(this.propModels).forEach((models) => {
+          if (!propmodel) {
+            propmodel = models.find(
+              (model) => model.name === entityAtPosition.model
+            );
+          }
+        });
+        this.set("selectedModel", propmodel);
       }
 
       const entityPath = this.carjanState.paths.find(
@@ -230,16 +242,10 @@ export default Component.extend({
       }
 
       if (entityAtPosition.decisionBox) {
-        console.log(
-          "entityatposition decisionbox",
-          entityAtPosition.decisionBox
-        );
-        console.log("dboxes", this.carjanState.dboxes);
         const box = this.carjanState.dboxes.find(
           (dbox) => dbox.id === entityAtPosition.decisionBox
         );
 
-        console.log("box", box);
         if (box) {
           const rgb = this.hexToRgb(box.color);
           const fill = this.rgbToRgba(this.lightenColor(rgb, 0.5), 0.8);
@@ -283,7 +289,6 @@ export default Component.extend({
         };
       })
     );
-    console.log("observed dboxes", this.dboxes);
   }),
 
   async fetchBehaviors() {
@@ -340,6 +345,12 @@ export default Component.extend({
     const response = await fetch("/assets/carjan/car_models.json");
     const carModels = await response.json();
     this.carModels = carModels;
+  },
+
+  async loadPropModels() {
+    const response = await fetch("/assets/carjan/prop_models.json");
+    const propModels = await response.json();
+    this.set("propModels", propModels);
   },
 
   updatePath() {
@@ -590,6 +601,7 @@ export default Component.extend({
         ...this.entity,
       };
     }
+    console.log("updated Matching Entity!", this.carjanState.agentData);
   },
 
   updateEntityName() {
@@ -768,6 +780,11 @@ export default Component.extend({
   },
 
   actions: {
+    selectOrientation(orientation) {
+      this.set("entity.heading", orientation);
+      this.updateMatchingEntity();
+    },
+
     selectFallbackPath(path) {
       this.set("fallbackPath", path);
       this.set("entity.fallbackPath", path.path);

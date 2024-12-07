@@ -59,7 +59,6 @@ export default Component.extend({
         };
       })
     );
-    console.log("observed dboxes", this.dboxes);
   }),
 
   pathsWithWaypoints: computed("paths.@each.waypoints", function () {

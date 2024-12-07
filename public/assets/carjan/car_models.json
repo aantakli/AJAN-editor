@@ -1,4 +1,32 @@
 {
+  "Autonomous": [
+    {
+      "name": "Dodge - Police Charger 2020",
+      "imageUrl": "vehicle08.webp",
+      "blueprintId": "vehicle.dodge.charger_police_2020"
+    },
+    {
+      "name": "Dodge - Police Charger",
+      "imageUrl": "vehicle09.webp",
+      "blueprintId": "vehicle.dodge.charger_police"
+    },
+    {
+      "name": "Ford - Crown (taxi)",
+      "imageUrl": "vehicle10.webp",
+      "blueprintId": "vehicle.ford.crown"
+    },
+
+    {
+      "name": "Micro - Microlino",
+      "imageUrl": "vehicle17.webp",
+      "blueprintId": "vehicle.micro.microlino"
+    },
+    {
+      "name": "Tesla Model 3",
+      "imageUrl": "vehicle41.webp",
+      "blueprintId": "vehicle.tesla.model3"
+    }
+  ],
   "Car": [
     {
       "name": "Audi - A2",

@@ -1,36 +1,151 @@
-<p class="node-adder-class title-behaviors">
-  <i class="user plus icon"></i>
-  <b>Entity Selection</b>
-</p>
-<p class="active title composite-selection">
-  <i class="info circle icon" style="margin-left: 4px"></i>
-  Drag & Drop an Entity onto the canvas.
-</p>
-<div class="content">
-  <div class="ui items" local-class="entity-selection-container">
-    {{#each entities as |entity|}}
-      <div local-class="entity-panel">
-        <div class="ui items" local-class="entity-item" style="margin: 0;">
-          <div local-class="entity-image">
-            <i
-              id="{{entity.id}}-icon"
-              class="icon {{entity.icon}}"
-              style="font-size: 48px;"
-            ></i>
+<div class="ui top attached tabular menu" id="entity-tabs">
+  <a class="item active" data-tab="add-entity">
+    <i class="user plus icon"></i>
+    Add Entity
+  </a>
+  <a {{action "reloadEntities"}} class="item" data-tab="existing-entities">
+    <i class="users icon"></i>
+    Existing Entities
+  </a>
+</div>
+
+<div class="ui bottom attached tab segment active" data-tab="add-entity">
+  <p class="node-adder-class title-behaviors">
+    <i class="user plus icon"></i>
+    <b>Entity Selection</b>
+  </p>
+  <p class="active title composite-selection">
+    <i class="info circle icon" style="margin-left: 4px"></i>
+    Drag & Drop an Entity onto the canvas.
+  </p>
+  <div class="content">
+    <div class="ui items" local-class="entity-selection-container">
+      {{#each entities as |entity|}}
+        <div local-class="entity-panel">
+          <div class="ui items" local-class="entity-item" style="margin: 0;">
+            <div local-class="entity-image">
+              <i
+                id="{{entity.id}}-icon"
+                class="icon {{entity.icon}}"
+                style="font-size: 48px;"
+              ></i>
+            </div>
+            <div local-class="entity-content">
+              <a local-class="entity-header">{{entity.name}}</a>
+            </div>
           </div>
-          <div local-class="entity-content">
-            <a local-class="entity-header">{{entity.name}}</a>
+          <div
+            local-class="drag-overlay"
+            draggable="true"
+            data-entity-type="{{entity.id}}"
+            ondragstart={{action "dragStart"}}
+            ondragleave={{action "dragLeave"}}
+            style="position:absolute; top:0; left:0; width:100%; height:100%"
+          ></div>
+        </div>
+      {{/each}}
+    </div>
+  </div>
+</div>
+
+<div class="ui bottom attached tab segment" data-tab="existing-entities">
+  <p class="node-adder-class title-behaviors">
+    <i class="users icon"></i>
+    <b>Entities on your Canvas</b>
+  </p>
+
+  <div
+    class="ui items"
+    id="entity-list"
+    local-class="entity-selection-container"
+    style="background-color: rgb(232, 237, 241); border-radius: 10px;"
+  >
+    {{#each existingEntities as |entity|}}
+      <div
+        local-class="entity-panel"
+        style="margin-bottom: 12px; padding-left: 20px; background-color: white; border-radius: 10px; cursor: pointer;"
+        {{action "onEntitySelect" entity}}
+      >
+        <div
+          class="item"
+          style="display: flex; align-items: center; gap: 16px;"
+        >
+          <!-- Vorschaubild -->
+          <div class="image">
+            {{#if entity.imageUrl}}
+              <div
+                style="width: 100px; height: 100px; overflow: hidden; border-radius: 8px; display: flex; justify-content: center; align-items: center;"
+              >
+                <img
+                  src="{{entity.imageUrl}}"
+                  alt="{{entity.label}}"
+                  style="width: auto; height: 100%;"
+                />
+              </div>
+            {{else}}
+              <div
+                style="width: 100px; height: 100px; background-color: gray; display: flex; justify-content: center; align-items: center; border-radius: 8px;"
+              >
+                <span style="color: white; font-size: 12px;">No Image</span>
+              </div>
+            {{/if}}
+          </div>
+
+          <!-- Textinhalt -->
+          <div class="content" local-class="content-small">
+            <div local-class="description">
+              <div
+                class="ui breadcrumb"
+                style="display: flex; align-items: center;"
+              >
+                <div
+                  style="font-size: large; display: flex; align-items: center; max-width: 50%; overflow: hidden;"
+                >
+                  <i class="icon tag"></i>
+                  <span>{{entity.label}}</span>
+                </div>
+                <div class="divider" style="margin: 0 8px;">|</div>
+                <div
+                  local-class="entity-panel"
+                  style="display: flex; align-items: center;"
+                >
+                  <i class="icon map pin"></i>
+                  ({{entity.position.x}},
+                  {{entity.position.y}})
+                </div>
+              </div>
+            </div>
+            <div class="meta" style="color: gray">
+              <span>{{entity.type}}</span>
+            </div>
+            <div class="extra">
+              <div class="ui breadcrumb" style="overflow: scroll;">
+                {{#if
+                  (and entity.followsPath (not (eq entity.followsPath "null")))
+                }}
+                  <div class="section">
+                    <i
+                      class="icon code branch"
+                      style="color: {{entity.followsPathColor}};"
+                    ></i>
+                    {{entity.followsPath}}
+                  </div>
+                  {{#if
+                    (and entity.behavior (not (eq entity.behavior "null")))
+                  }}
+                    <div class="divider">|</div>
+                  {{/if}}
+                {{/if}}
+                {{#if (and entity.behavior (not (eq entity.behavior "null")))}}
+                  <div class="section">
+                    <i class="teal icon share alternate"></i>
+                    {{entity.behavior}}
+                  </div>
+                {{/if}}
+              </div>
+            </div>
           </div>
         </div>
-
-        <div
-          local-class="drag-overlay"
-          draggable="true"
-          data-entity-type="{{entity.id}}"
-          ondragstart={{action "dragStart"}}
-          ondragleave={{action "dragLeave"}}
-          style="position:absolute; top:0; left:0; width:100%; height:100%"
-        ></div>
       </div>
     {{/each}}
   </div>

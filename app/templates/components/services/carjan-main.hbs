@@ -25,21 +25,20 @@
             ><i class="icon database"></i>
               Files
             </a>
-            <a
-              class="item"
-              data-tab="map-selection"
-              {{action "closePathwayEditor"}}
-            ><i class="icon map"></i>
+            <a class="item" data-tab="maps" {{action "closePathwayEditor"}}><i
+                class="icon map"
+              ></i>
               Maps
             </a>
             <a
               class="item"
-              data-tab="dragdrop"
+              data-tab="entities"
               {{action "closePathwayEditor"}}
             ><i class="icon user"></i>
               Entities
             </a>
-            <a class="item" data-tab="waypoint"><i class="icon wrench"></i>
+            <a class="item" data-tab="tools">
+              <i class="icon wrench"></i>
               Tools
             </a>
             <a class="item" data-tab="carla">
@@ -50,23 +49,28 @@
               />
               Carla
             </a>
+            <a class="item" data-tab="info">
+              <i class="icon info circle"></i>
+            </a>
           </div>
 
           <div class="ui bottom attached tab segment active" data-tab="import">
             {{services/carjan/carjan-import}}
           </div>
-          <div class="ui bottom attached tab segment" data-tab="map-selection">
-            {{services/carjan/carjan-map-selection}}
+          <div class="ui bottom attached tab segment" data-tab="maps">
+            {{services/carjan/carjan-maps}}
           </div>
-          <div class="ui bottom attached tab segment" data-tab="dragdrop">
-            {{services/carjan/carjan-dragdrop}}
+          <div class="ui bottom attached tab segment" data-tab="entities">
+            {{services/carjan/carjan-entities}}
           </div>
-          <div class="ui bottom attached tab segment" data-tab="waypoint">
-            {{services/carjan/carjan-waypoint}}
+          <div class="ui bottom attached tab segment" data-tab="tools">
+            {{services/carjan/carjan-tools}}
           </div>
           <div class="ui bottom attached tab segment" data-tab="carla">
             {{services/carjan/carjan-carla}}
-
+          </div>
+          <div class="ui bottom attached tab segment" data-tab="info">
+            {{services/carjan/carjan-info}}
           </div>
         </div>
 

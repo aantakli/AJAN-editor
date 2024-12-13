@@ -164,7 +164,6 @@
   width: 40px;
 }
 
-/* Button-Container */
 .axis-icon-button {
   display: flex;
   align-items: center;
@@ -174,10 +173,9 @@
   padding: 8px;
 }
 
-/* Position für die X-Achse */
 .x-axis {
   position: absolute;
-  top: 20px; /* Beispielposition für X-Achse */
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -185,4 +183,25 @@
 :global(#decisionBoxPopup) {
   pointer-events: none;
   z-index: 9999999;
+}
+
+.circle-button-container {
+  position: relative;
+}
+
+.additional-buttons {
+  position: absolute;
+  top: 50px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.circle-button-container {
+  opacity: 1; /* Standardmäßig sichtbar */
+  transition: opacity 0.3s ease-in-out; /* Sanfte Transition */
+}
+
+.circle-button-container.hidden {
+  opacity: 0; /* Unsichtbar */
 }

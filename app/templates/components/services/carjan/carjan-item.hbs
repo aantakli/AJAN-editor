@@ -1,12 +1,51 @@
 <div class="ui segment" style="height: 100%">
   {{#if this.reloadFlag}}
     <p></p>
-    <div class="ui active inverted dimmer" id="loading">
+    <div
+      class="ui active inverted dimmer"
+      id="loading"
+      style="pointer-events: none;"
+    >
       <div class="ui medium text loader">Loading Grid</div>
     </div>
   {{/if}}
-
-  <div id="viewport">
+  <div
+    id="viewport"
+    onmouseenter={{action "mouseHoverToggle"}}
+    onmouseleave={{action "mouseHoverToggle"}}
+  >
+    <div
+      local-class="circle-button-container {{if
+        this.visibleLayerButtons
+        'visible'
+        'hidden'
+      }}"
+      id="layer-buttons"
+      style="display: auto;"
+    >
+      <button
+        class="ui circular basic toggle icon button"
+        id="layer-button"
+        onmousedown={{action "toggleButtons"}}
+        style="transition: 0.3s ease-in-out; z-index: 999999999; position: fixed;"
+      >
+        <i class="icon map outline"></i>
+      </button>
+      <div class="additional-buttons" local-class="additional-buttons">
+        <button class="ui circular basic icon button animated-button">
+          <i class="icon users"></i>
+        </button>
+        <button class="ui circular basic icon button animated-button">
+          <i class="icon code branch"></i>
+        </button>
+        <button class="ui circular basic icon button animated-button">
+          <i class="icon map marker alternate"></i>
+        </button>
+        <button class="ui circular basic icon button animated-button">
+          <i class="icon inbox"></i>
+        </button>
+      </div>
+    </div>
     <div id="room">
       <div
         id="gridContainer"

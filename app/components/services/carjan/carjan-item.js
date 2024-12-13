@@ -5,8 +5,6 @@ import { htmlSafe } from "@ember/string";
 import { run } from "@ember/runloop";
 import rdfGraph from "ajan-editor/helpers/RDFServices/RDF-graph";
 import rdf from "npm:rdf-ext";
-import $ from "jquery";
-import { min } from "@ember/object/computed";
 
 export default Component.extend({
   attributeBindings: ["style"],
@@ -35,6 +33,9 @@ export default Component.extend({
   headingChevron: 0,
   offsetX: 0,
   offsetY: 0,
+  showButtons: false,
+  layerButtons: false,
+  visibleLayerButtons: false,
 
   style: computed(function () {
     return htmlSafe("height: 100%;");
@@ -92,6 +93,12 @@ export default Component.extend({
   didInsertElement() {
     this._super(...arguments);
     rdfGraph.set(rdf.dataset());
+    this.toggleLayerButtons();
+
+    $("#layer-button").click(function () {
+      $(this).toggleClass("basic").toggleClass("black");
+    });
+
     this.draggingEntityType = null;
     this.setupPanningAndZoom();
     this._onCanvasMouseDown = this.onCanvasMouseDown.bind(this);
@@ -104,6 +111,7 @@ export default Component.extend({
       : "main";
     const shortId = fullPath.includes("#") ? fullPath.split("#")[1] : fullPath;
     this.set("gridId", shortId);
+
     setTimeout(() => {
       this.set("reloadFlag", false);
       if (this.carjanState.mapData && this.carjanState.agentData) {
@@ -139,7 +147,26 @@ export default Component.extend({
     });
   },
 
+  toggleLayerButtons() {
+    this.set("showButtons", !this.showButtons);
+    this.set("layerButtons", !this.layerButtons);
+    setTimeout(() => {
+      $(".additional-buttons .animated-button").transition({
+        animation: "scale",
+        interval: 100,
+      });
+    }, 50);
+  },
+
   actions: {
+    mouseHoverToggle() {
+      this.set("visibleLayerButtons", !this.visibleLayerButtons);
+    },
+
+    toggleButtons() {
+      this.toggleLayerButtons();
+    },
+
     allowDrop(event) {
       event.preventDefault();
 

@@ -36,6 +36,8 @@ export default Component.extend({
   showButtons: false,
   layerButtons: false,
   visibleLayerButtons: false,
+  dboxVisibility: true,
+  pathVisibility: true,
 
   style: computed(function () {
     return htmlSafe("height: 100%;");
@@ -99,6 +101,22 @@ export default Component.extend({
       $(this).toggleClass("basic").toggleClass("black");
     });
 
+    $("#layer-user-button").click(function () {
+      $(this).toggleClass("green");
+    });
+
+    $("#layer-path-button").click(function () {
+      $(this).toggleClass("green");
+    });
+
+    $("#layer-waypoint-button").click(function () {
+      $(this).toggleClass("green");
+    });
+
+    $("#layer-dbox-button").click(function () {
+      $(this).toggleClass("green");
+    });
+
     this.draggingEntityType = null;
     this.setupPanningAndZoom();
     this._onCanvasMouseDown = this.onCanvasMouseDown.bind(this);
@@ -159,6 +177,63 @@ export default Component.extend({
   },
 
   actions: {
+    toggleEntitiesVisibility() {
+      const viewport = document.querySelector("#viewport");
+      const entities = viewport.querySelectorAll(
+        ".icon.user, .icon.tree, .icon.car, .icon.taxi"
+      );
+
+      entities.forEach((entity) => {
+        entity.classList.toggle("hidden");
+      });
+    },
+
+    togglePathVisibility() {
+      if (this.pathVisibility) {
+        this.carjanState.paths.forEach((path) => {
+          this.drawMainPathLines(path);
+        });
+      } else {
+        const pathOverlay = this.element.querySelector(`#${this.gridId}`);
+        pathOverlay.innerHTML = "";
+        this.resetFlagIcons();
+      }
+      this.set("pathVisibility", !this.pathVisibility);
+    },
+
+    toggleWaypointVisibility() {
+      const room = document.querySelector("#room");
+      const waypoints = room.querySelectorAll(".icon.map.marker.alternate ");
+      const flags = room.querySelectorAll(".icon.flag");
+
+      waypoints.forEach((waypoint) => {
+        waypoint.classList.toggle("hidden");
+      });
+      flags.forEach((flag) => {
+        flag.classList.toggle("hidden");
+      });
+    },
+
+    toggleDboxVisibility() {
+      const dboxes = this.carjanState.get("dboxes") || [];
+      if (this.dboxVisibility) {
+        dboxes.forEach((dbox) => {
+          this.markBoundingBoxCorners(
+            dbox.startX,
+            dbox.endX,
+            dbox.startY,
+            dbox.endY,
+            dbox.color
+          );
+        });
+      } else {
+        const canvas = document.getElementById("drawingCanvas");
+        const context = canvas.getContext("2d");
+        context.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      this.set("dboxVisibility", !this.dboxVisibility);
+    },
+
     mouseHoverToggle() {
       this.set("visibleLayerButtons", !this.visibleLayerButtons);
     },
@@ -190,18 +265,6 @@ export default Component.extend({
       }
     },
 
-    confirmDecisionBox() {
-      console.log("Decision Box confirmed!");
-      this.hideDecisionBoxPopup();
-      // Hier: Logik zum Speichern der Decision Box
-    },
-
-    cancelDecisionBox() {
-      console.log("Decision Box cancelled!");
-      this.hideDecisionBoxPopup();
-      // Hier: Logik zum Entfernen der Decision Box
-    },
-
     removeBorder(event) {
       event.target.classList.remove("cell-hover-allowed");
       event.target.classList.remove("cell-hover-not-allowed");
@@ -223,7 +286,6 @@ export default Component.extend({
         targetCellStatus = this.gridStatus[`${row},${col}`];
       }
 
-      console.log("Target cell status: ", this.gridStatus[`${row},${col}`]);
       if (!targetCellStatus || targetCellStatus.occupied) {
         this.recoverEntity();
         return;
@@ -243,16 +305,13 @@ export default Component.extend({
           (entityType === "vehicle" || entityType === "autonomous") &&
           targetCellStatus.sidewalk
         ) {
-          console.log("Cannot place vehicle on sidewalk");
           this.recoverEntity();
           return;
         } else {
           if (this.isDragging) {
             this.moveEntityState(row, col);
-            console.log("dropped on cell");
           }
           this.addEntityToGrid(entityType, row, col);
-          console.log("dropped on cell 2");
         }
       }
       this.isDragging = false;
@@ -471,7 +530,6 @@ export default Component.extend({
 
   fallbackPathObserver: observer("carjanState.selectedFallback", function () {
     this.resetFlagIcons();
-    console.log("fallbackPathObserver", this.carjanState.selectedFallback);
     this.drawMainPathLines(this.carjanState.selectedFallback);
   }),
 
@@ -701,8 +759,6 @@ export default Component.extend({
           label: this.carjanState.selectedDBox.label,
           id: this.carjanState.selectedDBox.id,
         };
-        console.log("newDBox", newDBox);
-        console.log("selectedDBox", this.carjanState.selectedDBox);
         const updatedDBoxes = this.carjanState.dboxes.filter(
           (dbox) => dbox.id !== this.carjanState.selectedDBox.id
         );
@@ -843,7 +899,7 @@ export default Component.extend({
     const context = canvas.getContext("2d");
 
     // Canvas clear (optional)
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    // context.clearRect(0, 0, canvas.width, canvas.height);
 
     let topLeft = null;
     let topRight = null;
@@ -1213,8 +1269,6 @@ export default Component.extend({
             )
           )
         );
-
-        console.log("cellStatus", cellStatus.entityType);
 
         if (
           [
@@ -2018,7 +2072,6 @@ export default Component.extend({
   },
 
   recoverEntity() {
-    console.log("recoverEntity row und col", this.draggingEntityPosition);
     if (this.draggingEntityPosition) {
       const originalRow = this.draggingEntityPosition.row;
       const originalCol = this.draggingEntityPosition.col;
@@ -2098,13 +2151,18 @@ export default Component.extend({
 
   drawPathLines(fallback = null) {
     let path = fallback || this.carjanState.selectedPath;
-
     const pathOverlay = document.getElementById(this.gridId);
     if (!pathOverlay) return;
-    pathOverlay.innerHTML = "";
 
     const overlayRect = pathOverlay.getBoundingClientRect();
     const icons = this.pathIcons || [];
+    let hiddenFlag = false;
+    icons.forEach((icon) => {
+      if (icon.classList.contains("hidden")) {
+        icon.classList.remove("hidden");
+        hiddenFlag = true;
+      }
+    });
     if (icons.length == 0) {
       const pathElement = document.createElementNS(
         "http://www.w3.org/2000/svg",
@@ -2133,7 +2191,6 @@ export default Component.extend({
     });
 
     let pathData = `M ${points[0].centerX},${points[0].centerY} `;
-
     for (let i = 0; i < points.length - 1; i++) {
       const start = points[i];
       const end = points[i + 1];
@@ -2159,6 +2216,12 @@ export default Component.extend({
     pathElement.setAttribute("id", `${this.gridId}-pathline`);
 
     pathOverlay.appendChild(pathElement);
+    if (hiddenFlag) {
+      icons.forEach((icon) => {
+        icon.classList.add("hidden");
+      });
+      hiddenFlag = false;
+    }
   },
 
   onMouseDown(e) {
@@ -2171,6 +2234,7 @@ export default Component.extend({
       e.target.classList.contains("alternate")
     ) {
       const targetCell = e.target.closest(".grid-cell");
+      if (!targetCell) return;
       const row = targetCell.dataset.row;
       const col = targetCell.dataset.col;
       const cellStatus = this.gridStatus[`${row},${col}`];
@@ -2191,11 +2255,8 @@ export default Component.extend({
         }
         this.handlePathMode(e, filteredWaypoints);
       } else {
-        console.log("Open waypoint properties");
         this.carjanState.set("currentCellStatus", cellStatus);
         this.carjanState.set("currentCellPosition", [row, col]);
-        console.log("Current cell status: ", cellStatus);
-        console.log("Current cell position: ", [row, col]);
         this.carjanState.set("properties", "waypoint");
       }
       this.drawPathLines();
@@ -2253,12 +2314,10 @@ export default Component.extend({
           break;
         case "Autonomous":
         case "autonomous":
-          console.log("Autonomous clicked", row, col);
           this.carjanState.set("properties", "autonomous");
           break;
         case "Obstacle":
         case "obstacle":
-          console.log("Obstacle clicked", row, col);
           this.carjanState.set("properties", "obstacle");
           break;
         default:

@@ -21,7 +21,6 @@
         'hidden'
       }}"
       id="layer-buttons"
-      style="display: auto;"
     >
       <button
         class="ui circular basic toggle icon button"
@@ -31,17 +30,37 @@
       >
         <i class="icon map outline"></i>
       </button>
-      <div class="additional-buttons" local-class="additional-buttons">
-        <button class="ui circular basic icon button animated-button">
+      <div
+        class="additional-buttons"
+        local-class="additional-buttons"
+        style="pointer-events: auto;"
+      >
+        <button
+          class="ui circular basic green icon button animated-button"
+          id="layer-user-button"
+          onmousedown={{action "toggleEntitiesVisibility"}}
+        >
           <i class="icon users"></i>
         </button>
-        <button class="ui circular basic icon button animated-button">
+        <button
+          class="ui circular basic icon button animated-button"
+          id="layer-path-button"
+          onmousedown={{action "togglePathVisibility"}}
+        >
           <i class="icon code branch"></i>
         </button>
-        <button class="ui circular basic icon button animated-button">
+        <button
+          class="ui circular basic green icon button animated-button"
+          id="layer-waypoint-button"
+          onmousedown={{action "toggleWaypointVisibility"}}
+        >
           <i class="icon map marker alternate"></i>
         </button>
-        <button class="ui circular basic icon button animated-button">
+        <button
+          class="ui circular basic icon button animated-button"
+          id="layer-dbox-button"
+          onmousedown={{action "toggleDboxVisibility"}}
+        >
           <i class="icon inbox"></i>
         </button>
       </div>

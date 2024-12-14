@@ -11,6 +11,7 @@ export default Component.extend({
   safeColorStyle: computed("path.color", function () {
     return htmlSafe(`color: ${this.get("path.color")};`);
   }),
+  isDimmed: false,
   placeholderOptions: [
     "Where no waypoint has gone before...",
     "A scenic route full of detours and surprises!",
@@ -286,6 +287,12 @@ export default Component.extend({
     },
 
     startNewDecisionBox() {
+      const pageDimmer = document.getElementById("page-dimmer");
+      $("#page-dimmer").transition("fade");
+      if (pageDimmer) {
+        pageDimmer.classList.toggle("hidden");
+        pageDimmer.classList.toggle("active");
+      }
       this.carjanState.setSelectedDBox(null);
       this.carjanState.set("canvasMode", "dbox");
     },

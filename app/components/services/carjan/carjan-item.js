@@ -701,6 +701,13 @@ export default Component.extend({
     this.isDrawing = false;
     this.carjanState.setCanvasMode("default");
 
+    const pageDimmer = document.getElementById("page-dimmer");
+    $("#page-dimmer").transition("fade");
+    if (pageDimmer) {
+      pageDimmer.classList.toggle("hidden");
+      pageDimmer.classList.toggle("active");
+    }
+
     const gridCells = document.querySelectorAll("#gridContainer .grid-cell");
     gridCells.forEach((cell) => {
       cell.classList.remove("cell-hover-db");

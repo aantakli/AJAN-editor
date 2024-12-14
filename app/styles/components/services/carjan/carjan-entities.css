@@ -9,6 +9,15 @@
   padding-right: 70px;
 }
 
+.entity-selection-container-list {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 400px;
+  gap: 20px;
+  padding: 10px;
+}
+
 .entity-panel {
   padding: 15px;
   border: 1px solid #ddd;

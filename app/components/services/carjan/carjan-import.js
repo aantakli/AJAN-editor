@@ -741,7 +741,7 @@ export default Component.extend({
         );
         this.updateWithResult(result).then(() => {
           setTimeout(() => {
-            // window.location.reload(true);
+            window.location.reload(true);
           }, 1000);
         });
       });
@@ -922,7 +922,7 @@ export default Component.extend({
         this.deleteScenarioFromRepository(selectedScenario).then((result) => {
           this.updateWithResult(result).then(() => {
             setTimeout(() => {
-              // window.location.reload(true);
+              window.location.reload(true);
             }, 1000);
           });
         });
@@ -966,7 +966,7 @@ export default Component.extend({
     discardSwitchScenario() {
       this.carjanState.setLoading(true);
       setTimeout(() => {
-        // window.location.reload(true);
+        window.location.reload(true);
       }, 1000);
     },
 
@@ -1077,7 +1077,7 @@ export default Component.extend({
         this.carjanState.saveRequest();
       }, 500);
       setTimeout(() => {
-        // window.location.reload(true);
+        window.location.reload(true);
       }, 1000);
     },
 
@@ -1146,7 +1146,7 @@ export default Component.extend({
     this.updateCarjanRepo(result).then(() => {
       this.loadGrid();
       setTimeout(() => {
-        // window.location.reload(true);
+        window.location.reload(true);
       }, 1000);
     });
   },

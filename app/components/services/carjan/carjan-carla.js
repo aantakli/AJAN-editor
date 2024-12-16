@@ -20,6 +20,12 @@ export default Component.extend({
   startupFlag: false,
   behaviors: null,
 
+  filteredEntities: computed("carjanState.agentData", function () {
+    return this.carjanState.agentData.filter(
+      (entity) => entity.type !== "Obstacle" && entity.type !== "Autonomous"
+    );
+  }),
+
   // Beobachter für den Schritt 3-Status
   step3StatusObserver: observer("carjanState.step3Status", function () {
     setTimeout(() => {
@@ -170,6 +176,7 @@ export default Component.extend({
   async saveCarlaPath() {
     try {
       const carlaPath = this.get("carlaPath").replace(/"/g, "");
+      console.log("carlaPath:", carlaPath);
       const response = await fetch(
         "http://localhost:4204/api/save_environment",
         {
@@ -177,7 +184,7 @@ export default Component.extend({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ path: carlaPath }),
+          body: JSON.stringify({ type: "CARLA_PATH", value: carlaPath }),
         }
       );
       if (!response.ok)
@@ -236,6 +243,9 @@ export default Component.extend({
         this.set("errorMessage", errorData.error || "Failed to start CARLA.");
         throw new Error(errorData.error || "Failed to start CARLA.");
       }
+
+      console.log("response:", response);
+
       this.set("step2Status", "completed");
       this.carjanState.set("step3Status", "loading");
       console.log("Step 2 completed, executing step 3...");
@@ -278,8 +288,15 @@ export default Component.extend({
     this.set("errorMessage", "");
 
     try {
-      const entities = this.carjanState.agentData;
-      console.log("Entities:", entities);
+      const agents = this.carjanState.agentData;
+      console.log("Entities:", agents);
+
+      // Filtere die Entities, um nur die gewünschten Typen zu behalten
+      const entities = agents.filter(
+        (entity) => entity.type !== "Obstacle" && entity.type !== "Autonomous"
+      );
+
+      console.log("Filtered Entities:", entities);
 
       // Map über alle Entities, um die entsprechenden IFrames zu erstellen
       const promises = entities.map((entity, index) =>

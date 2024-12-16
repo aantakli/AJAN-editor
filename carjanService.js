@@ -289,6 +289,8 @@ app.post("/api/upload_to_github", async (req, res) => {
 
 app.post("/api/save_environment", (req, res) => {
   const { type, value } = req.body;
+  console.log("Type:", type);
+  console.log("Value:", value);
   if (!validTypes.includes(type)) {
     return res.status(400).json({ error: `Invalid type: ${type}` });
   }
@@ -544,7 +546,7 @@ app.post("/api/start_carla", async (req, res) => {
 
     console.log("Flask response:", flaskResponse);
 
-    if (flaskResponse.error) {
+    if (flaskResponse.error || flaskResponse.status !== 200) {
       return res.status(400).json({ error: flaskResponse.error });
     }
 

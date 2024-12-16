@@ -30,8 +30,9 @@ from helpers import hex_to_rgb, cubic_bezier_curve, get_direction, parse_agents
 from jumping import make_pedestrian_jump
 from bs4 import BeautifulSoup
 
-
 app = Flask(__name__)
+
+sparql_lock = threading.Lock()
 
 car_models_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'public', 'assets', 'carjan', 'car_models.json')
 prop_models_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'public', 'assets', 'carjan', 'prop_models.json')
@@ -112,7 +113,7 @@ def get_ground_height(location):
         return location.z  # Fallback auf ursprüngliche Höhe
 
 def get_spectator_coordinates():
-    # Angenommen, du hast bereits ein `world`-Objekt in CARLA
+    # Angenommen, du hast bereits ein world-Objekt in CARLA
     spectator = world.get_spectator()  # Spectator-Kamera aus der CARLA-Welt holen
     location = spectator.get_location()  # Hole die Position der Kamera
     print(f"Spectator coordinates: x={location.x}, y={location.y}, z={location.z}")
@@ -172,28 +173,29 @@ def getInformation(request):
     g = rdflib.Graph()
     g.parse(data=request_data, format='turtle')
 
-    # Extrahiere die asynchrone Request-URI
-    query_uri = """
-    PREFIX actn: <http://www.ajan.de/actn#>
-    SELECT ?requestURI WHERE {
-        ?action actn:asyncRequestURI ?requestURI .
-    }
-    """
-    uri_result = g.query(query_uri)
-    for row in uri_result:
-        async_request_uri = row.requestURI
+    # SPARQL-Abfragen thread-sicher ausführen
+    with sparql_lock:
+        # Extrahiere die asynchrone Request-URI
+        query_uri = """
+        PREFIX actn: <http://www.ajan.de/actn#>
+        SELECT ?requestURI WHERE {
+            ?action actn:asyncRequestURI ?requestURI .
+        }
+        """
+        uri_result = g.query(query_uri)
+        for row in uri_result:
+            async_request_uri = row.requestURI
 
-    # Extrahiere die Pedestrian-ID
-    query_id = """
-    PREFIX ajan: <http://www.ajan.de/ajan-ns#>
-    SELECT ?id WHERE {
-        ?s ajan:agentId ?id
-    }
-    """
-    id_result = g.query(query_id)
-    ajan_entity_id = None
-    for row in id_result:
-        ajan_entity_id = str(row.id)
+        # Extrahiere die Pedestrian-ID
+        query_id = """
+        PREFIX ajan: <http://www.ajan.de/ajan-ns#>
+        SELECT ?id WHERE {
+            ?s ajan:agentId ?id
+        }
+        """
+        id_result = g.query(query_id)
+        for row in id_result:
+            ajan_entity_id = str(row.id)
 
     return ajan_entity_id, async_request_uri
 
@@ -437,9 +439,6 @@ def follow_bezier_curve(walker, bezier_points, async_request_uri):
 
 def get_follows_path_for_entity(ajan_entity_id):
     global entityList, paths
-    print("\n in get_follows_path_for_entity: \n")
-    print("entity list: ", entityList)
-    print("paths: ", paths)
     entity = next((entity for entity in entityList if entity["label"] == ajan_entity_id), None)
     if entity:
         return next((path for path in paths if path["path"] == entity["followsPath"]), None)
@@ -900,7 +899,6 @@ def load_decisionboxes(dboxes):
     max_z = 8
 
     for dbox in dboxes:
-        print(f"Verarbeite Decision Box: {dbox['id']} mit Label {dbox['label']}")
         start_x = int(dbox['startX'])
         start_y = int(dbox['startY'])
         end_x = int(dbox['endX']) + 1
@@ -1046,9 +1044,8 @@ def on_decision_box_trigger(dbox_id, vehicles, in_box):
     try:
         response = requests.post(flask_url, json=payload)
         response.raise_for_status()
-        print(f"Erfolgreich an Flask gesendet: {response.json()}")
     except requests.exceptions.RequestException as e:
-        print(f"Fehler beim Senden an Flask: {e}")
+        print(f"Error returning trigger to flask: {e}")
 
 # ! Actions
 # * Implements actions for Behavior Tree Node Endpoints
@@ -1346,7 +1343,7 @@ def start_agent():
             }
         }
 
-        send_data(example_data)  # Nutzt die `send_data`-Funktion aus requestAJAN.py
+        send_data(example_data)  # Nutzt die send_data-Funktion aus requestAJAN.py
 
         return jsonify({"status": "success", "message": f"Data sent for {entity_id}"})
     except Exception as e:
@@ -1361,46 +1358,36 @@ def start_agent():
 def follow_path():
     global actor_list, pathsPerEntity, paths, entityList
     try:
-        if len(actor_list) == 0:
-            print(" !=!=!=!=!=! Keine Actor-Liste vorhanden.")
-        if len(pathsPerEntity) == 0:
-            print(" !=!=!=!=!=! Keine Pfade pro Entity vorhanden.")
-
-        # Extrahiere die AJAN-Agent-ID und andere Informationen aus der Anfrage
         ajan_entity_id, async_request_uri = getInformation(request)
-
         carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
-        if not carla_entity_id:
-            print(f"Kein CARLA-Entity mit AJAN-Agent-ID '{ajan_entity_id}' gefunden.")
-            return jsonify({"status": "error", "message": "CARLA Entity not found"}), 404
 
-        # Abrufen des Walkers
-        walker = world.get_actor(carla_entity_id)
-        if not walker:
-            print(f"Kein Walker mit CARLA-Entity-ID '{carla_entity_id}' gefunden.")
-            return jsonify({"status": "error", "message": "Walker not found"}), 404
+        actor = world.get_actor(carla_entity_id)
+        if not actor:
+            print(f"No actor found with CARLA-Entity-ID '{carla_entity_id}'.")
+            return jsonify({"status": "error", "message": "Actor not found"}), 404
 
-        # Finde den aktuellen Pfad, den der Agent verfolgt
+        print(f"Entity {ajan_entity_id} is following the path.")
+        is_vehicle = isinstance(actor, carla.Vehicle)
+
         path = get_follows_path_for_entity(ajan_entity_id)
         if not path or len(path["waypoints"]) < 2:
-            print(f"Pfad für AJAN-Agent-ID '{ajan_entity_id}' ist leer oder ungültig.")
             return jsonify({"status": "error", "message": "Invalid path"}), 400
 
-        # Finde den aktuellen Standort des Fußgängers
-        walker_location = walker.get_location()
-        print("\nWalker location: ", walker_location)
+        actor_location = actor.get_location()
 
-        end_point = get_next_waypoint(path["waypoints"], walker_location, ajan_entity_id)
+        # Integriere die aktuelle Actor-Position als neuen Startpunkt
+        # Hier wird angenommen, dass path["waypoints"] eine Liste von carla.Location Objekten ist.
+        # Falls nicht, müssen Sie die Struktur anpassen (z.B. {x:..., y:..., z:...} in carla.Location umwandeln).
+        path["waypoints"].insert(0, actor_location)
 
-        start_point = walker_location
-
-        print(f"Start point: {start_point}")
-        print(f"End point: {end_point}")
+        end_point = get_next_waypoint(path["waypoints"], actor_location, ajan_entity_id)
 
         if not end_point:
-            print("Am Ziel angekommen.")
-            return jsonify({"status": "error", "message": "No end point found"}), 400
-        #asdasd
+            print("Finished following path.")
+            return jsonify({"status": "success", "message": "Destination reached"}), 200
+
+        # Berechne eine Bezier-Kurve zwischen der aktuellen Actor-Position (jetzt Teil des Pfades) und dem nächsten Wegpunkt
+        start_point = actor_location
         control_point_1 = carla.Location(
             x=start_point.x + (end_point.x - start_point.x) / 2,
             y=start_point.y,
@@ -1411,33 +1398,142 @@ def follow_path():
             y=end_point.y,
             z=end_point.z
         )
-
-        print(f"Control point 1: {control_point_1}")
-        print(f"Control point 2: {control_point_2}")
-
-        # Berechne die Punkte auf der Bezier-Kurve
         bezier_points = cubic_bezier_curve(start_point, control_point_1, control_point_2, end_point)
 
-        # Zeichne die Bezier-Kurve in Weiß
+        # Debug: Kurve visualisieren
         for i in range(len(bezier_points) - 1):
-            world.debug.draw_line(
-                bezier_points[i],
-                bezier_points[i + 1],
-                thickness=0.01,
-                color=carla.Color(255, 255, 255),  # Weiß
-                life_time=1000.0
-            )
+            world.debug.draw_line(bezier_points[i], bezier_points[i + 1], thickness=0.01, color=carla.Color(255, 255, 255), life_time=100.0)
 
-        # Start a new process for follow_bezier_curve
-        follow_line = threading.Thread(target=follow_bezier_curve, args=(walker, bezier_points, async_request_uri))
+        if is_vehicle:
+            follow_line = threading.Thread(target=follow_bezier_curve_vehicle, args=(actor, bezier_points, async_request_uri))
+        else:
+            follow_line = threading.Thread(target=follow_bezier_curve, args=(actor, bezier_points, async_request_uri))
         follow_line.start()
 
-        # Return an RDF triple immediately
         return Response('<http://Agent> <http://follows> <http://path> .', mimetype='text/turtle', status=200)
 
     except Exception as e:
         print(f"Error in follow_path: {str(e)}")
         return Response('<http://Agent> <http://followsNot> <http://path> .', mimetype='text/turtle', status=500)
+
+
+def follow_bezier_curve_vehicle(vehicle, waypoints, async_request_uri):
+    max_global_speed = 30  # km/h
+
+    # PID-Parameter Lenkung
+    Kp_steer = 0.8
+    Ki_steer = 0.0
+    Kd_steer = 0.05
+
+    # PID-Parameter Geschwindigkeit
+    Kp_speed = 0.3
+    Ki_speed = 0.05
+    Kd_speed = 0.01
+
+    steer_integral = 0.0
+    steer_prev_error = 0.0
+
+    speed_integral = 0.0
+    speed_prev_error = 0.0
+
+    dt = 0.05
+
+    def pid_control(error, prev_error, integral, dt, kp, ki, kd):
+        integral += error * dt
+        derivative = (error - prev_error) / dt
+        output = kp * error + ki * integral + kd * derivative
+        return output, integral, error
+
+    def get_speed(vehicle):
+        vel = vehicle.get_velocity()
+        speed = math.sqrt(vel.x**2 + vel.y**2 + vel.z**2) * 3.6  # m/s -> km/h
+        return speed
+
+    def get_target_speed(curvature, max_speed=30.0, min_speed=5.0):
+        raw_speed = max(min_speed, max_speed / (1 + abs(curvature) * 10))
+        return min(raw_speed, max_global_speed)
+
+    def get_lookahead_point(current_location, waypoints, lookahead_distance):
+        closest_dist = float('inf')
+        closest_i = 0
+        for i, wp in enumerate(waypoints):
+            dist = current_location.distance(wp)
+            if dist < closest_dist:
+                closest_dist = dist
+                closest_i = i
+
+        cumul_dist = 0.0
+        for j in range(closest_i, len(waypoints)-1):
+            seg_dist = waypoints[j].distance(waypoints[j+1])
+            cumul_dist += seg_dist
+            if cumul_dist >= lookahead_distance:
+                return waypoints[j+1]
+        return waypoints[-1]
+
+    reached_destination = False
+    while not reached_destination:
+        vehicle_location = vehicle.get_location()
+
+        if len(waypoints) < 2:
+            reached_destination = True
+            break
+
+        current_speed = get_speed(vehicle)
+
+        base_lookahead = 5.0
+        speed_factor = 0.2
+        lookahead_distance = base_lookahead + speed_factor * current_speed
+
+        target_point = get_lookahead_point(vehicle_location, waypoints, lookahead_distance)
+        if not target_point:
+            reached_destination = True
+            break
+
+        vehicle_transform = vehicle.get_transform()
+        vehicle_yaw = math.radians(vehicle_transform.rotation.yaw)
+        target_vector = carla.Vector3D(target_point.x - vehicle_location.x, target_point.y - vehicle_location.y, 0)
+        target_yaw = math.atan2(target_vector.y, target_vector.x)
+
+        # Yaw Error
+        yaw_error = target_yaw - vehicle_yaw
+        yaw_error = (yaw_error + math.pi) % (2 * math.pi) - math.pi
+
+        # Lenkungs-PID
+        steer_output, steer_integral, steer_prev_error = pid_control(yaw_error, steer_prev_error, steer_integral, dt, Kp_steer, Ki_steer, Kd_steer)
+        steer_value = max(-1.0, min(1.0, steer_output))
+
+        # Kurvigkeit approximieren
+        curvature = (target_yaw - vehicle_yaw) / max(vehicle_location.distance(target_point), 0.001)
+        target_speed = get_target_speed(curvature, max_speed=max_global_speed)
+
+        # Geschwindigkeitsfehler
+        speed_error = (target_speed - current_speed)
+        speed_output, speed_integral, speed_prev_error = pid_control(speed_error, speed_prev_error, speed_integral, dt, Kp_speed, Ki_speed, Kd_speed)
+
+        # Gas/Bremse
+        if speed_output > 0:
+            throttle = min(0.7, speed_output)
+            brake = 0.0
+        else:
+            brake = min(0.5, abs(speed_output))
+            throttle = 0.0
+
+        control = carla.VehicleControl()
+        control.steer = steer_value
+        control.throttle = throttle
+        control.brake = brake
+
+        vehicle.apply_control(control)
+
+        # Ziel erreicht?
+        if vehicle_location.distance(waypoints[-1]) < 1.5:
+            reached_destination = True
+
+        time.sleep(dt)
+
+    # Ziel erreicht -> asynchron melden
+    send_async_request(async_request_uri)
+
 
 @app.route('/wait', methods=['POST'])
 def wait():
@@ -1688,9 +1784,6 @@ def decision_box_trigger():
     if not data:
         return jsonify({"error": "No data received"}), 400
 
-    # Log die empfangenen Daten
-    print(f"Decision Box Trigger erhalten: {data}")
-
     # Daten prüfen
     dbox_id = data.get('dbox_id')
     vehicles = data.get('vehicles')
@@ -1698,12 +1791,9 @@ def decision_box_trigger():
     if not dbox_id or vehicles is None:
         return jsonify({"error": "Missing 'dbox_id' or 'vehicles' in request."}), 400
 
-    print(f"Decision Box ID: {dbox_id}, Anzahl Fahrzeuge: {len(vehicles)}")
-    print(f"Fahrzeug-IDs: {vehicles}")
-
     # Beispiel-Antwort
     return jsonify({
-        "message": f"Decision Box {dbox_id} verarbeitet.",
+        "message": f"Decision Box {dbox_id}.",
         "vehicles": vehicles,
     }), 200
 

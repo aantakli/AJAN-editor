@@ -202,7 +202,7 @@
               class="ui top attached tabular menu"
               style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px 5px 0 0;"
             >
-              {{#each agentsWithBehavior as |agent index|}}
+              {{#each this.filteredEntities as |agent index|}}
                 <a
                   class="item {{if (eq index 0) 'active'}}"
                   data-tab="tab-{{index}}"
@@ -229,7 +229,7 @@
             </div>
 
             <!-- Live Behavior Tabs -->
-            {{#each carjanState.agentData as |agent index|}}
+            {{#each this.filteredEntities as |agent index|}}
               <div
                 class="ui bottom attached tab segment
                   {{if (eq index 0) 'active'}}
@@ -256,6 +256,12 @@
                     {{#if (eq agent.type "Pedestrian")}}
                       <img
                         src="/assets/carjan/images/pedestrians/{{agent.model}}.webp"
+                        alt="{{agent.label}}"
+                        class="ui medium rounded image"
+                      />
+                    {{else if (eq agent.type "Vehicle")}}
+                      <img
+                        src="/assets/carjan/images/vehicles/{{agent.model}}.webp"
                         alt="{{agent.label}}"
                         class="ui medium rounded image"
                       />

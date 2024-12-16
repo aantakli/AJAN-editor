@@ -383,7 +383,7 @@ export default Component.extend({
       this.set("hasError", false);
 
       next(() => {
-        this.$(".ui.basic.modal")
+        this.$("#newpath")
           .modal({
             closable: false,
             transition: "scale",
@@ -395,7 +395,7 @@ export default Component.extend({
     },
 
     closeNewPathDialog() {
-      this.$(".ui.modal").modal("hide");
+      this.$("#newpath").modal("hide");
       this.set("isDialogOpen", false);
       this.set("pathName", "");
       this.set("hasError", false);

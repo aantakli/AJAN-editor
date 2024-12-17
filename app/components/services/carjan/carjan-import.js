@@ -650,6 +650,7 @@ export default Component.extend({
   },
 
   showModal(modalSelector) {
+    $(".ui.modal").remove();
     next(() => {
       Ember.$(modalSelector)
         .modal({
@@ -710,11 +711,13 @@ export default Component.extend({
     },
 
     openMachineModal() {
+      $(".ui.modal").remove();
       this.set("isMachineModalOpen", true);
       this.showModal(".ui.basic.modal");
     },
 
     async openRenameModal() {
+      $(".ui.modal").remove();
       this.set("isRenameModalOpen", true);
       this.set("oldScenarioName", this.scenarioName);
       const { scenarios } = await this.fetchAgentDataFromRepo();
@@ -757,6 +760,7 @@ export default Component.extend({
     },
 
     openGithubModal() {
+      $(".ui.modal").remove();
       this.set("areCredentialsValid", false);
       this.set("isGithubModalOpen", true);
       this.showModal(".ui.basic.modal");
@@ -901,6 +905,7 @@ export default Component.extend({
     },
 
     async openDeleteDialog() {
+      $(".ui.modal").remove();
       this.set("isDeleteDialogOpen", true);
       next(() => {
         this.$(".ui.basic.modal")
@@ -935,6 +940,7 @@ export default Component.extend({
     },
 
     async openNewScenarioDialog() {
+      $(".ui.modal").remove();
       this.set("isDialogOpen", true);
       this.set("scenarioName", "");
       this.set("hasError", false);
@@ -954,6 +960,7 @@ export default Component.extend({
     },
 
     async openSwitchScenarioDialog() {
+      $(".ui.modal").remove();
       this.set("isSwitchScenarioDialogOpen", true);
       this.showModal(".ui.basic.modal");
     },

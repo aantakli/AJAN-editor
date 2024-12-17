@@ -714,9 +714,12 @@ export default Component.extend({
         step1Status: "idle",
         step2Status: "idle",
         step3Status: "idle",
-        logs: [], // Leeren der Logs bei neuer Sitzung
+        logs: [],
       });
+
+      $(".ui.modal").remove();
       this.startFlask();
+
       next(() => {
         $(".ui.basic.modal")
           .modal({
@@ -730,29 +733,12 @@ export default Component.extend({
 
     closeCarlaDialog() {
       this.stopFlask();
-      console.log("Closing dialog...");
+
       this.set("step1Status", "idle");
       this.set("step2Status", "idle");
       this.carjanState.set("step3Status", "idle");
-      $(".ui.modal").modal("hide");
+
       this.set("isDialogOpen", false);
-      $(".ui.top.sidebar").sidebar("hide");
-      $(".ui.bottom.sidebar").sidebar("hide");
-    },
-
-    openTerminalSidebar() {
-      const sidebarElement = $(".ui.top.sidebar.terminal-sidebar").sidebar(
-        "toggle"
-      );
-      console.log("Sidebar Element:", sidebarElement);
-
-      if (sidebarElement.length === 0) {
-        console.error("No sidebar element found. Check the selector.");
-        return;
-      }
-
-      console.log("Toggling Sidebar...");
-      sidebarElement.sidebar("toggle");
     },
   },
 });

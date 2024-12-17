@@ -10,7 +10,7 @@
 <div
   class="ui inverted dimmer page transition"
   id="page-dimmer"
-  style="transition: 2s ease-in-out;"
+  style="transition: 2s ease-in-out; z-index: 10;"
 >
   <!-- Optionale Inhalte, falls nötig -->
 </div>
@@ -284,11 +284,21 @@
           <!-- Farbiges Quadrat -->
           <div class="image">
             <div
+              id="preview-{{dbox.id}}"
               style={{html-safe
-                "width: 100px; height: 100px; background-color: {{{dbox.fillColor}}}; border: 2px solid {{{dbox.borderColor}}};"
+                (concat
+                  "width: 100px; height: 100px; "
+                  "background-color: "
+                  dbox.fillColor
+                  "; "
+                  "border: 2px solid "
+                  dbox.borderColor
+                  ";"
+                )
               }}
               class="decision-box-preview"
             ></div>
+
           </div>
 
           <!-- Textinhalt -->
@@ -316,7 +326,7 @@
 </div>
 
 {{#if isDialogOpen}}
-  <div class="ui dimmer modals page">
+  <div class="ui dimmer modals page" id="schwanz" style="z-index: 1100;">
     <div
       class="ui small basic modal transition"
       id="newpath"

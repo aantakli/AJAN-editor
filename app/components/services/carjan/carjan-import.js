@@ -117,7 +117,6 @@ export default Component.extend({
       // print as string
       const parsedStatements =
         (await this.parseQuadsToScenarios(statements)) || [];
-      console.log("parsedStatements", parsedStatements);
       const existingRepositoryContent = await this.downloadRepository();
       const existingDataset = await this.parseTrig(existingRepositoryContent);
 
@@ -2181,7 +2180,6 @@ export default Component.extend({
       }
 
       if (dbox.startX !== undefined) {
-        console.log("adding startX");
         rdfGraph.add(
           rdf.quad(
             dboxURI,

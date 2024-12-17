@@ -166,6 +166,7 @@
 
 .center-modal {
   left: auto;
+  z-index: 1100 !important;
 }
 
 .overlay {
@@ -177,6 +178,10 @@
   background-color: rgba(0, 0, 0, 0.85);
   z-index: 999;
   display: none;
+}
+
+:global(.sp-container) {
+  z-index: 9 !important;
 }
 
 .button-container {

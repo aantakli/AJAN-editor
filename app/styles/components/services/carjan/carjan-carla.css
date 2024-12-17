@@ -31,6 +31,7 @@
 
 .center-modal {
   left: auto;
+  z-index: 1100 !important;
 }
 
 .stepper {

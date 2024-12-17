@@ -102,6 +102,10 @@
   left: auto;
 }
 
+.page-dimmer {
+  z-index: 1100;
+}
+
 .waypoint-selection-container {
   display: flex;
   flex-direction: column;

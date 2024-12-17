@@ -253,7 +253,7 @@ export default Component.extend({
       context.lineWidth = 2;
 
       // Vorschau-Element finden
-      const previewElement = document.querySelector(".decision-box-preview");
+      const previewElement = document.getElementById(`preview-${dbox.id}`);
 
       if (previewElement) {
         // Setze dynamische Farben

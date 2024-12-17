@@ -51,7 +51,6 @@ export default Component.extend({
   }),
 
   safeColorStyle: computed("selectedPath.color", function () {
-    console.log("safecolorStyle: ", this.get("selectedPath.color"));
     return htmlSafe(`color: ${this.get("selectedPath.color")};`);
   }),
 
@@ -142,7 +141,6 @@ export default Component.extend({
       const rgb = this.hexToRgb(dbox.color);
       const fill = this.rgbToRgba(this.lightenColor(rgb, 0.5), 0.8);
       const border = this.rgbToRgba(this.darkenColor(rgb, 0.5), 1);
-      console.log("fill box and border box: ", fill, border);
       this.set("selectedDBox", {
         ...dbox,
         fillColor: fill,
@@ -176,14 +174,6 @@ export default Component.extend({
       this.updateMatchingEntity();
     }
   }.observes("selectedPath"),
-
-  fallbackPathObserver: function () {
-    if (this.fallbackPath) {
-      console.log(`Fallback Path selected: ${this.fallbackPath.description}`);
-    } else {
-      console.log("No Fallback Path selected.");
-    }
-  }.observes("fallbackPath"),
 
   positionObserver: function () {
     let position = this.carjanState.get("currentCellPosition");
@@ -262,7 +252,6 @@ export default Component.extend({
             fillColor: fill,
             borderColor: border,
           });
-          console.log("this.selectedDBox", this.selectedDBox);
         }
       }
 
@@ -606,7 +595,6 @@ export default Component.extend({
         ...this.entity,
       };
     }
-    console.log("updated Matching Entity!", this.carjanState.agentData);
   },
 
   updateEntityName() {
@@ -756,7 +744,6 @@ export default Component.extend({
       dbox.id === this.selectedDBox.id ? { ...dbox, color: colorHex } : dbox
     );
     this.carjanState.setDBoxes(updatedDBoxes);
-    console.log("Updated Decision Box Color:", this.carjanState.dboxes);
   },
 
   lightenColor(rgb, factor) {
@@ -813,14 +800,12 @@ export default Component.extend({
     },
 
     bindDecisionBox(dbox) {
-      console.log("Selected Decision Box:", dbox);
       this.set("entity.decisionBox", dbox.id);
       this.updateMatchingEntity();
     },
 
     async openDeleteDBoxDialog() {
       this.set("isDeleteDBoxDialogOpen", true);
-      console.log("this.isDeleteDBoxDialogOpen", this.isDeleteDBoxDialogOpen);
       next(() => {
         this.$(".ui.basic.modal")
           .modal({
@@ -842,8 +827,6 @@ export default Component.extend({
       const updatedDBoxes = this.carjanState.dboxes.filter(
         (dbox) => dbox.label !== this.selectedDBox.label
       );
-
-      console.log("updated dboxes after delete", updatedDBoxes);
 
       // Aktualisiere den State
       this.carjanState.setDBoxes(updatedDBoxes);
@@ -977,14 +960,12 @@ export default Component.extend({
     selectBehavior(behavior) {
       this.set("selectedBehavior", behavior);
       this.set("entity.behavior", behavior.uri);
-      console.log("Selected Behavior Tree:", behavior);
       this.updateMatchingEntity();
     },
 
     clearSelectedBehavior() {
       this.set("selectedBehavior", null);
       this.set("entity.behavior", null);
-      console.log("Cleared selected behavior tree.");
       this.updateMatchingEntity();
       const dropdownElement = this.$("#behaviorDropdown");
       if (dropdownElement && dropdownElement.length) {
@@ -1001,8 +982,6 @@ export default Component.extend({
 
     selectModel(model) {
       this.set("selectedModel", model);
-      console.log("Selected Model:", model);
-      console.log("Entity:", this.entity);
       if (this.entity) {
         if (typeof model === "string") {
           this.set("entity.model", model);

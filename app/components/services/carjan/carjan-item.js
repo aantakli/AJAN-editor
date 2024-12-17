@@ -1259,9 +1259,6 @@ export default Component.extend({
               )
             )
           );
-        } else {
-          console.log("No entity type found for cell", row, col);
-          console.log("cellStatus", cellStatus);
         }
 
         rdfGraph.add(

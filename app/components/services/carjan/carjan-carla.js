@@ -76,7 +76,6 @@ export default Component.extend({
     tabs.forEach((tab) => {
       tab.addEventListener("click", (event) => {
         const tabLabel = tab.textContent.trim();
-        console.log("Tab geklickt:", tabLabel);
         this.set("reloadFlag", true);
 
         const tabName = event.target.getAttribute("data-tab");
@@ -89,8 +88,6 @@ export default Component.extend({
         });
       });
     });
-
-    console.log("Click-Listener erfolgreich an Tabs gebunden.");
   },
 
   async updateIframeSrc(tabLabel, tabIndex) {
@@ -105,17 +102,14 @@ export default Component.extend({
     }
     const agentName = agent.label; // Agent-Name aus dem Label
     const repoUri = `http://localhost:8090/rdf4j/repositories/${agentName}`;
-    console.log("Agentname:", agentName);
     // Lade die Agenten-Daten und berechne die SRC-URL
     this.downloadAgent(agentName).then(async (agent) => {
       const agentTemplate = this.extractAgentTemplate(agent);
       const agentsRepo = await this.downloadAgentsRepo(agentTemplate);
       // const behavior = this.extractBehaviorUri(agentsRepo, tabLabel);
       const behaviortree = await this.extractBehaviorUri(agentsRepo, tabLabel);
-      console.log("behaviortree:", behaviortree);
       const behavior = await this.fetchBehaviorForBT(behaviortree);
       await this.fetchBehaviors();
-      console.log("Behavior:", behavior);
       const behaviorUri = this.convertBehaviorURI(behavior, agentName);
 
       // SRC-URL generieren und iframe aktualisieren
@@ -125,7 +119,6 @@ export default Component.extend({
 
       if (iframe) {
         iframe.src = src;
-        console.log(`Updated iframe src for tab ${tabLabel}: ${src}`);
       } else {
         console.error(`Iframe not found for tab label: ${tabLabel}`);
       }
@@ -176,7 +169,6 @@ export default Component.extend({
   async saveCarlaPath() {
     try {
       const carlaPath = this.get("carlaPath").replace(/"/g, "");
-      console.log("carlaPath:", carlaPath);
       const response = await fetch(
         "http://localhost:4204/api/save_environment",
         {
@@ -244,11 +236,8 @@ export default Component.extend({
         throw new Error(errorData.error || "Failed to start CARLA.");
       }
 
-      console.log("response:", response);
-
       this.set("step2Status", "completed");
       this.carjanState.set("step3Status", "loading");
-      console.log("Step 2 completed, executing step 3...");
       this.loadScenario();
     } catch (error) {
       this.set("step2Status", "error");
@@ -276,7 +265,6 @@ export default Component.extend({
   },
 
   convertBehaviorURI(behaviorURI, agentName) {
-    console.log("Behavior URI to be replaced:", behaviorURI);
     return behaviorURI.replace(
       "http://localhost:8090/rdf4j/repositories/agents#",
       `http://localhost:8080/ajan/agents/${agentName}/behaviors/`
@@ -289,14 +277,11 @@ export default Component.extend({
 
     try {
       const agents = this.carjanState.agentData;
-      console.log("Entities:", agents);
 
       // Filtere die Entities, um nur die gewünschten Typen zu behalten
       const entities = agents.filter(
         (entity) => entity.type !== "Obstacle" && entity.type !== "Autonomous"
       );
-
-      console.log("Filtered Entities:", entities);
 
       // Map über alle Entities, um die entsprechenden IFrames zu erstellen
       const promises = entities.map((entity, index) =>
@@ -340,9 +325,6 @@ export default Component.extend({
     // Generiere die SRC-URL für den Behavior-Editor
     const src = `http://localhost:4200/editor/behaviors?wssConnection=true&agent=${agentName}&repo=${repoUri}&bt=${convertedBehaviorUri}&t=${Date.now()}#split-middle`;
 
-    console.log(`Agent: ${agentName}, SRC: ${src}`);
-    console.log("extractBehaviorUri", behaviorUri);
-
     // Speichere die SRC im agentData-Objekt
     this.carjanState.agentData[index].iFrameSrc = src;
 
@@ -351,7 +333,6 @@ export default Component.extend({
     const iframe = document.getElementById(iframeId);
     if (iframe) {
       iframe.src = src;
-      console.log(`iFrame ${iframeId} src set to ${src}`);
       iframe.onload = () => this.handleIframeLoad(iframe, iframeId);
     } else {
       console.error(`iFrame ${iframeId} not found`);
@@ -359,7 +340,6 @@ export default Component.extend({
   },
 
   handleIframeLoad(iframe, iframeId) {
-    console.log(`iFrame ${iframeId} loaded`);
     try {
       setTimeout(() => {
         try {
@@ -379,16 +359,13 @@ export default Component.extend({
             // Passe die Größe von #split-middle an
             splitMiddle.style.width = "100%";
             splitMiddle.style.height = "100%";
-            console.log(`split-middle rendered for ${iframeId}`);
           } else {
             console.error(`Element 'split-middle' not found in ${iframeId}`);
           }
           // Manuelles Triggern eines resize-Events für die iFrame-Anwendung
           const iframeWindow = iframe.contentWindow;
           if (iframeWindow) {
-            console.log("Triggering resize event for iFrame ", iframeId);
             iframeWindow.dispatchEvent(new Event("resize"));
-            console.log("Manually triggered resize event for iFrame");
           } else {
             console.error("iframeWindow not accessible for resize event.");
           }
@@ -415,7 +392,6 @@ export default Component.extend({
       }
 
       const data = await response.json();
-      console.log("data:", data);
       return data;
     } catch (error) {
       console.error("Failed to download repository:", error);
@@ -436,7 +412,6 @@ export default Component.extend({
       }
 
       const data = await response.json();
-      console.log("data:", data);
       return data;
     } catch (error) {
       console.error("Failed to download repository:", error);
@@ -487,7 +462,6 @@ export default Component.extend({
           : null;
 
       if (beUri) {
-        console.log(`Matching BE URI for BT ${btUri}: ${beUri}`);
         return beUri;
       } else {
         console.error(`No BE URI found for BT ${btUri}`);
@@ -528,7 +502,6 @@ export default Component.extend({
         uri: binding.bt.value,
         label: binding.label.value,
       }));
-      console.log("Behaviors:", behaviors);
       this.set("behaviors", behaviors);
     } catch (error) {
       console.error("Failed to fetch behavior trees:", error);
@@ -624,7 +597,6 @@ export default Component.extend({
         )
     );
 
-    console.log("Behavior-Capability Mapping:", uniqueBtCapabilities);
     return uniqueBtCapabilities;
   },
 
@@ -648,8 +620,6 @@ export default Component.extend({
       );
       return null;
     }
-
-    console.log(`Current BT URI for "${currentTabLabel}": ${btUri}`);
 
     return btUri;
   },
@@ -676,15 +646,11 @@ export default Component.extend({
     },
 
     async startSimulation() {
-      console.log("Starting simulation...");
-
       // Fetching behaviors and capabilities
       await this.fetchBehaviors();
       const capabilities = await this.fetchCapabilities();
-      console.log("Capabilities:", capabilities);
 
       try {
-        console.log("Sending capabilities to Node.js server...");
         const response = await fetch(
           "http://localhost:4204/api/start_simulation",
           {

@@ -29,7 +29,13 @@
         <div
           class="grid-cell"
           local-class="grid-cell"
-          style="background-color: {{this.backgroundColor}}; height: 50px; width: 60px;"
+          style={{html-safe
+            (concat
+              "background-color: "
+              this.backgroundColor
+              "; height: 50px; width: 60px;"
+            )
+          }}
           data-row={{cell.row}}
           data-col={{cell.col}}
           draggable="true"
@@ -57,7 +63,9 @@
       <div
         class="grid-cell"
         id="trash"
-        style="height: 50px; width: 60px; background-color: white; pointer-events: all;"
+        style={{html-safe
+          "height: 50px; width: 60px; background-color: white; pointer-events: all;"
+        }}
         ondrop={{action "dropOnCell"}}
         ondragover={{action "allowDrop"}}
         ondragleave={{action "dragLeave"}}
@@ -66,7 +74,9 @@
 
         <i
           class="trash alternate icon"
-          style="font-size: 24px; display: flex; justify-content: center; align-items: center; height: 100%;width: 100%; pointer-events: none;"
+          style={{html-safe
+            "font-size: 24px; display: flex; justify-content: center; align-items: center; height: 100%; width: 100%; pointer-events: none;"
+          }}
         >
         </i>
 
@@ -500,7 +510,7 @@
                   <div class="text">
                     <i
                       class="icon circle circular small"
-                      style={{this.safeColorStyle}}
+                      style={{html-safe (concat "color: " selectedPath.color)}}
                     ></i>
                     {{selectedPath.description}}
                   </div>
@@ -518,7 +528,7 @@
                     >
                       <i
                         class="icon circle circular small"
-                        style={{safePathColorStyle}}
+                        style={{html-safe (concat "color: " path.color)}}
                       ></i>
                       {{path.description}}
                     </div>
@@ -561,7 +571,7 @@
                   <div class="text">
                     <i
                       class="icon circle circular small"
-                      style={{this.safeColorStyleFallback}}
+                      style={{html-safe (concat "color: " fallbackPath.color)}}
                     ></i>
                     {{fallbackPath.description}}
                   </div>
@@ -579,7 +589,7 @@
                     >
                       <i
                         class="icon circle circular small"
-                        style={{safePathColorStyle}}
+                        style={{html-safe (concat "color: " path.color)}}
                       ></i>
                       {{path.description}}
                     </div>
@@ -688,7 +698,15 @@
               <!-- Farbiges Quadrat -->
               <div class="image">
                 <div
-                  style="width: 90%; height: 100px; margin-top: 12px; margin-left: 5%; background-color: {{selectedDBox.fillColor}}; border: 2px solid {{selectedDBox.borderColor}};"
+                  style={{html-safe
+                    (concat
+                      "width: 90%; height: 100px; margin-top: 12px; margin-left: 5%; background-color: "
+                      selectedDBox.fillColor
+                      "; border: 2px solid "
+                      selectedDBox.borderColor
+                      ";"
+                    )
+                  }}
                   class="decision-box-preview"
                 ></div>
               </div>

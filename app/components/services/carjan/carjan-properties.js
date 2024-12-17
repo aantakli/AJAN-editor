@@ -51,6 +51,7 @@ export default Component.extend({
   }),
 
   safeColorStyle: computed("selectedPath.color", function () {
+    console.log("safecolorStyle: ", this.get("selectedPath.color"));
     return htmlSafe(`color: ${this.get("selectedPath.color")};`);
   }),
 

@@ -282,7 +282,7 @@
                         {{#if (eq path.path agent.followsPath)}}
                           <i
                             class="code branch icon"
-                            style="color: {{path.color}}"
+                            style="color: {{html-safe path.color}}"
                           ></i>
                           {{path.description}}
                         {{/if}}

@@ -56,12 +56,12 @@
         style="margin-bottom: 12px;"
         {{action "openPathwayEditor" path}}
       >
-        <div local-class="waypoint-panel-triangle" id={{path.path}}>
+        <div local-class="waypoint-panel-triangle" id={{{path.path}}}>
           <div class="item">
             <div class="content" local-class="content-small">
               <div local-class="description">
                 <i class="icon code branch"></i>
-                {{path.description}}
+                {{{path.description}}}
               </div>
               <div class="extra" local-class="scroll-path-waypoints">
                 <div class="ui breadcrumb">
@@ -90,8 +90,8 @@
                           <div class="content">
                             <div class="title">
                               <i class="map pin icon"></i>
-                              ({{waypoint.x}},
-                              {{waypoint.y}})
+                              ({{{waypoint.x}}},
+                              {{{waypoint.y}}})
                             </div>
                           </div>
                         </div>
@@ -284,7 +284,9 @@
           <!-- Farbiges Quadrat -->
           <div class="image">
             <div
-              style="width: 100px; height: 100px; background-color: {{dbox.fillColor}}; border: 2px solid {{dbox.borderColor}};"
+              style={{html-safe
+                "width: 100px; height: 100px; background-color: {{{dbox.fillColor}}}; border: 2px solid {{{dbox.borderColor}}};"
+              }}
               class="decision-box-preview"
             ></div>
           </div>
@@ -293,16 +295,16 @@
           <div class="content" local-class="content-small">
             <div local-class="description">
               <i class="icon inbox"></i>
-              {{dbox.label}}
+              {{{dbox.label}}}
             </div>
             <div class="extra">
               <div class="ui breadcrumb">
                 <i class="icon expand"></i>
-                Bounding Box: ({{dbox.startX}},
-                {{dbox.startY}})
+                Bounding Box: ({{{dbox.startX}}},
+                {{{dbox.startY}}})
                 <i class="icon arrow right"></i>
-                ({{dbox.endX}},
-                {{dbox.endY}})
+                ({{{dbox.endX}}},
+                {{{dbox.endY}}})
               </div>
             </div>
           </div>

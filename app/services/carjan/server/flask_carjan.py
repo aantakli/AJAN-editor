@@ -116,7 +116,6 @@ def get_spectator_coordinates():
     # Angenommen, du hast bereits ein world-Objekt in CARLA
     spectator = world.get_spectator()  # Spectator-Kamera aus der CARLA-Welt holen
     location = spectator.get_location()  # Hole die Position der Kamera
-    print(f"Spectator coordinates: x={location.x}, y={location.y}, z={location.z}")
 
 # def listen_for_enter_key():
 #     while True:
@@ -148,7 +147,6 @@ def set_anchor_point(map_name):
         life_time=10000  # Dauerhaft sichtbar
     )
 
-    print(f"Anchor point set to: x={anchor_point.x}, y={anchor_point.y}, z={anchor_point.z}")
     return anchor_point
 
 def is_port_in_use(port):
@@ -279,7 +277,6 @@ def set_spectator_view(world, location, rotation):
     spectator = world.get_spectator()
     transform = carla.Transform(location, rotation)
     spectator.set_transform(transform)
-    print(f"Spectator set at position {location} with rotation {rotation}")
 
 def get_anchor_point(mapName):
     if mapName == "map01":
@@ -318,7 +315,7 @@ def generate_agent_for_entity(entity):
 
     # Erfolgsprüfung
     if result["status"] == "success":
-        print(f"Successfully generated agent '{agent_name}' with behaviors: {behaviors}")
+        print(f"Successfully generated agent '{agent_name}'")
         return agent_name
     else:
         print(f"Failed to generate AJAN agent for entity {entity['entity']}: {result['message']}")
@@ -334,21 +331,19 @@ def get_carla_entity_by_ajan_id(ajan_entity_id):
 
 def make_walker_move_forward(ajan_entity_id):
     global actor_list, carla_client, agent_speeds
-    print("actor list: ", actor_list)
     world = carla_client.get_world()
-    print("Carla actors list: ", world.get_actors())
     # Abrufen der CARLA-Entitäts-ID
     carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
 
     if not carla_entity_id:
-        print(f"Kein CARLA-Entity mit AJAN-Agent-ID '{ajan_entity_id}' gefunden.")
+        print(f"No CARLA agent with AJAN-Agent-ID '{ajan_entity_id}' found.")
         return
 
     # Abrufen des CARLA-Agenten (Walker)
     walker = world.get_actor(carla_entity_id)
 
     if not walker:
-        print(f"CARLA-Agent mit ID '{carla_entity_id}' existiert nicht in der Welt.")
+        print(f"There is no CARLA-Agent with ID '{carla_entity_id}'.")
         return
 
     # Vorwärtsbewegung des Walkers definieren
@@ -358,7 +353,6 @@ def make_walker_move_forward(ajan_entity_id):
 
     # Steuerung auf den Walker anwenden
     walker.apply_control(walker_control)
-    print(f"Walker mit ID '{carla_entity_id}' läuft vorwärts mit Geschwindigkeit {speed} m/s.")
 
 def get_next_waypoint(path, walker_location, ajan_entity_id):
     global pathsPerEntity
@@ -399,9 +393,6 @@ def follow_bezier_curve(walker, bezier_points, async_request_uri):
     def on_collision(event):
         nonlocal collision_detected
         collision_detected = True
-        print("Kollision erkannt!")
-        print(f"Kollidiert mit: {event.other_actor.type_id}")
-        print(f"Impuls: {event.normal_impulse}")
 
         # Walker-Position und Blickrichtung abrufen
         current_transform = walker.get_transform()
@@ -426,11 +417,9 @@ def follow_bezier_curve(walker, bezier_points, async_request_uri):
             walker.apply_control(carla.WalkerControl(direction=direction, speed=speed))
 
             while walker.get_location().distance(point) > 1:  # Warte, bis der Walker den Punkt erreicht
-                if collision_detected:
-                    print("Walker wurde teleportiert, Bewegung wird fortgesetzt.")
                 time.sleep(0.05)
 
-        print(f"Walker '{walker}' hat das Ende des Pfads erreicht.")
+        print(f"Walker '{walker}' reached their goal.")
         send_async_request(async_request_uri)
     finally:
         collision_sensor.destroy()
@@ -661,10 +650,6 @@ def load_world(weather, camera_position):
         else:
             raise ValueError(f"Invalid weather type: {weather}")
 
-        print(f"Weather set to: {weather}")
-
-        # Kamera-Position könnte hier angepasst werden, falls benötigt
-        print(f"Camera position set to: {camera_position}")
         return True
 
     except Exception as e:
@@ -706,7 +691,6 @@ def load_entities(entities, paths):
             z=anchor_point.z + 1  # Leicht über dem Boden
         )
 
-        print("spawn location: ", spawn_location)
 
         # Bestimme die Rotation (Heading)
         heading = entity.get("heading", None)
@@ -809,7 +793,6 @@ def load_entities(entities, paths):
 
         elif entity["type"] == "Obstacle":
             # Prop-Blueprint finden
-            print("Obstacle model: ", entity["model"])
             prop_blueprint = blueprint_library.find(get_blueprint_id(prop_models, entity["model"]))
             if not prop_blueprint:
                 print(f"Failed to find blueprint for Prop model: {entity['model']}")
@@ -827,7 +810,6 @@ def load_entities(entities, paths):
             prop_actor = world.try_spawn_actor(prop_blueprint, prop_transform)
 
             if prop_actor:
-                print(f"Successfully spawned Prop '{entity['label']}' at: {spawn_location}")
                 spawned_entities.add(entity_id)
             else:
                 print(f"Failed to spawn Prop '{entity['label']}' at: {spawn_location}")
@@ -1021,7 +1003,7 @@ def on_decision_box_trigger(dbox_id, vehicles, in_box):
     ]
 
     if not agents:
-        print(f"Keine Agenten für Decision Box {dbox_id} gefunden.")
+        print(f"No agent chose decision-box {dbox_id}, triggering it does not have any effect.")
         return
 
     # RDF Triple-Information für jedes Fahrzeug an jeden Agenten senden
@@ -1032,7 +1014,7 @@ def on_decision_box_trigger(dbox_id, vehicles, in_box):
             obj = "true" if in_box else "false"
 
             # Sende Information an den Agent
-            send_information(agent_name, "fetchData", subject, predicate, obj)
+            send_information(agent_name, "SaveKnowledge", subject, predicate, obj)
 
     # Daten an Flask-Server senden
     flask_url = "http://localhost:5000/decision-box-trigger"
@@ -1051,14 +1033,8 @@ def on_decision_box_trigger(dbox_id, vehicles, in_box):
 # * Implements actions for Behavior Tree Node Endpoints
 # TODO Implement actions
 
-def handle_decision_box_trigger(dbox_id):
-    print(f"Trigger received from Decision Box ID: {dbox_id}")
-    # Hier kannst du weitere Logik implementieren, z. B. Aktionen für die gebundene Entity
-
-
 # * async uri
 def send_async_request(async_request_uri):
-    print(f"Sending async request to {async_request_uri}")
     data = '<http://carla.org/pedestrian> <http://at> <http://waypoint> .'
     headers = {'Content-Type': 'text/turtle'}
     return requests.post(async_request_uri, data=data, headers=headers)
@@ -1086,67 +1062,19 @@ def getDirection(pedestrian, waypoint):
     return direction
 
 def send_unsafe_info():
-    print("Sending unsafe info")
     url = 'http://localhost:8080/ajan/agents/Carla?capability=DataTransfer'
     data = '''@prefix carla: <http://www.carla.org/> .
     carla:Pedestrian carla:unsafe carla:True .'''
 
     headers = {'Content-Type': 'application/trig'}
-    response = requests.post(url, data=data, headers=headers)
+    requests.post(url, data=data, headers=headers)
 
-    if response.status_code == 200:
-        print('POST > send_revert_info successful')
-    else:
-        print('POST > send_revert_info failed', response.status_code)
 
 def send_newCrossingRequest():
-    print("Sending new crossing request")
     url = 'http://localhost:8080/ajan/agents/Carla?capability=ICTS-Endpoint'
 
     headers = {'Content-Type': 'application/trig'}
-    response = requests.post(url, data='', headers=headers)
-
-    if response.status_code == 200:
-        print('POST > send_newCrossingRequest successful')
-    else:
-        print('POST > send_newCrossingRequest failed', response.status_code)
-
-def get_actor_blueprints(filter, generation):
-    global carla_client
-    world = carla_client.get_world()
-    bps = world.get_blueprint_library().filter(filter)
-
-    if generation.lower() == "all":
-        return bps
-
-    if len(bps) == 1:
-        return bps
-
-    try:
-        int_generation = int(generation)
-        if int_generation in [1, 2, 3]:
-            bps = [x for x in bps if int(x.get_attribute('generation')) == int_generation]
-            return bps
-        else:
-            print("   Warning! Actor Generation is not valid. No actor will be spawned.")
-            return []
-    except:
-        print("   Warning! Actor Generation is not valid. No actor will be spawned.")
-        return []
-
-def execMain():
-    url = 'http://localhost:8080/ajan/agents/Carla?capability=Carla-AJAN'
-    data = ''''''
-
-    headers = {'Content-Type': 'application/trig'}
-    response = requests.post(url, data=data, headers=headers)
-
-    if response.status_code == 200:
-        print('Execute Main successful')
-    else:
-        print('Execute Main failed')
-        print(response.text)
-        print(response.status_code)
+    requests.post(url, data='', headers=headers)
 
 def get_speed_information(request):
     """
@@ -1267,21 +1195,6 @@ def set_async_uri():
     global_async_uri = data.get('async_uri')
     return jsonify({"message": "Async URI updated"}), 200
 
-@app.route('/execute_main', methods=['GET','POST'])
-def execute_main():
-    execMain()
-    return Response('<http://carla.org> <http://execute> <http://main> .', mimetype='text/turtle', status=200)
-
-# ? Add variable for timer
-@app.route('/idle_wait', methods=['POST'])
-def idleWait():
-    ajan_entity, async_request_uri = getInformation(request)
-    print("AJAN entity: ", ajan_entity)
-    print("Async request URI: ", async_request_uri)
-
-    time.sleep(5)
-    return Response('<http://example.org> <http://has> <http://data2.org> .', mimetype='text/turtle', status=200)
-
 @app.route("/hi", methods=["GET"])
 def hi():
     return "Hello, World!"
@@ -1329,7 +1242,7 @@ def start_agent():
         if not entity_id:
             return jsonify({"status": "error", "message": "No entity ID provided"}), 400
 
-        print(f"Sending data to AJAN agent for entity: {entity_id}")
+        print(f"Starting Agent: {entity_id}")
 
         # Beispiel-Daten, die an AJAN gesendet werden sollen
         example_data = {
@@ -1366,7 +1279,6 @@ def follow_path():
             print(f"No actor found with CARLA-Entity-ID '{carla_entity_id}'.")
             return jsonify({"status": "error", "message": "Actor not found"}), 404
 
-        print(f"Entity {ajan_entity_id} is following the path.")
         is_vehicle = isinstance(actor, carla.Vehicle)
 
         path = get_follows_path_for_entity(ajan_entity_id)
@@ -1383,7 +1295,6 @@ def follow_path():
         end_point = get_next_waypoint(path["waypoints"], actor_location, ajan_entity_id)
 
         if not end_point:
-            print("Finished following path.")
             return jsonify({"status": "success", "message": "Destination reached"}), 200
 
         # Berechne eine Bezier-Kurve zwischen der aktuellen Actor-Position (jetzt Teil des Pfades) und dem nächsten Wegpunkt
@@ -1420,12 +1331,10 @@ def follow_path():
 def follow_bezier_curve_vehicle(vehicle, waypoints, async_request_uri):
     max_global_speed = 30  # km/h
 
-    # PID-Parameter Lenkung
     Kp_steer = 0.8
     Ki_steer = 0.0
     Kd_steer = 0.05
 
-    # PID-Parameter Geschwindigkeit
     Kp_speed = 0.3
     Ki_speed = 0.05
     Kd_speed = 0.01
@@ -1494,23 +1403,18 @@ def follow_bezier_curve_vehicle(vehicle, waypoints, async_request_uri):
         target_vector = carla.Vector3D(target_point.x - vehicle_location.x, target_point.y - vehicle_location.y, 0)
         target_yaw = math.atan2(target_vector.y, target_vector.x)
 
-        # Yaw Error
         yaw_error = target_yaw - vehicle_yaw
         yaw_error = (yaw_error + math.pi) % (2 * math.pi) - math.pi
 
-        # Lenkungs-PID
         steer_output, steer_integral, steer_prev_error = pid_control(yaw_error, steer_prev_error, steer_integral, dt, Kp_steer, Ki_steer, Kd_steer)
         steer_value = max(-1.0, min(1.0, steer_output))
 
-        # Kurvigkeit approximieren
         curvature = (target_yaw - vehicle_yaw) / max(vehicle_location.distance(target_point), 0.001)
         target_speed = get_target_speed(curvature, max_speed=max_global_speed)
 
-        # Geschwindigkeitsfehler
         speed_error = (target_speed - current_speed)
         speed_output, speed_integral, speed_prev_error = pid_control(speed_error, speed_prev_error, speed_integral, dt, Kp_speed, Ki_speed, Kd_speed)
 
-        # Gas/Bremse
         if speed_output > 0:
             throttle = min(0.7, speed_output)
             brake = 0.0
@@ -1609,12 +1513,8 @@ def follow_direction():
         # trim input
         direction_input = direction_input.strip()
 
-        print(f"\n\nDirection input: {direction_input}")
-        print(f"Direction input type: {type(direction_input)}")
-        print(f"Length of direction input: {len(direction_input)}")
         if direction_input not in ["Up", "Down", "Left", "Right"]:
             return jsonify({"status": "error", "message": "Invalid direction. Must be one of: Up, Down, Left, Right"}), 400
-        print("After if")
         # Map the direction to a CARLA Vector3D
         direction_map = {
             "Up": carla.Vector3D(-1, 0, 0),  # x-
@@ -1623,18 +1523,13 @@ def follow_direction():
             "Right": carla.Vector3D(0, -1, 0)  # y-
         }
         direction = direction_map[direction_input]
-        print(f"Direction: {direction}")
         # Function to move the pedestrian in a thread
         def move_walker(walker, direction, async_request_uri):
-            print(f"Walker {walker.id} moving in direction {direction_input}")
             walker.apply_control(carla.WalkerControl(direction=direction, speed=1.5))
-
-            print(f"Walker {walker.id}  moving indefinetely in direction {direction_input}")
 
         # Start movement in a new thread
         movement_thread = threading.Thread(target=move_walker, args=(walker, direction, async_request_uri))
         movement_thread.start()
-        print(f"Movement thread started for walker {walker.id}")
 
         # Return immediate response
         return Response('<http://Agent> <http://follows> <http://direction> .', mimetype='text/turtle', status=200)
@@ -1645,10 +1540,11 @@ def follow_direction():
 
 @app.route('/adjust_speed', methods=['POST'])
 def adjust_speed():
-    global agent_speeds
+    global agent_speeds, carla_client
     try:
         ajan_entity_id, ununsed = getInformation(request)
         carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
+        world = carla_client.get_world()
 
         if not carla_entity_id:
             print(f"No CARLA entity found with AJAN ID '{ajan_entity_id}'")
@@ -1657,12 +1553,17 @@ def adjust_speed():
         new_speed = get_speed_information(request)
 
         if new_speed is None or new_speed < 0:
-            print("Invalid speed value, using default speed value of 1.5 m/s")
-            new_speed = 1.5
+            print("Invalid speed value, using default speed value.")
+            actor = world.get_actor(carla_entity_id)
+
+            if(carla_entity_id in agent_speeds and isinstance(actor, carla.Vehicle)):
+              new_speed = 8.3
+            else:
+              new_speed = 1.5
 
         agent_speeds[carla_entity_id] = new_speed
 
-        return Response('<http://Agent> <http://waits> <http://indefinitely> .', mimetype='text/turtle', status=200)
+        return Response('<http://Agent> <http://adjusted> <http://speed> .', mimetype='text/turtle', status=200)
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -1703,7 +1604,6 @@ def check_waypoint_proximity():
               walker_location = walker.get_location()
               distance = walker_location.distance(waypoint_location)
               if distance < 1.0:
-                  print(f"Walker {walker.id} reached the waypoint within 1 meter radius.")
                   send_async_request(async_request_uri)
                   break
 
@@ -1745,17 +1645,20 @@ def change_path():
         entity['followsPath'] = current_fallback_path
         entity['fallbackPath'] = current_follows_path
 
-        print(f"Updated entity paths for {ajan_entity_id}:")
-        print(f"  followsPath: {entity['followsPath']}")
-        print(f"  fallbackPath: {entity['fallbackPath']}")
-        print(f" Paths per entity: {pathsPerEntity}")
-
         # Erfolgsmeldung zurückgeben
         return Response('<http://Agent> <http://changed> <http://Path> .', mimetype='text/turtle', status=200)
 
     except Exception as e:
         print(f"Error in change_path: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/abort', methods=['POST'])
+def abort():
+    ajan_entity_id, async_request_uri = getInformation(request)
+    print(f"Aborting entity: {ajan_entity_id}")
+    send_async_request(async_request_uri)
+    return Response('<http://Agent> <http://aborted> <http://action> .', mimetype='text/turtle', status=200)
+
 
 @app.route('/check_decision_point', methods=['POST'])
 
@@ -1836,7 +1739,6 @@ def start_carla():
             carla_client = carla.Client("localhost", 2000)
             carla_client.set_timeout(20.0)
             world = carla_client.get_world()
-            print("Connected to CARLA server on Port 2000.")
             return jsonify({"status": "CARLA started and connected successfully."}), 200
 
         except Exception as e:
@@ -1853,8 +1755,6 @@ def start_simulation():
     try:
         # Extrahiere Daten aus der Anfrage
         data = request.get_json()
-        print("Data received successfully", flush=True)
-        print(data, flush=True)
 
         if not data or 'capabilities' not in data:
             return jsonify({"error": "Missing data"}), 400
@@ -1862,7 +1762,6 @@ def start_simulation():
         # Capabilities-Mapping (BT -> Capability)
         capabilities = {item["bt"]: item["capability"] for item in data["capabilities"]}
 
-        print("entityList: ", entityList)
 
         # Iteriere über alle Entities und sende die entsprechenden Informationen
         for entity in entityList:
@@ -1874,8 +1773,6 @@ def start_simulation():
                 continue
 
             capability = capabilities[behavior]
-
-            print("Sending information to agent:", name, "with capability: ", capability)
 
             # Beispiel-Aufruf der Funktion send_information
             send_information(

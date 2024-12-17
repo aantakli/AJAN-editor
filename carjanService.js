@@ -83,10 +83,14 @@ async function destroyActors() {
 
     console.log("Flask response:", flaskResponse);
 
+    if (flaskResponse.status !== 200) {
+      throw new Error(flaskResponse.error);
+    }
+
     return { status: 200, data: flaskResponse };
   } catch (error) {
-    console.error("Error forwarding to Flask:", error);
-    res.status(500).json({ error: "Failed to load scenario" });
+    console.error("Error destroying actors:", error);
+    return { status: 500, error: "Failed destroying actors" };
   }
 }
 
@@ -348,11 +352,14 @@ app.post("/api/start_flask", async (req, res) => {
     const flaskReady = await waitForFlaskToBeReady();
 
     if (flaskReady) {
-      console.log("Flask is ready.");
-      await destroyActors();
-      res.json({
-        status: "Flask started",
-      });
+      const destoryResponse = await destroyActors();
+      if (destoryResponse.status !== 200) {
+        throw new Error(destoryResponse.error);
+      } else {
+        res.json({
+          status: "Flask started",
+        });
+      }
     } else {
       throw new Error("Flask did not become ready in time.");
     }
@@ -429,6 +436,27 @@ app.post("/api/check-repository", async (req, res) => {
     return result;
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/abort", async (req, res) => {
+  try {
+    // Forward the entire array to Flask
+    const flaskResponse = await forwardToFlask("/abort");
+
+    console.log("Flask response:", flaskResponse);
+
+    if (flaskResponse.error) {
+      return res.status(400).json({ error: flaskResponse.error });
+    }
+
+    res.json({
+      status: "Aborted",
+      data: flaskResponse.data,
+    });
+  } catch (error) {
+    console.error("Error forwarding to Flask:", error);
+    res.status(500).json({ error: "Failed to start simulation" });
   }
 });
 

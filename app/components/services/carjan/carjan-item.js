@@ -1227,7 +1227,11 @@ export default Component.extend({
       const col = cell.dataset.col;
       const cellStatus = this.gridStatus[`${row},${col}`];
 
-      if (cellStatus.occupied && cellStatus.entityType !== "void") {
+      if (
+        cellStatus.occupied &&
+        cellStatus.entityType &&
+        cellStatus.entityType !== "void"
+      ) {
         const entityId =
           String(row).padStart(2, "0") + String(col).padStart(2, "0");
         const entityURI = rdf.namedNode(
@@ -1242,18 +1246,23 @@ export default Component.extend({
           )
         );
 
-        rdfGraph.add(
-          rdf.quad(
-            entityURI,
-            rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            rdf.namedNode(
-              `http://example.com/carla-scenario#${
-                cellStatus.entityType.charAt(0).toUpperCase() +
-                cellStatus.entityType.slice(1)
-              }`
+        if (cellStatus.entityType) {
+          rdfGraph.add(
+            rdf.quad(
+              entityURI,
+              rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+              rdf.namedNode(
+                `http://example.com/carla-scenario#${
+                  cellStatus.entityType.charAt(0).toUpperCase() +
+                  cellStatus.entityType.slice(1)
+                }`
+              )
             )
-          )
-        );
+          );
+        } else {
+          console.log("No entity type found for cell", row, col);
+          console.log("cellStatus", cellStatus);
+        }
 
         rdfGraph.add(
           rdf.quad(

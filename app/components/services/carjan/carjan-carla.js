@@ -128,6 +128,11 @@ export default Component.extend({
   willDestroyElement() {
     const socket = this.websockets.socketFor("ws://localhost:4204");
     socket.off("message", this.handleLogMessage, this);
+    
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.close();
+  }
+
     window.removeEventListener(
       "beforeunload",
       this.handleBeforeUnload.bind(this)

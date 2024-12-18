@@ -293,8 +293,6 @@ app.post("/api/upload_to_github", async (req, res) => {
 
 app.post("/api/save_environment", (req, res) => {
   const { type, value } = req.body;
-  console.log("Type:", type);
-  console.log("Value:", value);
   if (!validTypes.includes(type)) {
     return res.status(400).json({ error: `Invalid type: ${type}` });
   }
@@ -671,4 +669,10 @@ function forwardToFlask(endpoint, body = null) {
 
 server.listen(port, () => {
   console.log(`Carjan Service listening on port ${port} :)`);
+});
+
+wss.on("connection", (ws) => {
+  ws.on("error", (err) => {
+    console.log("Reloading");
+  });
 });

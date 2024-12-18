@@ -4,8 +4,12 @@
   </div>
   <div class="flex-body" local-class="main-container">
     <div id="behaviors-body" class="flex-content" local-class="behaviors-body">
-      <div id="split-container" style="display: flex; flex-direction: row;">
+      <div
+        local-class="split-container"
+        style="display: flex; flex-direction: row;"
+      >
         <div
+          local-class="split-left"
           id="split-left"
           class="split content split-horizontal"
           style="background-color: #E8EDF1;"
@@ -51,6 +55,7 @@
             </a>
             <a class="item" data-tab="info">
               <i class="icon info circle"></i>
+              Info
             </a>
           </div>
 
@@ -75,6 +80,7 @@
         </div>
 
         <div
+          local-class="split-middle"
           id="split-middle"
           class="split content split-horizontal"
           style="height: auto; z-index: 20;"
@@ -83,6 +89,7 @@
         </div>
 
         <div
+          local-class="split-right"
           id="split-right"
           class="split content split-horizontal"
           style="background-color: #E8EDF1; overflow: scroll;"

@@ -12,6 +12,24 @@ export default Component.extend({
     this.setupTabs();
   },
 
+  syncPanelHeights() {
+    const leftPanel = document.getElementById("split-left");
+    const middlePanel = document.getElementById("split-middle");
+    const rightPanel = document.getElementById("split-right");
+
+    if (leftPanel && middlePanel && rightPanel) {
+      const maxHeight = Math.max(
+        leftPanel.scrollHeight,
+        middlePanel.scrollHeight,
+        rightPanel.scrollHeight
+      );
+
+      leftPanel.style.height = `${maxHeight}px`;
+      middlePanel.style.height = `${maxHeight}px`;
+      rightPanel.style.height = `${maxHeight}px`;
+    }
+  },
+
   setupDropdown() {
     const dropdown = this.element.querySelector(".ui.dropdown");
     if (dropdown) {
@@ -34,7 +52,7 @@ export default Component.extend({
   },
   setupSplitPanes() {
     Split(["#split-left", "#split-middle", "#split-right"], {
-      sizes: [30, 45, 25],
+      sizes: [32, 43, 25],
       minSize: [200, 300, 200],
       direction: "horizontal", // Wichtig für horizontale Ausrichtung
       gutterSize: 5,
@@ -50,6 +68,7 @@ export default Component.extend({
         }
       },
     });
+    this.syncPanelHeights();
   },
 
   actions: {

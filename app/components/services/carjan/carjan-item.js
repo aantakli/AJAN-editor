@@ -525,6 +525,10 @@ export default Component.extend({
 
   selectedPathObserver: observer("carjanState.selectedPath", function () {
     this.resetFlagIcons();
+    const pathOverlay = this.element.querySelector(`#${this.gridId}`);
+    if (pathOverlay) {
+      pathOverlay.innerHTML = "";
+    }
     this.drawMainPathLines();
   }),
 
@@ -775,6 +779,7 @@ export default Component.extend({
       this.carjanState.addDBox(newDBox);
       this.carjanState.setSelectedDBox(newDBox);
       this.carjanState.set("properties", "dbox");
+      this.carjanState.set("latestToolProperty", "dbox");
     }
   },
 
@@ -2320,18 +2325,23 @@ export default Component.extend({
             break;
           }
           this.carjanState.set("properties", "pedestrian");
+          this.carjanState.set("latestEntityProperty", "pedestrian");
           break;
         case "Vehicle":
         case "vehicle":
           this.carjanState.set("properties", "vehicle");
+          this.carjanState.set("latestEntityProperty", "vehicle");
+
           break;
         case "Autonomous":
         case "autonomous":
           this.carjanState.set("properties", "autonomous");
+          this.carjanState.set("latestEntityProperty", "autonomous");
           break;
         case "Obstacle":
         case "obstacle":
           this.carjanState.set("properties", "obstacle");
+          this.carjanState.set("latestEntityProperty", "obstacle");
           break;
         default:
           this.carjanState.set("properties", "scenario");

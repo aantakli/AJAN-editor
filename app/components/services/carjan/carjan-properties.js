@@ -285,6 +285,53 @@ export default Component.extend({
     );
   }),
 
+  propertiesObserver: observer("carjanState.properties", function () {
+    switch (this.carjanState.properties) {
+      case "path":
+      case "dbox":
+        setTimeout(() => {
+          const entitiesTab = document.querySelector('[data-tab="tools-prop"]');
+          if (entitiesTab) {
+            entitiesTab.click();
+          }
+        });
+        break;
+      case "pedestrian":
+      case "vehicle":
+      case "autonomous":
+      case "obstacle":
+        setTimeout(() => {
+          const entitiesTab = document.querySelector(
+            '[data-tab="entities-prop"]'
+          );
+          if (entitiesTab) {
+            entitiesTab.click();
+          }
+        });
+        break;
+      case "waypoint":
+        setTimeout(() => {
+          const waypointTab = document.querySelector(
+            '[data-tab="detail-prop"]'
+          );
+          if (waypointTab) {
+            waypointTab.click();
+          }
+        });
+        break;
+      default:
+        setTimeout(() => {
+          const scenarioTab = document.querySelector(
+            '[data-tab="scenario-prop"]'
+          );
+          if (scenarioTab) {
+            scenarioTab.click();
+          }
+        });
+        break;
+    }
+  }),
+
   async fetchBehaviors() {
     const sparqlQuery = `
       PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -348,15 +395,17 @@ export default Component.extend({
   },
 
   updatePath() {
-    const oldPathURI = this.selectedPath.path;
-    const newPath = { ...this.selectedPath };
-    const updatedPaths = this.carjanState.paths.map((path) => {
-      if (path.path === oldPathURI) {
-        return newPath;
-      }
-      return path;
-    });
-    this.carjanState.setPaths(updatedPaths);
+    if (this.selectedPath) {
+      const oldPathURI = this.selectedPath.path;
+      const newPath = { ...this.selectedPath };
+      const updatedPaths = this.carjanState.paths.map((path) => {
+        if (path.path === oldPathURI) {
+          return newPath;
+        }
+        return path;
+      });
+      this.carjanState.setPaths(updatedPaths);
+    }
   },
 
   async moveWaypointWithinGrid(currentPositionInCell, newPositionInCell) {
@@ -772,6 +821,29 @@ export default Component.extend({
   },
 
   actions: {
+    setPropertyTab(properties) {
+      console.log("Set property tab to:", properties);
+      switch (properties) {
+        case "tools":
+          const latestTool = this.carjanState.get("latestToolProperty");
+          if (latestTool) {
+            this.carjanState.setProperties(latestTool);
+          }
+          break;
+        case "entities":
+          const latestEntity = this.carjanState.get("latestEntityProperty");
+          if (latestEntity) {
+            this.carjanState.setProperties(latestEntity);
+          }
+          break;
+        default:
+          if (properties) {
+            this.carjanState.setProperties(properties);
+          }
+          break;
+      }
+    },
+
     selectOrientation(orientation) {
       this.set("entity.heading", orientation);
       this.updateMatchingEntity();

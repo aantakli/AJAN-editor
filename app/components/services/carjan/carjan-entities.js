@@ -183,6 +183,7 @@ export default Component.extend({
       const col = entity.position.y;
 
       this.carjanState.setProperties(entity.type.toLowerCase());
+      this.carjanState.set("latestEntityProperty", entity.type.toLowerCase());
       this.carjanState.set("currentCellPosition", [row, col]);
     },
 

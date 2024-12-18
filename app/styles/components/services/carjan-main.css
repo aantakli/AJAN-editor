@@ -10,6 +10,12 @@
 @value color-odd-bg: color-primary-6;
 @value color-font: #000000;
 
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
 .viewport {
   position: relative;
   width: 700px;
@@ -85,33 +91,35 @@ canvas {
   opacity: 1;
 }
 
-#split-container {
+.split-container {
   display: flex;
   flex-direction: row;
+  align-items: stretch;
   height: 90%;
 }
 
-#split-left,
-#split-middle,
-#split-right {
-  overflow: auto;
-  padding: 10px;
+#behaviors-body {
   height: 100%;
+}
+
+.split-left,
+.split-middle,
+.split-right {
+  box-sizing: border-box;
+  height: 100%;
+  overflow: hidden !important;
 }
 
 #split-left {
   background-color: #f9f9f9;
-  flex: 1;
 }
 
 #split-middle {
   background-color: #fff;
-  flex-grow: 2;
 }
 
 #split-right {
   background-color: #f9f9f9;
-  flex: 1;
 }
 
 #carjan-item {

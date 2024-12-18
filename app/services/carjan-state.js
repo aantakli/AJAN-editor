@@ -1,5 +1,5 @@
 import Service from "@ember/service";
-import { set } from "@ember/object";
+import { set, observer } from "@ember/object";
 
 export default Service.extend({
   mapData: null,
@@ -34,6 +34,8 @@ export default Service.extend({
   dboxes: [],
   selectedDBox: null,
   selectedFallback: null,
+  latestToolProperty: null,
+  latestEntityProperty: null,
 
   setSelectedDBox(dbox) {
     set(this, "selectedDBox", dbox);

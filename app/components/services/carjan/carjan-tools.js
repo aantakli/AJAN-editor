@@ -110,8 +110,15 @@ export default Component.extend({
         this.carjanState.set("properties", "scenario");
         return;
       }
-      this.carjanState.set("properties", "path");
-      this.carjanState.setSelectedPath(newPath);
+      if (this.carjanState.latestToolProperty === "path") {
+        this.carjanState.set("properties", "path");
+        this.carjanState.set("latestToolProperty", "path");
+      }
+      if (selectedPath) {
+        if (selectedPath.description !== newPath.description) {
+          this.carjanState.setSelectedPath(newPath);
+        }
+      }
     }, 50);
   }),
 
@@ -284,6 +291,7 @@ export default Component.extend({
       this.carjanState.setSelectedDBox(dbox);
       this.markBoundingBoxCorners(dbox);
       this.carjanState.set("properties", "dbox");
+      this.carjanState.set("latestToolProperty", "dbox");
     },
 
     startNewDecisionBox() {
@@ -349,6 +357,7 @@ export default Component.extend({
     openPathwayEditor(path) {
       this.carjanState.setSelectedPath(path);
       this.carjanState.set("properties", "path");
+      this.carjanState.set("latestToolProperty", "path");
     },
 
     clearPath() {

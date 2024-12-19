@@ -72,6 +72,102 @@ PEDESTRIAN = Namespace("http://carla.org/pedestrian/")
 LOCATION = Namespace("http://carla.org/location/")
 BASE = Namespace("http://carla.org/")
 
+# ! Classes
+
+class LookBehindRight:
+    def __init__(self, walker, start_pos, char="standard"):
+        self.walker = walker
+        self.start_pos = start_pos
+        self.done = False
+        self.spine_roll = 60 if char == "forcing" else 20
+
+    def step(self):
+        if self.done:
+            return "Done"
+        direction = self.walker.get_location() - self.start_pos
+        direction_norm = math.sqrt(direction.x**2 + direction.y**2)
+        if direction_norm > 0.1:
+            return "Running"
+        bones = self.walker.get_bones()
+        new_pose = []
+        for bone in bones.bone_transforms:
+            if bone.name == "crl_hips__C":
+                bone.relative.rotation.pitch += 40
+            elif bone.name == "crl_spine__C":
+                bone.relative.rotation.roll += self.spine_roll
+                bone.relative.rotation.pitch += 40
+            elif bone.name == "crl_spine01__C":
+                bone.relative.rotation.pitch += 90
+            elif bone.name == "crl_neck__C":
+                bone.relative.rotation.pitch -= 90
+            elif bone.name == "crl_Head__C":
+                bone.relative.rotation.pitch += 90
+                bone.relative.rotation.roll -= 20
+            new_pose.append((bone.name, bone.relative))
+        control = carla.WalkerBoneControlIn()
+        control.bone_transforms = new_pose
+        self.walker.set_bones(control)
+        self.walker.blend_pose(0.25)
+        self.done = True
+        return "Done"
+
+class LookBehindLeft:
+    def __init__(self, walker, start_pos, char="standard"):
+        self.walker = walker
+        self.start_pos = start_pos
+        self.done = False
+        self.spine_roll = 60 if char == "forcing" else 20
+
+    def step(self):
+        if self.done:
+            return "Done"
+        direction = self.walker.get_location() - self.start_pos
+        direction_norm = math.sqrt(direction.x**2 + direction.y**2)
+        if direction_norm > 0.1:
+            return "Running"
+        bones = self.walker.get_bones()
+        new_pose = []
+        for bone in bones.bone_transforms:
+            if bone.name == "crl_hips__C":
+                bone.relative.rotation.pitch -= 40
+            elif bone.name == "crl_spine__C":
+                bone.relative.rotation.roll -= self.spine_roll
+                bone.relative.rotation.pitch -= 40
+            elif bone.name == "crl_spine01__C":
+                bone.relative.rotation.pitch -= 90
+            elif bone.name == "crl_neck__C":
+                bone.relative.rotation.pitch += 90
+            elif bone.name == "crl_Head__C":
+                bone.relative.rotation.pitch -= 90
+                bone.relative.rotation.roll += 20
+            new_pose.append((bone.name, bone.relative))
+        control = carla.WalkerBoneControlIn()
+        control.bone_transforms = new_pose
+        self.walker.set_bones(control)
+        self.walker.blend_pose(0.25)
+        self.done = True
+        return "Done"
+
+class ResetPose:
+
+    def __init__(self, walker):
+        self.walker = walker
+
+    def step(self):
+        bones = self.walker.get_bones()
+        new_pose = []
+        for bone in bones.bone_transforms:
+            bone.relative.rotation.pitch = 0
+            bone.relative.rotation.roll = 0
+            bone.relative.rotation.yaw = 0
+            new_pose.append((bone.name, bone.relative))
+
+        control = carla.WalkerBoneControlIn()
+        control.bone_transforms = new_pose
+        self.walker.set_bones(control)
+        self.walker.blend_pose(0)
+
+
 # ! Helpers and Utilities
 # * Implements helper functions and utilities
 # * for the CARJAN Scenario loaders
@@ -1659,6 +1755,78 @@ def abort():
     send_async_request(async_request_uri)
     return Response('<http://Agent> <http://aborted> <http://action> .', mimetype='text/turtle', status=200)
 
+@app.route('/look_left', methods=['POST'])
+def look_left():
+    try:
+        ajan_entity_id, async_request_uri = getInformation(request)
+        carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
+
+        if not carla_entity_id:
+            print(f"No CARLA entity found with AJAN ID '{ajan_entity_id}'")
+            return jsonify({"status": "error", "message": "CARLA Entity not found"}), 404
+
+        # Get the walker actor
+        walker = carla_client.get_world().get_actor(carla_entity_id)
+
+        look_behind_left = LookBehindLeft(walker, walker.get_location())
+        look_behind_left.step()
+
+        return Response('<http://Agent> <http://performed> <http://look_left> .', mimetype='text/turtle', status=200)
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/look_right', methods=['POST'])
+def look_right():
+    try:
+        ajan_entity_id, async_request_uri = getInformation(request)
+        carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
+
+        if not carla_entity_id:
+            print(f"No CARLA entity found with AJAN ID '{ajan_entity_id}'")
+            return jsonify({"status": "error", "message": "CARLA Entity not found"}), 404
+
+        # Get the walker actor
+        walker = carla_client.get_world().get_actor(carla_entity_id)
+
+        if not walker:
+            print(f"No walker found with CARLA ID '{carla_entity_id}'")
+            return jsonify({"status": "error", "message": "Walker not found"}), 404
+
+        print("Walker found")
+
+        # Perform the look right action
+        print("Looking right")
+        look_behind_right = LookBehindRight(walker, walker.get_location())
+        look_behind_right.step()
+        print("Looked right")
+
+        return Response('<http://Agent> <http://performed> <http://look_right> .', mimetype='text/turtle', status=200)
+
+    except Exception as e:
+        print(f"Error in look_right: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/reset_animation', methods=['POST'])
+def reset_animation():
+    try:
+        ajan_entity_id, async_request_uri = getInformation(request)
+        carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
+
+        if not carla_entity_id:
+            print(f"No CARLA entity found with AJAN ID '{ajan_entity_id}'")
+            return jsonify({"status": "error", "message": "CARLA Entity not found"}), 404
+
+        # Get the walker actor
+        walker = carla_client.get_world().get_actor(carla_entity_id)
+
+        reset_pose = ResetPose(walker)
+        reset_pose.step()
+
+        return Response('<http://Agent> <http://performed> <http://reset_animation> .', mimetype='text/turtle', status=200)
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/check_decision_point', methods=['POST'])
 

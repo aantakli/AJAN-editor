@@ -672,7 +672,5 @@ server.listen(port, () => {
 });
 
 wss.on("connection", (ws) => {
-  ws.on("error", (err) => {
-    console.log("Reloading");
-  });
+  ws.on("error", (err) => {});
 });

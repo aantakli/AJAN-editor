@@ -312,6 +312,7 @@ export default Component.extend({
             this.moveEntityState(row, col);
           }
           this.addEntityToGrid(entityType, row, col);
+          this.addEntityToState(entityType, row, col);
         }
       }
       this.isDragging = false;
@@ -342,6 +343,7 @@ export default Component.extend({
           this.draggingEntityType = null;
 
           this.addEntityToGrid(entityType, row, col);
+          this.addEntityToState(entityType, row, col);
         } else {
           this.recoverEntity();
         }
@@ -402,24 +404,20 @@ export default Component.extend({
     },
   },
 
-  mapDataObserver: observer(
-    "carjanState.mapData",
-    "carjanState.agentData",
-    async function () {
-      const currentMap = this.carjanState.mapData;
-      const currentAgents = this.carjanState.agentData;
-      if (
-        (this.previousMap !== currentMap ||
-          this.previousAgents !== currentAgents) &&
-        !this.reloadFlag
-      ) {
-        await this.deleteAllEntites();
-        this.setupGrid(currentMap, currentAgents);
-        this.previousMap = currentMap;
-        this.previousAgents = currentAgents;
-      }
+  mapDataObserver: observer("carjanState.mapData", async function () {
+    const currentMap = this.carjanState.mapData;
+    const currentAgents = this.carjanState.agentData;
+    if (
+      (this.previousMap !== currentMap ||
+        this.previousAgents !== currentAgents) &&
+      !this.reloadFlag
+    ) {
+      await this.deleteAllEntites();
+      this.setupGrid(currentMap, currentAgents);
+      this.previousMap = currentMap;
+      this.previousAgents = currentAgents;
     }
-  ),
+  }),
 
   loadingObserver: observer("carjanState.loading", function () {
     if (this.carjanState.loading) {
@@ -2022,19 +2020,45 @@ export default Component.extend({
     });
   },
 
-  addEntityToState(entityType, row, col) {
+  async addEntityToState(entityType, row, col) {
     let prefix = "http://example.com/carla-scenario#";
     let entityId = `Entity${String(row).padStart(2, "0")}${String(col).padStart(
       2,
       "0"
     )}`;
     let entityURI = `${prefix}${entityId}`;
+    let model;
+
+    if (entityType) {
+      switch (entityType) {
+        case "Pedestrian":
+        case "pedestrian":
+          model = "pedestrian_0001";
+          break;
+        case "Vehicle":
+        case "vehicle":
+          model = "Audi - A2";
+          break;
+        case "Autonomous":
+        case "autonomous":
+          model = "Micro - Microlino";
+          break;
+        case "Obstacle":
+        case "obstacle":
+          model = "Bench 03";
+          break;
+        default:
+          model = "pedestrian_0001";
+          break;
+      }
+    }
 
     const newAgent = {
       entity: entityURI,
       x: row,
       y: col,
       type: entityType,
+      model: model,
     };
 
     const existingAgents = this.carjanState.get("agentData");
@@ -2051,9 +2075,12 @@ export default Component.extend({
     if (!isDuplicate) {
       this.carjanState.set("agentData", [...existingAgents, newAgent]);
     }
+
+    return;
   },
 
   removeEntityFromGrid(row, col) {
+    console.trace("removeEntityFromGrid");
     run.scheduleOnce("afterRender", this, function () {
       const gridElement = this.element.querySelector(
         `.grid-cell[data-row="${row}"][data-col="${col}"]`
@@ -2242,7 +2269,7 @@ export default Component.extend({
     }
   },
 
-  onMouseDown(e) {
+  async onMouseDown(e) {
     const drag = this.get("drag");
 
     if (
@@ -2291,9 +2318,6 @@ export default Component.extend({
     const cellStatus = this.gridStatus[`${row},${col}`];
 
     if (cellStatus) {
-      this.carjanState.set("currentCellStatus", cellStatus);
-      this.carjanState.set("currentCellPosition", [row, col]);
-
       if (this.previousIcon) {
         this.previousIcon.style.color = "#000";
         this.previousIcon.style.textShadow = "none";
@@ -2317,13 +2341,12 @@ export default Component.extend({
 
       this.previousIcon = agentIcon || null;
 
+      if (!agent) {
+        await this.addEntityToState(cellStatus.entityType, row, col);
+      }
       switch (cellStatus.entityType) {
         case "Pedestrian":
         case "pedestrian":
-          if (!agent) {
-            this.addEntityToState("Pedestrian", row, col);
-            break;
-          }
           this.carjanState.set("properties", "pedestrian");
           this.carjanState.set("latestEntityProperty", "pedestrian");
           break;
@@ -2331,7 +2354,6 @@ export default Component.extend({
         case "vehicle":
           this.carjanState.set("properties", "vehicle");
           this.carjanState.set("latestEntityProperty", "vehicle");
-
           break;
         case "Autonomous":
         case "autonomous":
@@ -2347,6 +2369,9 @@ export default Component.extend({
           this.carjanState.set("properties", "scenario");
           break;
       }
+
+      this.carjanState.set("currentCellStatus", cellStatus);
+      this.carjanState.set("currentCellPosition", [row, col]);
     }
     const isEntityCell = cellStatus && cellStatus.occupied;
     if (e.button === 0) {

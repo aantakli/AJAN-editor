@@ -16,6 +16,7 @@ import time
 import numpy as np
 import requests
 import threading
+from threading import Event
 import logging
 import os
 from dotenv import load_dotenv
@@ -57,6 +58,7 @@ current_map = None
 entityList = []
 paths = []
 pathsPerEntity = {}
+threads_per_actor = {}
 
 decision_box_managers = []  # Liste der Decision Box Manager
 monitoring_thread = None
@@ -450,7 +452,7 @@ def make_walker_move_forward(ajan_entity_id):
     # Steuerung auf den Walker anwenden
     walker.apply_control(walker_control)
 
-def get_next_waypoint(path, walker_location, ajan_entity_id):
+def get_next_waypoint(ajan_entity_id):
     global pathsPerEntity
     """
     Bestimmt den nächsten Wegpunkt im Pfad basierend auf der aktuellen Position des Walkers
@@ -463,7 +465,7 @@ def get_next_waypoint(path, walker_location, ajan_entity_id):
 
     # Hole den nächsten Wegpunkt aus pathsPerEntity
     next_waypoint = pathsPerEntity[ajan_entity_id].pop(0)
-
+    print("next_waypoint:", next_waypoint)
     # Berechne die Carla Location des nächsten Wegpunkts
     try:
         next_waypoint_location = get_carla_location_from_waypoint(next_waypoint)
@@ -472,10 +474,7 @@ def get_next_waypoint(path, walker_location, ajan_entity_id):
         print(f"Error calculating Carla location for waypoint: {e}")
         return None
 
-def follow_bezier_curve(walker, bezier_points, async_request_uri):
-    """
-    Lässt den Walker entlang einer Bezier-Kurve laufen, überprüft auf Kollisionen und teleportiert ihn basierend auf seiner Blickrichtung.
-    """
+def follow_bezier_curve(walker, bezier_points, async_request_uri, stop_flag):
     global carla_client, agent_speeds
 
     # Collision Sensor erstellen und anhängen
@@ -490,43 +489,47 @@ def follow_bezier_curve(walker, bezier_points, async_request_uri):
         nonlocal collision_detected
         collision_detected = True
 
-        # Walker-Position und Blickrichtung abrufen
         current_transform = walker.get_transform()
         current_location = current_transform.location
-        forward_vector = current_transform.get_forward_vector()  # Vorwärtsrichtung basierend auf der Blickrichtung
+        forward_vector = current_transform.get_forward_vector()
 
-        # Walker leicht nach vorne und oben teleportieren
         walker.set_location(carla.Location(
-            x=current_location.x + forward_vector.x * 0.2,  # Nach vorne
+            x=current_location.x + forward_vector.x * 0.2,
             y=current_location.y + forward_vector.y * 0.2,
-            z=current_location.z + 0.5  # Leicht nach oben
+            z=current_location.z + 0.5
         ))
-        collision_detected = False  # Zurücksetzen, um weiterzulaufen
+        collision_detected = False
 
     collision_sensor.listen(on_collision)
 
-    # Walker der Bezier-Kurve folgen lassen
     try:
         for point in bezier_points:
+            if stop_flag.is_set():
+                print("Thread stopped.")
+                break
+
             direction = get_direction(walker.get_location(), point)
             speed = agent_speeds.get(walker.id, 1.5)
             walker.apply_control(carla.WalkerControl(direction=direction, speed=speed))
 
-            while walker.get_location().distance(point) > 1:  # Warte, bis der Walker den Punkt erreicht
+            while walker.get_location().distance(point) > 1:
+                if stop_flag.is_set():
+                    print("Thread stopped.")
+                    break
                 time.sleep(0.05)
-
-        print(f"Walker '{walker}' reached their goal.")
-        send_async_request(async_request_uri)
+        else:
+            print(f"Walker '{walker}' reached their goal.")
+            send_async_request(async_request_uri)
     finally:
         collision_sensor.destroy()
-
-    return True
 
 def get_follows_path_for_entity(ajan_entity_id):
     global entityList, paths
     entity = next((entity for entity in entityList if entity["label"] == ajan_entity_id), None)
     if entity:
-        return next((path for path in paths if path["path"] == entity["followsPath"]), None)
+        path = next((path for path in paths if path["path"] == entity["followsPath"]), None)
+        print("Path found for entity:", path)
+        return path
 
 def send_async_success(async_request_uri):
     """
@@ -1365,7 +1368,8 @@ def start_agent():
 
 @app.route('/follow_path', methods=['POST'])
 def follow_path():
-    global actor_list, pathsPerEntity, paths, entityList
+    global actor_list, pathsPerEntity, paths, entityList, threads_per_actor
+
     try:
         ajan_entity_id, async_request_uri = getInformation(request)
         carla_entity_id = get_carla_entity_by_ajan_id(ajan_entity_id)
@@ -1377,23 +1381,18 @@ def follow_path():
 
         is_vehicle = isinstance(actor, carla.Vehicle)
 
-        path = get_follows_path_for_entity(ajan_entity_id)
-        if not path or len(path["waypoints"]) < 2:
+        path = pathsPerEntity.get(ajan_entity_id, [])
+        if not path or len(path) < 1:
+            print("pfad zu kurz")
             return jsonify({"status": "error", "message": "Invalid path"}), 400
 
         actor_location = actor.get_location()
-
-        # Integriere die aktuelle Actor-Position als neuen Startpunkt
-        # Hier wird angenommen, dass path["waypoints"] eine Liste von carla.Location Objekten ist.
-        # Falls nicht, müssen Sie die Struktur anpassen (z.B. {x:..., y:..., z:...} in carla.Location umwandeln).
-        path["waypoints"].insert(0, actor_location)
-
-        end_point = get_next_waypoint(path["waypoints"], actor_location, ajan_entity_id)
+        end_point = get_next_waypoint(ajan_entity_id)
 
         if not end_point:
+            print("Destination reached")
             return jsonify({"status": "success", "message": "Destination reached"}), 200
 
-        # Berechne eine Bezier-Kurve zwischen der aktuellen Actor-Position (jetzt Teil des Pfades) und dem nächsten Wegpunkt
         start_point = actor_location
         control_point_1 = carla.Location(
             x=start_point.x + (end_point.x - start_point.x) / 2,
@@ -1411,11 +1410,20 @@ def follow_path():
         for i in range(len(bezier_points) - 1):
             world.debug.draw_line(bezier_points[i], bezier_points[i + 1], thickness=0.01, color=carla.Color(255, 255, 255), life_time=100.0)
 
+        # Stop existing thread
+        if carla_entity_id in threads_per_actor:
+            threads_per_actor[carla_entity_id]["stop_flag"].set()
+            threads_per_actor[carla_entity_id]["thread"].join()
+
+        # Create a new stop flag
+        stop_flag = Event()
         if is_vehicle:
-            follow_line = threading.Thread(target=follow_bezier_curve_vehicle, args=(actor, bezier_points, async_request_uri))
+            thread = threading.Thread(target=follow_bezier_curve_vehicle, args=(actor, bezier_points, async_request_uri, stop_flag))
         else:
-            follow_line = threading.Thread(target=follow_bezier_curve, args=(actor, bezier_points, async_request_uri))
-        follow_line.start()
+            thread = threading.Thread(target=follow_bezier_curve, args=(actor, bezier_points, async_request_uri, stop_flag))
+
+        threads_per_actor[carla_entity_id] = {"thread": thread, "stop_flag": stop_flag}
+        thread.start()
 
         return Response('<http://Agent> <http://follows> <http://path> .', mimetype='text/turtle', status=200)
 
@@ -1423,8 +1431,7 @@ def follow_path():
         print(f"Error in follow_path: {str(e)}")
         return Response('<http://Agent> <http://followsNot> <http://path> .', mimetype='text/turtle', status=500)
 
-
-def follow_bezier_curve_vehicle(vehicle, waypoints, async_request_uri):
+def follow_bezier_curve_vehicle(vehicle, waypoints, async_request_uri, stop_flag):
     max_global_speed = 30  # km/h
 
     Kp_steer = 0.8
@@ -1468,15 +1475,19 @@ def follow_bezier_curve_vehicle(vehicle, waypoints, async_request_uri):
                 closest_i = i
 
         cumul_dist = 0.0
-        for j in range(closest_i, len(waypoints)-1):
-            seg_dist = waypoints[j].distance(waypoints[j+1])
+        for j in range(closest_i, len(waypoints) - 1):
+            seg_dist = waypoints[j].distance(waypoints[j + 1])
             cumul_dist += seg_dist
             if cumul_dist >= lookahead_distance:
-                return waypoints[j+1]
+                return waypoints[j + 1]
         return waypoints[-1]
 
     reached_destination = False
     while not reached_destination:
+        if stop_flag.is_set():  # Prüfen, ob der Thread gestoppt werden soll
+            print("Stopping vehicle thread.")
+            break
+
         vehicle_location = vehicle.get_location()
 
         if len(waypoints) < 2:
@@ -1525,14 +1536,13 @@ def follow_bezier_curve_vehicle(vehicle, waypoints, async_request_uri):
 
         vehicle.apply_control(control)
 
-        # Ziel erreicht?
-        if vehicle_location.distance(waypoints[-1]) < 1.5:
+        if vehicle_location.distance(waypoints[-1]) < 1.5:  # Ziel erreicht
             reached_destination = True
 
         time.sleep(dt)
 
-    # Ziel erreicht -> asynchron melden
-    send_async_request(async_request_uri)
+    if not stop_flag.is_set():  # Nur senden, wenn der Thread nicht gestoppt wurde
+        send_async_request(async_request_uri)
 
 
 @app.route('/wait', methods=['POST'])
@@ -1729,6 +1739,7 @@ def change_path():
             print(f"No entity found with AJAN ID '{ajan_entity_id}'")
             return jsonify({"status": "error", "message": "Entity not found"}), 404
 
+        print("Changing path of entity:", ajan_entity_id)
         # Tausche followsPath und fallbackPath
         current_follows_path = entity.get('followsPath')
         current_fallback_path = entity.get('fallbackPath')
@@ -1740,6 +1751,9 @@ def change_path():
         # Update die Pfade
         entity['followsPath'] = current_fallback_path
         entity['fallbackPath'] = current_follows_path
+
+        print("followspath", entity['followsPath'])
+        print("fallbackpath", entity['fallbackPath'])
 
         # Erfolgsmeldung zurückgeben
         return Response('<http://Agent> <http://changed> <http://Path> .', mimetype='text/turtle', status=200)
@@ -1831,8 +1845,6 @@ def reset_animation():
 @app.route('/check_decision_point', methods=['POST'])
 
 @app.route('/check_vehicle_proximity', methods=['POST'])
-
-@app.route('/turn_head', methods=['POST'])
 
 def get_grid_cell(location):
     """

@@ -182,7 +182,7 @@ function loadRepo(event) {
       .then(sendFile(that.ajax, repo, content))
       .then(window.location.reload());
   };
-  reader.readAsText(file);
+  // reader.readAsText(file);
 }
 
 function readInput(content) {

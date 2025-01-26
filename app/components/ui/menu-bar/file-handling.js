@@ -69,13 +69,15 @@ export default Component.extend({
 
 function loadRepo(event) {
   let file = event.target.files[0];
-  console.log("File: " + file.name);
   var reader = new FileReader();
   reader.onload = function () {
     let content = reader.result;
     deleteRepo(that.ajax, repo, queries.deleteAll())
-      .then(sendFile(that.ajax, repo, content))
-      .then(window.location.reload());
+      .then(() => {
+        sendFile(that.ajax, repo, content).then(() => {
+          window.location.reload()
+        });
+      })
   };
   reader.readAsText(file);
 }

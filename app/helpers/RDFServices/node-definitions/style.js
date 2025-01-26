@@ -22,7 +22,7 @@ import {ND, RDFS} from "ajan-editor/helpers/RDFServices/vocabulary";
 import util from "./util";
 
 let quads;
-let iconPrefix = "/icons/";
+let iconPrefix = "data:image/png;base64,";
 
 export default function(quads_, nodeURI) {
 	quads = quads_;
@@ -36,7 +36,21 @@ export default function(quads_, nodeURI) {
 
 function generateStyle(styleURI, defaultLabel, selector, fixedLabel = false) {
 	let style = {};
+
 	let icon = util.getObjectValue(quads, styleURI, ND.icon);
+  /*if (icon) {
+    console.log("icon", icon);
+    let iconDataQuad = util.findQuad(quads, icon, ND.data);
+    console.log("iconDataQuad", iconDataQuad);
+    iconDataQuad = util.findQuad(quads, icon, 'http://www.ajan.de/behavior/nd-ns#data');
+    console.log("iconDataQuad", iconDataQuad);
+    if (iconDataQuad) {
+      icon = "data:image/png;base64," + iconDataQuad.object.value;
+      console.log("icon", icon);
+    }
+  }*/
+
+
 	if (icon) icon = iconPrefix + icon;
   let node_icon = util.getObjectValue(quads, styleURI, ND.node_icon);
 	if (node_icon) node_icon = iconPrefix + node_icon;

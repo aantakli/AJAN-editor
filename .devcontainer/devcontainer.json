@@ -1,0 +1,17 @@
+{
+  "name": "CARJAN Development",
+  "image": "mcr.microsoft.com/devcontainers/base:debian",
+  "features": {
+    "node": {
+      "version": "8.6.0"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "files.autoSave": "afterDelay"
+      }
+    }
+  },
+  "postCreateCommand": "npm install"
+}

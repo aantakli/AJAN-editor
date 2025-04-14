@@ -1,0 +1,135 @@
+<div class="ui segment" style="height: 100%">
+  {{#if this.reloadFlag}}
+    <p></p>
+    <div
+      class="ui active inverted dimmer"
+      id="loading"
+      style="pointer-events: none;"
+    >
+      <div class="ui medium text loader">Loading Grid</div>
+    </div>
+  {{/if}}
+
+  <div
+    id="viewport"
+    onmouseenter={{action "mouseHoverToggle"}}
+    onmouseleave={{action "mouseHoverToggle"}}
+  >
+    <div
+      local-class="circle-button-container {{if
+        this.visibleLayerButtons
+        'visible'
+        'hidden'
+      }}"
+      id="layer-buttons"
+    >
+      <button
+        class="ui circular basic toggle icon button"
+        id="layer-button"
+        onmousedown={{action "toggleButtons"}}
+        style="transition: 0.3s ease-in-out; z-index: 999999999; position: fixed;"
+      >
+        <i class="icon map outline"></i>
+      </button>
+      <div
+        class="additional-buttons"
+        local-class="additional-buttons"
+        style="pointer-events: auto;"
+      >
+        <button
+          class="ui circular basic green icon button animated-button"
+          id="layer-user-button"
+          onmousedown={{action "toggleEntitiesVisibility"}}
+        >
+          <i class="icon users"></i>
+        </button>
+        <button
+          class="ui circular basic icon button animated-button"
+          id="layer-path-button"
+          onmousedown={{action "togglePathVisibility"}}
+        >
+          <i class="icon code branch"></i>
+        </button>
+        <button
+          class="ui circular basic green icon button animated-button"
+          id="layer-waypoint-button"
+          onmousedown={{action "toggleWaypointVisibility"}}
+        >
+          <i class="icon map marker alternate"></i>
+        </button>
+        <button
+          class="ui circular basic icon button animated-button"
+          id="layer-dbox-button"
+          onmousedown={{action "toggleDboxVisibility"}}
+        >
+          <i class="icon inbox"></i>
+        </button>
+      </div>
+    </div>
+    <div id="room">
+      <div
+        id="gridContainer"
+        ondrop={{action "dropOnBackground"}}
+        ondragover={{action "allowDrop"}}
+        style="position: relative;"
+      >
+        <canvas
+          id="drawingCanvas"
+          width="800"
+          height="600"
+          style="position: absolute; top: 0; left: 0; pointer-events: none; z-index: 999999;"
+        />
+
+        <div local-class="column-numbers" id="coordinateSystem">
+          {{#each (range 0 this.gridCols) as |col|}}
+            <div local-class="col-number">{{col}}</div>
+          {{/each}}
+          <button
+            class="ui white icon button"
+            style="background-color: white; margin-bottom: 10px; position: relative; top: -4px;  pointer-events: none;"
+          >
+            <i class="icon long arrow alternate right"></i>
+            y-axis
+          </button>
+        </div>
+
+        <div local-class="row-numbers">
+          {{#each (range 0 this.gridRows) as |row|}}
+            <div local-class="row-number">{{row}}</div>
+          {{/each}}
+          <button
+            class="ui white icon button"
+            style="background-color: white; text-color: black;
+            position: relative; top: 5px; left: 8px; pointer-events: none;"
+          >
+            <i class="icon long arrow alternate down"></i>
+            x-axis
+          </button>
+        </div>
+        <svg
+          id={{gridId}}
+          width="100%"
+          height="100%"
+          local-class="path-overlay"
+          style="pointer-events: none;"
+          fill="currentColor"
+        ></svg>
+        {{#each gridCells as |cell|}}
+          <div
+            class="grid-cell"
+            data-row={{cell.row}}
+            data-col={{cell.col}}
+            draggable="true"
+            ondrop={{action "dropOnCell"}}
+            ondragover={{action "allowDrop"}}
+            ondragleave={{action "dragLeave"}}
+            ondragstart={{action "dragStart"}}
+          />
+        {{/each}}
+        {{#if (not (eq carjanState.cameraPosition "birdseye"))}}
+          <i class="video icon" id="cameraIcon"></i>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+</div>

@@ -25,6 +25,8 @@ export default {
 	agentsRepository: "agents",
 	// Triplestore Repository for behaviors
 	behaviorsRepository: "behaviors",
+  // Triplestore Repository for carjan
+  carjanRepository: "carjan",
 	// Triplestore Repository for domains
 	domainRepository: "domain",
 	// Triplestore Repository for services

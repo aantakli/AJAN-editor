@@ -1,0 +1,346 @@
+<p class="node-adder-class title-behaviors">
+  <i class="taxi icon"></i>
+  <b>CARLA Simulator</b>
+</p>
+
+<div local-class="row-container">
+  <div class="ui segment">
+    <div local-class="button-container">
+      <button
+        {{action "openCarlaModal"}}
+        local-class="button-panel"
+        class="ui big green button"
+      >
+        <i class="play icon"></i>
+        Simulate in CARLA
+      </button>
+    </div>
+  </div>
+
+  <img
+    src="/assets/carjan/carjan-maps/images/carla.png"
+    alt="Carla"
+    local-class="carla-image-normal"
+  />
+</div>
+
+{{#if isDialogOpen}}
+  <div class="ui dimmer modals page">
+    <div
+      class="ui fullscreen long basic modal transition"
+      local-class="center-modal"
+      style="padding-top: 5%;"
+    >
+
+      <div class="content">
+        <div class="ui three column grid">
+          <div class="column">
+
+          </div>
+          <div class="column">
+            <div class="header" local-class="center-modal">
+              <h1>
+                <i class="icon cogs"></i>
+                <b>CARLA Simulation Pipeline</b>
+              </h1>
+            </div>
+            <!-- Content for the second column -->
+            <div local-class="stepper" style="margin-top: 5%;">
+              <!-- Step 1: Starting Flask -->
+
+              <div local-class="step">
+                {{#if (eq step1Status "loading")}}
+                  <div class="ui active inline loader"></div>
+                {{else if (eq step1Status "completed")}}
+                  <i class="check green icon"></i>
+                {{else if (eq step1Status "error")}}
+                  <i class="exclamation triangle orange icon"></i>
+                {{else if (eq step1Status "idle")}}
+                  <i class="ellipsis horizontal icon"></i>
+                {{/if}}
+                <div style="margin-top: 5%;">
+                  <i class="flask icon"></i>
+                  Starting Flask
+                </div>
+              </div>
+
+              <!-- Step 2: Starting CARLA -->
+              <div local-class="step">
+                {{#if (eq step2Status "loading")}}
+                  <div class="ui active inline loader"></div>
+                {{else if (eq step2Status "idle")}}
+                  <i class="ellipsis horizontal icon"></i>
+                {{else if (eq step2Status "completed")}}
+                  <i class="check green icon"></i>
+                {{else if (eq step2Status "error")}}
+                  <i class="exclamation triangle orange icon"></i>
+                  <div class="ui red message">{{errorMessage}}</div>
+                  <div class="field">
+                    <div class="ui form">
+                      {{input
+                        style="margin-top: 12px;"
+                        value=carlaPath
+                        placeholder="Enter CARLA executable path"
+                      }}
+                    </div>
+                  </div>
+                  <button
+                    class="ui button"
+                    style="margin-top: 12px;"
+                    {{action "handleStartCarla"}}
+                  >
+                    <i class="redo icon"></i>
+                    Retry
+                  </button>
+                {{/if}}
+                <div local-class="carla-row">
+                  <img
+                    src="/assets/carjan/carjan-maps/images/carla.png"
+                    alt="Carla"
+                    local-class="carla-image"
+                  />
+                  Starting Carla
+                </div>
+
+              </div>
+
+              <!-- Step 3: Loading Scenario -->
+              <div local-class="step">
+                {{#if (eq carjanState.step3Status "loading")}}
+                  <div class="ui active inline loader"></div>
+                {{else if (eq carjanState.step3Status "idle")}}
+                  <i class="ellipsis horizontal icon"></i>
+                {{else if (eq carjanState.step3Status "completed")}}
+                  <i class="check green icon"></i>
+                {{else if (eq carjanState.step3Status "error")}}
+                  <i class="exclamation triangle orange icon"></i>
+                {{/if}}
+                <div style="margin-top: 5%;">
+                  <i class="icon outline map"></i>
+                  Loading Scenario
+                </div>
+              </div>
+            </div>
+            <div
+              class="actions"
+              local-class="center-modal"
+              style="display: flex; justify-content: center; margin-top: 5%;"
+            >
+              <button
+                class="ui big green button"
+                {{action "startSimulation"}}
+                disabled={{not
+                  (and
+                    (eq step1Status "completed")
+                    (eq step2Status "completed")
+                    (eq carjanState.step3Status "completed")
+                  )
+                }}
+              >
+                <i class="play icon"></i>
+                Start CARLA Simulation
+              </button>
+              <button
+                class="ui big red cancel button"
+                {{action "closeCarlaDialog"}}
+              >
+                <i class="icon x"></i>
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          <div class="column">
+            <!-- Content for the third column -->
+
+          </div>
+        </div>
+        {{#if
+          (or
+            (eq carjanState.step3Status "idle")
+            (eq carjanState.step3Status "loading")
+          )
+        }}
+          <!-- Terminal Log -->
+          <div
+            class="ui segment inverted"
+            style="margin-top: 10%"
+            local-class="log-terminal"
+          >
+            <label style="color: white">
+              <i class="icon terminal"></i>
+              Carla Connection Server</label>
+            <div
+              class="ui inverted segment"
+              id="carla-terminal"
+              style="height: 500px; overflow-y: auto;"
+            >
+              <div class="ui relaxed divided list">
+                {{#each logs as |log|}}
+                  <div class="item">
+                    {{{log}}}
+                  </div>
+                {{/each}}
+              </div>
+            </div>
+          </div>
+        {{/if}}
+
+        <!-- Semantic UI Tabs -->
+        {{#if (eq carjanState.step3Status "completed")}}
+          <div
+            class="ui placeholder segment"
+            style="margin-top: 5%; padding: 2%; margin-left: 10%; position: relative;"
+          >
+            <h3 class="header" style="color: black" local-class="carla-row">
+              <i class="icon green share alternate"></i>
+              <b>Live</b>Behavior
+            </h3>
+
+            <!-- Tab Menu -->
+            <div
+              class="ui top attached tabular menu"
+              style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px 5px 0 0;"
+            >
+              {{#each this.filteredEntities as |agent index|}}
+                <a
+                  class="item {{if (eq index 0) 'active'}}"
+                  data-tab="tab-{{index}}"
+                  style="font-weight: bold;"
+                >
+                  {{#if (eq agent.type "Pedestrian")}}
+                    <i class="icon user"></i>
+                  {{else}}
+                    <i class="icon car"></i>
+                  {{/if}}
+                  {{agent.label}}
+                </a>
+              {{/each}}
+
+              <!-- Terminal Tab -->
+              <a
+                class="item inverted"
+                data-tab="tab-terminal"
+                style="font-weight: bold;"
+              >
+                <i class="icon terminal"></i>
+                Terminal
+              </a>
+            </div>
+
+            <!-- Live Behavior Tabs -->
+            {{#each this.filteredEntities as |agent index|}}
+              <div
+                class="ui bottom attached tab segment
+                  {{if (eq index 0) 'active'}}
+                  iframe-container"
+                data-tab="tab-{{index}}"
+                style="min-height: 30rem; position: relative;"
+              >
+                {{#if this.reloadFlag}}
+                  <p></p>
+                  <div
+                    class="ui active inverted dimmer"
+                    id="loading"
+                    style="background-color: rgba(255, 255, 255, 1);"
+                  >
+                    <div class="ui medium text loader">Loading Live Behavior</div>
+                  </div>
+                {{/if}}
+                <!-- Floating Card -->
+                <div
+                  class="ui card floating-card"
+                  style="position: absolute; top: -25%; right: 1.5%; z-index: 1000; width: 250px;"
+                >
+                  <div class="content">
+                    {{#if (eq agent.type "Pedestrian")}}
+                      <img
+                        src="/assets/carjan/images/pedestrians/{{agent.model}}.webp"
+                        alt="{{agent.label}}"
+                        class="ui medium rounded image"
+                      />
+                    {{else if (eq agent.type "Vehicle")}}
+                      <img
+                        src="/assets/carjan/images/vehicles/{{agent.model}}.webp"
+                        alt="{{agent.label}}"
+                        class="ui medium rounded image"
+                      />
+                    {{else}}
+                      <img
+                        class="right floated mini ui image"
+                        src="/assets/carjan/carjan-maps/images/carla.png"
+                        alt="Carla"
+                      />
+                    {{/if}}
+
+                    <div class="header">{{agent.label}}</div>
+                    <div class="meta">
+                      <span class="category">{{agent.type}}</span>
+                    </div>
+                    <div class="description">
+                      {{#each carjanState.paths as |path|}}
+                        {{#if (eq path.path agent.followsPath)}}
+                          <i
+                            class="code branch icon"
+                            style="color: {{html-safe path.color}}"
+                          ></i>
+                          {{path.description}}
+                        {{/if}}
+                      {{/each}}
+                    </div>
+                  </div>
+                  <div class="extra content">
+                    <div class="right floated author">
+                      {{#each behaviors as |behavior|}}
+                        {{#if (eq behavior.uri agent.behavior)}}
+                          <p>
+                            <i class="green share alternate icon"></i>
+                            {{behavior.label}}
+                          </p>
+                        {{/if}}
+                      {{/each}}
+                    </div>
+                  </div>
+                </div>
+                <iframe
+                  id="carla-iframe-{{index}}"
+                  src=""
+                  width="100%"
+                  height="100%"
+                  frameborder="0"
+                  allowfullscreen
+                  sandbox="allow-scripts allow-same-origin"
+                  class="carla-iframe"
+                />
+              </div>
+            {{/each}}
+
+            <!-- Terminal Tab Content -->
+            <div
+              class="ui bottom attached tab inverted segment"
+              data-tab="tab-terminal"
+              style="min-height: 30rem"
+            >
+              <label style="color: whitesmoke">
+                <i class="icon terminal"></i>
+                Carla Connection Server</label>
+              <div
+                class="ui inverted segment"
+                id="carla-terminal"
+                style="height: 500px; overflow-y: auto;"
+              >
+                <div class="ui relaxed divided list">
+                  {{#each logs as |log|}}
+                    <div class="item">
+                      {{{log}}}
+                    </div>
+                  {{/each}}
+                </div>
+              </div>
+            </div>
+          </div>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+{{/if}}

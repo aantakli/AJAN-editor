@@ -1,33 +1,36 @@
 {{#ui/menu-bar}}
 
-<div id="tabbar-overview" class="btn tabbar-button">
-  {{#link-to "editor.services.actions" class="tabbar-link"}}
-  Definitions
-  {{/link-to}}
-</div>
+  <div id="tabbar-overview" class="btn tabbar-button">
+    {{#link-to "editor.services.actions" class="tabbar-link"}}
+      Definitions
+    {{/link-to}}
+  </div>
 
-<div id="tabbar-vocabulary" class="btn tabbar-button">
-  {{#link-to "editor.services.service" class="tabbar-link"}}
-  Test Service
-  {{/link-to}}
-</div>
-<div id="tabbar-vocabulary" class="btn tabbar-button">
-  {{#link-to "editor.services.demo" class="tabbar-link"}}
-  AJAN Demo
-  {{/link-to}}
-</div>
-{{#ui/menu-bar/dropdown
-    label="File"
-    class="action-bar"
-  }}
-  {{ui/menu-bar/input-button
+  <div id="tabbar-vocabulary" class="btn tabbar-button">
+    {{#link-to "editor.services.service" class="tabbar-link"}}
+      Test Service
+    {{/link-to}}
+  </div>
+  <div id="tabbar-vocabulary" class="btn tabbar-button">
+    {{#link-to "editor.services.demo" class="tabbar-link"}}
+      AJAN Demo
+    {{/link-to}}
+  </div>
+  <div id="tabbar-carjan" class="btn tabbar-button">
+    {{#link-to "editor.services.carjan" class="tabbar-link"}}
+      CARJAN
+    {{/link-to}}
+  </div>
+
+  {{#ui/menu-bar/dropdown label="File" class="action-bar"}}
+    {{ui/menu-bar/input-button
       label="Load Repo"
       class="loadRepo"
       accept=".ttl"
       compAction=(action "loadRepo")
       icon="cloud upload"
-     }}
-  {{ui/menu-bar/input-button
+    }}
+    {{ui/menu-bar/input-button
       label="Load File"
       class="loadFile"
       accept=".ttl"
@@ -35,22 +38,22 @@
       icon="cloud upload"
     }}
 
-{{ui/menu-bar/download-button
-    label="Export Repo"
-    class="exportRepo"
-    content=this.fileContent
-    fileName=this.fileName
-    icon="download"
-}}
-{{/ui/menu-bar/dropdown}}
-<div class="store-url-cont vcenter" local-class="rightmost">
-  <div>
-    <div class="store-name">Triplestore:</div>
-    <div class="store-url">---</div>
+    {{ui/menu-bar/download-button
+      label="Export Repo"
+      class="exportRepo"
+      content=this.fileContent
+      fileName=this.fileName
+      icon="download"
+    }}
+  {{/ui/menu-bar/dropdown}}
+  <div class="store-url-cont vcenter" local-class="rightmost">
+    <div>
+      <div class="store-name">Triplestore:</div>
+      <div class="store-url">---</div>
+    </div>
   </div>
-</div>
 
-{{yield}}
+  {{yield}}
 {{/ui/menu-bar}}
 
 {{ui/message/save-confirmation}}

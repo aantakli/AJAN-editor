@@ -1,0 +1,9 @@
+beautifulsoup4==4.12.3
+carla==0.9.15
+Flask==2.1.1
+numpy==1.21.2
+psutil==5.9.8
+python-dotenv==0.21.1
+rdflib==6.1.1
+requests==2.31.0
+

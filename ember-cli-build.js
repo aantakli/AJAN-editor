@@ -1,24 +1,17 @@
 /* eslint-env node */
-'use strict';
+"use strict";
 
-const EmberApp = require('ember-cli/lib/broccoli/ember-app');
-const dotenv = require('dotenv');
+const EmberApp = require("ember-cli/lib/broccoli/ember-app");
 
-module.exports = function(defaults) {
-  dotenv.config();
+module.exports = function (defaults) {
   let app = new EmberApp(defaults, {
-    nodeModulesToVendor: [
-      'node_modules/ace-builds/'
-    ],
-    dotEnv: {
-      clientAllowedKeys: ['VERSION']
-    },
+    nodeModulesToVendor: ["node_modules/ace-builds/"],
     ace: {
-      themes: ['ambiance', 'chaos'],
-      modes: ['sparql', 'turtle'],
-      workers: ['sparql', 'turtle'],
-      exts: ['language_tools'],
-    }
+      themes: ["ambiance", "chaos"],
+      modes: ["sparql", "turtle"],
+      workers: ["sparql", "turtle"],
+      exts: ["language_tools"],
+    },
   });
 
   // Use `app.import` to add additional libraries to the generated
@@ -34,11 +27,11 @@ module.exports = function(defaults) {
   // please specify an object with the list of modules as keys
   // along with the exports of each module as its value.
 
-  app.import('vendor/ace/mode-sparql.js');
-  app.import('vendor/ace/mode-turtle.js');
-  app.import('vendor/ace/theme-chaos.js');
-  app.import('vendor/ace/theme-dawn.js');
-  app.import('vendor/ace/snippets/sparql.js');
+  app.import("vendor/ace/mode-sparql.js");
+  app.import("vendor/ace/mode-turtle.js");
+  app.import("vendor/ace/theme-chaos.js");
+  app.import("vendor/ace/theme-dawn.js");
+  app.import("vendor/ace/snippets/sparql.js");
 
   return app.toTree();
 };

@@ -1,0 +1,102 @@
+<div id="services">
+  <div id="services-action-bar">
+    {{services/action-bar}}
+  </div>
+  <div class="flex-body" local-class="main-container">
+    <div id="behaviors-body" class="flex-content" local-class="behaviors-body">
+      <div
+        local-class="split-container"
+        style="display: flex; flex-direction: row;"
+      >
+        <div
+          local-class="split-left"
+          id="split-left"
+          class="split content split-horizontal"
+          style="background-color: #E8EDF1;"
+        >
+          <div local-class="intro">
+            <h4>
+              <i class="icon car" />
+              CARJAN Scenario Editor
+            </h4>
+          </div>
+          {{services/carjan/carjan-import mode="fileSelection"}}
+          <div class="ui top attached tabular menu" style="height: 1rem;">
+            <a
+              class="item active"
+              data-tab="import"
+              {{action "closePathwayEditor"}}
+            ><i class="icon database"></i>
+              Files
+            </a>
+            <a class="item" data-tab="maps" {{action "closePathwayEditor"}}><i
+                class="icon map"
+              ></i>
+              Maps
+            </a>
+            <a
+              class="item"
+              data-tab="entities"
+              {{action "closePathwayEditor"}}
+            ><i class="icon user"></i>
+              Entities
+            </a>
+            <a class="item" data-tab="tools">
+              <i class="icon wrench"></i>
+              Tools
+            </a>
+            <a class="item" data-tab="carla">
+              <img
+                src="/assets/carjan/carjan-maps/images/carla.png"
+                alt="Carla"
+                local-class="carla-image"
+              />
+              Carla
+            </a>
+            <a class="item" data-tab="info">
+              <i class="icon info circle"></i>
+              Info
+            </a>
+          </div>
+
+          <div class="ui bottom attached tab segment active" data-tab="import">
+            {{services/carjan/carjan-import}}
+          </div>
+          <div class="ui bottom attached tab segment" data-tab="maps">
+            {{services/carjan/carjan-maps}}
+          </div>
+          <div class="ui bottom attached tab segment" data-tab="entities">
+            {{services/carjan/carjan-entities}}
+          </div>
+          <div class="ui bottom attached tab segment" data-tab="tools">
+            {{services/carjan/carjan-tools}}
+          </div>
+          <div class="ui bottom attached tab segment" data-tab="carla">
+            {{services/carjan/carjan-carla}}
+          </div>
+          <div class="ui bottom attached tab segment" data-tab="info">
+            {{services/carjan/carjan-info}}
+          </div>
+        </div>
+
+        <div
+          local-class="split-middle"
+          id="split-middle"
+          class="split content split-horizontal"
+          style="height: auto; z-index: 20;"
+        >
+          {{services/carjan/carjan-item id="carjan-item"}}
+        </div>
+
+        <div
+          local-class="split-right"
+          id="split-right"
+          class="split content split-horizontal"
+          style="background-color: #E8EDF1; overflow: scroll;"
+        >
+          {{services/carjan/carjan-properties}}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

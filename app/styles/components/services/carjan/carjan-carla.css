@@ -1,0 +1,121 @@
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: fit-content;
+  margin: 16px;
+}
+
+.row-container {
+  display: flex;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.carla-image-normal {
+  width: 25%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.button-panel {
+  margin-left: 16px !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+  transition: box-shadow 0.2s ease !important;
+}
+
+.button-panel:hover {
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+.center-modal {
+  left: auto;
+  z-index: 1100 !important;
+}
+
+.stepper {
+  display: flex;
+  justify-content: space-around;
+  padding: 20px 0;
+}
+
+.step {
+  text-align: center;
+  position: relative;
+  flex: 1;
+}
+
+.step.completed .icon,
+.step.completed .loader {
+  color: #4caf50;
+}
+
+.step.loading .loader {
+  display: inline-block;
+}
+
+.step .icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.step span {
+  display: block;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.log-terminal .log-error {
+  color: red;
+}
+
+.log-terminal .log-warning {
+  color: orange;
+}
+
+.log-terminal .log-info {
+  color: white;
+}
+
+.iframe-container {
+  overflow: hidden;
+  width: 50%;
+  height: 75%;
+  position: relative;
+}
+
+.carla-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 150%;
+  height: 150%;
+  aspect-ratio: 16 / 9;
+}
+
+.terminal-sidebar {
+  z-index: 1100 !important;
+  right: 20%;
+  height: 25% !important;
+  width: 50% !important;
+  left: 25% !important;
+  overflow: hidden;
+}
+
+.push {
+  margin-top: 25%;
+}
+
+.carla-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carla-image {
+  filter: invert(1);
+  width: 35px;
+  height: auto;
+  margin: 5px;
+}

@@ -1,0 +1,272 @@
+@value color-primary, color-primary-1, color-primary-2, color-primary-3, color-primary-4, color-primary-5, color-primary-6 from 'ajan-editor/styles/_globals/colors';
+@value color-select from 'ajan-editor/styles/_globals/custom-select';
+
+@value color-intro-bg: color-primary-3;
+@value color-title-bg: color-primary-4;
+@value color-subtitle-bg: color-primary-5;
+@value color-h-bg: color-primary;
+@value color-h-font: #ffffff;
+@value color-odd-bg: color-primary-6;
+@value color-font: #000000;
+
+.intro {
+  padding: 10px 15px;
+  background: color-intro-bg;
+  color: color-h-font;
+}
+
+.intro h4 {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 20px;
+}
+
+.side-menu {
+  width: 100%;
+  height: 100%;
+  float: left;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.pad {
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+:global(#split-right .ui.button) {
+  border-radius: 0px;
+  box-shadow: 0px;
+}
+
+:global(#split-right .ui.button) {
+  border-radius: 0px;
+  box-shadow: 0px;
+}
+
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 60px);
+  grid-template-rows: repeat(3, 50px);
+  gap: 1px;
+  margin-right: 5px;
+  justify-content: center;
+}
+
+.grid-gap {
+  width: 10px;
+  height: 50px;
+  display: inline-block;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.grid-cell {
+  width: 75px;
+  height: 50px;
+  border: 1px solid black;
+  position: relative;
+  outline: 1px solid transparent;
+}
+.grid-cell:hover {
+  outline: 3px solid rgba(0, 0, 0, 0.1);
+}
+
+.property-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.property-image {
+  width: 70px !important;
+  height: 70px;
+}
+
+.property-image i {
+  font-size: 24px;
+  z-index: -1;
+}
+
+.property-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  margin-left: 20px;
+}
+
+.property-header {
+  font-size: 1.2em;
+  font-weight: bold;
+  text-align: left;
+}
+
+.property-selection-container {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 400px;
+  gap: 20px;
+  padding: 10px;
+}
+
+.property-panel {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+  position: relative;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  padding-bottom: 27px;
+  height: 200px;
+  padding-top: 20px;
+  background-color: white;
+}
+
+.property-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  margin-left: 20px;
+}
+
+.property-header {
+  font-size: 1.2em;
+  font-weight: bold;
+  text-align: left;
+}
+
+:global(.sp-container) {
+  border-color: white;
+  mix-blend-mode: multiply;
+}
+
+:global(.sp-picker-container) {
+  background-color: white;
+}
+
+:global(.sp-replacer) {
+  border: none;
+  background: white;
+}
+
+:global(.sp-dd) {
+  display: none;
+}
+
+:global(.sp-preview) {
+  width: 5rem;
+  height: 5rem;
+}
+
+.center-modal {
+  left: auto;
+  z-index: 1100 !important;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  z-index: 999;
+  display: none;
+}
+
+:global(.sp-container) {
+  z-index: 9 !important;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: fit-content;
+  margin: 16px;
+}
+
+.marge {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.with-background {
+  background-image: url("/assets/carjan/carjan-maps/images/dots.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  height: 100px;
+  padding: 10px;
+}
+
+.waypoint-panel-main {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+  position: relative;
+  padding-left: 60px;
+  background-color: white;
+  justify-content: center;
+}
+
+.color-indicator {
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.img-zoom-container {
+  width: 100px;
+  height: 100px;
+  overflow: hidden;
+  position: relative;
+  border-radius: 50%;
+}
+
+.img-zoom-result {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(2.5);
+  transform-origin: 40% 10%;
+}
+
+.children-zoom {
+  transform-origin: 45% 60%;
+  scale: 1.5;
+}
+
+.dropdown-header {
+  font-size: 1em !important;
+}
+
+.divider-black {
+  border-top: 1px solid rgba(34, 36, 38, 0.5) !important;
+}
+
+:global(#properties-tabs) {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+
+:global(#properties-tabs::-webkit-scrollbar) {
+  display: none; /* Safari and Chrome */
+}

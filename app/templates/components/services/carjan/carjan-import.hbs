@@ -1,0 +1,555 @@
+{{#if (eq this.mode "fileSelection")}}
+
+  <div class="ui segment">
+    <label style="position: relative; top: -5px;">
+      <i class="folder outline icon" />
+      <b>Repository</b>
+
+    </label>
+    <div class="ui grid">
+      <div class="ui eleven wide column">
+        <div
+          class="ui dropdown fluid search selection bt-selection"
+          style="border-radius: 10px;"
+          allowAdditions="false"
+          sortSelected="true"
+          id="scenarioDropdown"
+        >
+          <i class="folder open outline icon" local-class="icon-bright"></i>
+          <i class="dropdown icon"></i>
+          <div class="text">
+            {{#if this.carjanState.scenarioName}}
+              {{this.carjanState.scenarioName}}
+            {{else}}
+              <div class="default text">Select a Scenario</div>
+            {{/if}}
+          </div>
+          <div class="menu">
+            {{#each carjanState.repository.scenarios as |scenario|}}
+              <div
+                {{action "scenarioSelected" scenario}}
+                class="item"
+                data-value="{{scenario.displayName}}"
+              >
+                {{scenario.displayName}}
+              </div>
+            {{/each}}
+          </div>
+        </div>
+
+      </div>
+      <div class="ui two wide column">
+        <button class="ui icon pink button" {{action "openRenameModal"}}>
+          <i class="pencil alternate white icon"></i>
+        </button>
+      </div>
+      <div class="ui two wide column">
+        <button
+          class="node-adder-class title-behaviors ui primary button"
+          local-class="button-hover"
+          style="margin-left: -10px;"
+          {{action "triggerSaveScenario"}}
+        >
+          <i class="save icon" />
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+  {{#if isRenameModalOpen}}
+    <div class="ui dimmer modals page">
+      <div class="ui small basic modal transition" local-class="center-modal">
+        <div class="header"><i class="pencil alternate icon"></i>
+          Rename your Scenario
+        </div>
+        <div class="content">
+          <div class="ui form">
+            <div class="field {{if hasError 'error'}}">
+              <p>
+                <i class="edit icon" />
+                Enter a new name for your Scenario.
+              </p>
+              {{input
+                value=scenarioName
+                placeholder="Scenario Name"
+                key-up=(action "checkScenarioName")
+              }}
+              {{#if hasError}}
+                <div class="ui pointing red basic label">
+                  <i class="exclamation triangle icon" />
+                  {{errorMessage}}
+                </div>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button
+            class="ui green cancel button"
+            {{action "saveScenarioName"}}
+            disabled={{isDisabled}}
+          >
+            <i class="check icon"></i>
+            Confirm
+          </button>
+
+          <button class="ui cancel button" {{action "closeNewScenarioDialog"}}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  {{/if}}
+{{else}}
+
+  <div>
+    <input
+      type="file"
+      accept=".trig"
+      id="fileInput"
+      style="display:none"
+      onchange={{action "handleFile"}}
+    />
+
+    <input
+      type="file"
+      id="scenarioFileInput"
+      accept=".trig"
+      onchange={{action "handleScenario"}}
+      style="display: none;"
+    />
+
+    <div class="title composite-selection">
+    </div>
+
+    <p class="node-adder-class title-behaviors">
+      <i class="server icon" />
+      <b>File Management</b>
+    </p>
+
+    <div class="ui placeholder segment" style="min-height: 9rem;">
+      <div class="ui two column very relaxed stackable grid">
+        <div class="middle aligned column">
+          <div class="ui big teal button" {{action "openMachineModal"}}>
+            <i class="hdd icon"></i>
+            Local Machine
+          </div>
+        </div>
+        <div class="middle aligned column">
+          <div class="ui big secondary button" {{action "openGithubModal"}}>
+            <i class="github icon"></i>
+            GitHub
+          </div>
+        </div>
+      </div>
+      <div class="ui vertical divider">
+        Or
+      </div>
+    </div>
+
+    <p class="node-adder-class title-behaviors">
+      <i class="file outline icon" />
+      <b>Scenario</b>
+    </p>
+
+    <div class="ui placeholder segment" style="min-height: 9rem;">
+      <div class="ui two column very relaxed stackable grid">
+        <div class="middle aligned column">
+          <button class="ui big blue button" {{action "openNewScenarioDialog"}}>
+            <i class="icons">
+              <i class="icon copy outline" />
+            </i>
+            New Scenario
+          </button>
+        </div>
+        <div class="middle aligned column">
+          <button class="ui big red button" {{action "openDeleteDialog"}}>
+            <i class="trash icon" />
+            Delete Scenario
+          </button>
+        </div>
+      </div>
+      <div class="ui vertical divider">
+        Or
+      </div>
+    </div>
+
+    {{#if isGithubModalOpen}}
+      <div class="ui dimmer modals page">
+        <div class="ui basic modal transition" local-class="center-modal">
+
+          <div class="header">
+            <i class="github icon"></i>
+            GitHub Repository
+          </div>
+          <div class="content">
+
+            <div class="ui segment" style="background-color: transparent;">
+              <div class="ui two column very relaxed stackable grid">
+                <!-- Left Column - Form Fields -->
+                <div class="column">
+                  <div class="ui form">
+                    <div class="field">
+                      <label style="color: whitesmoke">GitHub Repository
+                        Username</label>
+                      <div class="ui left icon input">
+                        <input
+                          type="text"
+                          placeholder="Username"
+                          value={{this.githubRepoUsername}}
+                          oninput={{action
+                            (mut this.githubRepoUsername)
+                            value="target.value"
+                          }}
+                        />
+                        <i class="user icon"></i>
+                      </div>
+                    </div>
+
+                    <div class="field">
+                      <label style="color: whitesmoke">GitHub Repository Name</label>
+                      <div class="ui left icon input">
+                        <input
+                          type="text"
+                          placeholder="Repository Name"
+                          value={{this.githubRepoRepository}}
+                          oninput={{action
+                            (mut this.githubRepoRepository)
+                            value="target.value"
+                          }}
+                        />
+                        <i class="github icon"></i>
+                      </div>
+                    </div>
+
+                    <div class="field">
+                      <label style="color: whitesmoke">GitHub Token</label>
+                      <div class="ui left icon action input">
+                        <input
+                          type="password"
+                          placeholder="Token"
+                          value={{this.githubToken}}
+                          oninput={{action
+                            (mut this.githubToken)
+                            value="target.value"
+                          }}
+                          onmousedown={{action "showToken"}}
+                          onmouseup={{action "hideToken"}}
+                          onmouseleave={{action "hideToken"}}
+                          id="githubTokenInput"
+                        />
+                        <i class="lock icon"></i>
+                        <button
+                          class="ui icon button"
+                          style="cursor: pointer; margin-left: 5px;"
+                          onmousedown={{action "showToken"}}
+                          onmouseup={{action "hideToken"}}
+                          onmouseleave={{action "hideToken"}}
+                        >
+                          {{#if this.hideToken}}
+                            <i class="eye slash icon"></i>
+                          {{else}}
+                            <i class="eye icon"></i>
+                          {{/if}}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      class="ui green inverted submit button"
+                      {{action "saveGithubInfo"}}
+                    >
+                      <i class="paper plane icon"></i>
+                      Save and Continue
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Right Column - Additional Actions -->
+
+                {{#if areCredentialsValid}}
+                  <div local-class="animated-buttons">
+                    <div
+                      local-class="middle aligned column"
+                      style="text-align: center;"
+                    >
+                      <div
+                        class="ui right labeled input"
+                        style="margin-bottom: 1em;"
+                      >
+                        <div
+                          class="ui dropdown fluid search selection bt-selection"
+                          style="border-radius: 10px;"
+                          allowAdditions="false"
+                          sortSelected="true"
+                          id="scenarioDropdown"
+                        >
+                          <i
+                            class="folder open outline icon"
+                            local-class="icon-bright"
+                          ></i>
+                          <div class="text">
+                            {{#if this.carjanState.scenarioName}}
+                              {{this.carjanState.scenarioName}}
+                            {{else}}
+                              <div class="default text">Select a Scenario</div>
+                            {{/if}}
+                          </div>
+                          <div class="menu">
+                            {{#each
+                              carjanState.repository.scenarios
+                              as |scenario|
+                            }}
+                              <div
+                                {{action "scenarioSelected" scenario}}
+                                class="item"
+                                data-value="{{scenario.displayName}}"
+                              >
+                                {{scenario.displayName}}
+                              </div>
+                            {{/each}}
+                          </div>
+                        </div>
+
+                      </div>
+                      <h1></h1>
+                      <div
+                        class="ui vertical stackable buttons"
+                        style="display: inline-block; text-align: left;"
+                      >
+                        <button
+                          class="ui large green inverted button"
+                          {{action "uploadScenarioToGithub" fileName}}
+                          style="margin-bottom: 1em;"
+                        >
+                          <i class="upload icon"></i>
+                          Upload Scenario
+                        </button>
+
+                        <button
+                          class="ui large orange inverted button"
+                          {{action "downloadScenarioFromGithub" fileName}}
+                          style="margin-bottom: 1em;"
+                        >
+                          <i class="download icon"></i>
+                          Download Scenario
+                        </button>
+
+                        <button
+                          class="ui large blue inverted button"
+                          {{action "uploadRepositoryToGithub"}}
+                          style="margin-bottom: 1em;"
+                        >
+                          <i class="cloud upload icon"></i>
+                          Upload Repository
+                        </button>
+
+                        <button
+                          class="ui large violet inverted button"
+                          {{action "downloadRepositoryFromGithub"}}
+                        >
+                          <i class="cloud download icon"></i>
+                          Download Repository
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Divider -->
+                  <div class="ui vertical divider"></div>
+                {{/if}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {{/if}}
+
+    {{#if isMachineModalOpen}}
+      <div class="ui dimmer modals page">
+        <div class="ui small basic modal transition" local-class="center-modal">
+          <div class="header">
+            <i class="hdd icon"></i>
+            File Management
+          </div>
+          <div class="ui placeholder segment content">
+            <p>Select an action to manage your repository or scenario files.</p>
+            <div class="ui horizontal segments" style="margin-top: 15px;">
+              <div class="ui segment">
+                <button class="ui teal button" {{action "uploadFile"}}>
+                  <i class="database icon"></i>
+                  Upload Repository
+                </button>
+                <h2></h2>
+              </div>
+              <div class="ui segment">
+                <button class="ui teal button" {{action "uploadScenario"}}>
+                  <i class="file outline icon"></i>
+                  Upload Scenario
+                </button>
+              </div>
+            </div>
+            <div class="ui horizontal segments" style="margin-top: 15px;">
+              <div class="ui segment">
+                <button
+                  class="ui black button sticky-save"
+                  {{action "downloadAll"}}
+                >
+                  <i class="database icon"></i>
+                  Download Repository
+                </button>
+              </div>
+              <div class="ui segment">
+                <button
+                  class="ui black button sticky-save"
+                  {{action "downloadScenario"}}
+                >
+                  <i class="file outline icon"></i>
+                  Download Scenario
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="ui cancel button" {{action "closeMachineModal"}}>
+              <i class="times icon"></i>
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    {{/if}}
+
+    {{#if isDialogOpen}}
+      <div class="ui dimmer modals page">
+        <div class="ui small basic modal transition" local-class="center-modal">
+
+          <div class="header"><i class="file outline icon"></i>
+            Create your New Scenario
+          </div>
+          <div class="content">
+            <div class="ui form">
+              <div class="field {{if hasError 'error'}}">
+                <p>
+                  <i class="edit icon" />
+                  Enter the name of your new Scenario.
+                </p>
+                {{input
+                  value=scenarioName
+                  placeholder="Scenario Name"
+                  key-up=(action "checkScenarioName")
+                }}
+                {{#if hasError}}
+                  <div class="ui pointing red basic label">
+                    <i class="exclamation triangle icon" />
+                    {{errorMessage}}
+                  </div>
+                {{/if}}
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            <button
+              class="ui green cancel button"
+              {{action "generateNewScenario"}}
+              disabled={{isDisabled}}
+            >
+              <i class="check icon"></i>
+              Confirm
+            </button>
+
+            <button
+              class="ui cancel button"
+              {{action "closeNewScenarioDialog"}}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    {{/if}}
+
+    <button
+      id="openModalButton"
+      class="ui button"
+      style="display: none;"
+      {{action "openSwitchScenarioDialog"}}
+    >
+      Open Modal
+    </button>
+
+    {{#if isSwitchScenarioDialogOpen}}
+      <div class="ui dimmer modals page">
+        <div class="ui small basic modal transition" local-class="center-modal">
+
+          <div class="content">
+            <div class="ui padded blue inverted segment">
+              <div class="ui icon message">
+                <i class="save icon"></i>
+                <div class="content">
+                  <div class="header">
+                    Continue with all changes?
+                  </div>
+                  <p>Would you like to save changes before switching to another
+                    scenario?</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ui clearing divider"></div>
+
+          <div class="actions">
+            <button
+              class="ui primary inverted cancel button"
+              {{action "confirmSwitchScenario"}}
+              id="saveAndContinueModalButton"
+            >
+              <i class="save outline icon"></i>
+              Save and Continue
+            </button>
+
+            <button
+              class="ui inverted cancel button"
+              {{action "discardSwitchScenario"}}
+            >
+              <i class="trash icon"></i>
+              Discard and Switch
+            </button>
+
+          </div>
+
+        </div>
+      </div>
+    {{/if}}
+
+    {{#if isDeleteDialogOpen}}
+      <div class="ui dimmer modals page">
+        <div class="ui small basic modal transition" local-class="center-modal">
+          <div class="header">
+            <i class="trash alternate icon"></i>
+            Confirm Scenario Deletion
+          </div>
+          <div class="content">
+            <p>
+              Are you sure you want to delete the scenario
+              <strong>"{{selectedValue}}"</strong>?
+            </p>
+            <p>
+              Once it's gone, it's gone forever. That's a really long time.
+            </p>
+          </div>
+          <div class="actions">
+            <button class="ui red cancel button" {{action "confirmDelete"}}>
+              <i class="check icon"></i>
+              Confirm
+            </button>
+            <button class="ui cancel button" {{action "cancelDelete"}}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    {{/if}}
+
+  </div>
+{{/if}}

@@ -77,6 +77,10 @@ export default Component.extend({
         console.log("Add EOF in textarea");
         value = value + '\n';
       }
+      if (value.includes('\\')) {
+        console.log('\\');
+        value = value.replaceAll('\\', '\\\\');
+      }
     }
 		rdfGraph.setObjectValue(
 			this.get("uri"),

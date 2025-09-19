@@ -138,7 +138,7 @@ function loadFile(comp, event) {
   console.log("File: " + file.name);
   var reader = new FileReader();
   reader.onload = function () {
-    comp.set("value", content);
+    comp.set("value", reader.result);
   };
   reader.readAsText(file);
 }

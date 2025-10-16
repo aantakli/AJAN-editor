@@ -116,6 +116,7 @@ function updateBehaviorsRepo(ajax, tripleStoreRepository, token) {
 
   let postDestination = tripleStoreRepository + "/statements";
   let rdfString = rdfGraph.toString();
+  rdfString = rdfString.replaceAll("\\", "\\\\");
   console.log(rdfString);
   let query = SparqlQueries.update(rdfString);
   let dataString = $.param({ update: query });
@@ -139,6 +140,7 @@ function updateBehaviorsRepo(ajax, tripleStoreRepository, token) {
       location.reload();
     })
     .catch(function (error) {
+      console.error("Error during saving:", error);
       if (isServerError(error)) {
         // handle 5XX errors
 

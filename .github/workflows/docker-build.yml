@@ -33,7 +33,7 @@ jobs:
         run: zip -qq -r modules.zip node_modules
       -
         name: Temporally save dependencies
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dependencies
           path: modules.zip
@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@v2
       -
         name: Load dependencies
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dependencies
           path: .

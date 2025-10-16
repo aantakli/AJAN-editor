@@ -33,12 +33,10 @@
 
 :global(#agents-overview) {
   width: 20%;
-  height: 100%;
-  min-height: fit-content !important;
-  max-height: calc(100vh - 150px);
+  height: calc(100vh - 150px);
   float: left;
   box-shadow: 0px 10px 10px #d1d1e0;
-  overflow-y: hidden;
+  overflow-y: scroll !important;
   position: relative;
 }
 

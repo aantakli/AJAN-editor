@@ -22,42 +22,43 @@ import config from "./config/environment";
 import Ember from "ember";
 
 const Router = Ember.Router.extend({
-	location: config.locationType,
-	rootURL: config.rootURL
+  location: config.locationType,
+  rootURL: config.rootURL,
 });
 
-Router.map(function() {
-	this.route("about");
-	this.route("editor", function() {
-		this.route("agents", function() {
-			this.route("template", {path: "/"});
-			this.route("template");
-			this.route("instance");
-		});
+Router.map(function () {
+  this.route("about");
+  this.route("editor", function () {
+    this.route("agents", function () {
+      this.route("template", { path: "/" });
+      this.route("template");
+      this.route("instance");
+    });
 
-		this.route("behaviors");
+    this.route("behaviors");
     this.route("services", function () {
       this.route("actions", { path: "/" });
       this.route("actions");
       this.route("service");
       this.route("demo");
+      this.route("carjan");
     });
     this.route("domain", function () {
       this.route("domain-view", { path: "/" });
-      this.route("domain-view")
+      this.route("domain-view");
     });
-		this.route("queries");
-		this.route("definitions", function() {
-			this.route("overview", {path: "/"});
-			this.route("overview");
-			this.route("vocabulary");
-			this.route("snippets");
-			this.route("templates");
-			this.route("queries");
-			this.route("test");
-		});
-	});
-	this.route("home");
+    this.route("queries");
+    this.route("definitions", function () {
+      this.route("overview", { path: "/" });
+      this.route("overview");
+      this.route("vocabulary");
+      this.route("snippets");
+      this.route("templates");
+      this.route("queries");
+      this.route("test");
+    });
+  });
+  this.route("home");
 });
 
 export default Router;

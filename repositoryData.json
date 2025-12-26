@@ -1,0 +1,61 @@
+[
+  {
+    "@id": "http://example.com/carla-scenario#AutonomousVehicle1",
+    "@type": [
+      "http://example.com/carla-scenario#AutonomousVehicle"
+    ],
+    "http://example.com/carla-scenario#spawnPointX": [
+      {
+        "@value": "5"
+      }
+    ],
+    "http://example.com/carla-scenario#spawnPointY": [
+      {
+        "@value": "6"
+      }
+    ]
+  },
+  {
+    "@id": "http://example.com/carla-scenario#Pedestrian1",
+    "@type": [
+      "http://example.com/carla-scenario#Pedestrian"
+    ],
+    "http://example.com/carla-scenario#spawnPointX": [
+      {
+        "@value": "7"
+      }
+    ],
+    "http://example.com/carla-scenario#spawnPointY": [
+      {
+        "@value": "7"
+      }
+    ]
+  },
+  {
+    "@id": "http://example.com/carla-scenario#Scenario1",
+    "@type": [
+      "http://example.com/carla-scenario#Scenario"
+    ],
+    "http://example.com/carla-scenario#hasMap": [
+      {
+        "@id": "http://example.com/carla-scenario#map01"
+      }
+    ]
+  },
+  {
+    "@id": "http://example.com/carla-scenario#Vehicle1",
+    "@type": [
+      "http://example.com/carla-scenario#Vehicle"
+    ],
+    "http://example.com/carla-scenario#spawnPointX": [
+      {
+        "@value": "6"
+      }
+    ],
+    "http://example.com/carla-scenario#spawnPointY": [
+      {
+        "@value": "4"
+      }
+    ]
+  }
+]

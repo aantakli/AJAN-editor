@@ -1,0 +1,242 @@
+{
+  "Autonomous": [
+    {
+      "name": "Dodge - Police Charger 2020",
+      "imageUrl": "vehicle08.webp",
+      "blueprintId": "vehicle.dodge.charger_police_2020"
+    },
+    {
+      "name": "Dodge - Police Charger",
+      "imageUrl": "vehicle09.webp",
+      "blueprintId": "vehicle.dodge.charger_police"
+    },
+    {
+      "name": "Ford - Crown (taxi)",
+      "imageUrl": "vehicle10.webp",
+      "blueprintId": "vehicle.ford.crown"
+    },
+
+    {
+      "name": "Micro - Microlino",
+      "imageUrl": "vehicle17.webp",
+      "blueprintId": "vehicle.micro.microlino"
+    },
+    {
+      "name": "Tesla Model 3",
+      "imageUrl": "vehicle41.webp",
+      "blueprintId": "vehicle.tesla.model3"
+    }
+  ],
+  "Car": [
+    {
+      "name": "Audi - A2",
+      "imageUrl": "vehicle01.webp",
+      "blueprintId": "vehicle.audi.a2"
+    },
+    {
+      "name": "Audi - E-Tron",
+      "imageUrl": "vehicle02.webp",
+      "blueprintId": "vehicle.audi.etron"
+    },
+    {
+      "name": "Audi - TT",
+      "imageUrl": "vehicle03.webp",
+      "blueprintId": "vehicle.audi.tt"
+    },
+    {
+      "name": "BMW - Gran Tourer",
+      "imageUrl": "vehicle04.webp",
+      "blueprintId": "vehicle.bmw.grandtourer"
+    },
+    {
+      "name": "Chevrolet - Impala",
+      "imageUrl": "vehicle05.webp",
+      "blueprintId": "vehicle.chevrolet.impala"
+    },
+    {
+      "name": "Citroen - C3",
+      "imageUrl": "vehicle06.webp",
+      "blueprintId": "vehicle.citroen.c3"
+    },
+    {
+      "name": "Dodge - Charger 2020",
+      "imageUrl": "vehicle07.webp",
+      "blueprintId": "vehicle.dodge.charger_2020"
+    },
+    {
+      "name": "Dodge - Police Charger 2020",
+      "imageUrl": "vehicle08.webp",
+      "blueprintId": "vehicle.dodge.charger_police_2020"
+    },
+    {
+      "name": "Dodge - Police Charger",
+      "imageUrl": "vehicle09.webp",
+      "blueprintId": "vehicle.dodge.charger_police"
+    },
+    {
+      "name": "Ford - Crown (taxi)",
+      "imageUrl": "vehicle10.webp",
+      "blueprintId": "vehicle.ford.crown"
+    },
+    {
+      "name": "Ford - Mustang",
+      "imageUrl": "vehicle11.webp",
+      "blueprintId": "vehicle.ford.mustang"
+    },
+    {
+      "name": "Jeep - Wrangler Rubicon",
+      "imageUrl": "vehicle12.webp",
+      "blueprintId": "vehicle.jeep.wrangler_rubicon"
+    },
+    {
+      "name": "Lincoln - MKZ 2017",
+      "imageUrl": "vehicle13.webp",
+      "blueprintId": "vehicle.lincoln.mkz_2017"
+    },
+    {
+      "name": "Lincoln - MKZ 2020",
+      "imageUrl": "vehicle14.webp",
+      "blueprintId": "vehicle.lincoln.mkz_2020"
+    },
+    {
+      "name": "Mercedes - Coupe 2020",
+      "imageUrl": "vehicle15.webp",
+      "blueprintId": "vehicle.mercedes.coupe_2020"
+    },
+    {
+      "name": "Mercedes - Coupe",
+      "imageUrl": "vehicle16.webp",
+      "blueprintId": "vehicle.mercedes.coupe"
+    },
+    {
+      "name": "Micro - Microlino",
+      "imageUrl": "vehicle17.webp",
+      "blueprintId": "vehicle.micro.microlino"
+    },
+    {
+      "name": "Mini - Cooper S",
+      "imageUrl": "vehicle18.webp",
+      "blueprintId": "vehicle.mini.cooper_s"
+    },
+    {
+      "name": "Mini - Cooper S 2021",
+      "imageUrl": "vehicle19.webp",
+      "blueprintId": "vehicle.mini.cooper_s_2021"
+    },
+    {
+      "name": "Nissan - Micra",
+      "imageUrl": "vehicle20.webp",
+      "blueprintId": "vehicle.nissan.micra"
+    },
+    {
+      "name": "Nissan - Patrol",
+      "imageUrl": "vehicle21.webp",
+      "blueprintId": "vehicle.nissan.patrol"
+    },
+    {
+      "name": "Nissan - Patrol 2021",
+      "imageUrl": "vehicle22.webp",
+      "blueprintId": "vehicle.nissan.patrol_2021"
+    },
+    {
+      "name": "Seat - Leon",
+      "imageUrl": "vehicle23.webp",
+      "blueprintId": "vehicle.seat.leon"
+    },
+    {
+      "name": "Toyota - Prius",
+      "imageUrl": "vehicle24.webp",
+      "blueprintId": "vehicle.toyota.prius"
+    }
+  ],
+  "Truck": [
+    {
+      "name": "CARLA Motors - CarlaCola",
+      "imageUrl": "vehicle25.webp",
+      "blueprintId": "vehicle.carlamotors.carlacola"
+    },
+    {
+      "name": "CARLA Motors - European HGV",
+      "imageUrl": "vehicle26.webp",
+      "blueprintId": "vehicle.carlamotors.european_hgv"
+    },
+    {
+      "name": "CARLA Motors - Firetruck",
+      "imageUrl": "vehicle27.webp",
+      "blueprintId": "vehicle.carlamotors.firetruck"
+    },
+    {
+      "name": "Tesla - Cybertruck",
+      "imageUrl": "vehicle28.webp",
+      "blueprintId": "vehicle.tesla.cybertruck"
+    }
+  ],
+  "Van": [
+    {
+      "name": "Ford - Ambulance",
+      "imageUrl": "vehicle29.webp",
+      "blueprintId": "vehicle.ford.ambulance"
+    },
+    {
+      "name": "Mercedes - Sprinter",
+      "imageUrl": "vehicle30.webp",
+      "blueprintId": "vehicle.mercedes.sprinter"
+    },
+    {
+      "name": "Volkswagen - T2",
+      "imageUrl": "vehicle31.webp",
+      "blueprintId": "vehicle.volkswagen.t2"
+    },
+    {
+      "name": "Volkswagen - T2 2021",
+      "imageUrl": "vehicle32.webp",
+      "blueprintId": "vehicle.volkswagen.t2_2021"
+    }
+  ],
+  "Bus": [
+    {
+      "name": "Mitsubishi - Fusorosa",
+      "imageUrl": "vehicle33.webp",
+      "blueprintId": "vehicle.mitsubishi.fusorosa"
+    }
+  ],
+  "Motorcycle": [
+    {
+      "name": "Harley Davidson - Low Rider",
+      "imageUrl": "vehicle34.webp",
+      "blueprintId": "vehicle.harley-davidson.low_rider"
+    },
+    {
+      "name": "Kawasaki - Ninja",
+      "imageUrl": "vehicle35.webp",
+      "blueprintId": "vehicle.kawasaki.ninja"
+    },
+    {
+      "name": "Vespa - ZX 125",
+      "imageUrl": "vehicle36.webp",
+      "blueprintId": "vehicle.vespa.zx125"
+    },
+    {
+      "name": "Yamaha - YZF",
+      "imageUrl": "vehicle37.webp",
+      "blueprintId": "vehicle.yamaha.yzf"
+    }
+  ],
+  "Bicycle": [
+    {
+      "name": "BH - Crossbike",
+      "imageUrl": "vehicle38.webp",
+      "blueprintId": "vehicle.bh.crossbike"
+    },
+    {
+      "name": "Diamondback - Century",
+      "imageUrl": "vehicle39.webp",
+      "blueprintId": "vehicle.diamondback.century"
+    },
+    {
+      "name": "Gazelle - Omafiets",
+      "imageUrl": "vehicle40.webp",
+      "blueprintId": "vehicle.gazelle.omafiets"
+    }
+  ]
+}

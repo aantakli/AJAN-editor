@@ -1,0 +1,22 @@
+[
+  {
+    "name": "map01",
+    "description": "Urban Area",
+    "image": "./images/map01.png"
+  },
+  {
+    "name": "map02",
+    "description": "Suburban Area",
+    "image": "./images/map02.png"
+  },
+  {
+    "name": "map03",
+    "description": "Industrial Zone",
+    "image": "./images/map03.png"
+  },
+  {
+    "name": "map04",
+    "description": "Party Marty",
+    "image": "./images/map04.png"
+  }
+]

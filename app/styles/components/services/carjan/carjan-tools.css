@@ -1,0 +1,138 @@
+.waypoint-selection-container {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 400px;
+  gap: 20px;
+  padding: 10px;
+  padding-left: 70px;
+  padding-right: 70px;
+}
+
+.waypoint-panel {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+  position: relative;
+  background-color: white;
+}
+
+.waypoint-panel-main {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+  position: relative;
+  padding-left: 60px;
+  background-color: white;
+}
+
+.waypoint-panel-main:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.waypoint-panel:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.waypoint-panel-triangle::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  width: 5%;
+  height: 100%;
+  background-color: var(--triangle-color);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 5px 5px 5px 5px;
+}
+
+.waypoint-container {
+  padding-left: 70px;
+  padding-right: 70px;
+}
+
+.waypoint-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.waypoint-image {
+  width: 70px !important;
+  height: 70px;
+}
+
+.waypoint-image i {
+  font-size: 24px;
+}
+
+.waypoint-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  margin-left: 20px;
+}
+
+.waypoint-header {
+  font-size: 1.2em;
+  font-weight: bold;
+  text-align: left;
+}
+
+.drag-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  cursor: grab;
+}
+
+.follow-drag-icon {
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.center-modal {
+  left: auto;
+}
+
+.page-dimmer {
+  z-index: 1100;
+}
+
+.waypoint-selection-container {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 400px;
+  gap: 20px;
+  padding: 10px;
+}
+
+.description {
+  margin-bottom: 6px;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: black;
+}
+
+.color-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-left: 10px;
+}
+
+.scroll-path-waypoints {
+  white-space: nowrap;
+  overflow: scroll;
+  text-overflow: ellipsis;
+  width: 100%;
+  padding-bottom: 20px;
+}

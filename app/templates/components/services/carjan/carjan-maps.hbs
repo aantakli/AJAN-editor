@@ -1,0 +1,30 @@
+<p class="node-adder-class title-behaviors">
+  <i class="map outline icon"></i>
+  <b>Map Selection</b>
+</p>
+<p class="active title composite-selection">
+  <i class="info circle icon" style="margin-left: 4px"></i>
+  Choose a map to explore!
+</p>
+<div class="content">
+  <div class="ui items" local-class="map-selection-container">
+    {{#each maps as |map|}}
+      <div local-class="map-panel" {{action "selectMap" map.name}}>
+        <div class="ui items" local-class="map-item">
+          <div local-class="map-image">
+            <img
+              src="/assets/carjan/carjan-maps/images/{{map.name}}.png"
+              alt="{{map.name}} preview"
+            />
+          </div>
+          <div local-class="map-content">
+            <div local-class="map-header">{{map.name}}</div>
+            <div local-class="map-description">
+              <p>{{map.description}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+</div>

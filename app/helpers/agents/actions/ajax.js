@@ -37,8 +37,8 @@ let events = undefined;
 let goals = undefined;
 
 export default {
-	getAgents :function() {
-		return agents;
+  getAgents: function () {
+    return agents;
   },
 
   getBehaviors: function () {
@@ -57,17 +57,21 @@ export default {
     return goals;
   },
 
-	// Gets entire graph from server
+  // Gets entire graph from server
   getFromServer: function (ajax, tripleStoreRepository) {
-    let result = Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
-      .then((token) => loadAgentsRepo(ajax, tripleStoreRepository, token));
+    let result = Promise.resolve(
+      tokenizer.resolveToken(ajax, localStorage.currentStore)
+    ).then((token) => loadAgentsRepo(ajax, tripleStoreRepository, token));
     return Promise.resolve(result);
   },
 
-// save to repository
+  // save to repository
   saveGraph: function (ajax, tripleStoreRepository, event, onEnd) {
-    Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
-      .then((token) => updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd));
+    Promise.resolve(
+      tokenizer.resolveToken(ajax, localStorage.currentStore)
+    ).then((token) =>
+      updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd)
+    );
   },
 };
 
@@ -76,24 +80,26 @@ function getHeaders(token) {
     return {
       Authorization: "Bearer " + token,
       Accept: "application/ld+json",
-    }
+    };
   } else {
     return {
       Accept: "application/ld+json",
-    }
+    };
   }
 }
 
 function loadAgentsRepo(ajax, tripleStoreRepository, token) {
-  let ajaxPromise = ajax.request(tripleStoreRepository + "/statements", {
-    accept: "application/ld+json; charset=utf-8",
-    headers: getHeaders(token),
-  }).catch(function (error) {
-    tokenizer.removeToken(localStorage.currentStore);
-    $("#error-message").trigger("showToast", [
-      "Error while accessing selected repository! Check if repository is accessible, secured or credentials are right!"
-    ]);
-  });
+  let ajaxPromise = ajax
+    .request(tripleStoreRepository + "/statements", {
+      accept: "application/ld+json; charset=utf-8",
+      headers: getHeaders(token),
+    })
+    .catch(function (error) {
+      tokenizer.removeToken(localStorage.currentStore);
+      $("#error-message").trigger("showToast", [
+        "Error while accessing selected repository! Check if repository is accessible, secured or credentials are right!",
+      ]);
+    });
 
   return ajaxPromise.then(function (data) {
     // read agents
@@ -136,8 +142,6 @@ function loadAgentsRepo(ajax, tripleStoreRepository, token) {
 }
 
 function updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd) {
-  console.log("Saving to triple store: ", tripleStoreRepository);
-
   let postDestination = tripleStoreRepository + "/statements";
   let rdfString = rdfGraph.toString();
   let query = SparqlQueries.update(rdfString);
@@ -155,8 +159,9 @@ function updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd) {
       contentType: "application/x-www-form-urlencoded; charset=utf-8",
       headers: getHeaders(token),
       // SPARQL query
-      data: dataString
-    }).then(function () {
+      data: dataString,
+    })
+    .then(function () {
       if (event) {
         event.updatedAG();
       }
@@ -175,7 +180,7 @@ function updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd) {
             contentType: "application/x-www-form-urlencoded; charset=utf-8",
             headers: getHeaders(token),
             // SPARQL query
-            data: restoredItem
+            data: restoredItem,
           })
           .then(
             function (data) {
@@ -191,16 +196,16 @@ function updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd) {
         location.reload();
 
         return;
-      }
-      else {
+      } else {
         tokenizer.removeToken(localStorage.currentStore);
-        Promise.resolve(tokenizer.resolveToken(ajax, localStorage.currentStore))
-          .then((token) => updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd));
+        Promise.resolve(
+          tokenizer.resolveToken(ajax, localStorage.currentStore)
+        ).then((token) =>
+          updateAgentsRepo(token, ajax, tripleStoreRepository, event, onEnd)
+        );
       }
       throw error;
     });
 
   rdfGraph.unsavedChanges = false;
 }
-
-

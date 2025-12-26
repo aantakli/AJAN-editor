@@ -9,7 +9,8 @@ if "%NODE_VERSION%" == "node is not recognized as an internal or external comman
       start cmd.exe /c startEditor.bat
       start cmd.exe /c startReportService.bat
       start cmd.exe /c startTestActionService.bat
-	  start cmd.exe /c startAJANDemoService.bat
+      start cmd.exe /c startAJANDemoService.bat
+      start cmd.exe /c startCarjanService.bat
 
       echo Local IP:
       ipconfig | findstr "IPv4"
@@ -20,4 +21,3 @@ if "%NODE_VERSION%" == "node is not recognized as an internal or external comman
         echo Node.js 8.6.0 is not installed. The current version is %NODE_VERSION%
     )
 )
-

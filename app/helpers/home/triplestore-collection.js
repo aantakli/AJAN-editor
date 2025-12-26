@@ -19,31 +19,31 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Ember from "ember";
-import {TriplestoreListing} from "ajan-editor/helpers/home/triplestore-listing";
+import { TriplestoreListing } from "ajan-editor/helpers/home/triplestore-listing";
 
 let $ = Ember.$;
 
 class TriplestoreCollection {
-	constructor(parentComponent) {
-		this.parentComponent = parentComponent;
-		this.getTripleStores();
-		this.insertTriplestores();
-	}
+  constructor(parentComponent) {
+    this.parentComponent = parentComponent;
+    this.getTripleStores();
+    this.insertTriplestores();
+  }
 
-	getTripleStores() {
-		try {
-			this.triplestores = JSON.parse(localStorage.triplestores);
-		} catch (err) {
-			this.triplestores = [];
-		}
-	}
+  getTripleStores() {
+    try {
+      this.triplestores = JSON.parse(localStorage.triplestores);
+    } catch (err) {
+      this.triplestores = [];
+    }
+  }
 
-	insertTriplestores() {
-		this.$list = $("#triplestore-list");
-		this.triplestores.forEach(triplestore => {
-			new TriplestoreListing(triplestore, this.parentComponent);
-		});
-	}
+  insertTriplestores() {
+    this.$list = $("#triplestore-list");
+    this.triplestores.forEach((triplestore) => {
+      new TriplestoreListing(triplestore, this.parentComponent);
+    });
+  }
 
   insertNewTriplestore() {
     let triplestore = getNewTriplestore();
@@ -60,13 +60,15 @@ class TriplestoreCollection {
       new TriplestoreListing(triplestore, this.parentComponent);
       this.triplestores.push(triplestore);
       localStorage.triplestores = JSON.stringify(this.triplestores);
+    } else {
+      console.log("Triplestore already exists");
     }
   }
 }
 
 function checkExistence(that, triplestore) {
   let existing = false;
-  that.triplestores.forEach(item => {
+  that.triplestores.forEach((item) => {
     if (!existing) {
       if (item.label == triplestore.label) {
         existing = true;
@@ -76,15 +78,14 @@ function checkExistence(that, triplestore) {
   return existing;
 }
 
-
 function getNewTriplestore() {
-	return {
+  return {
     label: getLabel(),
     secured: getSecured(),
     token: "",
     expiration: 0,
-		uri: getURI()
-	};
+    uri: getURI(),
+  };
 }
 
 function getDefinedTriplestore(name, uri) {
@@ -93,12 +94,12 @@ function getDefinedTriplestore(name, uri) {
     secured: false,
     token: "",
     expiration: 0,
-    uri: uri
+    uri: uri,
   };
 }
 
 function getLabel() {
-	return $("#label").val();
+  return $("#label").val();
 }
 
 function getSecured() {
@@ -106,7 +107,7 @@ function getSecured() {
 }
 
 function getURI() {
-	return $("#uri").val();
+  return $("#uri").val();
 }
 
-export {TriplestoreCollection};
+export { TriplestoreCollection };

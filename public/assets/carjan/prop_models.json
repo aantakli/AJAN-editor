@@ -1,0 +1,69 @@
+{
+  "Props": [
+    {
+      "name": "Barrel",
+      "imageUrl": "static_prop_barrel.webp",
+      "blueprintId": "static.prop.barrel"
+    },
+    {
+      "name": "Bin",
+      "imageUrl": "static_prop_bin.webp",
+      "blueprintId": "static.prop.bin"
+    },
+    {
+      "name": "Bench 01",
+      "imageUrl": "static_prop_bench01.webp",
+      "blueprintId": "static.prop.bench01"
+    },
+    {
+      "name": "Bench 02",
+      "imageUrl": "static_prop_bench02.webp",
+      "blueprintId": "static.prop.bench02"
+    },
+    {
+      "name": "Bench 03",
+      "imageUrl": "static_prop_bench03.webp",
+      "blueprintId": "static.prop.bench03"
+    },
+    {
+      "name": "Box",
+      "imageUrl": "static_prop_box01.webp",
+      "blueprintId": "static.prop.box01"
+    },
+    {
+      "name": "Bus Stop",
+      "imageUrl": "static_prop_busstop.webp",
+      "blueprintId": "static.prop.busstop"
+    },
+    {
+      "name": "Cloth Container",
+      "imageUrl": "static_prop_clothcontainer.webp",
+      "blueprintId": "static.prop.clothcontainer"
+    },
+    {
+      "name": "Container",
+      "imageUrl": "static_prop_container.webp",
+      "blueprintId": "static.prop.container"
+    },
+    {
+      "name": "Glass Container",
+      "imageUrl": "static_prop_glasscontainer.webp",
+      "blueprintId": "static.prop.glasscontainer"
+    },
+    {
+      "name": "Street Barrier",
+      "imageUrl": "static_prop_streetbarrier.webp",
+      "blueprintId": "static.prop.streetbarrier"
+    },
+    {
+      "name": "Traffic Cone",
+      "imageUrl": "static_prop_trafficcone01.webp",
+      "blueprintId": "static.prop.trafficcone01"
+    },
+    {
+      "name": "Vending Machine",
+      "imageUrl": "static_prop_vendingmachine.webp",
+      "blueprintId": "static.prop.vendingmachine"
+    }
+  ]
+}

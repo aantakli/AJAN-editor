@@ -1,0 +1,376 @@
+<div class="ui top attached tabular menu">
+  <a class="active item" data-tab="paths">
+    <i class="map signs icon"></i>Paths</a>
+  <a class="item" data-tab="waypoints">
+    <i class="map pin icon"></i>Waypoints</a>
+  <a class="item" data-tab="decision-box">
+    <i class="inbox icon"></i>Decision Box</a>
+</div>
+
+<div
+  class="ui inverted dimmer page transition"
+  id="page-dimmer"
+  style="transition: 2s ease-in-out; z-index: 10;"
+>
+  <!-- Optionale Inhalte, falls nötig -->
+</div>
+
+<!-- Paths Tab -->
+<div class="ui bottom attached active tab segment" data-tab="paths">
+
+  <div class="ui segment">
+    <div class="ui grid">
+      <div class="ui eleven wide column">
+        <p class="node-adder-class title-behaviors">
+          <i class="code branch icon"></i>
+          <b>Path Selection</b>
+        </p>
+      </div>
+      <div class="ui four wide column">
+        <button
+          class="ui secondary button"
+          id="add-path"
+          {{action "openNewPathDialog"}}
+        >
+          <i class="plus icon"></i>
+          New Path
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <p class="active title composite-selection">
+    <i class="info circle icon" style="margin-left: 4px"></i>
+    Click on a Path see its properties.
+  </p>
+
+  <div
+    class="ui items"
+    id="paths-list"
+    local-class="waypoint-selection-container"
+    style="background-color: rgb(232, 237, 241); border-radius: 10px;"
+  >
+    {{#each pathsWithWaypoints as |path|}}
+      <div
+        local-class="waypoint-panel-main"
+        style="margin-bottom: 12px;"
+        {{action "openPathwayEditor" path}}
+      >
+        <div local-class="waypoint-panel-triangle" id={{{path.path}}}>
+          <div class="item">
+            <div class="content" local-class="content-small">
+              <div local-class="description">
+                <i class="icon code branch"></i>
+                {{{path.description}}}
+              </div>
+              <div class="extra" local-class="scroll-path-waypoints">
+                <div class="ui breadcrumb">
+                  <i class="icon arrow right"></i>
+
+                  {{#each path.waypoints as |waypoint|}}
+                    <i class="right angle icon divider"></i>
+                    <div class="section">
+                      <div
+                        local-class="waypoint-panel"
+                        onmouseenter={{action
+                          "setWaypointHighlightColor"
+                          waypoint
+                          path
+                        }}
+                        onmouseleave={{action
+                          "clearWaypointHighlightColor"
+                          waypoint
+                        }}
+                      >
+                        <div
+                          class="ui items"
+                          local-class="waypoint-item"
+                          style="margin: 0;"
+                        >
+                          <div class="content">
+                            <div class="title">
+                              <i class="map pin icon"></i>
+                              ({{{waypoint.x}}},
+                              {{{waypoint.y}}})
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  {{/each}}
+
+                  <i class="right angle icon divider"></i>
+                  <i class="icon flag outline"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+
+</div>
+
+<!-- Waypoints Tab -->
+<div class="ui bottom attached tab segment" data-tab="waypoints">
+  <div class="ui segment">
+    <p class="node-adder-class title-behaviors">
+      <i class="map pin icon"></i>
+      <b>Waypoint Selection</b>
+    </p>
+  </div>
+  <p class="active title composite-selection">
+    <i class="info circle icon" style="margin-left: 4px"></i>
+    Drag & Drop a Waypoint onto the canvas.
+  </p>
+
+  <div class="content">
+    <!-- Standardmäßiger Drag-and-Drop-Bereich für neue Waypoints -->
+    <div local-class="waypoint-container">
+      <div local-class="waypoint-panel">
+        <div class="ui items" local-class="waypoint-item" style="margin: 0;">
+          <div local-class="waypoint-image">
+            <i
+              id="map-pin-icon"
+              class="icon map pin"
+              style="font-size: 48px;"
+            ></i>
+          </div>
+          <div local-class="waypoint-content">
+            <a local-class="waypoint-header">New Waypoint</a>
+          </div>
+        </div>
+      </div>
+
+      <div
+        local-class="drag-overlay"
+        draggable="true"
+        data-waypoint-type="waypoint"
+        ondragstart={{action "dragStart"}}
+        ondragleave={{action "dragLeave"}}
+        style="position:absolute; top:0; left:0; width:100%; height:100%"
+      ></div>
+    </div>
+    <h3></h3>
+
+    <div
+      class="ui items"
+      id="paths-list"
+      local-class="waypoint-selection-container"
+      style="height: 300px; background-color: rgb(232, 237, 241); border-radius: 10px;"
+    >
+      {{#each waypointPathList as |waypoint|}}
+        <div
+          local-class="waypoint-panel-main"
+          style="margin-bottom: 12px; padding-left: 20px;"
+          onmouseenter={{action "setWaypointHighlightColor" waypoint null}}
+          onmouseleave={{action "clearWaypointHighlightColor" waypoint}}
+          onclick={{action
+            "openWaypointEditor"
+            waypoint.x
+            waypoint.y
+            waypoint.positionInCell
+          }}
+        >
+          <div class="item">
+            <div class="content" local-class="content-small">
+              <div local-class="description">
+                <i class="icon map pin"></i>
+                {{waypoint.waypointId}}
+                <div class="ui breadcrumb">
+                  <i class="right angle icon divider"></i>
+                  <div class="section">
+                    <div local-class="waypoint-panel">
+                      <div
+                        class="ui items"
+                        local-class="waypoint-item"
+                        style="margin: 0;"
+                      >
+                        <div class="content">
+                          <div class="title">
+                            <i class="map pin icon"></i>
+                            ({{waypoint.x}},
+                            {{waypoint.y}})
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="section"
+                    style="margin-left: 10px; color: #50C878"
+                  >
+                    {{waypoint.positionInCell}}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hier werden nur die relevanten Pfade für den aktuellen Waypoint angezeigt -->
+              <div class="extra" local-class="scroll-path-waypoints">
+                <div
+                  class="ui breadcrumb"
+                  style="display: flex; flex-direction: row; gap: 16px;"
+                >
+                  {{#each waypoint.paths as |path|}}
+                    <div
+                      local-class="waypoint-panel"
+                      onmouseenter={{action "openPathwayEditor" path}}
+                      onmouseleave={{action "clearPath"}}
+                    >
+                      <i
+                        class="icon code branch"
+                        style={{this.safeColorStyle}}
+                      ></i>
+                      {{path.description}}
+                    </div>
+                  {{/each}}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      {{/each}}
+
+    </div>
+  </div>
+</div>
+
+<!-- Decision Box Tab -->
+<div class="ui bottom attached tab segment" data-tab="decision-box">
+  <div class="ui segment">
+    <div class="ui grid">
+      <div class="ui nine wide column">
+        <p class="node-adder-class title-behaviors">
+          <i class="inbox icon"></i>
+          <b>Decision Boxes</b>
+        </p>
+      </div>
+      <div class="ui seven wide column">
+        <button
+          class="ui secondary button"
+          id="add-decision-box"
+          {{action "startNewDecisionBox"}}
+        >
+          <i class="plus icon"></i>
+          New Decision Box
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <p class="active title composite-selection">
+    <i class="info circle icon" style="margin-left: 4px"></i>
+    Draw a new Decision Box directly on the canvas.
+  </p>
+
+  <div
+    class="ui items"
+    id="dbox-list"
+    local-class="waypoint-selection-container"
+    style="background-color: rgb(232, 237, 241); border-radius: 10px;"
+  >
+    {{#each dboxes as |dbox|}}
+      <div
+        local-class="waypoint-panel-main"
+        style="margin-bottom: 12px; padding-left: 20px;"
+        {{action "openDecisionBoxEditor" dbox}}
+      >
+        <div
+          class="item"
+          style="display: flex; align-items: center; gap: 16px;"
+        >
+          <!-- Farbiges Quadrat -->
+          <div class="image">
+            <div
+              id="preview-{{dbox.id}}"
+              style={{html-safe
+                (concat
+                  "width: 100px; height: 100px; "
+                  "background-color: "
+                  dbox.fillColor
+                  "; "
+                  "border: 2px solid "
+                  dbox.borderColor
+                  ";"
+                )
+              }}
+              class="decision-box-preview"
+            ></div>
+
+          </div>
+
+          <!-- Textinhalt -->
+          <div class="content" local-class="content-small">
+            <div local-class="description">
+              <i class="icon inbox"></i>
+              {{{dbox.label}}}
+            </div>
+            <div class="extra">
+              <div class="ui breadcrumb">
+                <i class="icon expand"></i>
+                Bounding Box: ({{{dbox.startX}}},
+                {{{dbox.startY}}})
+                <i class="icon arrow right"></i>
+                ({{{dbox.endX}}},
+                {{{dbox.endY}}})
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+
+</div>
+
+{{#if isDialogOpen}}
+  <div class="ui dimmer modals page" id="schwanz" style="z-index: 1100;">
+    <div
+      class="ui small basic modal transition"
+      id="newpath"
+      local-class="center-modal"
+    >
+
+      <div class="header"><i class="code branch icon"></i>
+        Create your New Path
+      </div>
+      <div class="content">
+        <div class="ui form">
+          <div class="field {{if hasError 'error'}}">
+            <p>
+              <i class="edit icon" />
+              Enter the description of your new Path.
+            </p>
+            {{input
+              value=pathDescription
+              placeholder=placeholderText
+              key-up=(action "checkPathName")
+            }}
+            {{#if hasError}}
+              <div class="ui pointing red basic label">
+                <i class="exclamation triangle icon" />
+                {{errorMessage}}
+              </div>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <button
+          class="ui green cancel button"
+          {{action "generateNewPath"}}
+          disabled={{isDisabled}}
+        >
+          <i class="check icon"></i>
+          Confirm
+        </button>
+
+        <button class="ui cancel button" {{action "closeNewPathDialog"}}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+{{/if}}

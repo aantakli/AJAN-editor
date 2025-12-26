@@ -1,5 +1,7 @@
 # See https://help.github.com/ignore-files/ for more about ignoring files.
 
+/AJAN-service
+
 # compiled output
 /dist
 /tmp
@@ -22,15 +24,7 @@ testem.log
 bower.json.ember-try
 package.json.ember-try
 
-# IDEs and editors
-.idea
-.vscode
-.vs
-app/vscode
-app/.vs
-
-.idea/*
-.vscode/*
-.vs/*
-app/vscode/*
-app/.vs/*
+# CARJAN files
+.env
+__pycache__/
+*.pyc

@@ -1,0 +1,14 @@
+<div class="pacman-container" style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; background: #000; color: #fff; font-family: Arial, sans-serif; overflow: hidden;">
+  <p style="margin: 5px 0;">Klicke auf das Spiel, um zu starten und die Steuerung zu aktivieren.</p>
+  <iframe id="pacman-iframe" src="/pacman-game/index.html" style="width: 100%; height: calc(100% - 30px); border: none;"></iframe>
+</div>
+
+<script>
+  // Versuche den Fokus auf den Iframe zu setzen, wenn der Tab geladen wird
+  setTimeout(function() {
+    var iframe = document.getElementById('pacman-iframe');
+    if (iframe) {
+      iframe.focus();
+    }
+  }, 500);
+</script>

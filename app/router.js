@@ -56,6 +56,7 @@ Router.map(function() {
 			this.route("queries");
 			this.route("test");
 		});
+		this.route("pacman");
 	});
 	this.route("home");
 });

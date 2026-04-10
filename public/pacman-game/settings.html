@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Pacman - Settings</title>
+	<style type="text/css">
+		form span { display:inline-block;}
+		input[type='radio'] { 
+			float:left; clear:both;
+			margin-bottom:1px;
+			position:relative;
+			top:-15px;
+		}
+		input[type='text'] {
+			color:white;
+			background-color:black;
+		}
+		.speedinput {
+			display:block;
+			width:150px;
+			border-radius:5px;
+			padding:3px;
+		}
+		.settings, .settings label {
+			width:250px !important;
+		}
+
+	</style>
+
+	<script type="text/javascript">
+
+	function getSpeed(){
+		speed=sessionStorage.speed;
+		if (speed==16){
+			document.getElementById("beginner").checked = true;
+		} else if (speed==12){
+			document.getElementById("slow").checked = true;
+		} else if (speed==10){
+			document.getElementById("regular").checked = true;
+		} else if (speed==8){
+			document.getElementById("fast").checked = true;
+		} else if (speed==6){
+			document.getElementById("ridiculous").checked = true;
+		} else {
+			document.getElementById("regular").checked = true;
+		}
+	}
+
+	function setSpeed(to){
+		sessionStorage.speed = to;
+	}
+
+	function setMover(){
+
+		var controls = document.getElementsByClassName("settingcontrol");
+		for (i in controls){
+			if (controls[i].id){
+				console.log(controls[i].id);
+				controls[i].addEventListener("change", function(){
+					//alert("yo");
+				});
+			}
+		};
+
+		var el = document.getElementsByClassName("speedinput");
+		for (i in el){
+			//if (el[i].id){
+				el[i].addEventListener("mouseover", function(){
+					this.style.backgroundColor="#6600ff";
+				});
+				el[i].addEventListener("mouseout", function(){
+					this.style.backgroundColor="transparent";
+					this.style.color="#fff";
+				});
+			//}
+		}
+	
+
+
+	}
+	</script>
+</head>
+<body bgcolor="black" text="white" onLoad="getSpeed()" link="yellow" vlink="yellow" alink="red">
+<center>
+<font face="verdana, arial, helvetica" size="2">
+<table width="600"><tr><td>
+<img src="graphics/pacmanr.gif" width=30 height=30 alt="" border="0"><img src="graphics/pil.gif" width=30 height=30 alt="" border="0"><img src="graphics/pil.gif" width=30 height=30 alt="" border="0">
+</td>
+<td><div align="center">
+</div><br><br></td>
+<td><div align="right"><img src="graphics/pil.gif" width=30 height=30 alt="" border="0"><img src="graphics/pil.gif" width=30 height=30 alt="" border="0"><img src="graphics/pacmanl.gif" width=30 height=30 alt="" border="0"></div></td>
+</tr>
+<tr><td colspan="3">
+
+
+<center>
+<font face="verdana, arial, helvetica" size="2">
+<b>Edit game settings:</b></font><br><br>
+</td></tr></table>
+<div style="width:200px; text-align:left;">
+<form>
+<p style="text-decoration:underline">Game Speed: </p>
+<br />
+<span class="speedinput"> 
+	<label>Beginner</label>
+	<input type="radio" class="speedinput" name="speed" value="16" id="beginner" onClick="setSpeed(this.value)" />
+</span> <br />
+<span class="speedinput">
+	<label>Slow</label>
+	 <input type="radio" class="speedinput" name="speed" value="12" id="slow" onClick="setSpeed(this.value)" />
+</span> <br />
+<span class="speedinput">
+	<label>Regular</label>
+	 <input type="radio" class="speedinput" name="speed" value="10" id="regular" onClick="setSpeed(this.value)" />
+</span> <br />
+<span class="speedinput">
+	<label>Fast</label>
+	 <input type="radio" class="speedinput" name="speed" value="8" id="fast" onClick="setSpeed(this.value)" />
+</span> <br />
+<span class="speedinput">
+	<label>Crazy</label>
+	 <input type="radio" class="speedinput" name="speed" value="6" id="ridiculous" onClick="setSpeed(this.value)" /> </span> <br />
+
+
+<br clear="all" />
+<a href="intropage.html?noset" style='text-decoration:none; border:1px yellow solid; padding:5px; border-radius:5px;'>&#8592; Return to game</a>
+
+<br />
+<br />
+<br />
+
+<hr />
+<!--
+<p style="font-weight:bold">Bonus Modes:</p>
+
+<span class="speedinput settings">
+	<label>Experimental Features:</label>
+	 <input type="checkbox" class="settinginput settingcontrol" name="experimental" id="experimental" />
+</span> <br />
+<span class="speedinput settings">
+	<label>Speedball:</label>
+	 <input type="checkbox" class="settinginput settingcontrol" name="speedball" id="speedball" />
+</span> <br />
+<hr />
+<p style="font-weight:bold">General Gameplay Settings:</p>
+<span class="speedinput settings">
+	<label>Fruit Lifetime:</label>
+	 <input type="text" class="settinginput" name="fruitlife" value="600" id="fruitlife" />
+</span> <br />
+<span class="speedinput settings">
+	<label>Powerpill Lifetime:</label>
+	 <input type="text" class="settinginput" name="pplife" value="600" id="pplife" />
+</span> <br />
+<span class="speedinput settings">
+	<label>Powerpill timeout warning duration:</label>
+	 <input type="text" class="settinginput" name="pptimeout" value="600" id="pptimeout" />
+</span> <br />
+//-->
+
+</div>
+</form>
+<br clear="all" />
+<!--
+<a href="intropage.html?noset" style='text-decoration:none; border:1px yellow solid; padding:5px; border-radius:5px;'>&#8592; Return to game</a>
+//-->
+<script>
+setMover();
+</script>
+</body>
+</html>

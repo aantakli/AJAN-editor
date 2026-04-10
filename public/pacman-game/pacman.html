@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<!-- Pacman -->
+<!-- By Matt Platts - mattplatts@gmail.com-->
+<html>
+<head>
+	<title>Pac Man - Level 1</title>
+
+	<link rel="stylesheet" type="text/css" href="css/maze.css" />
+	<link rel="stylesheet" type="text/css" href="css/pacman.css" />
+	<link rel="stylesheet" type="text/css" href="css/icon.css" />
+	<style>
+	body {
+		overflow:hidden;
+		text-align: center;
+	}
+	</style>
+
+</head>
+
+<body onKeyDown="kd(event)" onKeyUp="ku(event)">
+
+<div id="game-container" style="position: relative; width: 620px; margin: 0 auto; text-align: left;">
+<div id="score" align="center">
+	<form>
+	SCORE: <input type="text" class="scores" value="000" size="4" name="score" readonly> LIVES: <input type="text" class="scores" value="3" size="1" name="lives" readonly>  TIME: <input type="text" class="scores" value="10000" size="4" name="gametimer" readonly>
+	</form>
+</div>
+
+<div id="maze">
+<div id="mazeinner"></div>
+</div>
+
+<div id="pacman" name="pacman" class="sprite pacman" style="top:265px; left:305px;">
+   <div id="pacman-top"></div>
+   <div id="pacman-bottom"></div>
+</div>
+
+<div id='ghost0' class="sprite ghost" style="top:205px; left:275px;">
+<img src="graphics/ghost_red.gif" name="gst0" alt="" border="0">
+</div>
+
+<div id='ghost1' class="sprite ghost" style="top:205px; left:335px;">
+<img src="graphics/ghost_pink.gif" name="gst1" alt="" border="0">
+</div>
+
+<div id='ghost2' class="sprite ghost" style="top:205px; left:305px;">
+<img src="graphics/ghost_blue.gif" name="gst2" alt="" border="0">
+</div>
+
+<div id="ghost3" class="sprite ghost" style="top:185px; left:305px;">
+<img src="graphics/ghost_orange.gif" name="gst3" alt="" border="0">
+</div>
+
+<div id="fruit" class="sprite" style="position:absolute;top:265px; left:305px; visibility:hidden">
+<img src="graphics/cherry.gif" name="berry" width=23 height=23>
+</div>
+
+<div id="start" class="notice" style="visibility:visible;">
+	<span class="notice_top" id="levelIndicator">Level <script>document.write(sessionStorage.level ? sessionStorage.level : 1)</script></span>
+	<span class="notice_bottom">Get Ready...</span>
+</div>
+
+<div id="message" class="notice">
+	<span class="notice_top">One Life Lost</span>
+	<span class="notice_bottom">Get Ready..</span>
+</div>
+
+<div id="messageEnd" class="notice" style="z-index:9;">
+	<span class="notice_top"><span style="position:relative; top:15px; display:inline-block">Final Life Lost - <font color='orange'>Game Over</font></span></span><br />
+	<span id="score" class="notice_bottom"></span>
+</div>
+</div>
+
+<!-- Include javascript libraries //-->
+<script language="javascript" type="text/javascript" src="js/pacman_setup.js"></script>
+<script language="javascript" type="text/javascript" src="js/fx.js"></script>
+<script language="javascript" type="text/javascript">
+	setup(); // call the entry point
+</script>
+</body>
+</html>

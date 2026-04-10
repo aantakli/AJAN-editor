@@ -1,0 +1,88 @@
+body {
+	font-family:verdana, arial, helvetica;
+	font-size:12px;
+	color:#ffff00;
+	background-color:#000;
+}
+
+#maze {
+	position:absolute; top:0px; left:0px; z-Index:1;
+}
+
+.sprite {
+	position:absolute;
+	width:30px;
+	height:30px;
+	z-index:2;
+	border:0;
+}
+
+#pacman {
+	left:305px;
+	top:265px;
+}
+
+.ghost {
+	position:absolute;
+	top:205px;
+	left:305px;
+	z-index:3;
+}
+
+.sprite image {
+	width:30px;
+	height:30px;
+}
+
+.notice{
+	position:absolute;
+	top:325px;
+	left:180px;
+	width:285px;
+	padding-bottom:20px;
+	padding-top:-10px;
+	/*height:120px ;*/
+	z-index:8;
+	visibility:hidden;
+	text-align:center;
+	background-color:#000;
+	border:2px #0033ff solid;
+	border-radius:10px;
+	opacity:0.95;
+}
+
+.notice_top {
+	font-size:14px;
+	color:yellow;
+	font-family:verdana, arial, helvetica;
+	font-weight:bold;
+	display:inline-block;
+	position:relative;
+	top:-8px;
+}
+
+.notice_bottom {
+	font-size:15px;
+	color:lime !important;
+	display:block;
+	margin-top:40px;
+	font-family:verdana, arial, helvetica;
+	font-weight:bold;
+	display:inline-block;
+	position:relative;
+	top:-8px;
+}
+
+#score {
+	position:absolute; top:495px; left:10px; width:600px; height:20px;
+}
+#score input {border:0; outline:0; width:70px;}
+.scores { font-family:verdana, arial, helvetica; font-size:12px; color:green; background-color:#000000; border:0;}
+
+.multiColour {
+	background-image: -webkit-gradient( linear, left top, right top, color-stop(0, #f22), color-stop(0.15, #f2f), color-stop(0.3, #22f), color-stop(0.45, #2ff), color-stop(0.6, #2f2),color-stop(0.75, #2f2), color-stop(0.9, #ff2), color-stop(1, #f22) );
+	background-image: gradient( linear, left top, right top, color-stop(0, #f22), color-stop(0.15, #f2f), color-stop(0.3, #22f), color-stop(0.45, #2ff), color-stop(0.6, #2f2),color-stop(0.75, #2f2), color-stop(0.9, #ff2), color-stop(1, #f22) );
+	color:transparent;
+	-webkit-background-clip: text;
+	background-clip: text;
+}

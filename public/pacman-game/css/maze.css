@@ -1,0 +1,294 @@
+	.mazeCell {
+		width:30px;
+		height:30px;
+	}
+
+	.wallCell {
+		width:28px;
+		height:28px;
+		background-color:transparent;
+	}
+
+	.UDXX{
+		border-left:2px #0033ff solid;
+		border-right:2px #0033ff solid;
+	}
+	.XXLR {
+		border-top:2px #0033ff solid;
+		border-bottom:2px #0033ff solid;
+	}
+
+	.XXXR {  /*  Represents a dead end where can only go right  - border-bottom should not actually be required and filled in by the wall css*/
+		border-left:2px #0033ff solid;
+		border-top:2px #0033ff solid;
+		border-bottom:2px #0033ff solid;
+	}
+	.XXLX { /*  Represents a dead end movement cell where can only go left - border-bottom is currently generating an error (2px lower than should be)*/
+		border-right:2px #0033ff solid;
+		border-top:2px #0033ff solid;
+		border-bottom:2px #0033ff solid;
+	}
+	.UXXX {
+		border-bottom:2px #0033ff solid;
+		border-left:2px #0033ff solid;
+		border-right:2px #0033ff solid;
+	}
+	.XDXX {
+		border-top:2px #0033ff solid;
+		border-left:2px #0033ff solid;
+		border-right:2px #0033ff solid;
+	}
+	.XDXR {
+		border-top:2px #0033ff solid;
+		border-left:2px #0033ff solid;
+	}
+	.XDLX {
+		border-top:2px #0033ff solid;
+		border-right:2px #0033ff solid;
+	}
+	.UXXR {
+		border-left:2px #0033ff solid;
+		border-bottom:2px #0033ff solid;
+		border-bottom-left-radius:5px;
+		border-top-right-radius:5px;
+	}
+	.UXLX {
+		border-bottom:2px #0033ff solid;
+		border-right:2px #0033ff solid;
+		border-bottom-right-radius:5px;
+		border-top-left-radius:5px;
+
+	}
+	.UXLR {
+		border-bottom:2px #0033ff solid;
+	}
+	.XDLR {
+		border-top:2px #0033ff solid;
+	}
+	.UDXR {
+		border-left:2px #0033ff solid;
+	}
+	.UDLX {
+		border-right:2px #0033ff solid;
+	}
+
+	.UDLR {
+
+	}
+
+
+	/* wall cell direction styles */
+	.w_UDXX{
+		border-top:2px #0033ff solid;
+		border-bottom:2px #0033ff solid;
+		width:32px;
+	}
+	.w_XXLR {
+		border-left:2px #0033ff solid;
+		border-right:2px #0033ff solid;
+		height:32px;
+	}
+
+	.w_XXXR {
+		border-right:2px #0033ff solid;
+		border-top-right-radius:2px;
+
+		height:32px;
+		width:30px;
+	}
+	.w_XXLX {
+		border-left:2px #0033ff solid;
+
+		height:30px;
+	}
+	.w_UXXX {
+		border-top:2px #0033ff solid;
+
+		height:30px;
+		width:32px;
+
+	}
+	.w_XDXX {
+		border-bottom:2px #0033ff solid;
+
+		width:32px;
+		height:30px;
+
+	}
+	.w_XDXR {
+		border-right:2px #0033ff solid;
+		border-bottom:2px #0033ff solid;
+		border-bottom-right-radius:10px;
+
+		height:30px;
+		width:30px;
+
+	}
+	.w_XDLX {
+		border-left:2px #0033ff solid;
+		border-bottom:2px #0033ff solid;
+		border-bottom-left-radius:10px;
+
+		height:30px;
+	}
+	.w_UXXR {
+		border-top:2px #0033ff solid;
+		border-right:2px #0033ff solid;
+		border-top-right-radius:10px;
+
+		height:30px;
+		width:30px;
+
+
+	}
+	.w_UXLX {
+		border-top:2px #0033ff solid;
+		border-left:2px #0033ff solid;
+		border-top-left-radius:10px;
+
+	}
+	.w_UXLR {
+		border-top:2px #0033ff solid;
+		border-left:2px #0033ff solid;
+		border-right:2px #0033ff solid;
+		border-top-left-radius:10px;
+		border-top-right-radius:10px;
+	}
+	.w_XDLR {
+		border-left:2px #0033ff solid;
+		border-right:2px #0033ff solid;
+		border-bottom:2px #0033ff solid;
+		border-bottom-left-radius:10px;
+		border-bottom-right-radius:10px;
+	}
+	.w_UDXR {
+		border-right:2px #0033ff solid;
+		border-top:2px #0033ff solid;
+		border-bottom:2px #0033ff solid;
+		border-top-right-radius:10px;
+		border-bottom-right-radius:10px;
+
+	}
+	.w_UDLX {
+		border-left:2px #0033ff solid;
+		border-top:2px #0033ff solid;
+		border-bottom:2px #0033ff solid;
+		border-top-left-radius:10px;
+		border-bottom-left-radius:10px;
+	}
+
+	.w_UDLR {
+		border:2px #0033ff solid;
+		border-radius:10px;
+	}
+
+
+
+	/*
+	.blockLowerRight:after {
+			content:''; width:2px; height:20px; background:#0033ff; position:absolute; right:0px; top:30px;
+	}
+
+	.blockLowerLeft:before {
+			content:''; width:2px; height:20px; background:#0033ff; position:absolute; left:-2px; top:30px;
+	}
+
+	.blockTopRight:after {
+			content:''; width:20px; height:2px; background:#0033ff; position:absolute; left:30px; top:-2px;
+	}
+	.blockTopRightLowerRight:after {
+			content:''; width:2px; height:20px; background:yellow; position:absolute; right:0px; top:30px;
+	}
+	.blockTopRightLowerRight:before {
+			content:''; width:20px; height:2px; background:red; position:absolute; left:30px; top:-2px;
+	}
+
+	.blockTAndBottomRight:after {
+	}
+	.blockTopAndBottomRight:before {
+			content:''; width:20px; height:2px; background:pink; position:absolute; left:30px; bottom:0px;
+	}
+	*/
+
+	/*
+	.fillForwards {
+		position:relative; left:28px; top:-2px; background-color:transparent; height:28px; border-top:2px #0033ff solid; border-bottom:2px #0033ff solid; width:32px; /* use 32px to close current gaps
+	}
+
+	*/
+	.fillForwards_white {
+		 border-top:2px white solid; border-bottom:2px white solid;
+	}
+
+	#mazeinner {
+		border:2px #0033ff solid;
+		border-radius:10px;
+		width:585px;
+		height:465px;
+		padding:5px;
+		margin-top:10px;
+		margin-left:20px;
+	}
+
+	input {border:0px; outline:0px;}
+
+	.ghostbarrier {
+		border-top:5px #ff0000 solid;
+		border-bottom:5px #ff0000 solid;
+		height:0px;
+		width:28px;
+		background-color:#000;
+		border-radius:4px;
+		margin-top:3px;
+		padding:0px 2px 0px 2px;
+	}
+
+	.topLeftRight {
+		border-top:2px #0033ff solid;
+		border-left:2px #0033ff solid;
+		border-right:2px #0033ff solid;
+		border-top-left-radius:5px;
+		border-top-right-radius:5px;
+	}
+
+	.spin {
+	        transform: rotate(360deg);
+            	transform-origin: center center;
+		transition: all 2s;
+	}
+
+	.fastspin {
+	        transform: rotate(360deg);
+            	transform-origin: center center;
+		transition: all 0.5s;
+	}
+
+	.negspin {
+	        transform: rotate(-360deg);
+            	transform-origin: center center;
+		transition: all .5s;
+	}
+
+	.halfspin {
+	        transform: rotate(180deg);
+            	transform-origin: center center;
+		transition: all .5s;
+	}
+
+	.longspin {
+	        transform: rotate(360deg);
+            	transform-origin: center center;
+		transition: all 5s;
+	}
+
+	.fade {
+		opacity: 1;
+		transition: opacity .25s ease-in-out;
+		-moz-transition: opacity .25s ease-in-out;
+		-webkit-transition: opacity .25s ease-in-out;
+	}
+
+	.trans{
+		transform: translateY(-30px);
+		transition: all 1.5s;
+	}
